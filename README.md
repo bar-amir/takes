@@ -40,13 +40,15 @@ Results on 2026-10-26, 3 takes of a 25-word draft, low effort:
 | Haiku 5.5 | 1.2 s | 2.6 s |
 | Sonnet 5.5 | 1.3 s | 2.8 s |
 | Sonnet 5.5, 5 takes | 1.2 s | 3.4 s |
+| Opus 5.5 | 1.8 s | 4.1 s |
+| Opus 5.5, medium effort | 1.6 s | 3.9 s |
 
 What made it fast:
 - **Plain text, not `--json-schema`.** Structured output costs Claude Code a second model turn, about doubling the time (Sonnet: about 8.6 s with it, 2.8 s without).
 - **Full model IDs.** On this account the `sonnet` alias still resolved to Sonnet 4.6 and `haiku` to Haiku 4.5. Those were 2 to 6 times slower.
 - Claude Code's own startup is under 0.5 s. Switching off tools, MCP servers and settings barely changes the total.
 
-Opus 5.5 needs Claude Code 2.1.280 or newer (`claude update`).
+Opus 5.5 needs Claude Code 2.1.280 or newer (`claude update`). The Opus rows were measured on 2.1.310.
 
 ## How it calls Claude
 
