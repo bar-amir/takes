@@ -26,7 +26,10 @@ enum FocusReader {
     static func snapshot(prefill: Prefill) -> FocusSnapshot {
         let app = NSWorkspace.shared.frontmostApplication
         guard let app, isTrusted(prompt: false), app.bundleIdentifier != Bundle.main.bundleIdentifier else {
-            return FocusSnapshot(app: app, text: "", source: .none, caretRect: nil, method: "untrusted or no app")
+            let snapshot = FocusSnapshot(app: app, text: "", source: .none, caretRect: nil,
+                                         method: isTrusted(prompt: false) ? "no app" : "no Accessibility access")
+            FocusLog.append(snapshot, role: "-")
+            return snapshot
         }
 
         let appElement = AXUIElementCreateApplication(app.processIdentifier)

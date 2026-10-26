@@ -14,9 +14,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.button?.image = NSImage(systemSymbolName: "text.bubble", accessibilityDescription: "Takes")
         rebuildStatusMenu()
 
-        // Reading the focused field and sending ⌘V both need Accessibility access.
-        _ = FocusReader.isTrusted(prompt: true)
-
         // Re-register hotkeys whenever presets or settings change.
         let store = Store.shared
         Publishers.CombineLatest(store.$presets, store.$settings)
@@ -27,24 +24,52 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             .store(in: &subscriptions)
         registerHotKeys()
+
+        // Keep the menu-bar icon in step with setup, and walk the user through anything missing.
+        let monitor = SetupMonitor.shared
+        Publishers.CombineLatest3(monitor.$accessibility, monitor.$engine, monitor.$takenHotKeys)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _, _, _ in self?.rebuildStatusMenu() }
+            .store(in: &subscriptions)
+        Task {
+            await monitor.refreshEngine()
+            if !monitor.allSet { SetupWindowController.shared.show() }
+        }
+    }
+
+    /// Opens the panel, or the setup window when Takes can't work yet.
+    private func summonPanel(presetID: String? = nil) {
+        let monitor = SetupMonitor.shared
+        if !monitor.accessibility || { if case .problem = monitor.engine { return true }; return false }() {
+            SetupWindowController.shared.show()
+            return
+        }
+        panel.summon(presetID: presetID)
     }
 
     private func registerHotKeys() {
         let store = Store.shared
-        var bindings: [(KeyCombo, () -> Void)] = [(store.settings.summonHotKey, { [weak self] in self?.panel.summon() })]
+        var bindings: [(KeyCombo, () -> Void)] = [(store.settings.summonHotKey, { [weak self] in self?.summonPanel() })]
         for preset in store.presets {
             guard let combo = preset.hotKey else { continue }
             let id = preset.id
-            bindings.append((combo, { [weak self] in self?.panel.summon(presetID: id) }))
+            bindings.append((combo, { [weak self] in self?.summonPanel(presetID: id) }))
         }
         let failed = HotKeyCenter.shared.replaceAll(with: bindings)
-        if !failed.isEmpty {
-            NSLog("Takes: these shortcuts are taken by another app: %@", failed.map(\.display).joined(separator: ", "))
-        }
+        if SetupMonitor.shared.takenHotKeys != failed { SetupMonitor.shared.takenHotKeys = failed }
     }
 
     private func rebuildStatusMenu() {
+        let monitor = SetupMonitor.shared
+        statusItem.button?.image = NSImage(systemSymbolName: monitor.allSet ? "text.bubble" : "exclamationmark.bubble",
+                                           accessibilityDescription: monitor.allSet ? "Takes" : "Takes needs setup")
         let menu = NSMenu()
+        if !monitor.allSet {
+            let finish = NSMenuItem(title: "Finish setting up Takes…", action: #selector(showSetup), keyEquivalent: "")
+            finish.target = self
+            menu.addItem(finish)
+            menu.addItem(.separator())
+        }
         let open = NSMenuItem(title: "Open Takes   \(Store.shared.settings.summonHotKey.display)", action: #selector(summon), keyEquivalent: "")
         open.target = self
         menu.addItem(open)
@@ -55,6 +80,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             item.target = self
             menu.addItem(item)
         }
+        let setup = NSMenuItem(title: "Setup and permissions…", action: #selector(showSetup), keyEquivalent: "")
+        setup.target = self
+        menu.addItem(setup)
         menu.addItem(.separator())
         let log = NSMenuItem(title: "Show run log", action: #selector(showLog), keyEquivalent: "")
         log.target = self
@@ -88,7 +116,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return main
     }
 
-    @objc private func summon() { panel.summon() }
+    @objc private func summon() { summonPanel() }
+
+    @objc private func showSetup() { SetupWindowController.shared.show() }
 
     @objc private func openPresets() { SettingsWindowController.shared.show(tab: .presets) }
 
