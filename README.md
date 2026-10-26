@@ -2,6 +2,26 @@
 
 A macOS menu-bar app. Focus any text field and press ⌃⌥Space. Write what you mean, pick a preset, and choose from several takes written by Claude. The one you choose is pasted back into the field you were in.
 
+## Install
+
+1. Download `Takes-<version>.dmg` from [Releases](https://github.com/bar-amir/takes/releases), open it and drag Takes to Applications.
+2. Open Takes. It lives in the menu bar (a speech-bubble icon) and opens a setup window.
+3. Follow the setup steps:
+   - allow Accessibility access;
+   - connect Claude, with your own Claude Code (subscription) or an Anthropic API key;
+   - confirm the privacy note.
+4. Click into any text box, press ⌃⌥Space and write.
+
+Requires macOS 14 or later. Takes is signed with a Developer ID and notarized by Apple.
+
+**Uninstall:** quit Takes from its menu, move it from Applications to the Trash, and delete `~/Library/Application Support/Takes` and `~/Library/Logs/Takes`. You can also remove it from System Settings › Privacy & Security › Accessibility.
+
+## Releasing
+
+`scripts/release.sh` builds a universal app (Apple silicon and Intel), signs it with your Developer ID and hardened runtime, notarizes the app and the disk image, staples both, and checks them with Gatekeeper. The output is `dist/Takes-<version>.dmg`. The version comes from `VERSION`; record changes in `CHANGELOG.md`. `scripts/release.sh --unsigned` runs the same steps without signing, to test the pipeline.
+
+One-time setup: a "Developer ID Application" certificate in your keychain, and notarization credentials saved with `xcrun notarytool store-credentials "takes-notary" --apple-id <apple id> --team-id <team id>`.
+
 ## Build and run
 
 ```

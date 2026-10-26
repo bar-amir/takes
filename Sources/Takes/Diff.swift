@@ -7,7 +7,8 @@ enum WordDiff {
 
     static func segments(from old: String, to new: String) -> [Segment] {
         let a = words(old), b = words(new)
-        let key = { (word: String) in word.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
+        // Case-sensitive: capitalisation fixes ("i" → "I") are real changes, especially when proofreading.
+        let key = { (word: String) in word.trimmingCharacters(in: .whitespacesAndNewlines) }
 
         // Longest common subsequence over words.
         var lcs = Array(repeating: Array(repeating: 0, count: b.count + 1), count: a.count + 1)

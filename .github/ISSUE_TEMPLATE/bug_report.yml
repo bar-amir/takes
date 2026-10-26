@@ -1,0 +1,41 @@
+name: Bug report
+description: Something doesn't work the way it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting. Please don't paste private messages or drafts here; describe them instead.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: input
+    id: app
+    attributes:
+      label: Which app were you typing in?
+      placeholder: e.g. Slack, Mail, Claude, Chrome (gmail.com)
+  - type: dropdown
+    id: engine
+    attributes:
+      label: Engine
+      options:
+        - Claude Code on this Mac
+        - Anthropic API key
+        - Not sure
+  - type: input
+    id: versions
+    attributes:
+      label: Takes and macOS versions
+      description: Takes version is in the menu-bar icon's About item; macOS version is in  › About This Mac.
+      placeholder: e.g. Takes 0.1.0, macOS 26.1
+    validations:
+      required: true
+  - type: textarea
+    id: focus-log
+    attributes:
+      label: Field-reading log (if the draft wasn't read or the take wasn't pasted)
+      description: The last few lines of ~/Library/Logs/Takes/focus.log. It contains the app, the kind of text box and character counts, never your text.
+      render: text

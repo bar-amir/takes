@@ -1,0 +1,22 @@
+name: Preset idea
+description: Share a preset that works well, or suggest one to ship by default.
+labels: [preset]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Preset name
+      placeholder: e.g. Push back politely
+    validations:
+      required: true
+  - type: textarea
+    id: instruction
+    attributes:
+      label: Instruction, Do and Avoid
+      description: Paste them, or attach the exported preset (right-click a preset in Settings › Export).
+    validations:
+      required: true
+  - type: textarea
+    id: when
+    attributes:
+      label: When do you use it?

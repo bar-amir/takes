@@ -87,6 +87,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let log = NSMenuItem(title: "Show run log", action: #selector(showLog), keyEquivalent: "")
         log.target = self
         menu.addItem(log)
+        let about = NSMenuItem(title: "About Takes", action: #selector(showAbout), keyEquivalent: "")
+        about.target = self
+        menu.addItem(about)
         menu.addItem(withTitle: "Quit Takes", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         statusItem.menu = menu
     }
@@ -125,6 +128,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func openSettings(_ sender: NSMenuItem) {
         guard let raw = sender.representedObject as? String, let tab = SettingsTab(rawValue: raw) else { return }
         SettingsWindowController.shared.show(tab: tab)
+    }
+
+    @objc private func showAbout() {
+        NSApp.activate(ignoringOtherApps: true)
+        NSApp.orderFrontStandardAboutPanel(options: [
+            .credits: NSAttributedString(string: "Rewrite anything, in any text box, with Claude.\ngithub.com/bar-amir/takes"),
+        ])
     }
 
     @objc private func showLog() {

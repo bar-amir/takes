@@ -1,28 +1,11 @@
 #!/bin/zsh
-# Builds Takes.app into ./build, ad-hoc signed.
+# Development build: Takes.app in ./build, ad-hoc signed. For a signed, notarized release use scripts/release.sh.
 set -euo pipefail
 cd "$(dirname "$0")"
 
 swift build -c release
 APP=build/Takes.app
-rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS"
-cp .build/release/Takes "$APP/Contents/MacOS/Takes"
-cat > "$APP/Contents/Info.plist" <<'PLIST'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>CFBundleIdentifier</key><string>com.baramir.takes</string>
-  <key>CFBundleName</key><string>Takes</string>
-  <key>CFBundleExecutable</key><string>Takes</string>
-  <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleShortVersionString</key><string>0.0.1</string>
-  <key>LSMinimumSystemVersion</key><string>14.0</string>
-  <key>LSUIElement</key><true/>
-</dict>
-</plist>
-PLIST
+scripts/assemble-app.sh .build/release/Takes "$APP"
 # Ad-hoc signing normally ties macOS permissions (Accessibility) to this exact build.
 # A designated requirement on the bundle ID keeps the permission across rebuilds.
 codesign --force --sign - --identifier com.baramir.takes \
