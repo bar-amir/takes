@@ -116,7 +116,7 @@ final class PanelController {
         let replaceAll = focus?.source == .field && !(focus?.text.isEmpty ?? true)
         let restore = Store.shared.settings.restoreClipboard
         close()
-        Paster.paste(text, replaceAll: replaceAll, restoreClipboard: restore)
+        Paster.paste(text, into: focus, replaceAll: replaceAll, restoreClipboard: restore)
         toast.show(message: "Pasted take \(index + 1)" + (restore ? " · your clipboard is back" : ""),
                    showUndo: true, near: caretRect) { [presetID] in
             guard let presetID else { return }

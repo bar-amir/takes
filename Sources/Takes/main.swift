@@ -6,6 +6,11 @@ if CommandLine.arguments.contains("--bench") {
     exit(0)
 }
 
+if CommandLine.arguments.contains("--ax-probe") {
+    AXProbe.run(arguments: CommandLine.arguments)
+    exit(0)
+}
+
 if CommandLine.arguments.contains("--snapshot") {
     MainActor.assumeIsolated { Snapshot.run(arguments: CommandLine.arguments) }
     exit(0)

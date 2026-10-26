@@ -23,5 +23,8 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 </dict>
 </plist>
 PLIST
-codesign --force --sign - "$APP"
+# Ad-hoc signing normally ties macOS permissions (Accessibility) to this exact build.
+# A designated requirement on the bundle ID keeps the permission across rebuilds.
+codesign --force --sign - --identifier com.baramir.takes \
+  -r='designated => identifier "com.baramir.takes"' "$APP"
 echo "Built $APP"

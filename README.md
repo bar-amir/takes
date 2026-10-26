@@ -29,6 +29,12 @@ Everything is saved in `~/Library/Application Support/Takes/`. Each run's timing
 
 `Takes --snapshot <folder>` renders every screen with sample data to PNGs.
 
+## Reading and pasting in web-based apps
+
+Slack exposes its message box's text directly. Claude's desktop app and other Electron or Chromium apps often don't. Takes tries, in order: the field's value, its character range, and Chromium's text markers. If the field is editable but none of those work, it copies the text with ⌘A ⌘C and then restores your clipboard. Before pasting it puts focus back into the original field. Every summon is logged to `~/Library/Logs/Takes/focus.log` (app, element role, which method worked, how many characters).
+
+`open -n build/Takes.app --args --ax-probe 3` waits 3 seconds and writes what the frontmost app reports about its focused element to `~/Library/Logs/Takes/ax-probe.txt`.
+
 ## Measuring
 
 ```
