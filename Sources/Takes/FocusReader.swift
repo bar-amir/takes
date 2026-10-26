@@ -18,6 +18,17 @@ enum FocusReader {
         return AXIsProcessTrustedWithOptions(options)
     }
 
+    static func snapshot(prefill: Prefill) -> FocusSnapshot {
+        let full = snapshot()
+        switch prefill {
+        case .fieldText: return full
+        case .selectionOnly:
+            return full.source == .selection ? full : FocusSnapshot(app: full.app, text: "", source: .none, caretRect: full.caretRect)
+        case .empty:
+            return FocusSnapshot(app: full.app, text: "", source: .none, caretRect: full.caretRect)
+        }
+    }
+
     static func snapshot() -> FocusSnapshot {
         let app = NSWorkspace.shared.frontmostApplication
         guard let app, isTrusted(prompt: false) else {

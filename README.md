@@ -1,8 +1,6 @@
-# Takes (M0 spike)
+# Takes
 
-Press ⌃⌥Space in any text field, rewrite the draft with a preset, and get several takes back from Claude. Pick a take and it's pasted into the field you were in.
-
-This spike exists to answer one question: is running the local Claude Code CLI (which uses your Claude subscription) fast enough for a hotkey tool?
+A macOS menu-bar app. Focus any text field and press ⌃⌥Space. Write what you mean, pick a preset, and choose from several takes written by Claude. The one you choose is pasted back into the field you were in.
 
 ## Build and run
 
@@ -11,18 +9,25 @@ This spike exists to answer one question: is running the local Claude Code CLI (
 open build/Takes.app
 ```
 
-On first launch macOS asks for Accessibility access (System Settings › Privacy & Security › Accessibility). Takes needs it to read the focused field and to send ⌘V. Each rebuild is ad-hoc signed with a new signature, so macOS may ask again. If the hotkey works but nothing gets prefilled or pasted, remove Takes from the list and add it again.
+On first launch macOS asks for Accessibility access (System Settings › Privacy & Security › Accessibility). Takes needs it to read the focused field and to paste. Each rebuild is ad-hoc signed with a new signature, so macOS may ask again. If the hotkey works but nothing gets prefilled or pasted, remove Takes from the list and add it again.
 
-The `claude` command must be signed in (`claude auth login`). The desktop app has its own login, separate from this one.
+## The panel
 
-## Using it
+- **Compose.** The draft starts with the field's text (or the selection). The preset picked for this app is pre-selected. Change the number of takes, the model and the effort for this run only. ↵ writes the takes, ⇧↵ adds a line, ⇥ (or / in an empty draft) opens the presets, ⌘1–9 switches preset, ⌘K opens a menu of settings.
+- **Presets.** Type to filter, ↑↓ and ↵ to choose. A preview on the right shows the preset's instruction and its Do and Avoid rules.
+- **Takes.** The takes stream in side by side. ←→ select a take, ↵ or double-click pastes it, ⌘1–5 pastes directly, ⌘C copies without pasting. "Changes" shows the edits against your draft. The refine box reworks the selected take ("warmer", "drop the second ask"), and "More like take N" writes new takes in its style. ⌘E edits the draft, ⌘R regenerates, Esc goes back.
+- **After pasting.** A toast confirms the paste and that your clipboard is back. ⌘Z in the app undoes the paste, and "Save as example" adds the take to the preset's write-like-me examples.
 
-- ⌃⌥Space opens the panel next to the caret, prefilled with the selection, or else with the field's text.
-- Pick a preset, the number of takes, the model and the effort. ⌘↵ writes the takes.
-- Click a take or press ⌘1–5 to paste it. If the draft came from the whole field, the field's text is replaced (⌘A, then ⌘V). Your clipboard is restored afterwards.
-- Esc closes the panel.
+## Settings (menu-bar icon, or ⌘, in the panel)
 
-Each run is logged to `~/Library/Logs/Takes/runs.jsonl`.
+- **Presets:** name, color, an optional hotkey of its own, instruction, Do and Avoid lists, up to five write-like-me examples, reply language, the apps where it's picked automatically, and the defaults for takes, model, effort and length. "Try it" runs the preset as edited. Presets can be duplicated, exported and imported as JSON.
+- **Voice:** rules applied on top of every preset.
+- **Engine:** Claude Code on this Mac (your subscription) or an Anthropic API key (stored in the keychain). Also defaults for new presets, the summon hotkey, where the panel opens, what the draft starts with, clipboard restore and history.
+- **History:** the last 30 days of runs, stored only on this Mac.
+
+Everything is saved in `~/Library/Application Support/Takes/`. Each run's timing is logged to `~/Library/Logs/Takes/runs.jsonl`.
+
+`Takes --snapshot <folder>` renders every screen with sample data to PNGs.
 
 ## Measuring
 
@@ -52,4 +57,4 @@ Opus 5.5 needs Claude Code 2.1.280 or newer (`claude update`). The Opus rows wer
 
 ## How it calls Claude
 
-`claude -p` with a preset-built system prompt, `--model`, `--effort` and `--output-format stream-json --include-partial-messages`. Takes are separated by `===` lines and appear in the panel as they're written. It runs from an empty temp folder so no CLAUDE.md is picked up. See `Sources/Takes/Engine.swift`.
+With Claude Code: `claude -p` with a preset-built system prompt, `--model`, `--effort` and `--output-format stream-json --include-partial-messages`. Takes are separated by `===` lines and appear in the panel as they're written. It runs from an empty temp folder so no CLAUDE.md is picked up. See `Sources/Takes/ClaudeCodeEngine.swift`. With an API key, the Messages API is called directly with streaming (`Sources/Takes/APIEngine.swift`).

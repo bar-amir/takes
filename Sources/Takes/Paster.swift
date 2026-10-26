@@ -1,18 +1,19 @@
 import AppKit
 import Carbon
 
-/// Pastes text into whatever app has focus, then puts the user's clipboard back.
+/// Pastes text into whatever app has focus, then optionally puts the user's clipboard back.
 enum Paster {
-    static func paste(_ text: String, replaceAll: Bool) {
+    static func paste(_ text: String, replaceAll: Bool, restoreClipboard: Bool) {
         let pasteboard = NSPasteboard.general
-        let saved = snapshot(pasteboard)
+        let saved = restoreClipboard ? snapshot(pasteboard) : []
 
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
             if replaceAll { press(CGKeyCode(kVK_ANSI_A)) }
             press(CGKeyCode(kVK_ANSI_V))
+            guard restoreClipboard else { return }
             // Give the target app time to read the clipboard before restoring it.
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                 pasteboard.clearContents()
