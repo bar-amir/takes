@@ -35,7 +35,9 @@ Everything is saved in `~/Library/Application Support/Takes/`. Each run's timing
 
 ## Reading and pasting in web-based apps
 
-Slack exposes its message box's text directly. Claude's desktop app and other Electron or Chromium apps often don't. Takes tries, in order: the field's value, its character range, and Chromium's text markers. If the field is editable but none of those work, it copies the text with ⌘A ⌘C and then restores your clipboard. Before pasting it puts focus back into the original field. Every summon is logged to `~/Library/Logs/Takes/focus.log` (app, element role, which method worked, how many characters).
+Takes only ever reads a real text box (text area, text field, search or combo box), never the page or document around it. A box's value is trusted even when it's blank: an empty web text box reports a line break, which means empty. Only when a text box has no value at all does Takes try its character range, then its own Chromium text-marker range. Only after those does it copy with ⌘A ⌘C, then restore your clipboard. Drafts longer than 10,000 characters are never prefilled.
+
+`build/Takes.app/Contents/MacOS/Takes --focus-test` reads the frontmost app's focused box without sending any keys and prints how it was read. Before pasting it puts focus back into the original field. Every summon is logged to `~/Library/Logs/Takes/focus.log` (app, element role, which method worked, how many characters).
 
 `open -n build/Takes.app --args --ax-probe 3` waits 3 seconds and writes what the frontmost app reports about its focused element to `~/Library/Logs/Takes/ax-probe.txt`.
 

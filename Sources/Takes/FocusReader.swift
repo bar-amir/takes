@@ -23,7 +23,8 @@ enum FocusReader {
         return AXIsProcessTrustedWithOptions(options)
     }
 
-    static func snapshot(prefill: Prefill) -> FocusSnapshot {
+    /// `allowCopy: false` never sends ⌘A/⌘C, for the `--focus-test` dry run.
+    static func snapshot(prefill: Prefill, allowCopy: Bool = true) -> FocusSnapshot {
         let app = NSWorkspace.shared.frontmostApplication
         guard let app, isTrusted(prompt: false), app.bundleIdentifier != Bundle.main.bundleIdentifier else {
             let snapshot = FocusSnapshot(app: app, text: "", source: .none, caretRect: nil,
@@ -45,9 +46,8 @@ enum FocusReader {
 
         guard let element = focused else {
             // No accessibility at all: fall back to copying, which works in almost any app.
-            let copied = prefill == .empty ? nil : copyFromApp(selectAll: prefill == .fieldText)
-            let snapshot = FocusSnapshot(app: app, text: copied ?? "", source: copied == nil ? .none : .field,
-                                         caretRect: nil, method: copied == nil ? "no focused element" : "copy (no AX)")
+            // Don't copy blind: with nothing known to be focused, ⌘A could select a whole page.
+            let snapshot = FocusSnapshot(app: app, text: "", source: .none, caretRect: nil, method: "no focused element")
             FocusLog.append(snapshot, role: "nil")
             return snapshot
         }
@@ -60,6 +60,8 @@ enum FocusReader {
         defer { FocusLog.append(snapshot, role: "\(role)/\(subrole)") }
 
         let editable = isEditable(element, role: role)
+        // Only real text boxes are ever read or copied from, never a page or a document around them.
+        let textBox = Self.textRoles.contains(role)
         if prefill == .empty {
             snapshot = FocusSnapshot(app: app, text: "", source: editable ? .field : .none, caretRect: caret, element: element, method: "prefill off")
             return snapshot
@@ -71,7 +73,7 @@ enum FocusReader {
         }
         if prefill == .selectionOnly {
             // Some apps don't report selections; ⌘C without ⌘A copies only what's selected.
-            if editable, let copied = copyFromApp(selectAll: false) {
+            if textBox, allowCopy, let copied = copyFromApp(selectAll: false) {
                 snapshot = FocusSnapshot(app: app, text: copied, source: .selection, caretRect: caret, element: element, method: "copy selection")
             } else {
                 snapshot = FocusSnapshot(app: app, text: "", source: editable ? .field : .none, caretRect: caret, element: element, method: "no selection")
@@ -79,12 +81,16 @@ enum FocusReader {
             return snapshot
         }
 
+        guard textBox || editable else {
+            snapshot = FocusSnapshot(app: app, text: "", source: .none, caretRect: caret, element: element, method: "not a text field")
+            return snapshot
+        }
         if let (text, method) = readText(element) {
             snapshot = FocusSnapshot(app: app, text: text, source: .field, caretRect: caret, element: element, method: method)
             return snapshot
         }
-        if editable {
-            if let copied = copyFromApp(selectAll: true) {
+        if textBox {
+            if allowCopy, let copied = copyFromApp(selectAll: true) {
                 snapshot = FocusSnapshot(app: app, text: copied, source: .field, caretRect: caret, element: element, method: "copy (⌘A ⌘C)")
             } else {
                 snapshot = FocusSnapshot(app: app, text: "", source: .field, caretRect: caret, element: element, method: "editable, empty")
@@ -106,27 +112,36 @@ enum FocusReader {
 
     // MARK: Reading text
 
-    /// Tries the ways apps expose a field's text, from plain value to Chromium's text markers.
+    static let textRoles: Set<String> = ["AXTextArea", "AXTextField", "AXComboBox", "AXSearchField"]
+    /// Longest draft Takes will prefill; anything longer is almost certainly not a message being written.
+    static let maxPrefill = 10_000
+
+    /// Reads a text box's own text. A value that is present is trusted even when blank: an empty
+    /// web text box reports "\n", and that means empty, not "try harder".
     private static func readText(_ element: AXUIElement) -> (String, String)? {
-        func usable(_ text: String?) -> String? {
-            guard let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
-            return text.trimmingCharacters(in: .newlines)
+        func clean(_ text: String) -> String {
+            let stripped = text.replacingOccurrences(of: "\u{FFFC}", with: "")
+            return stripped.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "" : stripped.trimmingCharacters(in: .newlines)
         }
 
-        if let value = usable(copy(element, kAXValueAttribute)) { return (value, "AXValue") }
+        if let value: String = copy(element, kAXValueAttribute) {
+            return value.count > maxPrefill ? nil : (clean(value), "AXValue")
+        }
 
-        if let count: Int = copy(element, kAXNumberOfCharactersAttribute), count > 0 {
-            var range = CFRange(location: 0, length: min(count, 20_000))
+        if let count: Int = copy(element, kAXNumberOfCharactersAttribute) {
+            guard count > 0 else { return ("", "empty (character count)") }
+            guard count <= maxPrefill else { return nil }
+            var range = CFRange(location: 0, length: count)
             if let rangeValue = AXValueCreate(.cfRange, &range),
-               let text = usable(parameterized(element, kAXStringForRangeParameterizedAttribute, rangeValue)) {
-                return (text, "AXStringForRange")
+               let text: String = parameterized(element, kAXStringForRangeParameterizedAttribute, rangeValue) {
+                return (clean(text), "AXStringForRange")
             }
         }
 
-        if let start: CFTypeRef = copy(element, "AXStartTextMarker"), let end: CFTypeRef = copy(element, "AXEndTextMarker"),
-           let range: CFTypeRef = parameterized(element, "AXTextMarkerRangeForUnorderedTextMarkers", [start, end] as CFArray),
-           let text = usable(parameterized(element, "AXStringForTextMarkerRange", range)) {
-            return (text, "text markers")
+        // Chromium: the text-marker range of this element only (never the document's start and end markers).
+        if let range: CFTypeRef = parameterized(element, "AXTextMarkerRangeForUIElement", element),
+           let text: String = parameterized(element, "AXStringForTextMarkerRange", range), text.count <= maxPrefill {
+            return (clean(text), "element text markers")
         }
         return nil
     }
@@ -154,7 +169,7 @@ enum FocusReader {
         let text = pasteboard.string(forType: .string)
         pasteboard.clearContents()
         if !saved.isEmpty { pasteboard.writeObjects(saved) }
-        guard let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
+        guard let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, text.count <= maxPrefill else { return nil }
         return text
     }
 

@@ -6,6 +6,13 @@ if CommandLine.arguments.contains("--bench") {
     exit(0)
 }
 
+// Dry run of field reading on the frontmost app: prints how its text box was read, never sends keys.
+if CommandLine.arguments.contains("--focus-test") {
+    let snapshot = FocusReader.snapshot(prefill: .fieldText, allowCopy: false)
+    print("\(snapshot.app?.bundleIdentifier ?? "?") · \(snapshot.method) · \(snapshot.text.count) chars · \(snapshot.text.prefix(80).debugDescription)")
+    exit(0)
+}
+
 if CommandLine.arguments.contains("--ax-probe") {
     AXProbe.run(arguments: CommandLine.arguments)
     exit(0)
