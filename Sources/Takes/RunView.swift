@@ -2,7 +2,8 @@ import SwiftUI
 
 @MainActor
 final class RunModel: ObservableObject {
-    static let models = ["haiku", "sonnet", "opus"]
+    /// Full model IDs: on some plans the short aliases ("sonnet") still resolve to older models.
+    static let models = [("claude-haiku-5-5", "Haiku 5.5"), ("claude-sonnet-5-5", "Sonnet 5.5"), ("claude-opus-5-5", "Opus 5.5")]
     static let efforts = ["low", "medium", "high"]
 
     @Published var draft = ""
@@ -10,7 +11,7 @@ final class RunModel: ObservableObject {
         didSet { takeCount = preset.defaultTakes }
     }
     @Published var takeCount = Preset.builtIn[0].defaultTakes
-    @Published var modelName = "sonnet"
+    @Published var modelName = "claude-sonnet-5-5"
     @Published var effort = "low"
     @Published var takes: [String] = []
     @Published var running = false
@@ -59,7 +60,12 @@ final class RunModel: ObservableObject {
 
         Task {
             do {
-                let result = try await Engine.run(request)
+                let result = try await Engine.run(request) { partial in
+                    Task { @MainActor in
+                        guard self.running else { return }
+                        self.takes = partial
+                    }
+                }
                 finish(result, request: request)
             } catch {
                 running = false
@@ -73,17 +79,19 @@ final class RunModel: ObservableObject {
         takes = result.takes
         let seconds = { (ms: Int) in String(format: "%.1f s", Double(ms) / 1000) }
         var parts = ["\(seconds(result.wallMs)) total"]
-        if let api = result.apiMs { parts.append("model \(seconds(api))") }
-        if let api = result.apiMs { parts.append("startup \(seconds(result.wallMs - api))") }
+        if let first = result.firstTextMs { parts.append("first words \(seconds(first))") }
         timing = parts.joined(separator: " · ")
         RunLog.append(["kind": "app", "model": request.model, "effort": request.effort, "takes": request.takes,
                        "preset": request.preset.id, "panelShownMs": panelShownMs,
-                       "wallMs": result.wallMs, "apiMs": result.apiMs ?? -1,
+                       "wallMs": result.wallMs, "firstTextMs": result.firstTextMs ?? -1, "apiMs": result.apiMs ?? -1,
                        "app": focus?.app?.bundleIdentifier ?? ""])
     }
 
+    /// While streaming, the last take may still be growing; only finished ones can be pasted.
+    func isFinished(_ index: Int) -> Bool { !running || index < takes.count - 1 }
+
     func paste(_ index: Int) {
-        guard takes.indices.contains(index) else { return }
+        guard takes.indices.contains(index), isFinished(index) else { return }
         onPaste(takes[index])
     }
 }
@@ -127,7 +135,7 @@ struct RunView: View {
                 .pickerStyle(.segmented)
                 .frame(width: 170)
                 Picker("Model", selection: $model.modelName) {
-                    ForEach(RunModel.models, id: \.self) { Text($0.capitalized).tag($0) }
+                    ForEach(RunModel.models, id: \.0) { Text($0.1).tag($0.0) }
                 }
                 .frame(width: 140)
                 Picker("Effort", selection: $model.effort) {
@@ -165,7 +173,7 @@ struct RunView: View {
     }
 
     @ViewBuilder private var results: some View {
-        if model.running {
+        if model.running && model.takes.isEmpty {
             TimelineView(.periodic(from: model.startedAt, by: 0.1)) { context in
                 HStack(spacing: 10) {
                     ProgressView().controlSize(.small)
@@ -187,7 +195,7 @@ struct RunView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(Array(model.takes.enumerated()), id: \.offset) { index, take in
-                        TakeRow(index: index, text: take) { model.paste(index) }
+                        TakeRow(index: index, text: take, finished: model.isFinished(index)) { model.paste(index) }
                     }
                 }
                 .padding(12)
@@ -199,15 +207,22 @@ struct RunView: View {
 private struct TakeRow: View {
     let index: Int
     let text: String
+    let finished: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             HStack(alignment: .top, spacing: 10) {
-                Text("⌘\(index + 1)")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 28, alignment: .leading)
+                Group {
+                    if finished {
+                        Text("⌘\(index + 1)")
+                    } else {
+                        ProgressView().controlSize(.mini)
+                    }
+                }
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 28, alignment: .leading)
                 Text(text)
                     .font(.system(size: 14))
                     .multilineTextAlignment(.leading)
@@ -219,6 +234,7 @@ private struct TakeRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .disabled(!finished)
         .keyboardShortcut(KeyEquivalent(Character("\(index + 1)")), modifiers: .command)
     }
 }

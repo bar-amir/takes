@@ -13,7 +13,7 @@ enum Bench {
             draft: value("--draft") ?? "ya thursday works but i need the specs by wed eod otherwise qa slips again, also can someone own the release notes this time",
             preset: Preset.builtIn[0],
             takes: Int(value("--takes") ?? "") ?? 3,
-            model: value("--model") ?? "sonnet",
+            model: value("--model") ?? "claude-sonnet-5-5",
             effort: value("--effort") ?? "low",
             lean: !arguments.contains("--naive")
         )
@@ -21,17 +21,19 @@ enum Bench {
         print("model=\(request.model) effort=\(request.effort) takes=\(request.takes) lean=\(request.lean) runs=\(runs)")
 
         var walls: [Int] = []
+        var firsts: [Int] = []
         for i in 1...runs {
             let semaphore = DispatchSemaphore(value: 0)
             Task.detached {
                 do {
                     let result = try await Engine.run(request)
                     walls.append(result.wallMs)
-                    let overhead = result.apiMs.map { result.wallMs - $0 }
-                    print("run \(i): wall \(result.wallMs) ms · claude \(result.durationMs ?? -1) ms · api \(result.apiMs ?? -1) ms · overhead \(overhead ?? -1) ms")
+                    if let first = result.firstTextMs { firsts.append(first) }
+                    print("run \(i): first words \(result.firstTextMs ?? -1) ms · all \(result.takes.count) takes \(result.wallMs) ms")
                     if i == 1 { result.takes.enumerated().forEach { print("  \($0.offset + 1). \($0.element)") } }
                     RunLog.append(["kind": "bench", "model": request.model, "effort": request.effort, "lean": request.lean,
-                                   "takes": request.takes, "wallMs": result.wallMs, "apiMs": result.apiMs ?? -1])
+                                   "takes": request.takes, "wallMs": result.wallMs,
+                                   "firstTextMs": result.firstTextMs ?? -1, "apiMs": result.apiMs ?? -1])
                 } catch {
                     print("run \(i): error \(error.localizedDescription)")
                 }
@@ -39,9 +41,12 @@ enum Bench {
             }
             semaphore.wait()
         }
-        if !walls.isEmpty {
-            let sorted = walls.sorted()
-            print("median wall: \(sorted[sorted.count / 2]) ms (min \(sorted.first!), max \(sorted.last!))")
+        func summary(_ name: String, _ values: [Int]) {
+            guard !values.isEmpty else { return }
+            let sorted = values.sorted()
+            print("median \(name): \(sorted[sorted.count / 2]) ms (min \(sorted.first!), max \(sorted.last!))")
         }
+        summary("first words", firsts)
+        summary("all takes", walls)
     }
 }

@@ -27,13 +27,27 @@ Each run is logged to `~/Library/Logs/Takes/runs.jsonl`.
 ## Measuring
 
 ```
-build/Takes.app/Contents/MacOS/Takes --bench --runs 5 --model haiku --effort low
-build/Takes.app/Contents/MacOS/Takes --bench --runs 5 --model sonnet --effort low
-build/Takes.app/Contents/MacOS/Takes --bench --runs 5 --model sonnet --naive
+build/Takes.app/Contents/MacOS/Takes --bench --runs 5 --model claude-sonnet-5-5 --effort low
+build/Takes.app/Contents/MacOS/Takes --bench --runs 5 --model claude-haiku-5-5 --takes 5
 ```
 
-`--naive` runs Claude Code with its default setup: tools, MCP servers and user settings all load. Without it, the engine skips all of these. Each run prints three numbers: total time, the time Claude Code reports for the model call, and the difference between them (startup overhead).
+Each run prints the time to the first streamed words and the time until all takes are done. `--naive` runs Claude Code with its default setup: tools, MCP servers and user settings all load.
+
+Results on 2026-10-26, 3 takes of a 25-word draft, low effort:
+
+| Model | First words (median) | All takes (median) |
+|---|---|---|
+| Haiku 5.5 | 1.2 s | 2.6 s |
+| Sonnet 5.5 | 1.3 s | 2.8 s |
+| Sonnet 5.5, 5 takes | 1.2 s | 3.4 s |
+
+What made it fast:
+- **Plain text, not `--json-schema`.** Structured output costs Claude Code a second model turn, about doubling the time (Sonnet: about 8.6 s with it, 2.8 s without).
+- **Full model IDs.** On this account the `sonnet` alias still resolved to Sonnet 4.6 and `haiku` to Haiku 4.5. Those were 2 to 6 times slower.
+- Claude Code's own startup is under 0.5 s. Switching off tools, MCP servers and settings barely changes the total.
+
+Opus 5.5 needs Claude Code 2.1.280 or newer (`claude update`).
 
 ## How it calls Claude
 
-`claude -p` with a preset-built system prompt, `--model`, `--effort`, `--output-format json` and a `--json-schema` that asks for exactly N takes in one call. It runs from an empty temp folder so no CLAUDE.md is picked up. See `Sources/Takes/Engine.swift`.
+`claude -p` with a preset-built system prompt, `--model`, `--effort` and `--output-format stream-json --include-partial-messages`. Takes are separated by `===` lines and appear in the panel as they're written. It runs from an empty temp folder so no CLAUDE.md is picked up. See `Sources/Takes/Engine.swift`.
