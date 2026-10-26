@@ -4,7 +4,7 @@ Thanks for helping. A few things before you open a pull request.
 
 ## Before your first pull request
 
-1. **Sign the Contributor License Agreement.** Read [CLA.md](CLA.md), then add a line to [CLA-SIGNATURES.md](CLA-SIGNATURES.md) in your pull request. Pull requests from people who haven't signed can't be merged. In short: you keep your copyright, the project can use your work under MIT, and the maintainer may release future versions under other terms.
+1. **Sign the Contributor License Agreement.** Read [CLA.md](CLA.md). When you open your first pull request, a bot will ask you to reply with a sentence that signs it. Until everyone who wrote commits in a pull request has signed, its "CLA" check fails and it can't be merged. In short: you keep your copyright, the project can use your work under MIT, and the maintainer may release future versions under other terms. Your commits need to use an email that's linked to your GitHub account.
 2. **Check you're allowed to contribute.** If you're employed, make sure your employment agreement lets you contribute to outside projects, or get permission. Work on your own equipment and time.
 
 ## How changes get in

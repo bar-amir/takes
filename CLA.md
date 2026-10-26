@@ -4,7 +4,7 @@ Version 1.0 · 2026-10-26
 
 Thank you for contributing to Takes. This agreement explains what rights you give Bar Amir (the "Maintainer") when you contribute. You keep the copyright in your work. You give the Maintainer a broad license so the project can stay open source today and keep the option of being released under other terms later, including as a paid or closed-source app.
 
-You accept this agreement by adding your name to [CLA-SIGNATURES.md](CLA-SIGNATURES.md) in a pull request, or by commenting on your first pull request: "I have read the Takes CLA (version 1.0) and I agree to it."
+You accept this agreement by replying to your first pull request with this exact sentence: "I have read the Takes CLA (version 1.0) and I agree to it." A bot records your signature (your GitHub username and the time) in `signatures.json` on the repository's `cla-signatures` branch, and it covers all your future pull requests.
 
 ## 1. Definitions
 

@@ -1,0 +1,135 @@
+# Checks that everyone who wrote commits in a pull request has signed the Takes CLA (CLA.md).
+#
+# - On a pull request, it sets a "CLA" status on the head commit. main requires that status.
+# - Anyone who hasn't signed gets one bot comment asking them to reply with the signing sentence.
+# - A reply with that exact sentence records the signature in signatures.json on the
+#   cla-signatures branch (not main, which is protected) and re-checks the pull request.
+# - Comment "recheck" to run the check again.
+#
+# Runs on pull_request_target so it can comment on pull requests from forks. It never checks out
+# or runs code from the pull request.
+name: CLA
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  statuses: write
+
+concurrency:
+  group: cla-${{ github.event.pull_request.number || github.event.issue.number }}
+
+jobs:
+  cla:
+    if: github.event_name == 'pull_request_target' || github.event.issue.pull_request
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v9
+        env:
+          # Comma-separated GitHub usernames that never need to sign (the maintainer). Overridable with a repo variable.
+          ALLOWLIST: ${{ vars.CLA_ALLOWLIST || 'bar-amir' }}
+        with:
+          script: |
+            const PHRASE = 'I have read the Takes CLA (version 1.0) and I agree to it.';
+            const CLA_URL = `https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/CLA.md`;
+            const BRANCH = 'cla-signatures';
+            const PATH = 'signatures.json';
+            const MARKER = '<!-- takes-cla -->';
+            const { owner, repo } = context.repo;
+            const allow = process.env.ALLOWLIST.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+            const normalize = text => text.trim().replace(/\s+/g, ' ');
+
+            const number = context.payload.pull_request?.number ?? context.payload.issue.number;
+            if (context.eventName === 'issue_comment') {
+              const body = normalize(context.payload.comment.body);
+              if (body !== normalize(PHRASE) && body.toLowerCase() !== 'recheck') return;
+            }
+            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: number });
+
+            // Load signatures from the signatures branch.
+            let signatures = [];
+            let fileSha;
+            try {
+              const { data } = await github.rest.repos.getContent({ owner, repo, path: PATH, ref: BRANCH });
+              fileSha = data.sha;
+              signatures = JSON.parse(Buffer.from(data.content, 'base64').toString('utf8'));
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
+
+            // Record a new signature.
+            if (context.eventName === 'issue_comment' && normalize(context.payload.comment.body) === normalize(PHRASE)) {
+              const user = context.payload.comment.user;
+              if (!signatures.some(s => s.id === user.id)) {
+                signatures.push({
+                  login: user.login,
+                  id: user.id,
+                  claVersion: '1.0',
+                  signedAt: new Date().toISOString(),
+                  comment: context.payload.comment.html_url,
+                });
+                await github.rest.repos.createOrUpdateFileContents({
+                  owner, repo, path: PATH, branch: BRANCH, sha: fileSha,
+                  message: `${user.login} signed the CLA in #${number}`,
+                  content: Buffer.from(JSON.stringify(signatures, null, 2) + '\n').toString('base64'),
+                });
+              }
+            }
+
+            // Everyone who needs to have signed: the author and every commit author.
+            const commits = await github.paginate(github.rest.pulls.listCommits, { owner, repo, pull_number: number, per_page: 100 });
+            const people = new Map([[pr.user.id, pr.user.login]]);
+            const unlinked = new Set();
+            for (const commit of commits) {
+              if (commit.author?.id) people.set(commit.author.id, commit.author.login);
+              else unlinked.add(commit.commit.author?.email || 'unknown author');
+            }
+            const signedIds = new Set(signatures.map(s => s.id));
+            const missing = [...people.entries()]
+              .filter(([id, login]) => !signedIds.has(id) && !allow.includes(login.toLowerCase()) && !login.endsWith('[bot]'))
+              .map(([, login]) => login);
+            const ok = missing.length === 0 && unlinked.size === 0;
+
+            const needed = [...missing.map(l => '@' + l), ...unlinked].join(', ');
+            await github.rest.repos.createCommitStatus({
+              owner, repo, sha: pr.head.sha, context: 'CLA', target_url: CLA_URL,
+              state: ok ? 'success' : 'failure',
+              description: (ok ? 'Everyone has signed the CLA' : `Waiting for a CLA signature: ${needed}`).slice(0, 140),
+            });
+
+            // One bot comment per pull request, updated in place.
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: number, per_page: 100 });
+            const existing = comments.find(c => c.body?.includes(MARKER) && c.user?.type === 'Bot');
+            let body;
+            if (ok) {
+              if (!existing) return;
+              body = `${MARKER}\n**CLA:** everyone in this pull request has signed the [Contributor License Agreement](${CLA_URL}). Thank you.`;
+            } else {
+              const lines = [
+                MARKER,
+                `Thanks for the pull request. Before it can be merged, everyone who wrote commits in it needs to sign the [Takes Contributor License Agreement](${CLA_URL}). In short: you keep your copyright, your work is released under MIT, and the maintainer may release future versions under other terms.`,
+                '',
+                'To sign, read it and reply to this pull request with this exact sentence:',
+                '',
+                '```',
+                PHRASE,
+                '```',
+                '',
+                missing.length ? `Still needed from: ${missing.map(l => '@' + l).join(', ')}` : '',
+              ];
+              if (unlinked.size) {
+                lines.push('', `Some commits use an email that isn't linked to a GitHub account (${[...unlinked].join(', ')}). Add that email to your GitHub account, or re-author the commits, then comment \`recheck\`.`);
+              }
+              body = lines.filter((line, i, all) => line !== '' || all[i - 1] !== '').join('\n');
+            }
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number: number, body });
+            }
