@@ -57,7 +57,7 @@ enum Snapshot {
             state.selectedPresetID = Store.shared.presets.first?.id
             render(SettingsView(state: state), size: CGSize(width: 1200, height: 860), to: url.appendingPathComponent("5-settings-\(tab.rawValue.lowercased()).png"))
         }
-        render(SetupView(monitor: SetupMonitor.shared, onDone: {}), size: CGSize(width: 620, height: 600),
+        render(SetupView(monitor: SetupMonitor.shared, onDone: {}), size: CGSize(width: 640, height: 820),
                to: url.appendingPathComponent("6-setup.png"))
         print("Wrote snapshots to \(url.path)")
     }

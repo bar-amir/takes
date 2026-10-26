@@ -19,9 +19,12 @@ final class SetupMonitor: ObservableObject {
         var isReady: Bool { if case .ready = self { return true }; return false }
     }
 
-    var allSet: Bool { accessibility && engine.isReady && takenHotKeys.isEmpty }
+    var privacyAccepted: Bool { Store.shared.settings.privacyAccepted }
+    var allSet: Bool { accessibility && engine.isReady && privacyAccepted && takenHotKeys.isEmpty }
     /// Missing pieces that stop Takes from working (a taken hotkey only stops that hotkey).
-    var blocking: Bool { !accessibility || !engine.isReady }
+    var blocking: Bool { !accessibility || !engine.isReady || !privacyAccepted }
+
+    static let privacyURL = URL(string: "https://github.com/bar-amir/takes/blob/main/PRIVACY.md")!
 
     private var timer: Timer?
     private var lastEngineCheck = Date.distantPast
@@ -91,7 +94,7 @@ final class SetupWindowController: NSObject, NSWindowDelegate {
     func close() { window?.close() }
 
     private func makeWindow() -> NSWindow {
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 620, height: 600),
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 640, height: 820),
                               styleMask: [.titled, .closable, .fullSizeContentView], backing: .buffered, defer: false)
         window.title = "Set up Takes"
         window.titlebarAppearsTransparent = true
@@ -129,6 +132,7 @@ struct SetupView: View {
             VStack(spacing: 12) {
                 accessibilityStep
                 engineStep
+                privacyStep
                 hotKeyStep
             }
             .padding(.horizontal, 28)
@@ -140,6 +144,7 @@ struct SetupView: View {
                     onDone()
                     SettingsWindowController.shared.show(tab: .engine)
                 }
+                .buttonStyle(SecondaryButtonStyle(height: 36))
                 Spacer()
                 Button(monitor.allSet ? "Done" : "Close", action: onDone)
                     .keyboardShortcut(.defaultAction)
@@ -148,7 +153,7 @@ struct SetupView: View {
             .padding(.horizontal, 28)
             .padding(.vertical, 16)
         }
-        .frame(width: 620, height: 600)
+        .frame(width: 640, height: 820)
         .tint(Theme.accent)
         .animation(.easeOut(duration: 0.2), value: monitor.accessibility)
         .animation(.easeOut(duration: 0.2), value: monitor.engine)
@@ -216,9 +221,31 @@ struct SetupView: View {
         }
     }
 
+    private var privacyStep: some View {
+        let accepted = store.settings.privacyAccepted
+        return SetupStep(number: 3, title: "Your text and Claude", done: accepted,
+                         status: accepted ? "Understood" : "Please read",
+                         detail: "When you press the hotkey, Takes reads the text box you're typing in. When you ask for takes, it sends your draft and your preset's instructions straight from your Mac to Anthropic, under your own Claude account. Nothing goes to the developer: there's no server and no tracking. Claude can get things wrong, so read a take before you send it.") {
+            HStack(spacing: 8) {
+                if !accepted {
+                    Button("I understand") { store.settings.privacyAccepted = true }
+                        .buttonStyle(PrimaryButtonStyle())
+                }
+                Button("Read the privacy notice") { NSWorkspace.shared.open(SetupMonitor.privacyURL) }
+                    .buttonStyle(SecondaryButtonStyle(height: accepted ? 32 : 36))
+            }
+            if !accepted {
+                Text("Don't use Takes on text you're not allowed to share with an AI provider, such as confidential work material.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
     private var hotKeyStep: some View {
         let free = monitor.takenHotKeys.isEmpty
-        return SetupStep(number: 3, title: "Hotkey", done: free,
+        return SetupStep(number: 4, title: "Hotkey", done: free,
                          status: free ? store.settings.summonHotKey.display
                                       : "Taken by another app: " + monitor.takenHotKeys.map(\.display).joined(separator: ", "),
                          detail: free ? "Press it in any text field to open Takes." : "Pick a different shortcut.") {

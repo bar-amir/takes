@@ -32,6 +32,12 @@ struct EngineTab: View {
                         Text(String(format: "Last run: first words after %.1f s.", Double(ms) / 1000))
                             .font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
                     }
+
+                    SectionTitle("Privacy").padding(.top, 14)
+                    Text("Takes sends your draft only to Anthropic, under your own account. There's no server and no tracking. History and logs stay on this Mac, and logs never contain your text.")
+                        .font(.system(size: 13)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
+                    Button("Read the privacy notice") { NSWorkspace.shared.open(SetupMonitor.privacyURL) }
+                        .buttonStyle(SecondaryButtonStyle())
                 }
                 .padding(32)
                 .frame(maxWidth: .infinity, alignment: .leading)

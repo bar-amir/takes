@@ -40,7 +40,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Opens the panel, or the setup window when Takes can't work yet.
     private func summonPanel(presetID: String? = nil) {
         let monitor = SetupMonitor.shared
-        if !monitor.accessibility || { if case .problem = monitor.engine { return true }; return false }() {
+        if !monitor.accessibility || !monitor.privacyAccepted || { if case .problem = monitor.engine { return true }; return false }() {
             SetupWindowController.shared.show()
             return
         }

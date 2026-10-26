@@ -121,6 +121,29 @@ struct AppSettings: Codable {
     var defaultEffort = "low"
     /// Hotkey to first streamed words, for the Engine tab.
     var lastFirstTextMs: Int?
+    /// The user has read what Takes reads and where it sends it (setup step).
+    var privacyAccepted = false
+}
+
+extension AppSettings {
+    /// Tolerant decoding: settings saved by an older version (missing newer keys) keep their values
+    /// instead of resetting everything to defaults.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = AppSettings()
+        engine = try c.decodeIfPresent(EngineKind.self, forKey: .engine) ?? d.engine
+        summonHotKey = try c.decodeIfPresent(KeyCombo.self, forKey: .summonHotKey) ?? d.summonHotKey
+        panelPosition = try c.decodeIfPresent(PanelPosition.self, forKey: .panelPosition) ?? d.panelPosition
+        prefill = try c.decodeIfPresent(Prefill.self, forKey: .prefill) ?? d.prefill
+        restoreClipboard = try c.decodeIfPresent(Bool.self, forKey: .restoreClipboard) ?? d.restoreClipboard
+        keepHistory = try c.decodeIfPresent(Bool.self, forKey: .keepHistory) ?? d.keepHistory
+        voiceRules = try c.decodeIfPresent([VoiceRule].self, forKey: .voiceRules) ?? d.voiceRules
+        defaultTakes = try c.decodeIfPresent(Int.self, forKey: .defaultTakes) ?? d.defaultTakes
+        defaultModel = try c.decodeIfPresent(String.self, forKey: .defaultModel) ?? d.defaultModel
+        defaultEffort = try c.decodeIfPresent(String.self, forKey: .defaultEffort) ?? d.defaultEffort
+        lastFirstTextMs = try c.decodeIfPresent(Int.self, forKey: .lastFirstTextMs)
+        privacyAccepted = try c.decodeIfPresent(Bool.self, forKey: .privacyAccepted) ?? d.privacyAccepted
+    }
 }
 
 struct HistoryEntry: Codable, Identifiable {

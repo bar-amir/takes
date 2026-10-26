@@ -70,3 +70,17 @@ Opus 5.5 needs Claude Code 2.1.280 or newer (`claude update`). The Opus rows wer
 ## How it calls Claude
 
 With Claude Code: `claude -p` with a preset-built system prompt, `--model`, `--effort` and `--output-format stream-json --include-partial-messages`. Takes are separated by `===` lines and appear in the panel as they're written. It runs from an empty temp folder so no CLAUDE.md is picked up. See `Sources/Takes/ClaudeCodeEngine.swift`. With an API key, the Messages API is called directly with streaming (`Sources/Takes/APIEngine.swift`).
+
+## Privacy
+
+Takes sends your draft only to Anthropic, directly from your Mac and under your own Claude account. The developer runs no server and receives nothing; there's no analytics or tracking. See [PRIVACY.md](PRIVACY.md) for exactly what's read, sent and stored. Claude can get things wrong: read a take before you send it.
+
+## Contributing
+
+Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) and sign the [Contributor License Agreement](CLA.md) before your first pull request.
+
+## License
+
+The code is released under the [MIT License](LICENSE). The "Takes" name and icon aren't covered by the license; please don't use them for your own fork or product.
+
+Takes isn't made, endorsed or supported by Anthropic. It runs Claude Code or calls the Claude API with your own account.
