@@ -32,13 +32,15 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     }
 
     private func makeWindow() -> NSWindow {
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1180, height: 820),
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1200, height: 860),
                               styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
                               backing: .buffered, defer: false)
         window.title = "Takes"
+        window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
         window.isReleasedWhenClosed = false
-        window.minSize = NSSize(width: 980, height: 640)
+        window.minSize = NSSize(width: 1000, height: 660)
+        window.backgroundColor = NSColor(Theme.surface)
         window.delegate = self
         window.contentView = NSHostingView(rootView: SettingsView(state: state))
         window.center()
@@ -51,25 +53,28 @@ struct SettingsView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Picker("Section", selection: $state.tab) {
-                ForEach(SettingsTab.allCases) { Text($0.rawValue).tag($0) }
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .frame(width: 380)
-            .padding(.top, 10)
-            .padding(.bottom, 10)
-            Divider()
+            // The title bar: traffic lights on the left, section tabs centered.
+            TabPills(options: SettingsTab.allCases.map { (value: $0, title: $0.rawValue) }, selection: $state.tab)
+                .frame(maxWidth: .infinity)
+                .frame(height: 52)
+                .background(Theme.chrome)
+            RowDivider()
 
-            switch state.tab {
-            case .presets: PresetsTab(state: state)
-            case .voice: VoiceTab()
-            case .engine: EngineTab()
-            case .history: HistoryTab()
+            Group {
+                switch state.tab {
+                case .presets: PresetsTab(state: state)
+                case .voice: VoiceTab()
+                case .engine: EngineTab()
+                case .history: HistoryTab()
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .foregroundStyle(Theme.text)
+        .background(Theme.surface)
         .tint(Theme.accent)
-        .frame(minWidth: 980, minHeight: 640)
+        .ignoresSafeArea(.container, edges: .top)
+        .frame(minWidth: 1000, minHeight: 660)
     }
 }
 
@@ -83,34 +88,27 @@ struct ChipsEditor: View {
     @State private var newText = ""
 
     var body: some View {
-        FlowLayout {
+        FlowLayout(spacing: 6) {
             ForEach(items, id: \.self) { item in
-                HStack(spacing: 4) {
-                    Text(item).font(.system(size: 12))
+                HStack(spacing: 6) {
+                    Text(item).font(.system(size: 13))
                     Button { items.removeAll { $0 == item } } label: {
                         Image(systemName: "xmark").font(.system(size: 8, weight: .bold))
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Remove \(item)")
                 }
-                .foregroundStyle(style == .positive ? Theme.doText : style == .negative ? Theme.avoidText : .primary)
-                .padding(.horizontal, 9)
-                .padding(.vertical, 4)
-                .background(Capsule().fill(style == .positive ? Theme.doFill : style == .negative ? Theme.avoidFill : Color.primary.opacity(0.06)))
+                .foregroundStyle(style == .positive ? Theme.doText : style == .negative ? Theme.avoidText : Theme.text)
+                .padding(.horizontal, 10)
+                .frame(height: 28)
+                .background(Capsule().fill(style == .positive ? Theme.doFill : style == .negative ? Theme.avoidFill : Theme.kbdFill))
             }
             if adding {
-                TextField("Type and press ↵", text: $newText)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 200)
-                    .onSubmit(commit)
+                StyledTextField(placeholder: "Type and press ↵", text: $newText, height: 28, onSubmit: commit)
+                    .frame(width: 220)
                     .onExitCommand { adding = false; newText = "" }
             } else {
-                Button("+ Add") { adding = true }
-                    .buttonStyle(.plain)
-                    .font(.system(size: 12))
-                    .padding(.horizontal, 9)
-                    .padding(.vertical, 3)
-                    .overlay(Capsule().stroke(style: StrokeStyle(lineWidth: 1, dash: [3])).foregroundStyle(Theme.secondaryText))
+                Button("+ Add") { adding = true }.buttonStyle(DashedButtonStyle())
             }
         }
     }
@@ -133,10 +131,14 @@ struct HotKeyRecorder: View {
     var body: some View {
         Button(action: toggle) {
             Text(recording ? "Press a shortcut…" : (combo?.display ?? "Record shortcut"))
-                .font(.system(size: 13, weight: .semibold))
-                .frame(minWidth: 120)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(recording ? Theme.accent : Theme.text)
+                .frame(minWidth: 110)
         }
+        .buttonStyle(SecondaryButtonStyle(height: 36))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.accent, lineWidth: recording ? 1.5 : 0))
         .onDisappear(perform: stop)
+        .help("Click, then press a shortcut. Esc cancels\(allowClear ? ", ⌫ clears" : "").")
     }
 
     private func toggle() { recording ? stop() : start() }
@@ -161,29 +163,6 @@ struct HotKeyRecorder: View {
     }
 }
 
-struct SectionTitle: View {
-    let text: String
-    init(_ text: String) { self.text = text }
-    var body: some View { Text(text).font(.system(size: 17, weight: .bold)) }
-}
-
-struct FieldLabel: View {
-    let text: String
-    var color: Color = .secondary
-    init(_ text: String, color: Color = .secondary) { self.text = text; self.color = color }
-    var body: some View { Text(text).font(.system(size: 12, weight: .semibold)).foregroundStyle(color) }
-}
-
-/// A rounded group of rows, as in macOS settings.
-struct RowGroup<Content: View>: View {
-    @ViewBuilder var content: Content
-    var body: some View {
-        VStack(spacing: 0) { content }
-            .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .textBackgroundColor)))
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
-    }
-}
-
 struct VoiceRulesEditor: View {
     @ObservedObject var store = Store.shared
 
@@ -191,21 +170,25 @@ struct VoiceRulesEditor: View {
         VStack(alignment: .leading, spacing: 10) {
             RowGroup {
                 ForEach($store.settings.voiceRules) { $rule in
-                    HStack(spacing: 10) {
-                        Toggle("", isOn: $rule.enabled).labelsHidden().toggleStyle(.checkbox)
-                        TextField("Rule", text: $rule.text).textFieldStyle(.plain)
+                    HStack(spacing: 12) {
+                        Checkbox(isOn: $rule.enabled, label: rule.text)
+                        TextField("Rule", text: $rule.text)
+                            .textFieldStyle(.plain)
+                            .font(.system(size: 14))
+                            .foregroundStyle(rule.enabled ? Theme.text : Theme.secondaryText)
                         Button { store.settings.voiceRules.removeAll { $0.id == rule.id } } label: {
-                            Image(systemName: "minus.circle").foregroundStyle(Theme.secondaryText)
+                            Image(systemName: "xmark").font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.tertiaryText)
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel("Delete rule")
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 10)
-                    if rule.id != store.settings.voiceRules.last?.id { Divider() }
+                    .padding(.horizontal, 14)
+                    .frame(height: 46)
+                    if rule.id != store.settings.voiceRules.last?.id { RowDivider() }
                 }
             }
             Button("+ Add rule") { store.settings.voiceRules.append(VoiceRule(text: "")) }
+                .buttonStyle(DashedButtonStyle(capsule: false))
         }
     }
 }

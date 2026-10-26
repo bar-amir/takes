@@ -14,7 +14,7 @@ struct EngineTab: View {
                     SectionTitle("Where Claude runs")
                     claudeCodeCard
                     apiKeyCard
-                    engineCard(selected: false, enabled: false) {
+                    EngineCard(selected: false, enabled: false) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Sign in with Claude").font(.system(size: 15, weight: .semibold))
                             Text("Public build, only if Anthropic approves it.").font(.system(size: 13))
@@ -22,41 +22,38 @@ struct EngineTab: View {
                         .foregroundStyle(Theme.secondaryText)
                     }
 
-                    SectionTitle("Defaults for new presets").padding(.top, 10)
-                    HStack(spacing: 14) {
-                        Picker("Takes", selection: $store.settings.defaultTakes) { ForEach(1...5, id: \.self) { Text("\($0)").tag($0) } }
-                            .fixedSize()
-                        Picker("Model", selection: $store.settings.defaultModel) { ForEach(Models.all, id: \.id) { Text($0.label).tag($0.id) } }
-                            .fixedSize()
-                        Picker("Effort", selection: $store.settings.defaultEffort) { ForEach(Models.efforts, id: \.self) { Text($0.capitalized).tag($0) } }
-                            .fixedSize()
+                    SectionTitle("Defaults for new presets").padding(.top, 14)
+                    FlowLayout(spacing: 18) {
+                        LabeledMenu(label: "Takes", options: (1...5).map { (value: $0, title: "\($0)") }, selection: $store.settings.defaultTakes)
+                        LabeledMenu(label: "Model", options: Models.all.map { (value: $0.id, title: $0.label) }, selection: $store.settings.defaultModel)
+                        LabeledMenu(label: "Effort", options: Models.efforts.map { (value: $0, title: $0.capitalized) }, selection: $store.settings.defaultEffort)
                     }
                     if let ms = store.settings.lastFirstTextMs {
                         Text(String(format: "Last run: first words after %.1f s.", Double(ms) / 1000))
-                            .font(.callout).foregroundStyle(Theme.secondaryText)
+                            .font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
                     }
                 }
-                .padding(28)
+                .padding(32)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(maxWidth: .infinity)
-            Divider()
+            Rectangle().fill(Theme.border).frame(width: 1)
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     SectionTitle("Voice rules for every preset")
                     VoiceRulesEditor()
-                    SectionTitle("Panel and paste").padding(.top, 10)
+                    SectionTitle("Panel and paste").padding(.top, 14)
                     PanelSettings()
                 }
-                .padding(28)
+                .padding(32)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(maxWidth: .infinity)
-            .background(Theme.strip)
+            .background(Theme.sidebar)
         }
         .task { status = await ClaudeCodeEngine.status() }
     }
 
     private var claudeCodeCard: some View {
-        engineCard(selected: store.settings.engine == .claudeCode, enabled: true, select: { store.settings.engine = .claudeCode }) {
+        EngineCard(selected: store.settings.engine == .claudeCode, enabled: true, select: { store.settings.engine = .claudeCode }) {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
                     Text("Claude Code on this Mac").font(.system(size: 15, weight: .semibold))
@@ -67,7 +64,8 @@ struct EngineTab: View {
                     Text("Run `claude auth login` in Terminal, then check again.").font(.system(size: 12)).foregroundStyle(Theme.avoidText)
                 }
                 Button("Check again") { Task { status = nil; status = await ClaudeCodeEngine.status() } }
-                    .controlSize(.small)
+                    .buttonStyle(SecondaryButtonStyle(height: 26))
+                    .padding(.top, 2)
             }
         }
     }
@@ -89,47 +87,59 @@ struct EngineTab: View {
     }
 
     private var apiKeyCard: some View {
-        engineCard(selected: store.settings.engine == .apiKey, enabled: true, select: { store.settings.engine = .apiKey }) {
+        EngineCard(selected: store.settings.engine == .apiKey, enabled: true, select: { store.settings.engine = .apiKey }) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Anthropic API key").font(.system(size: 15, weight: .semibold))
                 Text("Pay per use, billed by Anthropic. Usually a cent or two per run.").font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
                 if hasKey {
-                    HStack {
-                        Text("Key saved in your keychain").font(.system(size: 12)).foregroundStyle(Theme.doText)
-                        Button("Remove") { Keychain.setAPIKey(nil); hasKey = false }.controlSize(.small)
+                    HStack(spacing: 10) {
+                        Text("Key saved in your keychain").font(.system(size: 13)).foregroundStyle(Theme.doText)
+                        Button("Remove") { Keychain.setAPIKey(nil); hasKey = false }.buttonStyle(SecondaryButtonStyle(height: 26))
                     }
                 } else {
-                    HStack {
-                        SecureField("Paste your key", text: $keyInput).textFieldStyle(.roundedBorder)
-                        Button("Save") {
-                            Keychain.setAPIKey(keyInput.trimmingCharacters(in: .whitespacesAndNewlines))
-                            keyInput = ""
-                            hasKey = Keychain.apiKey != nil
-                        }
-                        .disabled(keyInput.trimmingCharacters(in: .whitespaces).isEmpty)
+                    HStack(spacing: 8) {
+                        StyledTextField(placeholder: "Paste your key", text: $keyInput, secure: true, height: 34, onSubmit: saveKey)
+                        Button("Save", action: saveKey)
+                            .buttonStyle(SecondaryButtonStyle(height: 34))
+                            .disabled(keyInput.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
                 }
             }
         }
     }
 
-    private func engineCard<Content: View>(selected: Bool, enabled: Bool, select: @escaping () -> Void = {},
-                                            @ViewBuilder content: () -> Content) -> some View {
+    private func saveKey() {
+        Keychain.setAPIKey(keyInput.trimmingCharacters(in: .whitespacesAndNewlines))
+        keyInput = ""
+        hasKey = Keychain.apiKey != nil
+    }
+}
+
+/// A selectable option card with a radio dot, as in the mockup.
+private struct EngineCard<Content: View>: View {
+    let selected: Bool
+    let enabled: Bool
+    var select: () -> Void = {}
+    @ViewBuilder var content: Content
+
+    var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            Image(systemName: selected ? "largecircle.fill.circle" : "circle")
-                .font(.system(size: 16))
-                .foregroundStyle(selected ? Theme.accent : .secondary)
-                .padding(.top, 2)
-            content()
+            ZStack {
+                Circle().stroke(selected ? Theme.accent : Theme.dashed, lineWidth: 1.5).frame(width: 16, height: 16)
+                if selected { Circle().fill(Theme.accent).frame(width: 8, height: 8) }
+            }
+            .padding(.top, 3)
+            content
             Spacer(minLength: 0)
         }
         .padding(16)
-        .background(RoundedRectangle(cornerRadius: 12).fill(selected ? Theme.accentSoft : Color.clear))
+        .background(RoundedRectangle(cornerRadius: 12).fill(selected ? Theme.accentSoft : Theme.surface))
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(selected ? Theme.accent : Theme.border,
-                                                           style: StrokeStyle(lineWidth: selected ? 2 : 1, dash: enabled ? [] : [4])))
+                                                           style: StrokeStyle(lineWidth: selected ? 2 : 1, dash: enabled ? [] : [4, 3])))
         .contentShape(Rectangle())
         .onTapGesture { if enabled { select() } }
-        .opacity(enabled ? 1 : 0.7)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
     }
 }
 
@@ -143,20 +153,18 @@ struct PanelSettings: View {
                                               set: { if let combo = $0 { store.settings.summonHotKey = combo } }),
                                allowClear: false)
             }
-            Divider()
+            RowDivider()
             row("Open the panel") {
-                Picker("", selection: $store.settings.panelPosition) { ForEach(PanelPosition.allCases) { Text($0.label).tag($0) } }
-                    .labelsHidden().fixedSize()
+                MenuPicker(options: PanelPosition.allCases.map { (value: $0, title: $0.label) }, selection: $store.settings.panelPosition)
             }
-            Divider()
+            RowDivider()
             row("Start with") {
-                Picker("", selection: $store.settings.prefill) { ForEach(Prefill.allCases) { Text($0.label).tag($0) } }
-                    .labelsHidden().fixedSize()
+                MenuPicker(options: Prefill.allCases.map { (value: $0, title: $0.label) }, selection: $store.settings.prefill)
             }
-            Divider()
-            row("Put my clipboard back after pasting") { Toggle("", isOn: $store.settings.restoreClipboard).labelsHidden() }
-            Divider()
-            row("Keep 30 days of history, on this Mac only") { Toggle("", isOn: $store.settings.keepHistory).labelsHidden() }
+            RowDivider()
+            row("Put my clipboard back after pasting") { Checkbox(isOn: $store.settings.restoreClipboard, label: "Restore clipboard") }
+            RowDivider()
+            row("Keep 30 days of history, on this Mac only") { Checkbox(isOn: $store.settings.keepHistory, label: "Keep history") }
         }
     }
 
@@ -167,7 +175,7 @@ struct PanelSettings: View {
             trailing()
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .frame(minHeight: 50)
     }
 }
 
@@ -177,12 +185,14 @@ struct VoiceTab: View {
             VStack(alignment: .leading, spacing: 14) {
                 SectionTitle("Voice rules for every preset")
                 Text("These apply on top of each preset's own Do and Avoid lists. Untick a rule to pause it.")
-                    .font(.callout).foregroundStyle(Theme.secondaryText)
+                    .font(.system(size: 14)).foregroundStyle(Theme.secondaryText)
                 VoiceRulesEditor()
             }
-            .padding(28)
-            .frame(maxWidth: 720, alignment: .leading)
+            .padding(32)
+            .frame(maxWidth: 760, alignment: .leading)
+            .frame(maxWidth: .infinity)
         }
+        .background(Theme.sidebar)
     }
 }
 
@@ -200,13 +210,15 @@ struct HistoryTab: View {
         VStack(spacing: 0) {
             HStack {
                 Text(store.settings.keepHistory ? "Last 30 days, stored only on this Mac." : "History is off (Settings › Engine).")
-                    .font(.callout).foregroundStyle(Theme.secondaryText)
+                    .font(.system(size: 14)).foregroundStyle(Theme.secondaryText)
                 Spacer()
-                Button("Clear history") { store.history = [] }.disabled(store.history.isEmpty)
+                Button("Clear history") { store.history = [] }
+                    .buttonStyle(SecondaryButtonStyle())
+                    .disabled(store.history.isEmpty)
             }
-            .padding(.horizontal, 28)
-            .padding(.vertical, 14)
-            Divider()
+            .padding(.horizontal, 32)
+            .frame(height: 60)
+            RowDivider()
             if store.history.isEmpty {
                 Text("No runs yet.").foregroundStyle(Theme.secondaryText).frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -214,37 +226,42 @@ struct HistoryTab: View {
                     LazyVStack(alignment: .leading, spacing: 14) {
                         ForEach(store.history) { entry in entryView(entry) }
                     }
-                    .padding(28)
+                    .padding(32)
+                    .frame(maxWidth: 900)
+                    .frame(maxWidth: .infinity)
                 }
             }
         }
+        .background(Theme.sidebar)
     }
 
     private func entryView(_ entry: HistoryEntry) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 6) {
                 Text(Self.dateFormat.string(from: entry.date)).font(.system(size: 12, weight: .semibold))
                 Text("· \(entry.appName) · \(entry.presetName)").font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
             }
-            Text(entry.draft).font(.system(size: 13)).foregroundStyle(Theme.secondaryText).lineLimit(3)
+            (Text("Your draft: ").fontWeight(.semibold).foregroundStyle(Theme.controlText) + Text(entry.draft).foregroundStyle(Theme.secondaryText))
+                .font(.system(size: 13)).lineLimit(3)
             ForEach(Array(entry.takes.enumerated()), id: \.offset) { index, take in
-                HStack(alignment: .top, spacing: 10) {
+                HStack(alignment: .top, spacing: 12) {
                     Text(entry.pastedIndex == index ? "Pasted" : "Take \(index + 1)")
                         .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(entry.pastedIndex == index ? Theme.accent : .secondary)
+                        .foregroundStyle(entry.pastedIndex == index ? Theme.accent : Theme.secondaryText)
                         .frame(width: 52, alignment: .leading)
-                    Text(take).font(.system(size: 14)).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, 2)
+                    Text(take).font(.system(size: 14)).lineSpacing(3).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)
                     Button {
                         NSPasteboard.general.clearContents()
                         NSPasteboard.general.setString(take, forType: .string)
-                    } label: { Image(systemName: "doc.on.doc") }
-                    .buttonStyle(.borderless)
+                    } label: { Image(systemName: "doc.on.doc").font(.system(size: 11, weight: .medium)) }
+                    .buttonStyle(SecondaryButtonStyle(height: 28))
                     .accessibilityLabel("Copy take")
                 }
             }
         }
-        .padding(16)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .textBackgroundColor)))
+        .padding(18)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Theme.surface))
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.border))
     }
 }

@@ -8,8 +8,8 @@ struct PresetsTab: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            sidebar.frame(width: 250)
-            Divider()
+            sidebar.frame(width: 260)
+            Rectangle().fill(Theme.border).frame(width: 1)
             if let index = store.presets.firstIndex(where: { $0.id == state.selectedPresetID }) {
                 PresetEditor(preset: $store.presets[index])
                     .id(store.presets[index].id)
@@ -21,45 +21,66 @@ struct PresetsTab: View {
 
     private var sidebar: some View {
         VStack(spacing: 0) {
-            List(selection: $state.selectedPresetID) {
-                ForEach(Array(store.presets.enumerated()), id: \.element.id) { index, preset in
-                    HStack(spacing: 10) {
-                        PresetDot(hex: preset.colorHex)
-                        Text(preset.name).lineLimit(1)
-                        Spacer()
-                        if index < 9 { Text("⌘\(index + 1)").font(.caption).foregroundStyle(Theme.secondaryText) }
-                    }
-                    .tag(preset.id)
-                    .contextMenu {
-                        Button("Duplicate") { duplicate(preset) }
-                        Button("Export…") { export(preset) }
-                        Divider()
-                        Button("Delete", role: .destructive) { delete(preset) }
+            ScrollView {
+                VStack(spacing: 2) {
+                    ForEach(Array(store.presets.enumerated()), id: \.element.id) { index, preset in
+                        row(preset, index: index)
                     }
                 }
-                .onMove { store.presets.move(fromOffsets: $0, toOffset: $1) }
+                .padding(12)
             }
-            .listStyle(.sidebar)
-
             HStack(spacing: 6) {
-                Button("New") {
+                Button {
                     let preset = store.newPreset()
                     store.presets.append(preset)
                     state.selectedPresetID = preset.id
-                }
-                Button("Duplicate") {
-                    if let preset = store.preset(id: state.selectedPresetID) { duplicate(preset) }
+                } label: { Text("New").lineLimit(1).frame(maxWidth: .infinity) }
+                Button { if let preset = store.preset(id: state.selectedPresetID) { duplicate(preset) } } label: {
+                    Text("Duplicate").lineLimit(1).fixedSize().frame(maxWidth: .infinity)
                 }
                 .disabled(state.selectedPresetID == nil)
-                Button("Import") { importPresets() }
-                Button { if let preset = store.preset(id: state.selectedPresetID) { delete(preset) } } label: {
-                    Image(systemName: "trash")
-                }
-                .disabled(store.presets.count <= 1)
-                .accessibilityLabel("Delete preset")
+                Button(action: importPresets) { Text("Import").lineLimit(1).frame(maxWidth: .infinity) }
             }
-            .padding(10)
+            .buttonStyle(SecondaryButtonStyle(height: 34))
+            .padding(12)
         }
+        .background(Theme.sidebar)
+    }
+
+    private func row(_ preset: Preset, index: Int) -> some View {
+        let selected = preset.id == state.selectedPresetID
+        return Button { state.selectedPresetID = preset.id } label: {
+            HStack(spacing: 10) {
+                PresetDot(hex: preset.colorHex)
+                Text(preset.name)
+                    .font(.system(size: 14, weight: selected ? .semibold : .regular))
+                    .foregroundStyle(Theme.text)
+                    .lineLimit(1)
+                Spacer(minLength: 4)
+                if index < 9 { Text("⌘\(index + 1)").font(.system(size: 11)).foregroundStyle(Theme.tertiaryText) }
+            }
+            .padding(.horizontal, 10)
+            .frame(height: 38)
+            .background(RoundedRectangle(cornerRadius: 8).fill(selected ? Theme.selectedRow : .clear))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            Button("Move up") { move(preset, by: -1) }.disabled(index == 0)
+            Button("Move down") { move(preset, by: 1) }.disabled(index == store.presets.count - 1)
+            Divider()
+            Button("Duplicate") { duplicate(preset) }
+            Button("Export…") { export(preset) }
+            Divider()
+            Button("Delete…", role: .destructive) { delete(preset) }.disabled(store.presets.count <= 1)
+        }
+    }
+
+    private func move(_ preset: Preset, by offset: Int) {
+        guard let index = store.index(of: preset.id) else { return }
+        let target = index + offset
+        guard store.presets.indices.contains(target) else { return }
+        store.presets.swapAt(index, target)
     }
 
     private func duplicate(_ preset: Preset) {
@@ -120,15 +141,11 @@ private struct PresetEditor: View {
     var body: some View {
         HStack(spacing: 0) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 22) {
                     nameRow
                     VStack(alignment: .leading, spacing: 6) {
                         FieldLabel("Instruction")
-                        TextEditor(text: $preset.instruction)
-                            .font(.system(size: 14))
-                            .frame(height: 76)
-                            .padding(6)
-                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.border))
+                        StyledTextEditor(text: $preset.instruction, height: 76)
                     }
                     VStack(alignment: .leading, spacing: 8) {
                         FieldLabel("Do", color: Theme.doText)
@@ -139,14 +156,10 @@ private struct PresetEditor: View {
                         ChipsEditor(items: $preset.avoid, style: .negative)
                     }
                     ExamplesEditor(examples: $preset.examples)
-                    HStack(alignment: .top, spacing: 24) {
+                    HStack(alignment: .top, spacing: 28) {
                         VStack(alignment: .leading, spacing: 6) {
-                            FieldLabel("Reply language").fixedSize()
-                            Picker("Reply language", selection: $preset.language) {
-                                ForEach(ReplyLanguage.allCases) { Text($0.label).tag($0) }
-                            }
-                            .pickerStyle(.segmented)
-                            .labelsHidden()
+                            FieldLabel("Reply language")
+                            ChoiceSegments(options: ReplyLanguage.allCases.map { (value: $0, title: $0.label) }, selection: $preset.language)
                         }
                         VStack(alignment: .leading, spacing: 6) {
                             FieldLabel("Picked automatically in")
@@ -155,34 +168,36 @@ private struct PresetEditor: View {
                     }
                     runDefaults
                 }
-                .padding(26)
+                .padding(.horizontal, 28)
+                .padding(.vertical, 24)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(minWidth: 520)
-            Divider()
-            TryItPanel(preset: preset).frame(width: 360)
+            .frame(minWidth: 540)
+            Rectangle().fill(Theme.border).frame(width: 1)
+            TryItPanel(preset: preset).frame(width: 370)
         }
     }
 
     private var nameRow: some View {
-        HStack(alignment: .bottom, spacing: 14) {
+        HStack(alignment: .bottom, spacing: 16) {
             VStack(alignment: .leading, spacing: 6) {
                 FieldLabel("Name")
-                TextField("Name", text: $preset.name).textFieldStyle(.roundedBorder).font(.system(size: 14))
+                StyledTextField(placeholder: "Name", text: $preset.name)
             }
             VStack(alignment: .leading, spacing: 6) {
                 FieldLabel("Color")
-                HStack(spacing: 6) {
+                HStack(spacing: 7) {
                     ForEach(Preset.colors, id: \.self) { hex in
                         Button { preset.colorHex = hex } label: {
-                            Circle().fill(Color(hex: hex)).frame(width: 16, height: 16)
-                                .overlay(Circle().stroke(Color.primary, lineWidth: preset.colorHex == hex ? 2 : 0).padding(-3))
+                            Circle().fill(Color(hex: hex)).frame(width: 18, height: 18)
+                                .overlay(Circle().stroke(Theme.text, lineWidth: preset.colorHex == hex ? 2 : 0).padding(-3))
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel("Color \(hex)")
+                        .accessibilityAddTraits(preset.colorHex == hex ? .isSelected : [])
                     }
                 }
-                .frame(height: 22)
+                .frame(height: 36)
             }
             VStack(alignment: .leading, spacing: 6) {
                 FieldLabel("Own hotkey")
@@ -194,18 +209,15 @@ private struct PresetEditor: View {
     private var runDefaults: some View {
         VStack(alignment: .leading, spacing: 10) {
             FieldLabel("Run defaults")
-            FlowLayout(spacing: 16) {
-            Picker("Takes", selection: $preset.takes) { ForEach(1...5, id: \.self) { Text("\($0)").tag($0) } }
-                .fixedSize()
-            Picker("Model", selection: $preset.model) { ForEach(Models.all, id: \.id) { Text($0.label).tag($0.id) } }
-                .fixedSize()
-            Picker("Effort", selection: $preset.effort) { ForEach(Models.efforts, id: \.self) { Text($0.capitalized).tag($0) } }
-                .fixedSize()
-            Picker("Length", selection: $preset.length) { ForEach(TakeLength.allCases) { Text($0.label).tag($0) } }
-                .fixedSize()
+            FlowLayout(spacing: 18) {
+                LabeledMenu(label: "Takes", options: (1...5).map { (value: $0, title: "\($0)") }, selection: $preset.takes)
+                LabeledMenu(label: "Model", options: Models.all.map { (value: $0.id, title: $0.label) }, selection: $preset.model)
+                LabeledMenu(label: "Effort", options: Models.efforts.map { (value: $0, title: $0.capitalized) }, selection: $preset.effort)
+                LabeledMenu(label: "Length", options: TakeLength.allCases.map { (value: $0, title: $0.label) }, selection: $preset.length)
             }
         }
-        .padding(12)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: 10).fill(Theme.strip))
     }
@@ -219,26 +231,37 @@ private struct ExamplesEditor: View {
             HStack {
                 FieldLabel("Write like me · examples")
                 Spacer()
-                Text("\(examples.count) of \(Preset.maxExamples)").font(.caption).foregroundStyle(Theme.secondaryText)
+                Text("\(examples.count) of \(Preset.maxExamples)").font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
             }
             ForEach(examples.indices, id: \.self) { index in
-                HStack(alignment: .top) {
-                    TextEditor(text: Binding(get: { examples.indices.contains(index) ? examples[index] : "" },
-                                             set: { if examples.indices.contains(index) { examples[index] = $0 } }))
-                        .font(.system(size: 13))
-                        .frame(height: 54)
-                        .padding(4)
-                        .background(RoundedRectangle(cornerRadius: 8).fill(Theme.strip))
-                    Button { examples.remove(at: index) } label: { Image(systemName: "minus.circle").foregroundStyle(Theme.secondaryText) }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Remove example")
+                HStack(alignment: .top, spacing: 8) {
+                    StyledTextEditor(text: Binding(get: { examples.indices.contains(index) ? examples[index] : "" },
+                                                   set: { if examples.indices.contains(index) { examples[index] = $0 } }),
+                                     height: 58, fontSize: 13, fill: Theme.sidebar)
+                    Button { examples.remove(at: index) } label: {
+                        Image(systemName: "xmark").font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.tertiaryText)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, 8)
+                    .accessibilityLabel("Remove example")
                 }
             }
-            if examples.count < Preset.maxExamples {
-                Button("+ Add a message you wrote") { examples.append("") }
+            if examples.isEmpty {
+                Text("[A message you wrote and liked, saved from a take or pasted in]")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Theme.tertiaryText)
+                    .padding(.horizontal, 12)
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Theme.sidebar))
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.border))
             }
-            Text("Tip: after pasting a take you like, choose “Save as example”.")
-                .font(.caption).foregroundStyle(Theme.secondaryText)
+            HStack(spacing: 10) {
+                if examples.count < Preset.maxExamples {
+                    Button("+ Add a message you wrote") { examples.append("") }.buttonStyle(DashedButtonStyle(capsule: false))
+                }
+                Text("Or choose “Save as example” after pasting a take you like.")
+                    .font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
+            }
         }
     }
 }
@@ -247,27 +270,32 @@ private struct AppsEditor: View {
     @Binding var apps: [AppRef]
 
     var body: some View {
-        FlowLayout {
+        FlowLayout(spacing: 6) {
             ForEach(apps) { app in
-                HStack(spacing: 4) {
-                    Text(app.name).font(.system(size: 12))
+                HStack(spacing: 6) {
+                    Text(app.name).font(.system(size: 13))
                     Button { apps.removeAll { $0.id == app.id } } label: { Image(systemName: "xmark").font(.system(size: 8, weight: .bold)) }
                         .buttonStyle(.plain)
                         .accessibilityLabel("Remove \(app.name)")
                 }
-                .padding(.horizontal, 9)
-                .padding(.vertical, 4)
-                .background(RoundedRectangle(cornerRadius: 7).fill(Color.primary.opacity(0.06)))
+                .padding(.horizontal, 10)
+                .frame(height: 28)
+                .background(RoundedRectangle(cornerRadius: 7).fill(Theme.kbdFill))
             }
-            Menu("+ App") {
-                ForEach(runningApps, id: \.bundleID) { app in
-                    Button(app.name) { if !apps.contains(app) { apps.append(app) } }
-                }
-                Divider()
-                Button("Choose from Applications…", action: chooseApp)
-            }
-            .fixedSize()
+            Button("+ App", action: showMenu).buttonStyle(DashedButtonStyle(capsule: false))
         }
+    }
+
+    private func showMenu() {
+        let menu = NSMenu()
+        for app in runningApps {
+            let item = ClosureMenuItem(title: app.name) { if !apps.contains(app) { apps.append(app) } }
+            item.state = apps.contains(app) ? .on : .off
+            menu.addItem(item)
+        }
+        menu.addItem(.separator())
+        menu.addItem(ClosureMenuItem(title: "Choose from Applications…", handler: chooseApp))
+        menu.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
     }
 
     private var runningApps: [AppRef] {
@@ -300,36 +328,33 @@ private struct TryItPanel: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                Text("Try it").font(.system(size: 15, weight: .bold))
-                FieldLabel("Sample draft")
-                TextEditor(text: $sample)
-                    .font(.system(size: 14))
-                    .frame(height: 96)
-                    .padding(6)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(Color(nsColor: .textBackgroundColor)))
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.border))
+                Text("Try it").font(.system(size: 16, weight: .bold))
+                VStack(alignment: .leading, spacing: 6) {
+                    FieldLabel("Sample draft")
+                    StyledTextEditor(text: $sample, height: 100)
+                }
                 Button(action: run) {
                     Text(running ? "Writing…" : "Run with these settings").frame(maxWidth: .infinity)
                 }
                 .buttonStyle(PrimaryButtonStyle())
                 .disabled(running || sample.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                if let error { Text(error).font(.callout).foregroundStyle(Theme.avoidText).textSelection(.enabled) }
+                if let error { Text(error).font(.system(size: 13)).foregroundStyle(Theme.avoidText).textSelection(.enabled) }
                 ForEach(Array(takes.enumerated()), id: \.offset) { index, take in
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Take \(index + 1)").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.secondaryText)
-                        Text(take).font(.system(size: 14)).textSelection(.enabled)
+                        Text(take).font(.system(size: 14)).lineSpacing(3).textSelection(.enabled)
                     }
-                    .padding(12)
+                    .padding(14)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: 10).fill(Color(nsColor: .textBackgroundColor)))
+                    .background(RoundedRectangle(cornerRadius: 10).fill(Theme.surface))
                     .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
                 }
-                Text("Saved automatically. Presets are a plain file you can back up or share (right-click › Export).")
-                    .font(.caption).foregroundStyle(Theme.secondaryText)
+                Text("Saved automatically. Presets are a plain file you can back up or share (right-click a preset › Export).")
+                    .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).lineSpacing(2)
             }
             .padding(22)
         }
-        .background(Theme.strip)
+        .background(Theme.sidebar)
     }
 
     private func run() {
