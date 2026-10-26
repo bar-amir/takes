@@ -16,7 +16,7 @@ struct DraftEditor: NSViewRepresentable {
         let scroll = NSTextView.scrollableTextView()
         let textView = scroll.documentView as! NSTextView
         textView.delegate = context.coordinator
-        textView.font = .systemFont(ofSize: 16)
+        textView.font = .systemFont(ofSize: 17)
         textView.isRichText = false
         textView.allowsUndo = true
         textView.drawsBackground = false

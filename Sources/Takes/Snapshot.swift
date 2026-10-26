@@ -28,7 +28,7 @@ enum Snapshot {
         }
 
         let compose = model()
-        render(PanelRootView(model: compose), size: CGSize(width: 720, height: 390), to: url.appendingPathComponent("1-compose.png"))
+        render(PanelRootView(model: compose), size: CGSize(width: 720, height: 360), to: url.appendingPathComponent("1-compose.png"))
 
         let picker = model()
         picker.openPicker()

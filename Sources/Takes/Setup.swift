@@ -120,7 +120,7 @@ struct SetupView: View {
                      ? "Press \(store.settings.summonHotKey.display) in any text field to start."
                      : "This window updates by itself as you finish each step.")
                     .font(.system(size: 14))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.secondaryText)
             }
             .padding(.horizontal, 28)
             .padding(.top, 36)
@@ -143,7 +143,7 @@ struct SetupView: View {
                 Spacer()
                 Button(monitor.allSet ? "Done" : "Close", action: onDone)
                     .keyboardShortcut(.defaultAction)
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(PrimaryButtonStyle())
             }
             .padding(.horizontal, 28)
             .padding(.vertical, 16)
@@ -161,14 +161,14 @@ struct SetupView: View {
             if !monitor.accessibility {
                 HStack(spacing: 8) {
                     Button("Open Accessibility settings", action: monitor.requestAccessibility)
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(PrimaryButtonStyle())
                     Button("Show Takes in Finder") {
                         NSWorkspace.shared.activateFileViewerSelecting([Bundle.main.bundleURL])
                     }
                 }
                 Text("Switch Takes on in the list, or drag it in from Finder. If Takes is already listed and switched on, select it, remove it with –, and add it again: macOS keeps access tied to the previous version after an update.")
                     .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -193,7 +193,7 @@ struct SetupView: View {
                             NSPasteboard.general.setString("claude auth login", forType: .string)
                             copied = true
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(PrimaryButtonStyle())
                         Button("Open Terminal") {
                             NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Utilities/Terminal.app"))
                         }
@@ -204,13 +204,13 @@ struct SetupView: View {
                     }
                     Text("Paste the command in Terminal, sign in in the browser, then paste the code it shows back into Terminal.")
                         .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.secondaryText)
                 } else {
                     Button("Add your API key") {
                         onDone()
                         SettingsWindowController.shared.show(tab: .engine)
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(PrimaryButtonStyle())
                 }
             }
         }
@@ -227,7 +227,7 @@ struct SetupView: View {
                     onDone()
                     SettingsWindowController.shared.show(tab: .engine)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(PrimaryButtonStyle())
             }
         }
     }
@@ -261,7 +261,7 @@ private struct SetupStep<Actions: View>: View {
                         .foregroundStyle(done ? Theme.doText : Theme.avoidText)
                         .background(Capsule().fill(done ? Theme.doFill : Theme.avoidFill))
                 }
-                Text(detail).font(.system(size: 13)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                Text(detail).font(.system(size: 13)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
                 actions
             }
             Spacer(minLength: 0)

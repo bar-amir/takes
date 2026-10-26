@@ -14,7 +14,7 @@ struct PresetsTab: View {
                 PresetEditor(preset: $store.presets[index])
                     .id(store.presets[index].id)
             } else {
-                Text("Choose a preset").foregroundStyle(.secondary).frame(maxWidth: .infinity, maxHeight: .infinity)
+                Text("Choose a preset").foregroundStyle(Theme.secondaryText).frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
     }
@@ -27,7 +27,7 @@ struct PresetsTab: View {
                         PresetDot(hex: preset.colorHex)
                         Text(preset.name).lineLimit(1)
                         Spacer()
-                        if index < 9 { Text("⌘\(index + 1)").font(.caption).foregroundStyle(.secondary) }
+                        if index < 9 { Text("⌘\(index + 1)").font(.caption).foregroundStyle(Theme.secondaryText) }
                     }
                     .tag(preset.id)
                     .contextMenu {
@@ -219,7 +219,7 @@ private struct ExamplesEditor: View {
             HStack {
                 FieldLabel("Write like me · examples")
                 Spacer()
-                Text("\(examples.count) of \(Preset.maxExamples)").font(.caption).foregroundStyle(.secondary)
+                Text("\(examples.count) of \(Preset.maxExamples)").font(.caption).foregroundStyle(Theme.secondaryText)
             }
             ForEach(examples.indices, id: \.self) { index in
                 HStack(alignment: .top) {
@@ -229,7 +229,7 @@ private struct ExamplesEditor: View {
                         .frame(height: 54)
                         .padding(4)
                         .background(RoundedRectangle(cornerRadius: 8).fill(Theme.strip))
-                    Button { examples.remove(at: index) } label: { Image(systemName: "minus.circle").foregroundStyle(.secondary) }
+                    Button { examples.remove(at: index) } label: { Image(systemName: "minus.circle").foregroundStyle(Theme.secondaryText) }
                         .buttonStyle(.plain)
                         .accessibilityLabel("Remove example")
                 }
@@ -238,7 +238,7 @@ private struct ExamplesEditor: View {
                 Button("+ Add a message you wrote") { examples.append("") }
             }
             Text("Tip: after pasting a take you like, choose “Save as example”.")
-                .font(.caption).foregroundStyle(.secondary)
+                .font(.caption).foregroundStyle(Theme.secondaryText)
         }
     }
 }
@@ -311,13 +311,12 @@ private struct TryItPanel: View {
                 Button(action: run) {
                     Text(running ? "Writing…" : "Run with these settings").frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
+                .buttonStyle(PrimaryButtonStyle())
                 .disabled(running || sample.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 if let error { Text(error).font(.callout).foregroundStyle(Theme.avoidText).textSelection(.enabled) }
                 ForEach(Array(takes.enumerated()), id: \.offset) { index, take in
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Take \(index + 1)").font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
+                        Text("Take \(index + 1)").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.secondaryText)
                         Text(take).font(.system(size: 14)).textSelection(.enabled)
                     }
                     .padding(12)
@@ -326,7 +325,7 @@ private struct TryItPanel: View {
                     .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
                 }
                 Text("Saved automatically. Presets are a plain file you can back up or share (right-click › Export).")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.caption).foregroundStyle(Theme.secondaryText)
             }
             .padding(22)
         }

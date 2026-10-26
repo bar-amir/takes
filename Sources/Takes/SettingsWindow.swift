@@ -110,7 +110,7 @@ struct ChipsEditor: View {
                     .font(.system(size: 12))
                     .padding(.horizontal, 9)
                     .padding(.vertical, 3)
-                    .overlay(Capsule().stroke(style: StrokeStyle(lineWidth: 1, dash: [3])).foregroundStyle(.secondary))
+                    .overlay(Capsule().stroke(style: StrokeStyle(lineWidth: 1, dash: [3])).foregroundStyle(Theme.secondaryText))
             }
         }
     }
@@ -195,7 +195,7 @@ struct VoiceRulesEditor: View {
                         Toggle("", isOn: $rule.enabled).labelsHidden().toggleStyle(.checkbox)
                         TextField("Rule", text: $rule.text).textFieldStyle(.plain)
                         Button { store.settings.voiceRules.removeAll { $0.id == rule.id } } label: {
-                            Image(systemName: "minus.circle").foregroundStyle(.secondary)
+                            Image(systemName: "minus.circle").foregroundStyle(Theme.secondaryText)
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel("Delete rule")

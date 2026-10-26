@@ -69,6 +69,7 @@ final class PanelController {
         panel.titleVisibility = .hidden
         [.closeButton, .miniaturizeButton, .zoomButton].forEach { panel.standardWindowButton($0)?.isHidden = true }
         panel.isMovableByWindowBackground = true
+        panel.backgroundColor = NSColor(Theme.surface)
         panel.level = .floating
         panel.hidesOnDeactivate = false
         panel.isReleasedWhenClosed = false
@@ -83,7 +84,7 @@ final class PanelController {
         guard let panel else { return }
         let size: CGSize
         switch model.screen {
-        case .compose: size = CGSize(width: 720, height: 390)
+        case .compose: size = CGSize(width: 720, height: 360)
         case .presets: size = CGSize(width: 800, height: 560)
         case .takes:
             let count = max(model.cardCount, model.takeCount)

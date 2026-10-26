@@ -19,7 +19,7 @@ struct EngineTab: View {
                             Text("Sign in with Claude").font(.system(size: 15, weight: .semibold))
                             Text("Public build, only if Anthropic approves it.").font(.system(size: 13))
                         }
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.secondaryText)
                     }
 
                     SectionTitle("Defaults for new presets").padding(.top, 10)
@@ -33,7 +33,7 @@ struct EngineTab: View {
                     }
                     if let ms = store.settings.lastFirstTextMs {
                         Text(String(format: "Last run: first words after %.1f s.", Double(ms) / 1000))
-                            .font(.callout).foregroundStyle(.secondary)
+                            .font(.callout).foregroundStyle(Theme.secondaryText)
                     }
                 }
                 .padding(28)
@@ -62,7 +62,7 @@ struct EngineTab: View {
                     Text("Claude Code on this Mac").font(.system(size: 15, weight: .semibold))
                     statusBadge
                 }
-                Text("Uses your Claude subscription. Personal build only.").font(.system(size: 13)).foregroundStyle(.secondary)
+                Text("Uses your Claude subscription. Personal build only.").font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
                 if let status, status.found, !status.signedIn {
                     Text("Run `claude auth login` in Terminal, then check again.").font(.system(size: 12)).foregroundStyle(Theme.avoidText)
                 }
@@ -92,7 +92,7 @@ struct EngineTab: View {
         engineCard(selected: store.settings.engine == .apiKey, enabled: true, select: { store.settings.engine = .apiKey }) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Anthropic API key").font(.system(size: 15, weight: .semibold))
-                Text("Pay per use, billed by Anthropic. Usually a cent or two per run.").font(.system(size: 13)).foregroundStyle(.secondary)
+                Text("Pay per use, billed by Anthropic. Usually a cent or two per run.").font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
                 if hasKey {
                     HStack {
                         Text("Key saved in your keychain").font(.system(size: 12)).foregroundStyle(Theme.doText)
@@ -177,7 +177,7 @@ struct VoiceTab: View {
             VStack(alignment: .leading, spacing: 14) {
                 SectionTitle("Voice rules for every preset")
                 Text("These apply on top of each preset's own Do and Avoid lists. Untick a rule to pause it.")
-                    .font(.callout).foregroundStyle(.secondary)
+                    .font(.callout).foregroundStyle(Theme.secondaryText)
                 VoiceRulesEditor()
             }
             .padding(28)
@@ -200,7 +200,7 @@ struct HistoryTab: View {
         VStack(spacing: 0) {
             HStack {
                 Text(store.settings.keepHistory ? "Last 30 days, stored only on this Mac." : "History is off (Settings › Engine).")
-                    .font(.callout).foregroundStyle(.secondary)
+                    .font(.callout).foregroundStyle(Theme.secondaryText)
                 Spacer()
                 Button("Clear history") { store.history = [] }.disabled(store.history.isEmpty)
             }
@@ -208,7 +208,7 @@ struct HistoryTab: View {
             .padding(.vertical, 14)
             Divider()
             if store.history.isEmpty {
-                Text("No runs yet.").foregroundStyle(.secondary).frame(maxWidth: .infinity, maxHeight: .infinity)
+                Text("No runs yet.").foregroundStyle(Theme.secondaryText).frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 14) {
@@ -224,9 +224,9 @@ struct HistoryTab: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
                 Text(Self.dateFormat.string(from: entry.date)).font(.system(size: 12, weight: .semibold))
-                Text("· \(entry.appName) · \(entry.presetName)").font(.system(size: 12)).foregroundStyle(.secondary)
+                Text("· \(entry.appName) · \(entry.presetName)").font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
             }
-            Text(entry.draft).font(.system(size: 13)).foregroundStyle(.secondary).lineLimit(3)
+            Text(entry.draft).font(.system(size: 13)).foregroundStyle(Theme.secondaryText).lineLimit(3)
             ForEach(Array(entry.takes.enumerated()), id: \.offset) { index, take in
                 HStack(alignment: .top, spacing: 10) {
                     Text(entry.pastedIndex == index ? "Pasted" : "Take \(index + 1)")

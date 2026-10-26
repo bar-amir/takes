@@ -13,42 +13,31 @@ struct PanelRootView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(.regularMaterial)
+        .foregroundStyle(Theme.text)
+        .background(Theme.surface)
         .tint(Theme.accent)
     }
 }
 
 // MARK: - Shared pieces
 
+private struct Rule: View {
+    var body: some View { Rectangle().fill(Theme.border).frame(height: 1) }
+}
+
 private struct PanelHeader: View {
     @ObservedObject var model: PanelModel
 
     var body: some View {
         HStack(spacing: 10) {
-            RoundedRectangle(cornerRadius: 7)
-                .fill(Theme.accent)
-                .frame(width: 24, height: 24)
-                .overlay(Image(systemName: "text.bubble.fill").font(.system(size: 12)).foregroundStyle(.white))
-            (Text("Into ").foregroundStyle(.secondary) + Text(model.appName).fontWeight(.semibold))
+            AppGlyph()
+            (Text("Into ").foregroundStyle(Theme.secondaryText) + Text(model.appName).fontWeight(.semibold).foregroundStyle(Theme.text))
                 .font(.system(size: 13))
             Spacer()
             KeyHint(keys: ["esc"], label: "close")
         }
         .padding(.horizontal, 18)
-        .padding(.vertical, 12)
-    }
-}
-
-private struct PillButtonStyle: ButtonStyle {
-    var selected = false
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 13, weight: selected ? .semibold : .regular))
-            .padding(.horizontal, 11)
-            .frame(height: 30)
-            .background(RoundedRectangle(cornerRadius: 8).fill(selected ? Theme.accentSoft : Color.primary.opacity(configuration.isPressed ? 0.08 : 0.0)))
-            .overlay(RoundedRectangle(cornerRadius: 8).stroke(selected ? Theme.accent : Theme.border, lineWidth: selected ? 1.5 : 1))
-            .contentShape(Rectangle())
+        .frame(height: 52)
     }
 }
 
@@ -67,6 +56,12 @@ private struct ShortcutButton: View {
     }
 }
 
+private struct StripLabel: View {
+    let text: String
+    init(_ text: String) { self.text = text }
+    var body: some View { Text(text).font(.system(size: 13)).foregroundStyle(Theme.secondaryText).fixedSize() }
+}
+
 // MARK: - Compose
 
 struct ComposeView: View {
@@ -75,35 +70,36 @@ struct ComposeView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             PanelHeader(model: model)
-            Divider()
+            Rule()
 
             ZStack(alignment: .topLeading) {
                 DraftEditor(text: $model.draft, focusToken: model.focusToken,
                             onSubmit: model.generate, onPresets: model.openPicker, onEscape: model.escape)
                 if model.draft.isEmpty {
                     Text("Write what you want to say…")
-                        .font(.system(size: 16))
-                        .foregroundStyle(.tertiary)
+                        .font(.system(size: 17))
+                        .foregroundStyle(Theme.tertiaryText)
                         .padding(.leading, 7)
                         .padding(.top, 4)
                         .allowsHitTesting(false)
                 }
             }
             .frame(minHeight: 96, maxHeight: .infinity)
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
+            .padding(.horizontal, 15)
+            .padding(.top, 14)
 
             Text([model.sourceLabel, "\(model.wordCount) word\(model.wordCount == 1 ? "" : "s")"].filter { !$0.isEmpty }.joined(separator: " · "))
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(.system(size: 12))
+                .foregroundStyle(Theme.secondaryText)
                 .padding(.horizontal, 20)
-                .padding(.vertical, 8)
+                .padding(.top, 6)
+                .padding(.bottom, 14)
 
-            Divider()
+            Rule()
             presetRow
-            Divider()
+            Rule()
             settingsStrip
-            Divider()
+            Rule()
             footer
         }
         .background(shortcuts)
@@ -112,15 +108,16 @@ struct ComposeView: View {
     private var presetRow: some View {
         HStack(spacing: 8) {
             Button(action: model.openPicker) {
-                HStack(spacing: 7) {
+                HStack(spacing: 8) {
                     PresetDot(hex: model.preset.colorHex)
                     Text(model.preset.name).lineLimit(1)
-                    Image(systemName: "chevron.down").font(.system(size: 10, weight: .semibold))
+                    Image(systemName: "chevron.down").font(.system(size: 10, weight: .bold))
                 }
             }
             .buttonStyle(PillButtonStyle(selected: true))
+            .fixedSize()
             if model.autoPicked {
-                Text("picked for this app").font(.caption).foregroundStyle(.secondary)
+                Text("picked for this app").font(.system(size: 12)).foregroundStyle(Theme.secondaryText).fixedSize().padding(.trailing, 4)
             }
             ForEach(model.store.presets.filter { $0.id != model.presetID }.prefix(3)) { preset in
                 Button(preset.name) { model.choose(preset.id) }
@@ -130,46 +127,33 @@ struct ComposeView: View {
             }
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 14)
     }
 
     private var settingsStrip: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 18) {
             HStack(spacing: 8) {
-                Text("Takes").font(.system(size: 12)).foregroundStyle(.secondary).fixedSize()
-                Picker("Takes", selection: $model.takeCount) {
-                    ForEach(1...5, id: \.self) { Text("\($0)").tag($0) }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .frame(width: 150)
+                StripLabel("Takes")
+                NumberSegments(selection: $model.takeCount)
             }
-            HStack(spacing: 6) {
-                Text("Model").font(.system(size: 12)).foregroundStyle(.secondary).fixedSize()
-                Picker("Model", selection: $model.modelID) {
-                    ForEach(Models.all, id: \.id) { Text($0.label).tag($0.id) }
-                }
-                .labelsHidden()
-                .fixedSize()
+            HStack(spacing: 8) {
+                StripLabel("Model")
+                MenuPicker(options: Models.all.map { (value: $0.id, title: $0.label) }, selection: $model.modelID)
             }
-            HStack(spacing: 6) {
-                Text("Effort").font(.system(size: 12)).foregroundStyle(.secondary).fixedSize()
-                Picker("Effort", selection: $model.effort) {
-                    ForEach(Models.efforts, id: \.self) { Text($0.capitalized).tag($0) }
-                }
-                .labelsHidden()
-                .fixedSize()
+            HStack(spacing: 8) {
+                StripLabel("Effort")
+                MenuPicker(options: Models.efforts.map { (value: $0, title: $0.capitalized) }, selection: $model.effort)
             }
             Spacer(minLength: 0)
             Text(model.isOverridden ? "Changed for this run" : "From the preset")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(.system(size: 12))
+                .foregroundStyle(Theme.secondaryText)
                 .lineLimit(1)
                 .layoutPriority(-1)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 12)
         .fixedSize(horizontal: false, vertical: true)
         .background(Theme.strip)
     }
@@ -185,16 +169,13 @@ struct ComposeView: View {
             Button(action: model.generate) {
                 HStack(spacing: 8) {
                     Text(model.takeCount == 1 ? "Write 1 take" : "Write \(model.takeCount) takes")
-                    Text("↵").opacity(0.8)
+                    Text("↵").font(.system(size: 12)).opacity(0.85)
                 }
-                .font(.system(size: 13, weight: .semibold))
-                .padding(.horizontal, 6)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
+            .buttonStyle(PrimaryButtonStyle())
             .disabled(model.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 18)
         .padding(.vertical, 12)
     }
 
@@ -217,42 +198,41 @@ struct PresetPickerView: View {
     var body: some View {
         VStack(spacing: 0) {
             Text(model.draft.isEmpty ? "No draft yet" : model.draft.replacingOccurrences(of: "\n", with: " "))
-                .font(.system(size: 14))
-                .foregroundStyle(.secondary)
+                .font(.system(size: 15))
+                .foregroundStyle(Theme.secondaryText)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 20)
-                .padding(.vertical, 14)
-            Divider()
+                .frame(height: 52)
+            Rule()
 
             HStack(spacing: 10) {
-                Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+                Image(systemName: "magnifyingglass").font(.system(size: 14, weight: .medium)).foregroundStyle(Theme.secondaryText)
                 KeyTextField(text: Binding(get: { model.filter }, set: { model.filter = $0; model.filterChanged() }),
                              placeholder: "Filter presets…", fontSize: 15, focusToken: model.focusToken,
                              onSubmit: model.chooseHighlighted, onUp: { model.moveHighlight(-1) },
                              onDown: { model.moveHighlight(1) }, onEscape: model.escape)
-                HStack(spacing: 4) {
+                HStack(spacing: 3) {
                     Kbd("↑"); Kbd("↓")
-                    Text("move ·").font(.caption).foregroundStyle(.secondary)
+                    Text("move ·").font(.system(size: 12)).foregroundStyle(Theme.secondaryText).padding(.horizontal, 2)
                     Kbd("↵")
-                    Text("choose").font(.caption).foregroundStyle(.secondary)
+                    Text("choose").font(.system(size: 12)).foregroundStyle(Theme.secondaryText).padding(.leading, 2)
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.vertical, 10)
-            Divider()
+            .frame(height: 46)
+            Rule()
 
             HStack(spacing: 0) {
-                list
-                    .frame(width: 370)
-                Divider()
+                list.frame(width: 380)
+                Rectangle().fill(Theme.border).frame(width: 1)
                 preview
             }
         }
     }
 
     private var list: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 2) {
                     let rows = Array(model.filteredPresets.enumerated())
@@ -269,12 +249,12 @@ struct PresetPickerView: View {
                     }
                     if rows.isEmpty {
                         Text("No preset matches “\(model.filter)”.")
-                            .font(.callout).foregroundStyle(.secondary).padding(12)
+                            .font(.system(size: 14)).foregroundStyle(Theme.secondaryText).padding(12)
                     }
                 }
                 .padding(10)
             }
-            Divider()
+            Rule()
             HStack(spacing: 8) {
                 Button { model.onOpenSettings(.presets, true) } label: {
                     HStack(spacing: 6) { Text("New preset"); Kbd("⌘N") }.frame(maxWidth: .infinity)
@@ -283,7 +263,7 @@ struct PresetPickerView: View {
                     HStack(spacing: 6) { Text("Edit presets"); Kbd("⌘,") }.frame(maxWidth: .infinity)
                 }
             }
-            .controlSize(.large)
+            .buttonStyle(SecondaryButtonStyle(height: 34))
             .padding(10)
         }
         .background(
@@ -300,10 +280,11 @@ struct PresetPickerView: View {
     private func sectionTitle(_ text: String) -> some View {
         Text(text.uppercased())
             .font(.system(size: 11, weight: .semibold))
-            .foregroundStyle(.secondary)
+            .tracking(0.5)
+            .foregroundStyle(Theme.secondaryText)
             .padding(.horizontal, 10)
             .padding(.top, 8)
-            .padding(.bottom, 2)
+            .padding(.bottom, 4)
     }
 
     private func row(_ preset: Preset, index: Int) -> some View {
@@ -313,12 +294,13 @@ struct PresetPickerView: View {
                 PresetDot(hex: preset.colorHex)
                 Text(preset.name)
                     .font(.system(size: 14, weight: isHighlighted ? .semibold : .regular))
+                    .foregroundStyle(Theme.text)
                     .lineLimit(1)
                 Spacer()
                 if let number = model.shortcutNumber(of: preset) { Kbd("⌘\(number)") }
             }
             .padding(.horizontal, 10)
-            .frame(height: 36)
+            .frame(height: 40)
             .background(RoundedRectangle(cornerRadius: 8).fill(isHighlighted ? Theme.accentSoft : .clear))
             .contentShape(Rectangle())
         }
@@ -332,29 +314,30 @@ struct PresetPickerView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(preset.name).font(.system(size: 17, weight: .bold))
-                        Text(preset.summary).font(.caption).foregroundStyle(.secondary)
+                        Text(preset.summary).font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
                     }
-                    Text(preset.instruction).font(.system(size: 14)).foregroundStyle(.primary.opacity(0.85))
+                    Text(preset.instruction).font(.system(size: 14)).foregroundStyle(Theme.controlText).lineSpacing(3)
                     if !preset.dos.isEmpty {
-                        VStack(alignment: .leading, spacing: 6) {
+                        VStack(alignment: .leading, spacing: 8) {
                             Text("Do").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.doText)
                             FlowLayout { ForEach(preset.dos, id: \.self) { Chip(text: $0, style: .positive) } }
                         }
                     }
                     if !preset.avoid.isEmpty {
-                        VStack(alignment: .leading, spacing: 6) {
+                        VStack(alignment: .leading, spacing: 8) {
                             Text("Avoid").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.avoidText)
                             FlowLayout { ForEach(preset.avoid, id: \.self) { Chip(text: $0, style: .negative) } }
                         }
                     }
-                    Text(previewFootnote(preset)).font(.caption).foregroundStyle(.secondary)
+                    Text(previewFootnote(preset)).font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
                 }
-                .padding(22)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 20)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .background(Theme.strip)
         } else {
-            Color.clear
+            Theme.strip
         }
     }
 
@@ -378,22 +361,22 @@ struct TakesView: View {
     var body: some View {
         VStack(spacing: 0) {
             header
-            Divider()
-            (Text("Your draft: ").fontWeight(.semibold).foregroundStyle(.primary) + Text(model.sourceDraft).foregroundStyle(.secondary))
+            Rule()
+            (Text("Your draft: ").fontWeight(.semibold).foregroundStyle(Theme.controlText) + Text(model.sourceDraft).foregroundStyle(Theme.secondaryText))
                 .font(.system(size: 13))
                 .lineLimit(2)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 20)
-                .padding(.vertical, 10)
+                .padding(.vertical, 12)
                 .background(Theme.strip)
-            Divider()
+            Rule()
 
             if let error = model.error {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text(error).foregroundStyle(Theme.avoidText).textSelection(.enabled)
+                    Text(error).font(.system(size: 14)).foregroundStyle(Theme.avoidText).textSelection(.enabled)
                     HStack {
-                        Button("Try again", action: model.generate)
-                        Button("Edit draft") { model.show(.compose) }
+                        Button("Try again", action: model.generate).buttonStyle(PrimaryButtonStyle())
+                        Button("Edit draft") { model.show(.compose) }.buttonStyle(SecondaryButtonStyle(height: 36))
                     }
                 }
                 .padding(20)
@@ -408,7 +391,8 @@ struct TakesView: View {
                                 .onTapGesture { model.select(index); gridFocused = true }
                         }
                     }
-                    .padding(18)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 18)
                 }
                 .focusable()
                 .focusEffectDisabled()
@@ -423,7 +407,7 @@ struct TakesView: View {
                 refineBar
             }
 
-            Divider()
+            Rule()
             footer
         }
         .background(shortcuts)
@@ -433,46 +417,50 @@ struct TakesView: View {
 
     private var header: some View {
         HStack(spacing: 10) {
-            HStack(spacing: 7) {
+            HStack(spacing: 8) {
                 PresetDot(hex: model.preset.colorHex)
-                Text(model.preset.name).font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                Text(model.preset.name).font(.system(size: 14, weight: .semibold)).lineLimit(1)
             }
             .padding(.horizontal, 10)
-            .padding(.vertical, 5)
+            .frame(height: 30)
             .background(RoundedRectangle(cornerRadius: 7).fill(Theme.accentSoft))
             Text("\(model.takeCount) take\(model.takeCount == 1 ? "" : "s") · \(Models.label(model.modelID)) · \(model.effort.capitalized)")
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.secondaryText)
             Spacer()
             Button { model.show(.compose) } label: { HStack(spacing: 6) { Text("Edit draft"); Kbd("⌘E") } }
+                .buttonStyle(SecondaryButtonStyle())
             Button(action: model.generate) { HStack(spacing: 6) { Text("Regenerate"); Kbd("⌘R") } }
+                .buttonStyle(SecondaryButtonStyle())
                 .disabled(model.running)
         }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 20)
+        .frame(height: 56)
     }
 
     private var refineBar: some View {
         HStack(spacing: 10) {
-            Image(systemName: "pencil").foregroundStyle(.secondary)
+            Image(systemName: "pencil").font(.system(size: 14, weight: .medium)).foregroundStyle(Theme.secondaryText)
             KeyTextField(text: $model.refineText,
                          placeholder: "Refine take \(model.selected + 1): warmer, drop the second ask, add a thanks…",
                          fontSize: 14, focusToken: refineFocus,
                          onSubmit: { model.refine(); gridFocused = true },
                          onEscape: { gridFocused = true })
             Button("More like take \(model.selected + 1)", action: model.moreLikeSelected)
+                .buttonStyle(SecondaryButtonStyle())
                 .disabled(!model.isFinished(model.selected) || model.running)
         }
         .padding(.leading, 14)
         .padding(.trailing, 6)
         .padding(.vertical, 6)
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
-        .padding(.horizontal, 18)
-        .padding(.bottom, 14)
+        .background(RoundedRectangle(cornerRadius: 10).fill(Theme.surface))
+        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.controlBorder))
+        .padding(.horizontal, 20)
+        .padding(.bottom, 16)
     }
 
     private var footer: some View {
-        HStack {
+        HStack(spacing: 14) {
             HStack(spacing: 14) {
                 KeyHint(keys: ["←", "→"], label: "move")
                 KeyHint(keys: ["⌘", "C"], label: "copy only")
@@ -482,24 +470,21 @@ struct TakesView: View {
             if model.running {
                 TimelineView(.periodic(from: model.startedAt, by: 0.1)) { context in
                     Text(String(format: "Writing… %.1f s", context.date.timeIntervalSince(model.startedAt)))
-                        .font(.caption).foregroundStyle(.secondary).monospacedDigit()
+                        .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).monospacedDigit()
                 }
             } else if !model.timing.isEmpty {
-                Text(model.timing).font(.caption).foregroundStyle(.secondary)
+                Text(model.timing).font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
             }
             Button(action: model.pasteSelected) {
                 HStack(spacing: 8) {
                     Text("Paste take \(model.selected + 1)")
-                    Text("↵").opacity(0.8)
+                    Text("↵").font(.system(size: 12)).opacity(0.85)
                 }
-                .font(.system(size: 13, weight: .semibold))
-                .padding(.horizontal, 6)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
+            .buttonStyle(PrimaryButtonStyle())
             .disabled(!model.isFinished(model.selected))
         }
-        .padding(.horizontal, 18)
+        .padding(.horizontal, 20)
         .padding(.vertical, 12)
     }
 
@@ -533,9 +518,9 @@ private struct TakeCard: View {
 
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text(label(isSelected: isSelected, finished: finished, hasText: hasText, showChanges: showChanges))
+                Text(label(isSelected: isSelected, finished: finished, showChanges: showChanges))
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(isSelected ? Theme.accent : .secondary)
+                    .foregroundStyle(isSelected ? Theme.accent : Theme.secondaryText)
                 Spacer()
                 if index < 5 { Kbd("⌘\(index + 1)") }
             }
@@ -546,31 +531,33 @@ private struct TakeCard: View {
                 } else if hasText {
                     Text(model.takes[index])
                 } else {
-                    VStack(alignment: .leading, spacing: 8) {
-                        RoundedRectangle(cornerRadius: 5).fill(Color.primary.opacity(0.07)).frame(height: 11)
-                        RoundedRectangle(cornerRadius: 5).fill(Color.primary.opacity(0.07)).frame(width: 140, height: 11)
+                    VStack(alignment: .leading, spacing: 10) {
+                        RoundedRectangle(cornerRadius: 6).fill(Theme.border).frame(height: 12)
+                        RoundedRectangle(cornerRadius: 6).fill(Theme.border).frame(width: 120, height: 12)
                     }
+                    .padding(.top, 4)
                 }
             }
             .font(.system(size: 15))
-            .lineSpacing(3)
+            .foregroundStyle(Theme.text)
+            .lineSpacing(4)
             .fixedSize(horizontal: false, vertical: true)
-            .frame(maxWidth: .infinity, minHeight: 120, alignment: .topLeading)
+            .frame(maxWidth: .infinity, minHeight: 130, alignment: .topLeading)
 
-            Divider()
+            Rule()
             HStack(spacing: 8) {
                 Text(finished ? "\(WordCounter.count(model.takes[index])) words" : "writing")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.secondaryText)
                 Spacer()
                 if finished {
                     Button("Changes") { model.toggleChanges(index) }
-                        .buttonStyle(PillButtonStyle(selected: showChanges))
-                        .controlSize(.small)
+                        .buttonStyle(ToggleChipStyle(on: showChanges))
+                        .accessibilityAddTraits(showChanges ? .isSelected : [])
                     Button { model.onCopy(index, model.takes[index]) } label: {
-                        Image(systemName: "doc.on.doc").font(.system(size: 11))
+                        Image(systemName: "doc.on.doc").font(.system(size: 11, weight: .medium))
                     }
-                    .buttonStyle(PillButtonStyle())
+                    .buttonStyle(SecondaryButtonStyle(height: 28))
                     .accessibilityLabel("Copy take \(index + 1)")
                 } else {
                     ProgressView().controlSize(.mini)
@@ -579,16 +566,32 @@ private struct TakeCard: View {
             .frame(height: 28)
         }
         .padding(16)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .textBackgroundColor)))
+        .background(RoundedRectangle(cornerRadius: 12).fill(Theme.surface))
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(isSelected ? Theme.accent : Theme.border, lineWidth: isSelected ? 2 : 1))
-        .shadow(color: isSelected ? Theme.accent.opacity(0.15) : .clear, radius: 8, y: 3)
+        .shadow(color: isSelected ? Theme.accent.opacity(0.14) : .clear, radius: 10, y: 4)
         .contentShape(Rectangle())
     }
 
-    private func label(isSelected: Bool, finished: Bool, hasText: Bool, showChanges: Bool) -> String {
+    private func label(isSelected: Bool, finished: Bool, showChanges: Bool) -> String {
         let base = "Take \(index + 1)"
         if !finished { return "\(base) · writing…" }
         if showChanges { return "\(base) · showing changes" }
         return isSelected ? "\(base) · selected" : base
+    }
+}
+
+/// The small "Changes" toggle: dark when on, as in the mockup.
+private struct ToggleChipStyle: ButtonStyle {
+    let on: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 12))
+            .foregroundStyle(on ? Theme.surface : Theme.controlText)
+            .padding(.horizontal, 10)
+            .frame(height: 28)
+            .background(RoundedRectangle(cornerRadius: 7).fill(on ? Theme.controlText : Theme.surface))
+            .overlay(RoundedRectangle(cornerRadius: 7).stroke(on ? Theme.controlText : Theme.controlBorder))
+            .contentShape(Rectangle())
     }
 }
