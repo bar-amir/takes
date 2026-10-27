@@ -31,8 +31,15 @@ op_ vault get "$OP_VAULT" >/dev/null || { print "Can't open the \"$OP_VAULT\" va
 [[ -x "$SPARKLE_BIN/generate_keys" ]] || swift package resolve >/dev/null
 
 # 1. Password for the .p12, saved to 1Password first so it's never lost.
-say "1/6  Creating a password for the certificate export…"
-P12_PASSWORD=$(openssl rand -base64 24 | tr -d '/+=' | cut -c1-28)
+#    On a re-run, the password saved last time is reused (and so is the .p12 exported with it).
+P12_ITEM="Takes – Developer ID .p12 password"
+if P12_PASSWORD=$(op_ item get "$P12_ITEM" --vault "$OP_VAULT" --fields password --reveal 2>/dev/null) && [[ -n "$P12_PASSWORD" ]]; then
+  say "1/6  Reusing the certificate password saved in 1Password last time."
+  REUSED=true
+else
+  REUSED=false
+  say "1/6  Creating a password for the certificate export…"
+  P12_PASSWORD=$(openssl rand -base64 24 | tr -d '/+=' | cut -c1-28)
 cat > "$WORK/p12-password.json" <<JSON
 {"title":"Takes – Developer ID .p12 password","category":"PASSWORD",
  "fields":[{"id":"password","type":"CONCEALED","purpose":"PASSWORD","label":"password","value":"$P12_PASSWORD"}],
@@ -41,8 +48,22 @@ JSON
 op_ item create --vault "$OP_VAULT" --template "$WORK/p12-password.json" >/dev/null
 rm -f "$WORK/p12-password.json"
 print "Saved in 1Password: \"Takes – Developer ID .p12 password\"."
+fi
 
-# 2. Export the .p12 in Keychain Access.
+has_key() { openssl pkcs12 -in "$P12" -nocerts -nodes -passin "pass:$P12_PASSWORD" "$@" 2>/dev/null | grep -q "PRIVATE KEY" }
+
+# 2. Export the .p12 in Keychain Access (skipped if a .p12 from last time opens with the password).
+P12=""
+if $REUSED; then
+  for f in ~/Desktop/*.p12(N.om); do
+    P12=$f
+    if has_key || has_key -legacy; then break; fi
+    P12=""
+  done
+fi
+if [[ -n "$P12" ]]; then
+  say "2/6  Using $(basename "$P12") from your Desktop (exported last time)."
+else
 print -rn -- "$P12_PASSWORD" | pbcopy
 START=$(date +%s)
 say "2/6  Export the certificate (the password is on your clipboard):"
@@ -50,9 +71,10 @@ print "   • Keychain Access opens. Choose \"login\" in the sidebar, then the \
 print "   • Right-click \"Developer ID Application: Bar Amir (K4AVRTQ2MY)\" › Export."
 print "   • File Format: Personal Information Exchange (.p12). Save it to the Desktop."
 print "   • In both password fields press ⌘V. If asked, enter your Mac password and click Allow."
+print "   (If .p12 is greyed out, run this in a new Terminal tab instead:"
+print "    security export -k ~/Library/Keychains/login.keychain-db -t identities -f pkcs12 -P \"\$(pbpaste)\" -o ~/Desktop/takes-developer-id.p12 )"
 print "\nWaiting for the .p12 on your Desktop…"
 open -a "Keychain Access"
-P12=""
 while [[ -z "$P12" ]]; do
   sleep 2
   for f in ~/Desktop/*.p12(N.); do
@@ -61,13 +83,13 @@ while [[ -z "$P12" ]]; do
 done
 pbcopy < /dev/null
 sleep 1
-has_key() { openssl pkcs12 -in "$P12" -nocerts -nodes -passin "pass:$P12_PASSWORD" "$@" 2>/dev/null | grep -q "PRIVATE KEY" }
 if ! has_key && ! has_key -legacy; then
   print "That .p12 doesn't open with the generated password, or has no private key."
   print "Export it from the \"My Certificates\" tab (the one with the key) and paste the password again."
   exit 1
 fi
 print "Found $(basename "$P12") with the private key."
+fi
 
 # 3. App Store Connect API key.
 say "3/6  App Store Connect API key…"
@@ -76,8 +98,14 @@ P8=(~/Downloads/AuthKey_*.p8(N.om))
 P8=$P8[1]
 KEY_ID=${${P8:t:r}#AuthKey_}
 print "Using $(basename "$P8") (Key ID $KEY_ID)."
-read "ISSUER_ID?Paste the Issuer ID (App Store Connect › Users and Access › Integrations, above the keys list): "
-ISSUER_ID=${ISSUER_ID//[[:space:]]/}
+read -k -t 0.1 -s 2>/dev/null || true   # drop anything typed while waiting
+while true; do
+  read "ISSUER_ID?Paste the Issuer ID (App Store Connect › Users and Access › Integrations, above the keys list): "
+  # Keep only the UUID, so stray characters (e.g. from a Hebrew keyboard) don't break it.
+  ISSUER_ID=$(print -r -- "$ISSUER_ID" | grep -oiE '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' | head -1 || true)
+  [[ -n "$ISSUER_ID" ]] && break
+  print "That doesn't look like an Issuer ID (a UUID like 1a2b3c4d-…). Try again."
+done
 xcrun notarytool history --key "$P8" --key-id "$KEY_ID" --issuer "$ISSUER_ID" >/dev/null \
   || { print "Apple didn't accept the key with that Issuer ID."; exit 1 }
 print "Apple accepted the API key."
