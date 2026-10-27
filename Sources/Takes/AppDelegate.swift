@@ -26,6 +26,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             .store(in: &subscriptions)
         registerHotKeys()
+        // A taken shortcut frees up when the user turns the clashing one off in System Settings; pick that up.
+        Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { if !SetupMonitor.shared.takenHotKeys.isEmpty { self?.registerHotKeys() } }
+        }
 
         // Keep the menu-bar icon in step with setup, and walk the user through anything missing.
         let monitor = SetupMonitor.shared
@@ -57,7 +61,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let id = preset.id
             bindings.append((combo, { [weak self] in self?.summonPanel(presetID: id) }))
         }
-        let failed = HotKeyCenter.shared.replaceAll(with: bindings)
+        // A combo macOS itself uses would fire both (⌃⌥Space also opened Finder's search window and left a
+        // full-screen app's Space), so it isn't registered and setup asks for another.
+        let clashing = bindings.map(\.0).filter { SystemShortcuts.clash(with: $0) != nil }
+        let failed = clashing + HotKeyCenter.shared.replaceAll(with: bindings.filter { !clashing.contains($0.0) })
         if SetupMonitor.shared.takenHotKeys != failed { SetupMonitor.shared.takenHotKeys = failed }
     }
 

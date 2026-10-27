@@ -9,7 +9,7 @@ final class SetupMonitor: ObservableObject {
 
     @Published private(set) var accessibility = FocusReader.isTrusted(prompt: false)
     @Published private(set) var engine: EngineStatus = .checking
-    /// Shortcuts macOS refused because another app already uses them.
+    /// Shortcuts another app or macOS's own keyboard shortcuts already use.
     @Published var takenHotKeys: [KeyCombo] = []
 
     enum EngineStatus: Equatable {
@@ -247,8 +247,13 @@ struct SetupView: View {
         let free = monitor.takenHotKeys.isEmpty
         return SetupStep(number: 4, title: "Hotkey", done: free,
                          status: free ? store.settings.summonHotKey.display
-                                      : "Taken by another app: " + monitor.takenHotKeys.map(\.display).joined(separator: ", "),
-                         detail: free ? "Press it in any text field to open Takes." : "Pick a different shortcut.") {
+                                      : "Taken: " + monitor.takenHotKeys.map { combo in
+                                          SystemShortcuts.clash(with: combo).map { "\(combo.display) (macOS: \($0))" } ?? "\(combo.display) (another app)"
+                                      }.joined(separator: ", "),
+                         detail: free ? "Press it in any text field to open Takes."
+                                      : monitor.takenHotKeys.contains { SystemShortcuts.clash(with: $0) != nil }
+                                          ? "Pick a different shortcut, or turn the macOS one off in System Settings › Keyboard › Keyboard Shortcuts."
+                                          : "Pick a different shortcut.") {
             if !free {
                 Button("Change shortcut") {
                     onDone()
