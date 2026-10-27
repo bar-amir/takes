@@ -26,6 +26,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             .store(in: &subscriptions)
         registerHotKeys()
+        SetupMonitor.shared.recheckHotKeys = { [weak self] in self?.registerHotKeys() }
+
+        // Build Electron apps' accessibility trees as they come forward, so the hotkey can read their fields.
+        if let front = NSWorkspace.shared.frontmostApplication { FocusReader.prepare(front) }
+        NSWorkspace.shared.notificationCenter
+            .publisher(for: NSWorkspace.didActivateApplicationNotification)
+            .compactMap { $0.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication }
+            .sink { FocusReader.prepare($0) }
+            .store(in: &subscriptions)
 
         // Keep the menu-bar icon in step with setup, and walk the user through anything missing.
         let monitor = SetupMonitor.shared
@@ -57,7 +66,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let id = preset.id
             bindings.append((combo, { [weak self] in self?.summonPanel(presetID: id) }))
         }
+        // macOS's own shortcuts still fire alongside a registered hotkey, so count those as taken too.
         let failed = HotKeyCenter.shared.replaceAll(with: bindings)
+            + bindings.map(\.0).filter { SystemShortcuts.owner(of: $0) != nil }
         if SetupMonitor.shared.takenHotKeys != failed { SetupMonitor.shared.takenHotKeys = failed }
     }
 

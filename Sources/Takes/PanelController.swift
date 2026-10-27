@@ -117,11 +117,20 @@ final class PanelController {
         let replaceAll = focus?.source == .field && !(focus?.text.isEmpty ?? true)
         let restore = Store.shared.settings.restoreClipboard
         close()
-        Paster.paste(text, into: focus, replaceAll: replaceAll, restoreClipboard: restore)
-        toast.show(message: "Pasted take \(index + 1)" + (restore ? " · your clipboard is back" : ""),
-                   showUndo: true, near: caretRect) { [presetID] in
-            guard let presetID else { return }
-            Store.shared.addExample(text, toPreset: presetID)
+        Paster.paste(text, into: focus, replaceAll: replaceAll, restoreClipboard: restore) { [weak self] pasted in
+            guard let self else { return }
+            guard pasted else {
+                // The field's app couldn't be brought back; nothing was typed anywhere.
+                let app = focus?.app?.localizedName ?? "the app"
+                self.toast.show(message: "Couldn't get back to \(app). Take \(index + 1) is on the clipboard: press ⌘V",
+                                showUndo: false, near: self.caretRect, onSaveExample: nil)
+                return
+            }
+            self.toast.show(message: "Pasted take \(index + 1)" + (restore ? " · your clipboard is back" : ""),
+                            showUndo: true, near: self.caretRect) { [presetID] in
+                guard let presetID else { return }
+                Store.shared.addExample(text, toPreset: presetID)
+            }
         }
     }
 
