@@ -29,11 +29,16 @@ final class PanelController {
     private let model = PanelModel()
     private let toast = ToastController()
     private var caretRect: CGRect?
+    /// The text box being written in, which the panel opens beside.
+    private var fieldRect: CGRect?
     private var lastScreen: PanelModel.Screen?
+    /// What the takes screen last said it needs (0 until it has laid out).
+    private var takesHeight: CGFloat = 0
 
     init() {
         model.onClose = { [weak self] in self?.close() }
         model.onScreenChange = { [weak self] in self?.layout() }
+        model.onContentHeight = { [weak self] height in self?.fitTakes(height: height) }
         model.onPaste = { [weak self] index, text, presetID in self?.paste(index: index, text: text, presetID: presetID) }
         model.onCopy = { [weak self] index, text in self?.copy(index: index, text: text) }
         model.onOpenSettings = { [weak self] tab, newPreset in
@@ -53,6 +58,7 @@ final class PanelController {
         toast.dismiss()
         let focus = FocusReader.snapshot(prefill: Store.shared.settings.prefill)
         caretRect = focus.caretRect
+        fieldRect = FocusReader.fieldFrame(of: focus.element)
         model.reset(focus: focus, presetID: presetID)
         let panel = self.panel ?? makePanel()
         self.panel = panel
@@ -75,7 +81,10 @@ final class PanelController {
         panel.isReleasedWhenClosed = false
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.onCancel = { [weak self] in self?.model.escape() }
-        panel.contentView = NSHostingView(rootView: PanelRootView(model: model))
+        let hosting = NSHostingView(rootView: PanelRootView(model: model))
+        // The controller sizes the panel (`layout`, `fitTakes`); the content must not resize it on its own.
+        hosting.sizingOptions = []
+        panel.contentView = hosting
         return panel
     }
 
@@ -84,32 +93,45 @@ final class PanelController {
         guard let panel else { return }
         let size: CGSize
         switch model.screen {
-        case .compose: size = CGSize(width: 720, height: 360)
+        case .compose: size = CGSize(width: 720, height: 400)
         case .presets: size = CGSize(width: 800, height: 560)
         case .takes:
             let count = max(model.cardCount, model.takeCount)
             let width: CGFloat = count <= 1 ? 720 : count == 2 ? 880 : 1060
-            size = CGSize(width: width, height: count > 3 ? 760 : 520)
+            size = CGSize(width: width, height: takesHeight > 0 ? takesHeight : 520)
         }
         if model.screen == lastScreen, panel.frame.size == size { return }
         lastScreen = model.screen
         panel.setFrame(NSRect(origin: origin(for: size), size: size), display: true, animate: false)
     }
 
-    private func origin(for size: CGSize) -> CGPoint {
-        let screen = ScreenChoice.screen(for: caretRect)
-        let visible = screen.visibleFrame
-        var origin: CGPoint
-        if let caret = caretRect, Store.shared.settings.panelPosition == .nearCursor {
-            // Prefer just above the caret (chat composers sit at the bottom), else below it.
-            origin = CGPoint(x: caret.minX - 60, y: caret.maxY + 14)
-            if origin.y + size.height > visible.maxY { origin.y = caret.minY - size.height - 14 }
-        } else {
-            origin = CGPoint(x: visible.midX - size.width / 2, y: visible.midY - size.height / 2 + 60)
+    /// Resizes the takes screen to what it needs. While takes stream in it only grows, so a regenerate doesn't
+    /// shrink and regrow the panel.
+    private func fitTakes(height: CGFloat) {
+        guard let panel, model.screen == .takes, height > 0 else { return }
+        let visible = (panel.screen ?? NSScreen.main)?.visibleFrame ?? panel.frame
+        let target = min(height.rounded(.up), visible.height - 16)
+        if abs(target - panel.frame.height) < 1 || (model.running && target < panel.frame.height) { return }
+        takesHeight = target
+        // Grow away from the text box: a panel above it keeps its bottom edge, any other keeps its top edge.
+        var frame = panel.frame
+        let clear = keepClear(on: visible)
+        if clear.map({ frame.minY < $0.maxY }) ?? true { frame.origin.y += frame.height - target }
+        frame.size.height = target
+        if !visible.contains(frame) || clear.map(frame.intersects) == true {
+            frame.origin = origin(for: frame.size)
         }
-        origin.x = min(max(origin.x, visible.minX + 8), visible.maxX - size.width - 8)
-        origin.y = min(max(origin.y, visible.minY + 8), visible.maxY - size.height - 8)
-        return origin
+        panel.setFrame(frame, display: true, animate: false)
+    }
+
+    private func keepClear(on visible: CGRect) -> CGRect? {
+        PanelPlacement.keepClear(caret: caretRect, field: fieldRect, visible: visible)
+    }
+
+    private func origin(for size: CGSize) -> CGPoint {
+        let visible = ScreenChoice.screen(for: caretRect).visibleFrame
+        return PanelPlacement.origin(for: Store.shared.settings.panelPosition, size: size,
+                                     keepClear: keepClear(on: visible), in: visible)
     }
 
     private func paste(index: Int, text: String, presetID: String?) {

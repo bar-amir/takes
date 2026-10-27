@@ -21,6 +21,22 @@ enum Theme {
     static let avoidFill = Color.dynamic(light: "#FBEAE7", dark: "#43231F")
 }
 
+/// One spacing scale for the panel, so every screen has the same rhythm (in points).
+enum Spacing {
+    /// Side margin of every panel row.
+    static let gutter: CGFloat = 20
+    /// Above and below the controls in a bar (header, strips, footer).
+    static let bar: CGFloat = 14
+    /// Between blocks in the content area: cards, the refine bar, the rules around them. Also card padding.
+    static let section: CGFloat = 16
+    /// Between the pieces inside a card or a row.
+    static let inner: CGFloat = 12
+    /// Between a control and its label, or icons in a group.
+    static let item: CGFloat = 8
+    /// Height of the controls in a bar.
+    static let control: CGFloat = 32
+}
+
 extension Color {
     init(hex: String) { self.init(nsColor: NSColor(hex: hex)) }
 
@@ -45,6 +61,7 @@ extension NSColor {
 
 /// The blue call to action ("Write 3 takes ↵", "Paste take 1 ↵").
 struct PrimaryButtonStyle: ButtonStyle {
+    var height: CGFloat = 36
     @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
@@ -52,7 +69,7 @@ struct PrimaryButtonStyle: ButtonStyle {
             .font(.system(size: 14, weight: .semibold))
             .foregroundStyle(.white)
             .padding(.horizontal, 16)
-            .frame(height: 36)
+            .frame(height: height)
             .background(RoundedRectangle(cornerRadius: 9).fill(Theme.accent.opacity(configuration.isPressed ? 0.82 : 1)))
             .opacity(isEnabled ? 1 : 0.45)
             .contentShape(Rectangle())
