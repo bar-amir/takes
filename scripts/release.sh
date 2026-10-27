@@ -4,6 +4,7 @@
 #
 #   scripts/release.sh             sign with your Developer ID, notarize, sign the update
 #   scripts/release.sh --unsigned  run the same steps without signing, to test the pipeline
+#   scripts/release.sh --no-notarize  sign everything but skip Apple's notarization (local testing only)
 #
 # Credentials. GitHub Actions passes environment variables; on your Mac the keychain is used:
 #   SIGN_ID                              Developer ID identity (default: the first "Developer ID Application" found)
@@ -15,7 +16,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 UNSIGNED=false
+NO_NOTARIZE=false
 [[ "${1:-}" == "--unsigned" ]] && UNSIGNED=true
+[[ "${1:-}" == "--no-notarize" ]] && NO_NOTARIZE=true
 VERSION=$(cat VERSION)
 TAG=v$VERSION
 REPO_URL=https://github.com/bar-amir/takes
@@ -38,13 +41,17 @@ else
   else
     NOTARY_ARGS=(--keychain-profile "$NOTARY_PROFILE")
   fi
-  xcrun notarytool history "${NOTARY_ARGS[@]}" >/dev/null 2>&1 || { print "Notarization credentials don't work (profile \"$NOTARY_PROFILE\" or API key)."; exit 1 }
+  if ! $NO_NOTARIZE; then
+    xcrun notarytool history "${NOTARY_ARGS[@]}" >/dev/null 2>&1 || { print "Notarization credentials don't work (profile \"$NOTARY_PROFILE\" or API key)."; exit 1 }
+  fi
   if [[ -n "${SPARKLE_KEY_FILE:-}" ]]; then
     SPARKLE_ARGS=(--ed-key-file "$SPARKLE_KEY_FILE")
   else
     SPARKLE_ARGS=(--account takes)
   fi
-  [[ -z "$(git status --porcelain)" ]] || { print "There are uncommitted changes. Commit them first, so the release matches the repository."; exit 1 }
+  if ! $NO_NOTARIZE; then
+    [[ -z "$(git status --porcelain)" ]] || { print "There are uncommitted changes. Commit them first, so the release matches the repository."; exit 1 }
+  fi
   print "Signing as: $SIGN_ID"
 fi
 
@@ -57,6 +64,7 @@ lipo -archs "$APP/Contents/MacOS/Takes"
 
 notarize() {
   $UNSIGNED && { print "(skipped: unsigned)"; return }
+  $NO_NOTARIZE && { print "(skipped: --no-notarize)"; return }
   xcrun notarytool submit "$1" "${NOTARY_ARGS[@]}" --wait --timeout 30m
 }
 
@@ -67,7 +75,7 @@ step "Notarize the app"
 ditto -c -k --keepParent "$APP" "$DIST/Takes-notarize.zip"
 notarize "$DIST/Takes-notarize.zip"
 rm "$DIST/Takes-notarize.zip"
-$UNSIGNED || xcrun stapler staple "$APP"
+$UNSIGNED || $NO_NOTARIZE || xcrun stapler staple "$APP"
 
 step "Build the disk image"
 STAGING=$(mktemp -d)
@@ -79,7 +87,7 @@ if $UNSIGNED; then codesign --force --sign - "$DMG"; else codesign --force --sig
 
 step "Notarize the disk image"
 notarize "$DMG"
-$UNSIGNED || xcrun stapler staple "$DMG"
+$UNSIGNED || $NO_NOTARIZE || xcrun stapler staple "$DMG"
 
 step "Release notes, checksum and update feed"
 scripts/release-notes.sh "$VERSION" > "$DIST/release-notes.md"
@@ -100,8 +108,9 @@ else
 fi
 
 step "Check what macOS will think of it"
-if $UNSIGNED; then
-  print "Unsigned build: Gatekeeper will block it on other Macs. Use it only to test the pipeline."
+if $UNSIGNED || $NO_NOTARIZE; then
+  print "Test build (not notarized): Gatekeeper will block it on other Macs."
+  codesign --verify --strict --verbose=2 "$APP"
 else
   spctl --assess --type execute --verbose=2 "$APP"
   spctl --assess --type open --context context:primary-signature --verbose=2 "$DMG"
