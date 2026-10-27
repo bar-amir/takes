@@ -7,6 +7,7 @@ All notable changes to Takes. Versions follow [semantic versioning](https://semv
 - Setup now flags a Takes hotkey that macOS also uses (for example ⌃⌥Space for "Show Finder search window" or for switching input sources). Both used to fire: Finder opened, took the focus and pulled full-screen apps off their Space.
 - The chosen take is pasted only once the app you were writing in is back in front. If Takes can't get back to it, nothing is typed anywhere else; the take stays on the clipboard and the toast says to press ⌘V.
 - The first summon in Electron apps (Claude, Slack) now reads the field's text without you selecting it first.
+- The panel and the confirmation toast open on the display the caret is on, also when the caret sits at the edge between two displays.
 
 ## 0.1.0 · 2026-10-27
 

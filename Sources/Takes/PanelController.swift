@@ -97,7 +97,7 @@ final class PanelController {
     }
 
     private func origin(for size: CGSize) -> CGPoint {
-        let screen = NSScreen.screens.first { caretRect.map($0.frame.intersects) ?? false } ?? NSScreen.main ?? NSScreen.screens[0]
+        let screen = ScreenChoice.screen(for: caretRect)
         let visible = screen.visibleFrame
         var origin: CGPoint
         if let caret = caretRect, Store.shared.settings.panelPosition == .nearCursor {
@@ -160,6 +160,25 @@ final class PanelController {
 
     func close() {
         panel?.orderOut(nil)
+    }
+}
+
+/// Which display the panel and toast open on: the one the caret is on.
+enum ScreenChoice {
+    /// The caret's display, so a full-screen app on a second display keeps the panel with it.
+    @MainActor static func screen(for caret: CGRect?) -> NSScreen {
+        let screens = NSScreen.screens
+        return index(for: caret, in: screens.map(\.frame)).map { screens[$0] } ?? NSScreen.main ?? screens[0]
+    }
+
+    /// The display holding the caret's centre, else the one it overlaps most (Cocoa coordinates). A caret on the
+    /// seam used to go to whichever display came first in the list.
+    static func index(for caret: CGRect?, in frames: [CGRect]) -> Int? {
+        guard let caret else { return nil }
+        let centre = CGPoint(x: caret.midX, y: caret.midY)
+        if let hit = frames.firstIndex(where: { $0.contains(centre) }) { return hit }
+        let overlaps = frames.enumerated().map { ($0.offset, $0.element.intersection(caret)) }.filter { !$0.1.isNull }
+        return overlaps.max { $0.1.width * $0.1.height < $1.1.width * $1.1.height }?.0
     }
 }
 
