@@ -18,9 +18,16 @@ Requires macOS 14 or later. Takes is signed with a Developer ID and notarized by
 
 ## Releasing
 
-`scripts/release.sh` builds a universal app (Apple silicon and Intel), signs it with your Developer ID and hardened runtime, notarizes the app and the disk image, staples both, and checks them with Gatekeeper. The output is `dist/Takes-<version>.dmg`. The version comes from `VERSION`; record changes in `CHANGELOG.md`. `scripts/release.sh --unsigned` runs the same steps without signing, to test the pipeline.
+Releases are built by GitHub Actions ([.github/workflows/release.yml](.github/workflows/release.yml)):
 
-One-time setup: a "Developer ID Application" certificate in your keychain, and notarization credentials saved with `xcrun notarytool store-credentials "takes-notary" --apple-id <apple id> --team-id <team id>`.
+1. In a pull request, bump `VERSION` and add a `## <version>` section to `CHANGELOG.md`. Merge it.
+2. Tag the merge commit and push the tag: `git tag v0.1.0 && git push origin v0.1.0`.
+3. Approve the run in the protected `release` environment (GitHub › Actions). Only then can it read the signing secrets.
+4. It builds a universal app, signs it with the Developer ID (hardened runtime, Sparkle signed inside out), notarizes and staples the app and the disk image, checks them with Gatekeeper, signs the update for Sparkle, attests build provenance, and publishes the GitHub Release with the `.dmg`, its checksum and `appcast.xml`.
+
+Installed copies find updates through `https://github.com/bar-amir/takes/releases/latest/download/appcast.xml`.
+
+One-time setup: run `scripts/setup-release-secrets.sh` to store the Developer ID certificate, an App Store Connect API key and the Sparkle update key as environment secrets. `scripts/release.sh` runs the same steps on your Mac (`--unsigned` to test without signing).
 
 ## Build and run
 

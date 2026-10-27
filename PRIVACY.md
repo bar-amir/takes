@@ -1,8 +1,8 @@
 # Privacy
 
-Last updated: 2026-10-26
+Last updated: 2026-10-27
 
-Takes runs entirely on your Mac. The developer runs no server and never receives your text, your settings or anything about how you use the app. Takes has no analytics, crash reporting or tracking.
+Takes runs entirely on your Mac. The developer runs no server and never receives your text, your settings or anything about how you use the app. Takes has no analytics, crash reporting or tracking. The only other connection it makes is the optional update check described below.
 
 ## What Takes reads
 
@@ -44,9 +44,13 @@ What Anthropic does with that text is covered by [Anthropic's privacy policy](ht
 
 Takes shows text written by Claude. It can be wrong or say things you didn't mean. Read a take before you paste or send it, and don't rely on factual statements in it without checking.
 
+## Update checks
+
+Downloaded copies of Takes can check for new versions with [Sparkle](https://sparkle-project.org). The second time you open Takes, it asks whether to check automatically; you can also use "Check for Updates…" in its menu. A check downloads the update feed (`appcast.xml`) from GitHub's servers at github.com. Like any web request, GitHub sees your IP address. Takes sends no information about you, your Mac or your text with it (Sparkle's "system profile" reporting is off). Updates are only installed if they're signed with the developer's update key and Developer ID. Copies you build yourself never check for updates.
+
 ## Changes
 
-If Takes ever starts sending anything anywhere else (for example, checking for updates), this page will say so first and the app will ask you.
+If Takes ever starts sending anything anywhere else, this page will say so first and the app will ask you.
 
 ## Contact
 

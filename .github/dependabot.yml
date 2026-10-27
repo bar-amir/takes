@@ -6,3 +6,8 @@ updates:
     schedule:
       interval: monthly
     labels: [dependencies]
+  - package-ecosystem: swift
+    directory: /
+    schedule:
+      interval: monthly
+    labels: [dependencies]

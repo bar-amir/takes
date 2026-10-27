@@ -1,5 +1,6 @@
 import AppKit
 import Combine
+import Sparkle
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -9,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.mainMenu = makeMainMenu()
+        Updater.shared.start()
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem.button?.image = NSImage(systemSymbolName: "text.bubble", accessibilityDescription: "Takes")
@@ -90,6 +92,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let about = NSMenuItem(title: "About Takes", action: #selector(showAbout), keyEquivalent: "")
         about.target = self
         menu.addItem(about)
+        if let updater = Updater.shared.controller {
+            let check = NSMenuItem(title: "Check for Updates…", action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)), keyEquivalent: "")
+            check.target = updater
+            menu.addItem(check)
+        }
         menu.addItem(withTitle: "Quit Takes", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         statusItem.menu = menu
     }
