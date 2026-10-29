@@ -13,7 +13,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Updater.shared.start()
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        statusItem.button?.image = NSImage(systemSymbolName: "text.bubble", accessibilityDescription: "Takes")
+        statusItem.button?.image = BrandMark.menuBarImage(alert: false)
         rebuildStatusMenu()
 
         // Re-register hotkeys whenever presets or settings change.
@@ -63,8 +63,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func rebuildStatusMenu() {
         let monitor = SetupMonitor.shared
-        statusItem.button?.image = NSImage(systemSymbolName: monitor.allSet ? "text.bubble" : "exclamationmark.bubble",
-                                           accessibilityDescription: monitor.allSet ? "Takes" : "Takes needs setup")
+        statusItem.button?.image = BrandMark.menuBarImage(alert: !monitor.allSet)
         let menu = NSMenu()
         if !monitor.allSet {
             let finish = NSMenuItem(title: "Finish setting up Takes…", action: #selector(showSetup), keyEquivalent: "")

@@ -59,6 +59,7 @@ enum Snapshot {
         }
         render(SetupView(monitor: SetupMonitor.shared, onDone: {}), size: CGSize(width: 640, height: 820),
                to: url.appendingPathComponent("6-setup.png"))
+        render(MenuBarPreview(), size: CGSize(width: 360, height: 120), to: url.appendingPathComponent("7-menu-bar.png"))
         print("Wrote snapshots to \(url.path)")
     }
 
@@ -75,5 +76,29 @@ enum Snapshot {
         hosting.cacheDisplay(in: hosting.bounds, to: rep)
         try? rep.representation(using: .png, properties: [:])?.write(to: url)
         window.orderOut(nil)
+    }
+}
+
+/// The menu-bar icon on a light and a dark menu bar, with and without the setup dot.
+private struct MenuBarPreview: View {
+    var body: some View {
+        VStack(spacing: 0) {
+            strip(background: Color(hex: "#E9E7E1"), foreground: .black)
+            strip(background: Color(hex: "#262626"), foreground: .white)
+        }
+    }
+
+    private func strip(background: Color, foreground: Color) -> some View {
+        HStack(spacing: 22) {
+            Spacer()
+            Image(systemName: "wifi")
+            Image(nsImage: BrandMark.menuBarImage(alert: false)).renderingMode(.template)
+            Image(nsImage: BrandMark.menuBarImage(alert: true)).renderingMode(.template)
+            Text("Thu 29 Oct  13:20").font(.system(size: 13))
+        }
+        .foregroundStyle(foreground)
+        .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(background)
     }
 }

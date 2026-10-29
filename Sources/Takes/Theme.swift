@@ -4,8 +4,11 @@ import SwiftUI
 /// Colors and controls from the mockups. The panel never activates Takes (the app being typed in keeps
 /// focus), and macOS draws native controls in inactive windows washed out, so the panel uses these instead.
 enum Theme {
-    static let accent = Color(hex: "#2F55E0")
-    static let accentSoft = Color.dynamic(light: "#EEF2FE", dark: "#24304F")
+    /// Ink, the brand's one interface colour. Colour is kept for the presets and the brand's motion.
+    static let accent = Color.dynamic(light: "#0E0E0E", dark: "#FAF8F3")
+    /// Text and icons drawn on `accent`.
+    static let onAccent = Color.dynamic(light: "#FAF8F3", dark: "#0E0E0E")
+    static let accentSoft = Color.dynamic(light: "#F0EEE8", dark: "#2E2E33")
     static let text = Color.dynamic(light: "#1C1C1F", dark: "#F2F2F5")
     static let secondaryText = Color.dynamic(light: "#55555E", dark: "#A9A9B3")
     static let tertiaryText = Color.dynamic(light: "#8A8A94", dark: "#7A7A84")
@@ -43,14 +46,14 @@ extension NSColor {
 
 // MARK: - Buttons
 
-/// The blue call to action ("Write 3 takes ↵", "Paste take 1 ↵").
+/// The ink call to action ("Write 3 takes ↵", "Paste take 1 ↵").
 struct PrimaryButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 14, weight: .semibold))
-            .foregroundStyle(.white)
+            .foregroundStyle(Theme.onAccent)
             .padding(.horizontal, 16)
             .frame(height: 36)
             .background(RoundedRectangle(cornerRadius: 9).fill(Theme.accent.opacity(configuration.isPressed ? 0.82 : 1)))
@@ -106,7 +109,7 @@ struct NumberSegments: View {
                 Button { selection = number } label: {
                     Text("\(number)")
                         .font(.system(size: 13, weight: number == selection ? .semibold : .regular))
-                        .foregroundStyle(number == selection ? .white : Theme.controlText)
+                        .foregroundStyle(number == selection ? Theme.onAccent : Theme.controlText)
                         .frame(width: 32, height: 30)
                         .background(number == selection ? Theme.accent : Theme.surface)
                         .contentShape(Rectangle())
@@ -235,14 +238,13 @@ struct PresetDot: View {
     var body: some View { Circle().fill(Color(hex: hex)).frame(width: 8, height: 8) }
 }
 
-/// The accent square with the app glyph, used in the panel header.
+/// The Takes mark, used in the panel header.
 struct AppGlyph: View {
     var size: CGFloat = 24
     var body: some View {
-        RoundedRectangle(cornerRadius: size * 0.29)
-            .fill(Theme.accent)
-            .frame(width: size, height: size)
-            .overlay(Image(systemName: "text.bubble.fill").font(.system(size: size * 0.5)).foregroundStyle(.white))
+        BrandMarkShape()
+            .fill(Theme.text)
+            .frame(width: size * 1.06, height: size)
             .accessibilityHidden(true)
     }
 }
