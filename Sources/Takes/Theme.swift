@@ -4,11 +4,11 @@ import SwiftUI
 /// Colors and controls from the mockups. The panel never activates Takes (the app being typed in keeps
 /// focus), and macOS draws native controls in inactive windows washed out, so the panel uses these instead.
 enum Theme {
-    /// Ink, the brand's one interface colour. Colour is kept for the presets and the brand's motion.
-    static let accent = Color.dynamic(light: "#0E0E0E", dark: "#FAF8F3")
+    /// Ink, the brand's one interface accent (see brand/BRAND.md). Preset and semantic colours keep their meaning.
+    static let accent = Color.dynamic(light: "#171714", dark: "#F3EBDD")
     /// Text and icons drawn on `accent`.
-    static let onAccent = Color.dynamic(light: "#FAF8F3", dark: "#0E0E0E")
-    static let accentSoft = Color.dynamic(light: "#F0EEE8", dark: "#2E2E33")
+    static let onAccent = Color.dynamic(light: "#F3EBDD", dark: "#171714")
+    static let accentSoft = Color.dynamic(light: "#F3EBDD", dark: "#2E2D2A")
     static let text = Color.dynamic(light: "#1C1C1F", dark: "#F2F2F5")
     static let secondaryText = Color.dynamic(light: "#55555E", dark: "#A9A9B3")
     static let tertiaryText = Color.dynamic(light: "#8A8A94", dark: "#7A7A84")
