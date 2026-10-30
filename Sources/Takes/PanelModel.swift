@@ -45,6 +45,8 @@ final class PanelModel: ObservableObject {
     var onOpenSettings: (SettingsTab, Bool) -> Void = { _, _ in }
     var onMore: () -> Void = {}
     var onScreenChange: () -> Void = {}
+    /// The takes screen reports the height it needs; the panel grows or shrinks to it.
+    var onContentHeight: (CGFloat) -> Void = { _ in }
     /// True when a text field in the panel has selected text, so ⌘C copies that instead of a take.
     var textSelectionActive: () -> Bool = { false }
 

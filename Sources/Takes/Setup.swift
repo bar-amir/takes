@@ -9,8 +9,10 @@ final class SetupMonitor: ObservableObject {
 
     @Published private(set) var accessibility = FocusReader.isTrusted(prompt: false)
     @Published private(set) var engine: EngineStatus = .checking
-    /// Shortcuts macOS refused because another app already uses them.
+    /// Shortcuts macOS refused because another app already uses them, or that a macOS shortcut also fires on.
     @Published var takenHotKeys: [KeyCombo] = []
+    /// Re-registers the hotkeys once a taken one is free, so a shortcut freed in System Settings is picked up.
+    var recheckHotKeys: (() -> Void)?
 
     enum EngineStatus: Equatable {
         case checking
@@ -44,6 +46,7 @@ final class SetupMonitor: ObservableObject {
     private func tick() {
         let trusted = FocusReader.isTrusted(prompt: false)
         if trusted != accessibility { accessibility = trusted }
+        if !takenHotKeys.isEmpty { recheckHotKeys?() }
         // Claude Code's sign-in is checked less often: it runs a process.
         if !engine.isReady && Date().timeIntervalSince(lastEngineCheck) > 5 {
             Task { await refreshEngine() }
@@ -247,8 +250,11 @@ struct SetupView: View {
         let free = monitor.takenHotKeys.isEmpty
         return SetupStep(number: 4, title: "Hotkey", done: free,
                          status: free ? store.settings.summonHotKey.display
-                                      : "Taken by another app: " + monitor.takenHotKeys.map(\.display).joined(separator: ", "),
-                         detail: free ? "Press it in any text field to open Takes." : "Pick a different shortcut.") {
+                                      : "Taken: " + monitor.takenHotKeys.map { combo in
+                                          SystemShortcuts.owner(of: combo).map { "\(combo.display) (macOS: \($0))" } ?? "\(combo.display) (another app)"
+                                      }.joined(separator: ", "),
+                         detail: free ? "Press it in any text field to open Takes."
+                                      : "Pick a different shortcut, or turn the macOS one off in System Settings › Keyboard › Keyboard Shortcuts.") {
             if !free {
                 Button("Change shortcut") {
                     onDone()

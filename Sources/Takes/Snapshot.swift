@@ -28,7 +28,7 @@ enum Snapshot {
         }
 
         let compose = model()
-        render(PanelRootView(model: compose), size: CGSize(width: 720, height: 360), to: url.appendingPathComponent("1-compose.png"))
+        render(PanelRootView(model: compose), size: CGSize(width: 720, height: 400), to: url.appendingPathComponent("1-compose.png"))
 
         let picker = model()
         picker.openPicker()
@@ -41,7 +41,7 @@ enum Snapshot {
         streaming.running = true
         streaming.takes = Array(takes.prefix(2)) + ["Thursday's fine as long as specs land"]
         streaming.changesShown = [1]
-        render(PanelRootView(model: streaming), size: CGSize(width: 1060, height: 520), to: url.appendingPathComponent("3-takes-streaming.png"))
+        render(PanelRootView(model: streaming), size: CGSize(width: 1060, height: fittedHeight(streaming)), to: url.appendingPathComponent("3-takes-streaming.png"))
 
         let done = model()
         done.screen = .takes
@@ -49,7 +49,7 @@ enum Snapshot {
         done.takes = takes
         done.changesShown = [1]
         done.timing = "first words 1.3 s · all takes 2.8 s"
-        render(PanelRootView(model: done), size: CGSize(width: 1060, height: 520), to: url.appendingPathComponent("4-takes.png"))
+        render(PanelRootView(model: done), size: CGSize(width: 1060, height: fittedHeight(done)), to: url.appendingPathComponent("4-takes.png"))
 
         for tab in SettingsTab.allCases {
             let state = SettingsState()
@@ -62,18 +62,32 @@ enum Snapshot {
         print("Wrote snapshots to \(url.path)")
     }
 
+    /// The height the takes screen asks the panel for, as `PanelController` would size it.
+    static func fittedHeight(_ model: PanelModel, width: CGFloat = 1060) -> CGFloat {
+        var height: CGFloat = 520
+        model.onContentHeight = { height = $0 }
+        _ = bitmap(of: PanelRootView(model: model), size: CGSize(width: width, height: 520))
+        return height.rounded(.up)
+    }
+
     private static func render<V: View>(_ view: V, size: CGSize, to url: URL) {
+        try? bitmap(of: view, size: size)?.representation(using: .png, properties: [:])?.write(to: url)
+    }
+
+    /// Draws a view offscreen in light mode at `size` points.
+    static func bitmap<V: View>(of view: V, size: CGSize) -> NSBitmapImageRep? {
         let window = NSWindow(contentRect: NSRect(origin: CGPoint(x: -4000, y: -4000), size: size),
                               styleMask: [.borderless], backing: .buffered, defer: false)
         let hosting = NSHostingView(rootView: view.environment(\.colorScheme, .light))
+        hosting.sizingOptions = []
         hosting.frame = NSRect(origin: .zero, size: size)
         window.contentView = hosting
         window.orderFrontRegardless()
         // Let SwiftUI lay out and AppKit views draw.
         for _ in 0..<5 { RunLoop.main.run(until: Date().addingTimeInterval(0.15)) }
-        guard let rep = hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds) else { return }
+        defer { window.orderOut(nil) }
+        guard let rep = hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds) else { return nil }
         hosting.cacheDisplay(in: hosting.bounds, to: rep)
-        try? rep.representation(using: .png, properties: [:])?.write(to: url)
-        window.orderOut(nil)
+        return rep
     }
 }

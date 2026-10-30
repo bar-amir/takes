@@ -190,3 +190,64 @@ struct LabeledMenu<Value: Hashable>: View {
         }
     }
 }
+
+/// A small screen with the spots the panel can open at. "Next to the text box" sits on the dashed text box;
+/// the others are fixed spots on the screen. Whichever is picked, the panel still moves aside rather than cover
+/// the text box.
+struct PanelPositionPicker: View {
+    @Binding var selection: PanelPosition
+    private let screen = CGSize(width: 240, height: 150)
+    private let spot = CGSize(width: 40, height: 24)
+    /// The text box being written in, drawn on the right so "next to it" stays clear of the fixed spots.
+    private let textBox = CGRect(x: 150, y: 94, width: 76, height: 10)
+
+    var body: some View {
+        VStack(alignment: .trailing, spacing: 8) {
+            ZStack(alignment: .topLeading) {
+                RoundedRectangle(cornerRadius: 8).fill(Theme.chrome)
+                RoundedRectangle(cornerRadius: 8).strokeBorder(Theme.controlBorder)
+                // The text box the person is writing in, with "next to it" just above.
+                RoundedRectangle(cornerRadius: 3).fill(Theme.surface)
+                    .overlay(RoundedRectangle(cornerRadius: 3).strokeBorder(Theme.dashed, style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
+                    .frame(width: textBox.width, height: textBox.height)
+                    .offset(x: textBox.minX, y: textBox.minY)
+                ForEach(PanelPosition.allCases) { position in
+                    let frame = spotFrame(position)
+                    let selected = position == selection
+                    Button { selection = position } label: {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(selected ? Theme.accent : Theme.surface)
+                            .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(selected ? Theme.accent : Theme.controlBorder))
+                            .frame(width: frame.width, height: frame.height)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .help(position.label)
+                    .accessibilityLabel(position.label)
+                    .accessibilityAddTraits(selected ? .isSelected : [])
+                    .offset(x: frame.minX, y: frame.minY)
+                }
+            }
+            .frame(width: screen.width, height: screen.height)
+            Text(selection.label).font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
+        }
+        .padding(.vertical, 10)
+    }
+
+    /// The spot's place on the little screen (top-left origin).
+    private func spotFrame(_ position: PanelPosition) -> CGRect {
+        let inset: CGFloat = 8
+        let left = inset, centre = (screen.width - spot.width) / 2, right = screen.width - spot.width - inset
+        let top = inset, middle = (screen.height - spot.height) / 2, bottom = screen.height - spot.height - inset
+        switch position {
+        case .nearCursor: return CGRect(origin: CGPoint(x: textBox.midX - spot.width / 2, y: textBox.minY - spot.height - 6), size: spot)
+        case .topLeft: return CGRect(origin: CGPoint(x: left, y: top), size: spot)
+        case .topCenter: return CGRect(origin: CGPoint(x: centre, y: top), size: spot)
+        case .topRight: return CGRect(origin: CGPoint(x: right, y: top), size: spot)
+        case .center: return CGRect(origin: CGPoint(x: centre, y: middle), size: spot)
+        case .bottomLeft: return CGRect(origin: CGPoint(x: left, y: bottom), size: spot)
+        case .bottomCenter: return CGRect(origin: CGPoint(x: centre, y: bottom), size: spot)
+        case .bottomRight: return CGRect(origin: CGPoint(x: right, y: bottom), size: spot)
+        }
+    }
+}
