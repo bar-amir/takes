@@ -26,7 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             .store(in: &subscriptions)
         registerHotKeys()
-        SetupMonitor.shared.recheckHotKeys = { [weak self] in self?.registerHotKeys() }
+        SetupMonitor.shared.recheckHotKeys = { [weak self] in self?.recheckTakenHotKeys() }
 
         // Build Electron apps' accessibility trees as they come forward, so the hotkey can read their fields.
         if let front = NSWorkspace.shared.frontmostApplication { FocusReader.prepare(front) }
@@ -66,10 +66,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let id = preset.id
             bindings.append((combo, { [weak self] in self?.summonPanel(presetID: id) }))
         }
-        // macOS's own shortcuts still fire alongside a registered hotkey, so count those as taken too.
-        let failed = HotKeyCenter.shared.replaceAll(with: bindings)
-            + bindings.map(\.0).filter { SystemShortcuts.owner(of: $0) != nil }
+        // macOS's own shortcuts still fire alongside a registered hotkey, so leave those out and count them as taken.
+        let clashing = bindings.filter { SystemShortcuts.owner(of: $0.0) != nil }
+        let failed = HotKeyCenter.shared.replaceAll(with: bindings.filter { SystemShortcuts.owner(of: $0.0) == nil })
+            + clashing.map(\.0)
         if SetupMonitor.shared.takenHotKeys != failed { SetupMonitor.shared.takenHotKeys = failed }
+    }
+
+    /// Registers the hotkeys again once a taken one has come free, without dropping the working ones every second.
+    private func recheckTakenHotKeys() {
+        let freed = SetupMonitor.shared.takenHotKeys.contains { SystemShortcuts.owner(of: $0) == nil && HotKeyCenter.shared.isFree($0) }
+        if freed { registerHotKeys() }
     }
 
     private func rebuildStatusMenu() {

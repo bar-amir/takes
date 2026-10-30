@@ -214,7 +214,6 @@ enum FocusReader {
         return flipped(rect)
     }
 
-    /// The field's own frame, for apps that don't report caret bounds.
     /// The whole text box in Cocoa screen coordinates, so the panel can open beside it instead of over it.
     static func fieldFrame(of element: AXUIElement?) -> CGRect? {
         guard let element, let value: CFTypeRef = copy(element, "AXFrame"), let rect = cgRect(value),
@@ -222,6 +221,7 @@ enum FocusReader {
         return flipped(rect)
     }
 
+    /// The field's own frame, for apps that don't report caret bounds.
     private static func frame(of element: AXUIElement) -> CGRect? {
         guard let value: CFTypeRef = copy(element, "AXFrame"), let rect = cgRect(value), rect.width > 0 else { return nil }
         // Treat the field's top-left corner as the caret, so the panel opens just above it.

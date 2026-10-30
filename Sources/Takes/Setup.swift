@@ -11,7 +11,7 @@ final class SetupMonitor: ObservableObject {
     @Published private(set) var engine: EngineStatus = .checking
     /// Shortcuts macOS refused because another app already uses them, or that a macOS shortcut also fires on.
     @Published var takenHotKeys: [KeyCombo] = []
-    /// Re-registers the hotkeys, so a shortcut freed in System Settings is picked up.
+    /// Re-registers the hotkeys once a taken one is free, so a shortcut freed in System Settings is picked up.
     var recheckHotKeys: (() -> Void)?
 
     enum EngineStatus: Equatable {
