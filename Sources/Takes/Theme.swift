@@ -243,8 +243,8 @@ struct AppGlyph: View {
     var size: CGFloat = 24
     var body: some View {
         BrandMarkShape()
-            .fill(Theme.text)
-            .frame(width: size * 1.06, height: size)
+            .fill(Theme.text, style: FillStyle(eoFill: true))
+            .frame(width: size, height: size)
             .accessibilityHidden(true)
     }
 }

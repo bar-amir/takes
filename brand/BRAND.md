@@ -9,9 +9,9 @@ The short version of the brand book (Identity & Objects, November 2026). The boo
 | `logo.svg` | Full wordmark in Ink. The letters are cut out, so they take the background colour. |
 | `logo-cobalt.svg`, `logo-tomato.svg` | The same wordmark for the Signal (Cobalt on Acid) and Print (Tomato on Paper) editions. |
 | `logo-inverted.svg` | Paper bubble on an Ink field, for dark backgrounds. |
-| `mark-t.svg` | The compact t: the light t flows into the bubble's tail. Small interfaces, badges, the favicon. Traced from the November 2026 book; swap in the kit's canonical SVG when it lands. |
-| `mark.svg` | The earlier compact symbol (bubble with two lines of text), still used by the app icon until it moves to the t. |
-| `app-icon.svg`, `app-icon-16.svg` | App icon; the 16 version has one bolder wave. `scripts/make-app-icon.sh` builds `Resources/AppIcon.icns` from them. |
+| `mark-t.svg` | The compact t: the light t flows into the bubble's tail. Menu bar, panel header, favicon, badges. Traced from the November 2026 book; swap in the kit's canonical SVG when it lands (and regenerate `BrandMark.swift`'s outline from it). |
+| `mark.svg` | The earlier compact symbol (bubble with two lines of text). Retired. |
+| `app-icon.svg` | App tile: Ink t on Paper, one master at every size. `scripts/make-app-icon.sh` builds `Resources/AppIcon.icns` from it. |
 
 - **Expressive outside, quiet inside.** The wordmark carries the brand on the web, in campaigns and on stickers. The app itself uses system type, Ink accents and native light and dark surfaces; preset and semantic colours keep their meaning.
 - Use the full wordmark only where the letters have room: **96 px wide minimum** on screen (192 px at 2x), **25 mm** in print. Below that, use the compact t. Never force the wordmark into 16–32 px.
