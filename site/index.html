@@ -48,13 +48,17 @@ img, video { max-width: 100%; height: auto; display: block; }
 .mast nav a { text-decoration: none; }
 .mast nav a:hover { text-decoration: underline; }
 
-/* Hero: one headline, one object, one idea */
-.hero-grid { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: 56px; align-items: center; padding-top: 64px; padding-bottom: 104px; }
-.hero h1 { font-size: clamp(64px, 7.6vw, 112px); }
-.hero .sub { font-size: 22px; line-height: 1.45; margin: 30px 0 38px; }
+/* Hero: one headline, one object, one idea. The photo fills the whole hero, masthead included;
+   its composition leaves the top left empty for the words, so the hero keeps close to the photo's 3:2. */
+.hero { position: relative; display: flex; flex-direction: column; height: clamp(600px, min(66.6vw, 100vh), 1000px); background: #EAD3BA; overflow: hidden; }
+.hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: 0 50%; }
+.hero > header, .hero-body { position: relative; z-index: 1; }
+.hero .wrap { max-width: none; padding: 0 clamp(24px, 6vw, 96px); }
+.hero-copy { max-width: min(440px, 31vw); padding-top: clamp(20px, 3vw, 48px); }
+.hero h1 { font-size: clamp(52px, 5.8vw, 96px); }
+.hero .sub { font-size: clamp(18px, 1.5vw, 22px); line-height: 1.45; margin: clamp(16px, 2vw, 30px) 0 clamp(20px, 2.4vw, 38px); }
 .hero .ctas { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 26px; }
-.hero .keys { margin-top: 44px; color: var(--muted); }
-.hero-media video { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; background: #EAD3BA; }
+.hero .keys { margin-top: clamp(16px, 2.4vw, 40px); color: var(--muted); }
 
 /* The idea */
 .idea { background: var(--cobalt); color: var(--paper); padding: 104px 0 96px; }
@@ -115,12 +119,19 @@ footer { background: var(--ink); color: var(--paper); padding: 32px 0 44px; font
 footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 28px; justify-content: space-between; align-items: center; }
 footer .links a { margin-right: 22px; }
 
+/* Between a phone and a wide screen the photo's empty corner is small: keep only the headline and the button. */
+@media (min-width: 881px) and (max-width: 1240px) {
+  .hero .text-link, .hero .keys { display: none; }
+}
 @media (max-width: 880px) {
   .mast { height: 88px; }
   .wordmark { width: 96px; }
   .mast nav .hide-sm { display: none; }
-  .hero-grid, .split { grid-template-columns: 1fr; }
-  .hero-grid { gap: 40px; padding-top: 40px; padding-bottom: 72px; }
+  .split { grid-template-columns: 1fr; }
+  /* On a phone the words come first and the photo follows, full width. */
+  .hero { height: auto; background: var(--paper); }
+  .hero-bg { position: static; order: 1; height: auto; aspect-ratio: 3 / 2; }
+  .hero-copy { max-width: none; padding: 40px 0 48px; }
   .hero .keys { margin-top: 28px; }
   .steps { grid-template-columns: 1fr; gap: 28px; }
   .idea .lead { font-size: 21px; margin: 32px 0 56px; }
@@ -228,25 +239,27 @@ fill="currentColor" stroke="none">
 </symbol>
 </svg>
 
-<header>
-  <div class="wrap">
-    <div class="mast">
-      <a href="#" aria-label="Takes home"><svg class="wordmark" viewBox="0 0 1260 840" role="img" aria-label="takes"><use href="#wordmark"/></svg></a>
-      <nav aria-label="Main">
-        <span class="label hide-sm">A Mac writing companion</span>
-        <a class="hide-sm" href="#how">How it works</a>
-        <a class="hide-sm" href="#privacy">Privacy</a>
-        <a href="https://github.com/bar-amir/takes">GitHub</a>
-      </nav>
+<div class="hero">
+  <!-- Hero video: add <source src="img/hero.mp4" type="video/mp4"> here (3:2, no sound). Until then the poster shows. -->
+  <video class="hero-bg" poster="img/hero.jpg" width="1536" height="1024" muted loop playsinline preload="metadata"
+         aria-label="The Takes device: the dial set to 3 takes, the mode display on Soft, and a card reading “Could you give the deck a quick look by 3? Fresh eyes to the rescue!” beside the plain draft “Please review the deck by 3.”"></video>
+  <header>
+    <div class="wrap">
+      <div class="mast">
+        <a href="#" aria-label="Takes home"><svg class="wordmark" viewBox="0 0 1260 840" role="img" aria-label="takes"><use href="#wordmark"/></svg></a>
+        <nav aria-label="Main">
+          <span class="label hide-sm">A Mac writing companion</span>
+          <a class="hide-sm" href="#how">How it works</a>
+          <a class="hide-sm" href="#privacy">Privacy</a>
+          <a href="https://github.com/bar-amir/takes">GitHub</a>
+        </nav>
+      </div>
+      <hr class="rule">
     </div>
-    <hr class="rule">
-  </div>
-</header>
-
-<main>
-  <section class="hero">
-    <div class="wrap hero-grid">
-      <div>
+  </header>
+  <section class="hero-body">
+    <div class="wrap">
+      <div class="hero-copy">
         <h1 class="display">A few ways<br>to say it.</h1>
         <p class="sub">Write what you mean.<br>Choose how it sounds.<br>Paste your take. Keep going.</p>
         <div class="ctas">
@@ -255,14 +268,11 @@ fill="currentColor" stroke="none">
         </div>
         <div class="label keys">Control + Option + Space</div>
       </div>
-      <div class="hero-media">
-        <!-- Hero video: add <source src="img/hero.mp4" type="video/mp4"> here (3:2, no sound). Until then the poster shows. -->
-        <video poster="img/hero.jpg" width="1536" height="1024" muted loop playsinline preload="metadata"
-               aria-label="The Takes device: the dial set to 3 takes, the mode display on Soft, and a card reading “Could you give the deck a quick look by 3? Fresh eyes to the rescue!” beside the plain draft “Please review the deck by 3.”"></video>
-      </div>
     </div>
   </section>
+</div>
 
+<main>
   <section id="how" class="idea">
     <div class="wrap">
       <h2 class="display caps">Your thought.<br>A few takes.</h2>
@@ -358,7 +368,7 @@ fill="currentColor" stroke="none">
 </footer>
 <script>
   // The hero video plays only once it has a source, and not for visitors who asked for less motion.
-  const hero = document.querySelector(".hero-media video");
+  const hero = document.querySelector(".hero-bg");
   if (hero && hero.querySelector("source") && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
     hero.autoplay = true; hero.play().catch(() => {});
   }
