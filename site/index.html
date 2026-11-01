@@ -240,9 +240,11 @@ fill="currentColor" stroke="none">
 </svg>
 
 <div class="hero">
-  <!-- Hero video: add <source src="img/hero.mp4" type="video/mp4"> here (16:9, no sound). Until then the poster shows. -->
-  <video class="hero-bg" poster="img/hero.jpg" width="2400" height="1357" muted loop playsinline preload="metadata"
-         aria-label="The Takes device with a draft card reading “Please review the deck by 3.” A hand rolls the mode from Short to Soft, turns the dial to 3 takes and presses Return; three warmer versions print out one after another."></video>
+  <!-- Plays once and holds on the three printed takes. Source frames: brand/hero/. -->
+  <video class="hero-bg" poster="img/hero.jpg" width="1920" height="1084" muted autoplay playsinline preload="auto"
+         aria-label="The Takes device with a draft card reading “Please review the deck by 3.” A hand rolls the mode from Short to Soft, turns the dial to 3 takes and presses Return; three warmer versions print out one after another.">
+    <source src="img/hero.mp4" type="video/mp4">
+  </video>
   <header>
     <div class="wrap">
       <div class="mast">
@@ -367,10 +369,15 @@ fill="currentColor" stroke="none">
   </div>
 </footer>
 <script>
-  // The hero video plays only once it has a source, and not for visitors who asked for less motion.
+  // The hero video plays once and holds on the printed takes. With reduced motion it shows that end state still.
   const hero = document.querySelector(".hero-bg");
-  if (hero && hero.querySelector("source") && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    hero.autoplay = true; hero.play().catch(() => {});
+  if (hero) {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      hero.autoplay = false; hero.pause(); hero.poster = "img/hero-og.jpg"; hero.removeAttribute("src");
+      hero.querySelector("source")?.remove(); hero.load();
+    } else {
+      hero.play().catch(() => {});
+    }
   }
 </script>
 </body>
