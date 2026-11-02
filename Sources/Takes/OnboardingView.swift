@@ -512,7 +512,7 @@ private struct PresetsStep: View {
                     .fill(on ? Theme.accent : Theme.surface)
                     .frame(width: 16, height: 16)
                     .overlay(RoundedRectangle(cornerRadius: 4).stroke(on ? Theme.accent : Theme.dashed))
-                    .overlay(Image(systemName: "checkmark").font(.system(size: 10, weight: .bold)).foregroundStyle(.white).opacity(on ? 1 : 0))
+                    .overlay(Image(systemName: "checkmark").font(.system(size: 10, weight: .bold)).foregroundStyle(Theme.onAccent).opacity(on ? 1 : 0))
                     .padding(.top, 1)
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 6) {
