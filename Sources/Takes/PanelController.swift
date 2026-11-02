@@ -55,11 +55,16 @@ final class PanelController {
     var isVisible: Bool { panel?.isVisible == true }
 
     func summon(presetID: String? = nil) {
+        summon(focus: FocusReader.snapshot(prefill: Store.shared.settings.prefill), presetID: presetID)
+    }
+
+    /// Opens the panel on a field already read (instant mode hands over here), letting the caller set it up.
+    func summon(focus: FocusSnapshot, presetID: String?, configure: (PanelModel) -> Void = { _ in }) {
         toast.dismiss()
-        let focus = FocusReader.snapshot(prefill: Store.shared.settings.prefill)
         caretRect = focus.caretRect
         fieldRect = FocusReader.fieldFrame(of: focus.element)
         model.reset(focus: focus, presetID: presetID)
+        configure(model)
         let panel = self.panel ?? makePanel()
         self.panel = panel
         lastScreen = nil

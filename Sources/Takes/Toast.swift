@@ -8,11 +8,18 @@ final class ToastController {
     private var hideWork: DispatchWorkItem?
 
     func show(message: String, showUndo: Bool, near caret: CGRect?, onSaveExample: (() -> Void)?) {
-        dismiss()
         let view = ToastView(message: message, showUndo: showUndo, onSaveExample: onSaveExample) { [weak self] in
             self?.dismiss()
         }
+        present(view, near: caret, hideAfter: 5)
+    }
+
+    /// Shows any toast content near the caret. `hideAfter: nil` keeps it up until it's dismissed or replaced.
+    func present<V: View>(_ view: V, near caret: CGRect?, hideAfter: TimeInterval?) {
+        dismiss()
         let hosting = NSHostingView(rootView: view)
+        // Toasts are always dark, so system controls in them (instant mode's spinner) draw for dark.
+        hosting.appearance = NSAppearance(named: .darkAqua)
         let size = hosting.fittingSize
         let panel = NSPanel(contentRect: NSRect(origin: .zero, size: size),
                             styleMask: [.nonactivatingPanel, .borderless], backing: .buffered, defer: false)
@@ -33,9 +40,10 @@ final class ToastController {
         panel.orderFrontRegardless()
         self.panel = panel
 
+        guard let hideAfter else { return }
         let work = DispatchWorkItem { [weak self] in self?.dismiss() }
         hideWork = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: work)
+        DispatchQueue.main.asyncAfter(deadline: .now() + hideAfter, execute: work)
     }
 
     func dismiss() {
