@@ -4,6 +4,7 @@ import Foundation
 /// Runs the engine N times on a sample draft and prints timings.
 enum Bench {
     static func run(arguments: [String]) {
+        if arguments.contains("--tone") { ToneBench.run(arguments: arguments); return }
         func value(_ flag: String) -> String? {
             guard let i = arguments.firstIndex(of: flag), i + 1 < arguments.count else { return nil }
             return arguments[i + 1]

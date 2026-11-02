@@ -64,6 +64,7 @@ enum Snapshot {
         renderProofread(to: url)
         presetGallery(to: url, draft: draft)
         renderReplyContext(to: url)
+        renderToneCheck(to: url)
         print("Wrote snapshots to \(url.path)")
     }
 

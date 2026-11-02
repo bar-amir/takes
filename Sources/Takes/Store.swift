@@ -78,12 +78,37 @@ struct Preset: Codable, Identifiable, Hashable {
     var minimalEdits: Bool? = nil
     /// The gallery template this preset was copied from, so the gallery can show it as added.
     var galleryID: String?
+    /// A short note on how each take may come across, and ⌘T in compose.
+    var showTone = true
 
     static let maxExamples = 5
     static let colors = ["#2F55E0", "#1D6B4F", "#8A4B08", "#7A3FD1", "#B42318", "#0E6E8C", "#55555E"]
 
     var summary: String {
         "\(takes) take\(takes == 1 ? "" : "s") · \(Models.label(model)) · \(effort.capitalized) effort · \(length.label.lowercased())"
+    }
+}
+
+extension Preset {
+    /// Tolerant decoding: presets saved by an older version (missing newer keys) still load.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = Preset(name: "", colorHex: Preset.colors[0], instruction: "")
+        id = try c.decodeIfPresent(String.self, forKey: .id) ?? d.id
+        name = try c.decode(String.self, forKey: .name)
+        colorHex = try c.decodeIfPresent(String.self, forKey: .colorHex) ?? d.colorHex
+        hotKey = try c.decodeIfPresent(KeyCombo.self, forKey: .hotKey)
+        instruction = try c.decode(String.self, forKey: .instruction)
+        dos = try c.decodeIfPresent([String].self, forKey: .dos) ?? d.dos
+        avoid = try c.decodeIfPresent([String].self, forKey: .avoid) ?? d.avoid
+        examples = try c.decodeIfPresent([String].self, forKey: .examples) ?? d.examples
+        language = try c.decodeIfPresent(ReplyLanguage.self, forKey: .language) ?? d.language
+        length = try c.decodeIfPresent(TakeLength.self, forKey: .length) ?? d.length
+        apps = try c.decodeIfPresent([AppRef].self, forKey: .apps) ?? d.apps
+        takes = try c.decodeIfPresent(Int.self, forKey: .takes) ?? d.takes
+        model = try c.decodeIfPresent(String.self, forKey: .model) ?? d.model
+        effort = try c.decodeIfPresent(String.self, forKey: .effort) ?? d.effort
+        showTone = try c.decodeIfPresent(Bool.self, forKey: .showTone) ?? d.showTone
     }
 }
 

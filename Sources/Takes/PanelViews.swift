@@ -101,6 +101,7 @@ struct ComposeView: View {
                 .padding(.horizontal, Spacing.gutter)
                 .padding(.top, Spacing.item)
                 .padding(.bottom, Spacing.section)
+            ToneReadSection(model: model)
 
             Rule()
             presetRow
@@ -173,6 +174,7 @@ struct ComposeView: View {
                 KeyHint(keys: ["⇥"], label: "presets")
                 KeyHint(keys: ["⌘", "1–9"], label: "jump")
                 KeyHint(keys: ["⌘", "K"], label: "more")
+                ToneReadHint(model: model)
             }
             Spacer()
             Button(action: model.generate) {
@@ -594,6 +596,7 @@ private struct TakeCard: View {
             .lineSpacing(4)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, minHeight: 96, maxHeight: .infinity, alignment: .topLeading)
+            TakeToneLine(model: model, index: index)
 
             Rule()
             HStack(spacing: Spacing.item) {
