@@ -9,6 +9,11 @@ struct DraftEditor: NSViewRepresentable {
     var onSubmit: () -> Void
     var onPresets: () -> Void
     var onEscape: () -> Void
+    /// Dictation: where the caret goes when the text changes from outside (nil is the end), what's selected,
+    /// and a key typed (so dictation can stop and hand the box back).
+    var caret: Int? = nil
+    var onSelection: (NSRange) -> Void = { _ in }
+    var onType: () -> Void = {}
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
@@ -36,7 +41,9 @@ struct DraftEditor: NSViewRepresentable {
         guard let textView = scroll.documentView as? NSTextView else { return }
         if textView.string != text {
             textView.string = text
-            textView.setSelectedRange(NSRange(location: (text as NSString).length, length: 0))
+            let length = (text as NSString).length
+            textView.setSelectedRange(NSRange(location: min(caret ?? length, length), length: 0))
+            textView.scrollRangeToVisible(textView.selectedRange())
         }
         if context.coordinator.focusToken != focusToken {
             context.coordinator.focusToken = focusToken
@@ -53,6 +60,11 @@ struct DraftEditor: NSViewRepresentable {
         func textDidChange(_ notification: Notification) {
             guard let textView = notification.object as? NSTextView else { return }
             parent.text = textView.string
+        }
+
+        func textViewDidChangeSelection(_ notification: Notification) {
+            guard let textView = notification.object as? NSTextView else { return }
+            parent.onSelection(textView.selectedRange())
         }
 
         func textView(_ textView: NSTextView, doCommandBy selector: Selector) -> Bool {
@@ -83,6 +95,7 @@ struct DraftEditor: NSViewRepresentable {
                 parent.onPresets()
                 return false
             }
+            parent.onType()
             return true
         }
     }

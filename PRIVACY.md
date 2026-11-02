@@ -30,6 +30,12 @@ What Anthropic does with that text is covered by [Anthropic's privacy policy](ht
 
 **Don't use Takes on text you're not allowed to share with an AI provider,** for example confidential work material, other people's personal data, or anything your employer's policies forbid sending to third parties.
 
+## Dictation
+
+Dictation is off until you use it. Only while you dictate a draft (⌘D or the mic button in the panel), Takes listens to the microphone and turns your speech into text **on this Mac**, with Apple's on-device speech recognition. The audio is never recorded to a file and never leaves your Mac: not to Anthropic, not to Apple, not to the developer. If your Mac has no on-device speech model for the language, Takes tells you and doesn't dictate; it never falls back to Apple's servers. macOS shows the orange microphone dot in the menu bar whenever the microphone is on.
+
+The words you dictate become part of your draft, and like any draft they're sent to Anthropic only when you ask for takes. The first time you dictate, macOS asks you to allow the microphone and speech recognition for Takes; you can turn either off in System Settings › Privacy & Security.
+
 ## What stays on your Mac
 
 | What | Where | How to remove it |
