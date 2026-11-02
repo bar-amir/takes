@@ -159,7 +159,14 @@ with a fake browser hitting the loopback callback, a forged callback refused, ca
 
 ## Live check
 
-Not completed. On 2 November 2026 this session ran `TAKES_LIVE_CHATGPT=1 swift test --filter ChatGPTLiveTests` once.
+**Done after the merge, 2 November 2026 (orchestrator, with the user at the Mac):** on the merged build, Settings › Engine ›
+Your ChatGPT plan › Continue with ChatGPT registered Takes, finished the sign-in in the browser, and the card showed
+"Using ChatGPT plan" with the model list; `gpt-6.1-sol` was auto-picked. **Test** passed. From a text field, 3 takes
+streamed through the panel: `runs.jsonl` logged `engine: chatGPT, model: gpt-6.1-sol, takes: 3, firstTextMs: 5790,
+wallMs: 6037`. First words took 5.8 s against about 1.2 s with Sonnet; see Follow-ups. Steps 3 (beyond the plain run)
+to 7 below weren't run.
+
+Before the merge, this session couldn't verify it. On 2 November 2026 this session ran `TAKES_LIVE_CHATGPT=1 swift test --filter ChatGPTLiveTests` once.
 The listener started, the default browser opened the real authorize URL (first-time registration), and nobody was at
 the Mac to sign in. After 5 minutes the test ended with `timedOut`, as designed. Nothing was registered, no token was
 issued and no inference request was sent. A plain `curl` of the same authorize URL got HTTP 403 from auth.openai.com,
@@ -184,10 +191,11 @@ tokens in memory, prints the model list and two takes, and revokes the session a
 
 ## Follow-ups
 
-- Panel: "Using ChatGPT plan · Manage usage" near the model menu, and "Manage usage" as an action on the usage-limit
-  error (OpenAI's UI/UX guidelines). Needs `PanelViews.swift`.
-- `EngineTab.swift` privacy paragraph per engine (wording session).
-- `SECURITY.md`: OpenAI's vulnerability contact (plan's table).
+- The auto-picked model (`gpt-6.1-sol`, first in OpenAI's list) took 5.8 s to its first words. Prefer a fast model when
+  one is listed (a `preferredModels` list like the provider engine's), or say in the card that bigger models are slower.
+- Live-check steps 3 (proofread, tone, instant mode, refine) to 7 above are still open.
+- Done in the merge: the panel's "ChatGPT plan · Manage" strip note and the usage-limit primary action
+  (`PanelViews.swift`), the per-engine privacy paragraph (`EngineTab.swift`), `SECURITY.md`'s OpenAI contact.
 - Optional: one-time "You're using your ChatGPT plan" welcome after the first sign-in.
 
 ## Sources (read 2 November 2026)
