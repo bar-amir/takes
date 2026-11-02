@@ -61,7 +61,7 @@ After that, Takes watches everything it needs and opens a "Set up Takes" window 
 ## Settings (menu-bar icon, or ⌘, in the panel)
 
 - **Presets:** Browse presets adds ready-made ones (Proofread, Slack message, Polish email, Shorter, Friendlier, More direct, and more) as your own copies; new installs start with seven. Each preset has a name, color, an optional hotkey of its own, instruction, Do and Avoid lists, up to five write-like-me examples, reply language, the apps where it's picked automatically, the defaults for takes, model, effort and length, and "How it writes": Minimal edits, Show tone, and Write and paste right away. "Try it" runs the preset as edited. Presets can be duplicated, exported and imported as JSON.
-- **Voice:** rules applied on top of every preset.
+- **Voice:** rules applied on top of every preset, and the languages you write in. These start as your Mac's languages (System Settings › General › Language & Region); presets can reply in any language, and Browse presets offers a "Translate to …" preset for each of yours.
 - **Engine:** Claude Code on this Mac (your subscription), an Anthropic API key (stored in the keychain), or a local model (Ollama or LM Studio on this Mac; Takes finds them and lists their models, with a Test button). Also the dictation language, and an opt-in to use the clipboard as reply context when it looks like a message you just copied. Also defaults for new presets, the summon hotkey, where the panel opens, what the draft starts with, clipboard restore and history.
 - **History:** the last 30 days of runs, stored only on this Mac.
 

@@ -12,6 +12,7 @@ All notable changes to Takes. Versions follow [semantic versioning](https://semv
 - **Tone.** A short note on how each take may come across, and ⌘T for your draft. Per preset, on by default (off for Proofread).
 - **Dictation.** ⌘D speaks a draft, recognised on this Mac only.
 - **Local models.** A third engine: Ollama or LM Studio on this Mac, localhost only.
+- **Your languages.** Takes starts from your Mac's languages instead of a fixed English/Hebrew choice. Presets can reply in any language, the gallery has a "Translate to …" preset for each of yours, and you can change the list in onboarding and Settings › Voice. Existing presets keep their language.
 - Preset options (Minimal edits, Show tone, Write and paste right away) sit together in one "How it writes" card.
 - Release builds can use the microphone (hardened-runtime entitlement), for dictation.
 

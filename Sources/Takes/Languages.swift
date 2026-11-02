@@ -134,6 +134,7 @@ struct ReplyLanguagePicker: View {
                 LanguageMenu.show(excluding: shown) { selection = .language($0) }
             }
             .buttonStyle(SecondaryButtonStyle(height: 32))
+            .fixedSize()
             .accessibilityLabel("Other reply language")
         }
     }
