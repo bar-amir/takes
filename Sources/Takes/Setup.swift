@@ -44,7 +44,7 @@ final class SetupMonitor: ObservableObject {
 
     /// The reminder to check a take, naming Claude only when it's Claude writing.
     static func mistakesNote(for settings: AppSettings) -> String {
-        (settings.engine.isClaude ? "Claude" : "Models") + " can get things wrong, so read a take before you send it."
+        (settings.engine.isClaude ? "Claude" : "Models") + " can get things wrong, and takes are only as good as your preset's instructions. Read a take before you send it: what you send is up to you."
     }
 
     private var timer: Timer?

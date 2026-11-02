@@ -338,11 +338,11 @@ private struct EngineStep: View {
             // Five options don't fit the window; the header stays put and the options scroll.
             ScrollView {
                 VStack(spacing: Spacing.inner) {
-                    option(.claudeCode, title: "Your Claude subscription", detail: "Through Claude Code on this Mac.") { claudeCodeDetail }
-                    option(.apiKey, title: "An Anthropic API key", detail: "Pay per use, billed by Anthropic. Usually a cent or two per run.") { apiKeyDetail }
-                    option(.chatGPT, title: "Your ChatGPT plan", detail: "Sign in with ChatGPT. Plus or Pro, no extra cost.") { ChatGPTOnboardingDetail(model: model) }
-                    option(.provider, title: "An OpenAI or other API key", detail: "Pay per use, billed by the provider.") { ProviderOnboardingDetail(model: model) }
-                    option(.local, title: "A model on this Mac", detail: "Ollama or LM Studio. Nothing leaves your Mac.") { localDetail }
+                    option(.claudeCode, title: "Your Claude subscription", detail: "Through Claude Code on this Mac. Counts toward your plan's usage limits.") { claudeCodeDetail }
+                    option(.apiKey, title: "An Anthropic API key", detail: "Pay per use, billed by Anthropic. Usually a cent or two per run; Takes doesn't cap your spending.") { apiKeyDetail }
+                    option(.chatGPT, title: "Your ChatGPT plan", detail: "Sign in with ChatGPT. Plus or Pro, no extra cost; counts toward your plan's limits.") { ChatGPTOnboardingDetail(model: model) }
+                    option(.provider, title: "An OpenAI or other API key", detail: "Pay per use, billed by the provider; Takes doesn't cap your spending.") { ProviderOnboardingDetail(model: model) }
+                    option(.local, title: "A model on this Mac", detail: "Ollama or LM Studio. Free, and nothing leaves your Mac.") { localDetail }
                 }
                 .padding(2)
             }

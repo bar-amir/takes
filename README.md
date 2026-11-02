@@ -26,10 +26,13 @@ Releases are built by GitHub Actions ([.github/workflows/release.yml](.github/wo
 2. Tag the merge commit and push the tag: `git tag v0.1.0 && git push origin v0.1.0`.
 3. Approve the run in the protected `release` environment (GitHub › Actions). Only then can it read the signing secrets.
 4. It builds a universal app, signs it with the Developer ID (hardened runtime, Sparkle signed inside out), notarizes and staples the app and the disk image, checks them with Gatekeeper, signs the update for Sparkle, attests build provenance, and publishes the GitHub Release with the `.dmg`, its checksum and `appcast.xml`.
+5. A second job points the Homebrew cask in [bar-amir/homebrew-tap](https://github.com/bar-amir/homebrew-tap) at the new version and checksum.
 
 Installed copies find updates through `https://github.com/bar-amir/takes/releases/latest/download/appcast.xml`. Each release also carries the same disk image as `Takes.dmg`, so `https://github.com/bar-amir/takes/releases/latest/download/Takes.dmg` always downloads the latest version (use it for download buttons).
 
 One-time setup: run `scripts/setup-release-secrets.sh` to store the Developer ID certificate, an App Store Connect API key and the Sparkle update key as environment secrets. `scripts/release.sh` runs the same steps on your Mac (`--unsigned` to test without signing).
+
+For the Homebrew bump, create a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new) with access to `bar-amir/homebrew-tap` only, permission Contents: Read and write, and store it as the repository secret `HOMEBREW_TAP_TOKEN` (Settings › Secrets and variables › Actions, or `gh secret set HOMEBREW_TAP_TOKEN -R bar-amir/takes`). Without it the job skips with a warning.
 
 ## Build and run
 
@@ -106,6 +109,20 @@ Opus 5.5 needs Claude Code 2.1.280 or newer (`claude update`). The Opus rows wer
 ## How it calls the model
 
 With Claude Code: `claude -p` with a preset-built system prompt, `--model`, `--effort` and `--output-format stream-json --include-partial-messages`. Takes are separated by `===` lines and appear in the panel as they're written. It runs from an empty temp folder so no CLAUDE.md is picked up. See `Sources/Takes/ClaudeCodeEngine.swift`. With an API key, the Messages API is called directly with streaming (`Sources/Takes/APIEngine.swift`). With a local model, Takes streams from the server's OpenAI-compatible chat endpoint and only ever connects to `localhost` (`Sources/Takes/LocalEngine.swift`). Other provider streams from the provider's OpenAI-compatible chat endpoint over https with your key (`Sources/Takes/ProviderEngine.swift`). Your ChatGPT plan signs you in with OpenAI's Sign in with ChatGPT and streams from the Responses API with `store: false` (`Sources/Takes/ChatGPTEngine.swift`). Tone notes are one extra short request after the takes (Haiku with Claude, otherwise the model you picked).
+
+## Costs and responsibility
+
+Takes is free, but the model it calls isn't always:
+
+- **Claude Code (your subscription):** each run counts toward your Claude plan's usage limits, like any other Claude Code use.
+- **Anthropic API key:** you're billed by Anthropic for the tokens each run uses, usually a cent or two. Takes doesn't cap your spending; set a spend limit in the [Anthropic Console](https://console.anthropic.com).
+- **Your ChatGPT plan:** no extra cost; each run counts toward your Plus or Pro plan's limits. You can cap how much Takes may use in ChatGPT › Settings › Usage.
+- **OpenAI or other API key:** you're billed by that provider for the tokens each run uses. Takes doesn't cap your spending; set a limit in the provider's console.
+- **Local model:** free, but it runs on your Mac's memory, CPU and battery.
+
+What makes a run use more: more takes, a bigger model (Opus over Sonnet over Haiku), higher effort, a long draft or reply context, and write-like-me examples. Each of these is a request of its own: the tone notes after the takes (Haiku, unless you turn "Show tone" off), ⌘T, refine, "More like take N" and ⌘R.
+
+Takes are written by an AI model. They can be wrong, miss your meaning or sound different from what you intended, and they're only as good as the preset's instructions, examples and the model you pick. Read a take before you send it. What you send, and to whom, is up to you. Takes is provided as is, without warranty (see the [License](LICENSE)).
 
 ## Privacy
 

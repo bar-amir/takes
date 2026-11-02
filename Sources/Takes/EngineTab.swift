@@ -88,7 +88,7 @@ struct EngineTab: View {
                     Text("Claude Code on this Mac").font(.system(size: 15, weight: .semibold))
                     statusBadge
                 }
-                Text("Uses your Claude subscription. Personal build only.").font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
+                Text("Uses your Claude subscription; each run counts toward its usage limits. Personal build only.").font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
                 if let status, status.found, !status.signedIn {
                     Text("Run `claude auth login` in Terminal, then check again.").font(.system(size: 12)).foregroundStyle(Theme.avoidText)
                 }
@@ -119,7 +119,7 @@ struct EngineTab: View {
         EngineCard(selected: store.settings.engine == .apiKey, enabled: true, label: "Anthropic API key", select: { store.settings.engine = .apiKey }) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Anthropic API key").font(.system(size: 15, weight: .semibold))
-                Text("Pay per use, billed by Anthropic. Usually a cent or two per run.").font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
+                Text("Pay per use, billed by Anthropic. Usually a cent or two per run, more with Opus or more takes. Takes doesn't cap your spending; set a limit in the Anthropic Console.").font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
                 if hasKey {
                     HStack(spacing: 10) {
                         Text("Key saved in your keychain").font(.system(size: 13)).foregroundStyle(Theme.doText)
