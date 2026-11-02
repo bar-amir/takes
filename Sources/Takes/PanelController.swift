@@ -34,6 +34,8 @@ final class PanelController {
     private var lastScreen: PanelModel.Screen?
     /// What the takes screen last said it needs (0 until it has laid out).
     private var takesHeight: CGFloat = 0
+    /// Onboarding's practice box: the chosen take goes back to it instead of being pasted into another app.
+    private var practice: (paste: (String) -> Void, cancel: () -> Void)?
 
     init() {
         model.onClose = { [weak self] in self?.close() }
@@ -56,9 +58,33 @@ final class PanelController {
 
     func summon(presetID: String? = nil) {
         toast.dismiss()
+        endPractice()
         let focus = FocusReader.snapshot(prefill: Store.shared.settings.prefill)
         caretRect = focus.caretRect
         fieldRect = FocusReader.fieldFrame(of: focus.element)
+        open(focus: focus, presetID: presetID)
+    }
+
+    /// Opens the panel on onboarding's practice box: the same panel and model, with the box's text and frame
+    /// standing in for the focused field. `paste` gets the chosen take; `cancel` runs if the panel closes without one.
+    func summonPractice(text: String, boxFrame: CGRect?, paste: @escaping (String) -> Void, cancel: @escaping () -> Void) {
+        toast.dismiss()
+        endPractice()
+        practice = (paste, cancel)
+        caretRect = boxFrame
+        fieldRect = boxFrame
+        open(focus: FocusSnapshot(app: nil, text: text, source: .field, caretRect: boxFrame), presetID: nil)
+        model.previewAppName = "the practice box"
+    }
+
+    private func endPractice() {
+        let cancel = practice?.cancel
+        practice = nil
+        cancel?()
+    }
+
+    private func open(focus: FocusSnapshot, presetID: String?) {
+        model.previewAppName = nil
         model.reset(focus: focus, presetID: presetID)
         let panel = self.panel ?? makePanel()
         self.panel = panel
@@ -135,6 +161,12 @@ final class PanelController {
     }
 
     private func paste(index: Int, text: String, presetID: String?) {
+        if let practice {
+            self.practice = nil
+            close()
+            practice.paste(text)
+            return
+        }
         let focus = model.focus
         let replaceAll = focus?.source == .field && !(focus?.text.isEmpty ?? true)
         let restore = Store.shared.settings.restoreClipboard
@@ -182,6 +214,7 @@ final class PanelController {
 
     func close() {
         panel?.orderOut(nil)
+        endPractice()
     }
 }
 

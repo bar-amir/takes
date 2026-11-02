@@ -135,6 +135,8 @@ struct AppSettings: Codable {
     var lastFirstTextMs: Int?
     /// The user has read what Takes reads and where it sends it (setup step).
     var privacyAccepted = false
+    /// Where a new user is in onboarding. Settings saved before onboarding existed decode as finished.
+    var onboarding = OnboardingProgress()
 }
 
 extension AppSettings {
@@ -155,6 +157,7 @@ extension AppSettings {
         defaultEffort = try c.decodeIfPresent(String.self, forKey: .defaultEffort) ?? d.defaultEffort
         lastFirstTextMs = try c.decodeIfPresent(Int.self, forKey: .lastFirstTextMs)
         privacyAccepted = try c.decodeIfPresent(Bool.self, forKey: .privacyAccepted) ?? d.privacyAccepted
+        onboarding = try c.decodeIfPresent(OnboardingProgress.self, forKey: .onboarding) ?? .existingUser
     }
 }
 

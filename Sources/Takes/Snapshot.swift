@@ -59,6 +59,7 @@ enum Snapshot {
         }
         render(SetupView(monitor: SetupMonitor.shared, onDone: {}), size: CGSize(width: 640, height: 820),
                to: url.appendingPathComponent("6-setup.png"))
+        renderOnboarding(to: url)
         print("Wrote snapshots to \(url.path)")
     }
 
