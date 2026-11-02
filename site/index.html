@@ -111,7 +111,7 @@ details p { margin: 14px 0 0; max-width: 44em; }
 
 /* Closing: the Acid campaign field */
 .final { background: var(--acid); padding: 104px 0; }
-.final .wrap { display: flex; flex-wrap: wrap; gap: 48px; align-items: center; justify-content: space-between; }
+.final .wrap { display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start; justify-content: space-between; }
 .final h2 { font-size: clamp(72px, 10vw, 150px); }
 .final .label { margin: 30px 0; }
 .final .mark { width: 200px; color: var(--ink); }
@@ -140,7 +140,8 @@ footer .links a { margin-right: 22px; }
   .truth-row { grid-template-columns: 1fr; gap: 8px; }
   .truth-row p { font-size: 21px; }
   section.paper, .idea, .truth, .final { padding: 72px 0; }
-  .final .mark { width: 140px; }
+  .final .wrap { flex-direction: column; }
+  .final .mark { width: 140px; order: -1; }
 }
 </style>
 </head>
