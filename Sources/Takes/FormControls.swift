@@ -122,7 +122,7 @@ struct Checkbox: View {
                 .fill(isOn ? Theme.accent : Theme.surface)
                 .frame(width: 16, height: 16)
                 .overlay(RoundedRectangle(cornerRadius: 4).stroke(isOn ? Theme.accent : Theme.dashed))
-                .overlay(Image(systemName: "checkmark").font(.system(size: 10, weight: .bold)).foregroundStyle(.white).opacity(isOn ? 1 : 0))
+                .overlay(Image(systemName: "checkmark").font(.system(size: 10, weight: .bold)).foregroundStyle(Theme.onAccent).opacity(isOn ? 1 : 0))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

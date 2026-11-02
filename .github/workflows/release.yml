@@ -5,8 +5,9 @@
 #   3. The run pauses for approval in the protected "release" environment. Only after Bar approves
 #      can it read the signing secrets.
 #   4. It builds, signs (Developer ID), notarizes (App Store Connect API key), signs the update
-#      (Sparkle EdDSA), attests build provenance, and publishes the GitHub Release with the .dmg,
-#      checksum and appcast.xml (the update feed Takes reads).
+#      (Sparkle EdDSA), attests build provenance, and publishes the GitHub Release with the .dmg
+#      (also as Takes.dmg, a fixed name for download links), checksum and appcast.xml (the update
+#      feed Takes reads).
 #
 # Hardening: third-party actions pinned to full commit SHAs, minimal token permissions, no caches,
 # secrets only in the "release" environment, a throwaway keychain deleted at the end.
@@ -94,11 +95,13 @@ jobs:
         run: |
           set -euo pipefail
           VERSION=$(cat VERSION)
+          # Same bytes under a fixed name, so releases/latest/download/Takes.dmg always works.
+          cp "dist/Takes-$VERSION.dmg" dist/Takes.dmg
           # Draft first, attach every file, then publish (works with immutable releases).
           gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --draft --verify-tag \
             --title "Takes $VERSION" --notes-file dist/release-notes.md
           gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" \
-            "dist/Takes-$VERSION.dmg" "dist/Takes-$VERSION.dmg.sha256" dist/appcast.xml
+            "dist/Takes-$VERSION.dmg" "dist/Takes-$VERSION.dmg.sha256" dist/Takes.dmg dist/appcast.xml
           gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest
 
       - name: Clean up signing material

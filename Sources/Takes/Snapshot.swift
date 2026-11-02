@@ -24,6 +24,7 @@ enum Snapshot {
             let model = PanelModel()
             model.reset(focus: FocusSnapshot(app: nil, text: draft, source: .field, caretRect: nil), presetID: Store.shared.presets.first?.id)
             model.previewAppName = "Slack"
+            model.previewAppURL = AppGlyph.url(forBundleID: "com.tinyspeck.slackmacgap")
             return model
         }
 
@@ -68,6 +69,7 @@ enum Snapshot {
         dictation(to: url)
         renderOnboarding(to: url)
         renderPresetOptions(to: url)
+        render(MenuBarPreview(), size: CGSize(width: 360, height: 120), to: url.appendingPathComponent("7-menu-bar.png"))
         print("Wrote snapshots to \(url.path)")
     }
 
@@ -98,5 +100,29 @@ enum Snapshot {
         guard let rep = hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds) else { return nil }
         hosting.cacheDisplay(in: hosting.bounds, to: rep)
         return rep
+    }
+}
+
+/// The menu-bar icon on a light and a dark menu bar, with and without the setup dot.
+private struct MenuBarPreview: View {
+    var body: some View {
+        VStack(spacing: 0) {
+            strip(background: Color(hex: "#E9E7E1"), foreground: .black)
+            strip(background: Color(hex: "#262626"), foreground: .white)
+        }
+    }
+
+    private func strip(background: Color, foreground: Color) -> some View {
+        HStack(spacing: 22) {
+            Spacer()
+            Image(systemName: "wifi")
+            Image(nsImage: BrandMark.menuBarImage(alert: false)).renderingMode(.template)
+            Image(nsImage: BrandMark.menuBarImage(alert: true)).renderingMode(.template)
+            Text("Thu 29 Oct  13:20").font(.system(size: 13))
+        }
+        .foregroundStyle(foreground)
+        .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(background)
     }
 }

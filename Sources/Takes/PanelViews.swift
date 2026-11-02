@@ -30,7 +30,7 @@ private struct PanelHeader: View {
 
     var body: some View {
         HStack(spacing: Spacing.inner) {
-            AppGlyph()
+            AppGlyph(appURL: model.appURL)
             (Text("Into ").foregroundStyle(Theme.secondaryText) + Text(model.appName).fontWeight(.semibold).foregroundStyle(Theme.text))
                 .font(.system(size: 13))
             Spacer()
