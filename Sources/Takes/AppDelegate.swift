@@ -109,6 +109,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let about = NSMenuItem(title: "About Takes", action: #selector(showAbout), keyEquivalent: "")
         about.target = self
         menu.addItem(about)
+        let support = NSMenuItem(title: "Support Takes…", action: #selector(showSponsors), keyEquivalent: "")
+        support.target = self
+        menu.addItem(support)
         if let updater = Updater.shared.controller {
             let check = NSMenuItem(title: "Check for Updates…", action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)), keyEquivalent: "")
             check.target = updater
@@ -159,6 +162,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.orderFrontStandardAboutPanel(options: [
             .credits: NSAttributedString(string: "Rewrite anything, in any text box, with Claude.\ngithub.com/bar-amir/takes"),
         ])
+    }
+
+    @objc private func showSponsors() {
+        NSWorkspace.shared.open(URL(string: "https://github.com/sponsors/bar-amir")!)
     }
 
     @objc private func showLog() {
