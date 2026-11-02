@@ -4,8 +4,7 @@ import SwiftUI
 
 /// The starter presets offered in onboarding.
 enum OnboardingPresets {
-    // ORCHESTRATOR: wire to PresetGallery.starters (this local stand-in uses the built-in defaults).
-    static var starters: [Preset] { Store.defaultPresets }
+    static var starters: [Preset] { PresetGallery.starters }
 }
 
 /// State behind the onboarding window: the step flow plus what each step shows.
@@ -64,7 +63,10 @@ final class OnboardingModel: ObservableObject {
         let installed = Set(store.presets.map(\.name))
         chosenPresets = Set(OnboardingPresets.starters.map(\.name)).intersection(installed)
         save = { progress in if store.settings.onboarding != progress { store.settings.onboarding = progress } }
-        onEngineKindChange = { kind in if store.settings.engine != kind { store.settings.engine = kind } }
+        onEngineKindChange = { [weak self] kind in
+            if store.settings.engine != kind { store.settings.engine = kind }
+            if kind == .local { self?.checkLocalEngine() }
+        }
 
         func read(_ accessibility: Bool, _ engine: SetupMonitor.EngineStatus, _ taken: [KeyCombo], _ settings: AppSettings) -> OnboardingConditions {
             engineStatus = engine
@@ -155,8 +157,8 @@ final class OnboardingModel: ObservableObject {
         case .accessibility: return flow.isCurrentSatisfied ? "Continue" : "Open System Settings"
         case .engine:
             if flow.isCurrentSatisfied { return "Continue" }
-            // ORCHESTRATOR: add local engine option (a primary action for EngineKind.local, here and in `primary()`).
             if engineKind == .apiKey { return "Save key" }
+            if engineKind == .local { return engineStatus == .checking ? "Checking…" : "Check again" }
             return engineStatus == .checking ? "Checking…" : "Copy command and open Terminal"
         case .privacy: return flow.isCurrentSatisfied ? "Continue" : "I understand"
         case .hotkey, .presets: return "Continue"
@@ -185,7 +187,10 @@ final class OnboardingModel: ObservableObject {
         case .accessibility:
             if flow.isCurrentSatisfied { go { $0.next() } } else { SetupMonitor.shared.requestAccessibility() }
         case .engine:
-            if flow.isCurrentSatisfied { go { $0.next() } } else if engineKind == .apiKey { saveAPIKey() } else { copySignInCommand() }
+            if flow.isCurrentSatisfied { go { $0.next() } }
+            else if engineKind == .apiKey { saveAPIKey() }
+            else if engineKind == .local { checkLocalEngine() }
+            else { copySignInCommand() }
         case .privacy:
             acceptPrivacy()
         case .presets:
@@ -208,6 +213,14 @@ final class OnboardingModel: ObservableObject {
             go { _ = $0.update(conditions) }
         }
         go { $0.next() }
+    }
+
+    /// Looks for Ollama / LM Studio again; picks the first installed model if none is picked yet.
+    func checkLocalEngine() {
+        Task {
+            await LocalModels.shared.refresh()
+            await SetupMonitor.shared.refreshEngine()
+        }
     }
 
     func copySignInCommand() {
@@ -240,7 +253,8 @@ final class OnboardingModel: ObservableObject {
 
     func applyPresets() {
         let store = Store.shared
-        let updated = Self.applying(chosen: chosenPresets, starters: OnboardingPresets.starters, to: store.presets)
+        let updated = Self.applying(chosen: chosenPresets, starters: OnboardingPresets.starters.map(PresetGallery.copy(of:)),
+                                    to: store.presets)
         if updated.map(\.id) != store.presets.map(\.id) { store.presets = updated }
     }
 

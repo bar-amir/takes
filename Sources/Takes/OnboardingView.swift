@@ -334,11 +334,11 @@ private struct EngineStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(title: "Connect Claude", subtitle: "Takes writes with Claude, under your own account. Pick how.")
+            StepHeader(title: "Connect Claude", subtitle: "Takes writes with Claude, under your own account. Pick how, or use a model on your Mac.")
             VStack(spacing: Spacing.inner) {
                 option(.claudeCode, title: "Your Claude subscription", detail: "Through Claude Code on this Mac.") { claudeCodeDetail }
                 option(.apiKey, title: "An Anthropic API key", detail: "Pay per use, billed by Anthropic. Usually a cent or two per run.") { apiKeyDetail }
-                // ORCHESTRATOR: add local engine option (EngineKind.local from `local-models`) as a third `option(...)` here.
+                option(.local, title: "A model on this Mac", detail: "Ollama or LM Studio. Nothing leaves your Mac.") { localDetail }
             }
         }
     }
@@ -392,6 +392,21 @@ private struct EngineStep: View {
                     StepNote(model.copiedSignIn
                              ? "Copied. Paste it in Terminal, sign in in the browser, then paste the code it shows back into Terminal. This page moves on by itself."
                              : "Sign in once with “claude auth login” in Terminal. The button below copies it and opens Terminal.")
+                }
+            }
+            .padding(.top, 4)
+        }
+    }
+
+    @ViewBuilder private var localDetail: some View {
+        if !ready, model.engineStatus != .checking {
+            VStack(alignment: .leading, spacing: 6) {
+                if case .problem(let text) = model.engineStatus, text.contains("isn't running") {
+                    StepNote("Open Ollama or LM Studio, then press Check again. Takes doesn't download or install anything.")
+                    Button("Get Ollama") { NSWorkspace.shared.open(URL(string: "https://ollama.com")!) }
+                        .buttonStyle(SecondaryButtonStyle(height: 28))
+                } else {
+                    StepNote("Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings › Engine.")
                 }
             }
             .padding(.top, 4)
@@ -625,13 +640,23 @@ private struct DoneStep: View {
             VStack(alignment: .leading, spacing: Spacing.inner) {
                 InfoRow(icon: "menubar.arrow.up.rectangle", text: "Takes lives in the menu bar. Click its icon for presets, settings and setup.")
                 InfoRow(icon: "slider.horizontal.3", text: "Make a preset your own in Settings › Presets: its rules, examples of how you write, and a hotkey of its own.")
-                // ORCHESTRATOR: dictation permission status (from `dictation`): add an InfoRow here with its microphone /
-                // speech status and a way to allow it. Opt-in, so it stays a line on this step, never a required step.
+                InfoRow(icon: "mic", text: Self.dictationText(Dictation.permissionState))
                 if !model.flow.progress.skipped.isEmpty {
                     InfoRow(icon: "arrow.uturn.backward", text: "Skipped something? It's all in Settings, any time.")
                 }
             }
             .padding(.top, 22)
+        }
+    }
+}
+
+extension DoneStep {
+    /// Dictation is opt-in: one line here, and macOS asks the first time ⌘D is pressed.
+    static func dictationText(_ state: Dictation.PermissionState) -> String {
+        switch state {
+        case .allowed: return "Press ⌘D in the panel to speak a draft. It's turned into text on this Mac."
+        case .notAsked: return "Press ⌘D in the panel to speak a draft. macOS asks for the microphone the first time."
+        case .denied: return "To speak drafts with ⌘D, allow Takes under Microphone and Speech Recognition in System Settings › Privacy & Security."
         }
     }
 }
