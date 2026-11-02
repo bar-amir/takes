@@ -25,7 +25,7 @@ Releases are built by GitHub Actions ([.github/workflows/release.yml](.github/wo
 3. Approve the run in the protected `release` environment (GitHub › Actions). Only then can it read the signing secrets.
 4. It builds a universal app, signs it with the Developer ID (hardened runtime, Sparkle signed inside out), notarizes and staples the app and the disk image, checks them with Gatekeeper, signs the update for Sparkle, attests build provenance, and publishes the GitHub Release with the `.dmg`, its checksum and `appcast.xml`.
 
-Installed copies find updates through `https://github.com/bar-amir/takes/releases/latest/download/appcast.xml`.
+Installed copies find updates through `https://github.com/bar-amir/takes/releases/latest/download/appcast.xml`. Each release also carries the same disk image as `Takes.dmg`, so `https://github.com/bar-amir/takes/releases/latest/download/Takes.dmg` always downloads the latest version (use it for download buttons).
 
 One-time setup: run `scripts/setup-release-secrets.sh` to store the Developer ID certificate, an App Store Connect API key and the Sparkle update key as environment secrets. `scripts/release.sh` runs the same steps on your Mac (`--unsigned` to test without signing).
 
