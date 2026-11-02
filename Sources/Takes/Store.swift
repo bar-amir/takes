@@ -109,7 +109,18 @@ struct VoiceRule: Codable, Identifiable, Hashable {
     var enabled = true
 }
 
-enum EngineKind: String, Codable { case claudeCode, apiKey, local }
+enum EngineKind: String, Codable {
+    case claudeCode, apiKey, local
+    /// Your own API key for OpenAI or another OpenAI-compatible provider (ProviderEngine.swift).
+    case provider
+    /// Sign in with ChatGPT: a Plus or Pro plan used through OpenAI's OAuth flow (ChatGPTEngine.swift).
+    case chatGPT
+
+    /// Engines where every preset runs on the one model picked in Settings › Engine, and Effort (a Claude setting) is hidden.
+    var usesOneModel: Bool { self == .local || self == .provider || self == .chatGPT }
+    /// Engines that talk to Anthropic.
+    var isClaude: Bool { self == .claudeCode || self == .apiKey }
+}
 /// Where the panel opens. Whichever is picked, the panel moves aside rather than cover the text box.
 enum PanelPosition: String, Codable, CaseIterable, Identifiable {
     case nearCursor, topLeft, topCenter, topRight, center, bottomLeft, bottomCenter, bottomRight
@@ -170,6 +181,12 @@ struct AppSettings: Codable {
     var languages: [String]?
     /// Where a new user is in onboarding. Settings saved before onboarding existed decode as finished.
     var onboarding = OnboardingProgress()
+    /// Other provider (API key): which known provider ("openai", "gemini", …, or "custom"), its base URL and the one model every preset runs on.
+    var providerID = "openai"
+    var providerBaseURL = "https://api.openai.com/v1"
+    var providerModel = ""
+    /// Sign in with ChatGPT: the one model every preset runs on (a slug from OpenAI's model list).
+    var chatGPTModel = ""
 }
 
 extension AppSettings {
@@ -197,6 +214,10 @@ extension AppSettings {
         dictationLanguage = try c.decodeIfPresent(String.self, forKey: .dictationLanguage) ?? d.dictationLanguage
         languages = try c.decodeIfPresent([String].self, forKey: .languages)
         onboarding = try c.decodeIfPresent(OnboardingProgress.self, forKey: .onboarding) ?? .existingUser
+        providerID = try c.decodeIfPresent(String.self, forKey: .providerID) ?? d.providerID
+        providerBaseURL = try c.decodeIfPresent(String.self, forKey: .providerBaseURL) ?? d.providerBaseURL
+        providerModel = try c.decodeIfPresent(String.self, forKey: .providerModel) ?? d.providerModel
+        chatGPTModel = try c.decodeIfPresent(String.self, forKey: .chatGPTModel) ?? d.chatGPTModel
     }
 }
 

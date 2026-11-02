@@ -36,6 +36,8 @@ enum Engines {
         case .apiKey: APIEngine()
         case .local: LocalEngine(baseURL: settings.localBaseURL)
         case .claudeCode: ClaudeCodeEngine()
+        case .provider: ProviderEngine(settings: settings)
+        case .chatGPT: ChatGPTEngine()
         }
     }
 }

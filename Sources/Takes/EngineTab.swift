@@ -18,12 +18,13 @@ struct EngineTab: View {
                                select: { store.settings.engine = .local }) {
                         LocalEngineSettings(selected: store.settings.engine == .local)
                     }
-                    EngineCard(selected: false, enabled: false, label: "Sign in with Claude") {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Sign in with Claude").font(.system(size: 15, weight: .semibold))
-                            Text("Public build, only if Anthropic approves it.").font(.system(size: 13))
-                        }
-                        .foregroundStyle(Theme.secondaryText)
+                    EngineCard(selected: store.settings.engine == .chatGPT, enabled: true, label: "Your ChatGPT plan",
+                               select: { store.settings.engine = .chatGPT }) {
+                        ChatGPTEngineSettings(selected: store.settings.engine == .chatGPT)
+                    }
+                    EngineCard(selected: store.settings.engine == .provider, enabled: true, label: "Other provider",
+                               select: { store.settings.engine = .provider }) {
+                        ProviderEngineSettings(selected: store.settings.engine == .provider)
                     }
 
                     SectionTitle("Defaults for new presets").padding(.top, 14)

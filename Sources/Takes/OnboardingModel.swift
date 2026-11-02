@@ -177,6 +177,8 @@ final class OnboardingModel: ObservableObject {
             if flow.isCurrentSatisfied { return "Continue" }
             if engineKind == .apiKey { return "Save key" }
             if engineKind == .local { return engineStatus == .checking ? "Checking…" : "Check again" }
+            if engineKind == .chatGPT { return ChatGPTSignIn.shared.state == .signingIn ? "Waiting for the browser…" : "Continue with ChatGPT" }
+            if engineKind == .provider { return "Open Engine settings" }
             return engineStatus == .checking ? "Checking…" : "Copy command and open Terminal"
         case .privacy: return flow.isCurrentSatisfied ? "Continue" : "I understand"
         case .hotkey, .presets: return "Continue"
@@ -190,6 +192,8 @@ final class OnboardingModel: ObservableObject {
         case .engine:
             if flow.isCurrentSatisfied { return true }
             if engineKind == .apiKey { return !apiKeyInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+            if engineKind == .chatGPT { return ChatGPTSignIn.shared.state != .signingIn }
+            if engineKind == .provider { return true }
             return engineStatus != .checking
         case .presets: return !chosenPresets.isEmpty
         case .practice: return practiceStage != .panelOpen
@@ -208,6 +212,8 @@ final class OnboardingModel: ObservableObject {
             if flow.isCurrentSatisfied { go { $0.next() } }
             else if engineKind == .apiKey { saveAPIKey() }
             else if engineKind == .local { checkLocalEngine() }
+            else if engineKind == .chatGPT { ChatGPTSignIn.shared.start() }
+            else if engineKind == .provider { SettingsWindowController.shared.show(tab: .engine) }
             else { copySignInCommand() }
         case .privacy:
             acceptPrivacy()

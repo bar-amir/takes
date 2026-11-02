@@ -527,14 +527,32 @@ final class LocalModels: ObservableObject {
 // MARK: - Hooks used by the rest of the app
 
 extension AppSettings {
+    /// With a one-model engine (local, other provider, ChatGPT), the model every preset runs on; empty when none is picked yet.
+    var oneModel: String {
+        switch engine {
+        case .local: localModel
+        case .provider: providerModel
+        case .chatGPT: chatGPTModel
+        case .claudeCode, .apiKey: ""
+        }
+    }
+    /// "on this Mac", "via OpenAI", "with your ChatGPT plan": where the one model runs, for labels.
+    var oneModelPlace: String {
+        switch engine {
+        case .local: "on this Mac"
+        case .provider: "via \(Provider.current(self).name)"
+        case .chatGPT: "with your ChatGPT plan"
+        case .claudeCode, .apiKey: ""
+        }
+    }
     /// The model a preset runs on with the current engine.
-    func runModel(for preset: Preset) -> String { engine == .local ? localModel : preset.model }
-    /// The model for small helper calls (tone notes): Haiku with Claude, the picked model with the local engine.
-    var quickModel: String { engine == .local ? localModel : Models.haiku }
+    func runModel(for preset: Preset) -> String { engine.usesOneModel ? oneModel : preset.model }
+    /// The model for small helper calls (tone notes): Haiku with Claude, the picked model with a one-model engine.
+    var quickModel: String { engine.usesOneModel ? oneModel : Models.haiku }
 }
 
 extension Models {
-    /// Claude models by name, local models by their short ID.
+    /// Claude models by name, other models by their short ID.
     static func displayLabel(_ id: String) -> String {
         all.contains { $0.id == id } ? label(id) : id.isEmpty ? "No model" : LocalModelList.label(id)
     }
@@ -543,24 +561,29 @@ extension Models {
 extension Preset {
     /// The summary for the engine in use, so it never names a model that won't run.
     func summary(for settings: AppSettings) -> String {
-        guard settings.engine == .local else { return summary }
-        return "\(takes) take\(takes == 1 ? "" : "s") · \(Models.displayLabel(settings.localModel)) on this Mac · \(length.label.lowercased())"
+        guard settings.engine.usesOneModel else { return summary }
+        return "\(takes) take\(takes == 1 ? "" : "s") · \(Models.displayLabel(settings.oneModel)) \(settings.oneModelPlace) · \(length.label.lowercased())"
     }
 }
 
 extension PanelModel {
-    var usesLocalEngine: Bool { store.settings.engine == .local }
+    var usesOneModel: Bool { store.settings.engine.usesOneModel }
 
     var modelOptions: [(value: String, title: String)] {
-        guard usesLocalEngine else { return Models.all.map { (value: $0.id, title: $0.label) } }
-        let models = LocalModels.shared.modelOptions(at: store.settings.localBaseURL, picked: modelID)
+        let models: [String]
+        switch store.settings.engine {
+        case .local: models = LocalModels.shared.modelOptions(at: store.settings.localBaseURL, picked: modelID)
+        case .provider: models = ProviderModels.shared.modelOptions(picked: modelID)
+        case .chatGPT: models = ChatGPTModels.shared.modelOptions(picked: modelID)
+        case .claudeCode, .apiKey: return Models.all.map { (value: $0.id, title: $0.label) }
+        }
         return models.isEmpty ? [(value: modelID, title: "No model")] : models.map { (value: $0, title: LocalModelList.label($0)) }
     }
 
     /// "3 takes · Sonnet 5.5 · Low", or "3 takes · llama3.2 on this Mac".
     var runLabel: String {
         let takes = "\(takeCount) take\(takeCount == 1 ? "" : "s")"
-        return usesLocalEngine ? "\(takes) · \(Models.displayLabel(modelID)) on this Mac"
+        return usesOneModel ? "\(takes) · \(Models.displayLabel(modelID)) \(store.settings.oneModelPlace)"
             : "\(takes) · \(Models.label(modelID)) · \(effort.capitalized)"
     }
 }

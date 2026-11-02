@@ -237,9 +237,10 @@ struct LocalEngineModelNote: View {
     @ObservedObject var store = Store.shared
 
     var body: some View {
-        if store.settings.engine == .local {
-            let model = store.settings.localModel.isEmpty ? "the local model you pick" : LocalModelList.label(store.settings.localModel)
-            Text("While the engine is a local model, every preset runs on \(model). The Claude model and effort here apply when you switch back to Claude.")
+        if store.settings.engine.usesOneModel {
+            let model = store.settings.oneModel.isEmpty ? "the model you pick" : LocalModelList.label(store.settings.oneModel)
+            let engine = store.settings.engine == .local ? "a local model" : store.settings.engine == .chatGPT ? "ChatGPT" : Provider.current(store.settings).name
+            Text("While the engine is \(engine), every preset runs on \(model). The Claude model and effort here apply when you switch back to Claude.")
                 .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
         }
     }

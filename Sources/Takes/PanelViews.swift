@@ -155,7 +155,7 @@ struct ComposeView: View {
                 StripLabel("Model")
                 MenuPicker(options: model.modelOptions, selection: $model.modelID)
             }
-            if !model.usesLocalEngine {
+            if !model.usesOneModel {
                 HStack(spacing: Spacing.item) {
                     StripLabel("Effort")
                     MenuPicker(options: Models.efforts.map { (value: $0, title: $0.capitalized) }, selection: $model.effort)

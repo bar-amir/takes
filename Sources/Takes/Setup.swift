@@ -58,6 +58,10 @@ final class SetupMonitor: ObservableObject {
         switch Store.shared.settings.engine {
         case .local:
             engine = await Self.localEngineStatus()
+        case .provider:
+            engine = await Self.providerEngineStatus()
+        case .chatGPT:
+            engine = await Self.chatGPTEngineStatus()
         case .apiKey:
             engine = Keychain.apiKey?.isEmpty == false ? .ready("Anthropic API key saved") : .problem("No API key saved yet")
         case .claudeCode:

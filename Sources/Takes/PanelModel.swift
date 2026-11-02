@@ -95,7 +95,7 @@ final class PanelModel: ObservableObject {
     var wordCount: Int { WordCounter.count(draft) }
 
     var isOverridden: Bool {
-        takeCount != preset.takes || modelID != store.settings.runModel(for: preset) || (!usesLocalEngine && effort != preset.effort)
+        takeCount != preset.takes || modelID != store.settings.runModel(for: preset) || (!usesOneModel && effort != preset.effort)
     }
 
     /// Cards to show: the takes so far plus placeholders for ones still coming.
@@ -125,7 +125,12 @@ final class PanelModel: ObservableObject {
             autoPicked = false
         }
         applyPresetSettings()
-        if usesLocalEngine { Task { await LocalModels.shared.refresh() } }
+        switch store.settings.engine {
+        case .local: Task { await LocalModels.shared.refresh() }
+        case .provider: Task { await ProviderModels.shared.refresh() }
+        case .chatGPT: Task { await ChatGPTModels.shared.refresh() }
+        case .claudeCode, .apiKey: break
+        }
         resetReplyContext(draft: focus.text)
         takes = []
         takeTones.reset()
