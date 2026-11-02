@@ -19,6 +19,10 @@ final class PanelModel: ObservableObject {
     @Published var effort = "low"
 
     @Published var takes: [String] = []
+    /// How each take may come across, filled in after the takes are written.
+    let takeTones = TakeTones()
+    /// "How does this read?" for the draft in compose.
+    let toneRead = ToneReadModel()
     @Published var running = false
     @Published var error: String?
     @Published var selected = 0
@@ -95,6 +99,8 @@ final class PanelModel: ObservableObject {
         }
         applyPresetSettings()
         takes = []
+        takeTones.reset()
+        toneRead.dismiss()
         running = false
         error = nil
         refineText = ""
@@ -113,7 +119,7 @@ final class PanelModel: ObservableObject {
             running = false
             show(.compose)
         case .compose:
-            onClose()
+            if toneRead.isShown { toneRead.dismiss() } else { onClose() }
         }
     }
 
@@ -221,6 +227,8 @@ final class PanelModel: ObservableObject {
         running = true
         error = nil
         takes = []
+        takeTones.reset()
+        toneRead.dismiss()
         selected = 0
         changesShown = []
         timing = ""
@@ -262,6 +270,7 @@ final class PanelModel: ObservableObject {
         RunLog.append(["kind": "app", "model": request.model, "effort": request.effort, "takes": request.takes,
                        "engine": store.settings.engine.rawValue, "wallMs": result.wallMs,
                        "firstTextMs": result.firstTextMs ?? -1, "app": appBundleID ?? ""])
+        takeTones.fetch(takes: takes, showTone: preset.showTone, settings: store.settings)
         onScreenChange()
     }
 

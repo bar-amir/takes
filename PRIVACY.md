@@ -26,6 +26,8 @@ It goes through one of two routes, whichever you choose:
 - **Claude Code on this Mac:** Takes runs the Claude Code you installed and signed in to. Your Claude subscription and Anthropic's terms for it apply.
 - **Anthropic API key:** Takes calls Anthropic's API with your key. The key is stored in your macOS keychain, never in Takes' files.
 
+**Tone notes** go the same way. When a preset has "Show tone" on (the default), Takes sends the finished takes once more, in one short request to Claude Haiku, to get a few words on how each may come across. ⌘T in compose sends your current draft the same way, only when you press it. Nothing else is added, and the notes aren't saved. Turn "Show tone" off in a preset and neither request is made.
+
 What Anthropic does with that text is covered by [Anthropic's privacy policy](https://www.anthropic.com/legal/privacy) and the terms of your Claude account, not by Takes.
 
 **Don't use Takes on text you're not allowed to share with an AI provider,** for example confidential work material, other people's personal data, or anything your employer's policies forbid sending to third parties.

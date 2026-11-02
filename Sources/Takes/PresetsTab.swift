@@ -167,6 +167,7 @@ private struct PresetEditor: View {
                         }
                     }
                     runDefaults
+                    PresetToneSection(preset: $preset)
                 }
                 .padding(.horizontal, 28)
                 .padding(.vertical, 24)
