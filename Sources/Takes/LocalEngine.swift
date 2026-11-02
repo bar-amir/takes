@@ -514,6 +514,8 @@ final class LocalModels: ObservableObject {
 extension AppSettings {
     /// The model a preset runs on with the current engine.
     func runModel(for preset: Preset) -> String { engine == .local ? localModel : preset.model }
+    /// The model for small helper calls (tone notes): Haiku with Claude, the picked model with the local engine.
+    var quickModel: String { engine == .local ? localModel : Models.haiku }
 }
 
 extension Models {

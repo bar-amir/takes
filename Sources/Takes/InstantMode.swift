@@ -60,10 +60,11 @@ enum InstantMode {
         }
     }
 
-    static func request(preset: Preset, draft: String, rules: [VoiceRule]) -> EngineRequest {
+    /// `model` is the one the current engine runs (a local model with the local engine); nil uses the preset's.
+    static func request(preset: Preset, draft: String, rules: [VoiceRule], model: String? = nil) -> EngineRequest {
         EngineRequest(system: PromptBuilder.system(preset: preset, takes: 1, rules: rules),
                       user: PromptBuilder.user(draft: draft, mode: .fresh, takes: 1),
-                      takes: 1, model: preset.model, effort: preset.effort)
+                      takes: 1, model: model ?? preset.model, effort: preset.effort)
     }
 }
 
@@ -168,7 +169,8 @@ final class InstantModeController {
         show(.writing(preset: preset.name), near: focus.caretRect)
         listenForEscape()
 
-        let request = InstantMode.request(preset: preset, draft: draft, rules: store.settings.voiceRules)
+        let request = InstantMode.request(preset: preset, draft: draft, rules: store.settings.voiceRules,
+                                          model: store.settings.runModel(for: preset))
         Task {
             let outcome = await run.run(request)
             guard self.run === run else { return }
@@ -200,7 +202,7 @@ final class InstantModeController {
             var entry = HistoryEntry(appName: app, presetName: preset.name, draft: draft, takes: Array(result.takes.prefix(1)))
             if case .pasted = outcome { entry.pastedIndex = 0 }
             Store.shared.record(entry)
-            RunLog.append(["kind": "instant", "model": preset.model, "effort": preset.effort, "takes": 1,
+            RunLog.append(["kind": "instant", "model": Store.shared.settings.runModel(for: preset), "effort": preset.effort, "takes": 1,
                            "engine": Store.shared.settings.engine.rawValue, "wallMs": result.wallMs,
                            "firstTextMs": result.firstTextMs ?? -1, "app": focus.app?.bundleIdentifier ?? ""])
         }

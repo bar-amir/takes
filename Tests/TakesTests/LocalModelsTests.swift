@@ -444,3 +444,24 @@ private final class MockServer: @unchecked Sendable {
         sendNext()
     }
 }
+
+/// Features from other sessions must run on the local model when the local engine is picked.
+final class LocalEngineIntegrationTests: XCTestCase {
+    func testHelperCallsUseTheLocalModel() {
+        var settings = AppSettings()
+        XCTAssertEqual(settings.quickModel, Models.haiku)
+        settings.engine = .local
+        settings.localModel = "llama3.2"
+        XCTAssertEqual(settings.quickModel, "llama3.2")
+    }
+
+    func testInstantModeUsesTheEngineModel() {
+        var settings = AppSettings()
+        settings.engine = .local
+        settings.localModel = "llama3.2"
+        let preset = Preset.proofread
+        let request = InstantMode.request(preset: preset, draft: "hi", rules: [], model: settings.runModel(for: preset))
+        XCTAssertEqual(request.model, "llama3.2")
+        XCTAssertEqual(InstantMode.request(preset: preset, draft: "hi", rules: []).model, preset.model)
+    }
+}

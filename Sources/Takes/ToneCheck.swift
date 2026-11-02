@@ -135,7 +135,9 @@ final class ToneReadModel: ObservableObject {
         let engine = Engines.current(settings)
         task = Task {
             do {
-                let result = try await engine.run(ToneCheck.readRequest(draft: draft)) { _ in }
+                var request = ToneCheck.readRequest(draft: draft)
+                request.model = settings.quickModel
+                let result = try await engine.run(request) { _ in }
                 guard self.token == token else { return }
                 if let read = ToneCheck.parseRead(result.takes.joined(separator: "\n")) {
                     self.state = .done(read)
@@ -179,7 +181,8 @@ final class TakeTones: ObservableObject {
 
     func fetch(takes: [String], showTone: Bool, settings: AppSettings) {
         reset()
-        guard let request = ToneCheck.takesRequest(takes: takes, showTone: showTone) else { return }
+        guard var request = ToneCheck.takesRequest(takes: takes, showTone: showTone) else { return }
+        request.model = settings.quickModel
         let token = token
         let count = takes.count
         loading = true
