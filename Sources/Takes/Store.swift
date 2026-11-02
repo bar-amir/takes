@@ -175,6 +175,8 @@ struct AppSettings: Codable {
     var clipboardContext = false
     /// Dictation language (a locale identifier); empty follows macOS.
     var dictationLanguage = ""
+    /// Where a new user is in onboarding. Settings saved before onboarding existed decode as finished.
+    var onboarding = OnboardingProgress()
 }
 
 extension AppSettings {
@@ -200,6 +202,7 @@ extension AppSettings {
         localModel = try c.decodeIfPresent(String.self, forKey: .localModel) ?? d.localModel
         clipboardContext = try c.decodeIfPresent(Bool.self, forKey: .clipboardContext) ?? d.clipboardContext
         dictationLanguage = try c.decodeIfPresent(String.self, forKey: .dictationLanguage) ?? d.dictationLanguage
+        onboarding = try c.decodeIfPresent(OnboardingProgress.self, forKey: .onboarding) ?? .existingUser
     }
 }
 

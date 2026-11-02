@@ -43,17 +43,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .receive(on: RunLoop.main)
             .sink { [weak self] _, _, _ in self?.rebuildStatusMenu() }
             .store(in: &subscriptions)
+        OnboardingWindowController.shared.openPractice = { [weak self] text, frame, paste, cancel in
+            self?.panel.summonPractice(text: text, boxFrame: frame, paste: paste, cancel: cancel)
+        }
         Task {
             await monitor.refreshEngine()
-            if !monitor.allSet { SetupWindowController.shared.show() }
+            // New users get onboarding; people who had Takes before never do, and get the setup window if needed.
+            if Onboarding.shouldShow(Store.shared.settings) {
+                OnboardingWindowController.shared.show()
+            } else if !monitor.allSet {
+                SetupWindowController.shared.show()
+            }
         }
     }
 
     /// Opens the panel, or the setup window when Takes can't work yet.
     private func summonPanel(presetID: String? = nil) {
         let monitor = SetupMonitor.shared
+        // Onboarding's practice step: the hotkey opens the panel on its practice box.
+        if OnboardingWindowController.shared.handlesHotKey {
+            OnboardingWindowController.shared.hotKeyPressed()
+            return
+        }
         if !monitor.accessibility || !monitor.privacyAccepted || { if case .problem = monitor.engine { return true }; return false }() {
-            SetupWindowController.shared.show()
+            showSetup()
             return
         }
         if instant.handle(presetID: presetID) { return }
@@ -148,7 +161,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func summon() { summonPanel() }
 
-    @objc private func showSetup() { SetupWindowController.shared.show() }
+    @objc private func showSetup() {
+        if Onboarding.shouldShow(Store.shared.settings) {
+            OnboardingWindowController.shared.show()
+        } else {
+            SetupWindowController.shared.show()
+        }
+    }
 
     @objc private func openPresets() { SettingsWindowController.shared.show(tab: .presets) }
 
