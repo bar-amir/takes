@@ -32,7 +32,11 @@ protocol TakesEngine {
 
 enum Engines {
     static func current(_ settings: AppSettings) -> TakesEngine {
-        settings.engine == .apiKey ? APIEngine() : ClaudeCodeEngine()
+        switch settings.engine {
+        case .apiKey: APIEngine()
+        case .local: LocalEngine(baseURL: settings.localBaseURL)
+        case .claudeCode: ClaudeCodeEngine()
+        }
     }
 }
 

@@ -85,7 +85,7 @@ struct VoiceRule: Codable, Identifiable, Hashable {
     var enabled = true
 }
 
-enum EngineKind: String, Codable { case claudeCode, apiKey }
+enum EngineKind: String, Codable { case claudeCode, apiKey, local }
 /// Where the panel opens. Whichever is picked, the panel moves aside rather than cover the text box.
 enum PanelPosition: String, Codable, CaseIterable, Identifiable {
     case nearCursor, topLeft, topCenter, topRight, center, bottomLeft, bottomCenter, bottomRight
@@ -135,6 +135,9 @@ struct AppSettings: Codable {
     var lastFirstTextMs: Int?
     /// The user has read what Takes reads and where it sends it (setup step).
     var privacyAccepted = false
+    /// Local engine: an OpenAI-compatible server on this Mac, and the model every preset runs on with it.
+    var localBaseURL = LocalServerKind.ollama.defaultBaseURL
+    var localModel = ""
 }
 
 extension AppSettings {
@@ -143,7 +146,8 @@ extension AppSettings {
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let d = AppSettings()
-        engine = try c.decodeIfPresent(EngineKind.self, forKey: .engine) ?? d.engine
+        // An engine this version doesn't know (saved by a newer one) falls back to the default.
+        engine = (try? c.decodeIfPresent(EngineKind.self, forKey: .engine)) ?? d.engine
         summonHotKey = try c.decodeIfPresent(KeyCombo.self, forKey: .summonHotKey) ?? d.summonHotKey
         panelPosition = try c.decodeIfPresent(PanelPosition.self, forKey: .panelPosition) ?? d.panelPosition
         prefill = try c.decodeIfPresent(Prefill.self, forKey: .prefill) ?? d.prefill
@@ -155,6 +159,8 @@ extension AppSettings {
         defaultEffort = try c.decodeIfPresent(String.self, forKey: .defaultEffort) ?? d.defaultEffort
         lastFirstTextMs = try c.decodeIfPresent(Int.self, forKey: .lastFirstTextMs)
         privacyAccepted = try c.decodeIfPresent(Bool.self, forKey: .privacyAccepted) ?? d.privacyAccepted
+        localBaseURL = try c.decodeIfPresent(String.self, forKey: .localBaseURL) ?? d.localBaseURL
+        localModel = try c.decodeIfPresent(String.self, forKey: .localModel) ?? d.localModel
     }
 }
 
@@ -232,7 +238,11 @@ final class Store: ObservableObject {
         if kept.count != history.count { history = kept }
     }
 
+    /// `--snapshot` renders change settings to show other states; they must not reach the real files.
+    static var readOnly = false
+
     private func save<T: Encodable>(_ value: T, _ name: String) {
+        guard !Store.readOnly else { return }
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601

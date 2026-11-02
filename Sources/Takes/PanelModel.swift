@@ -68,7 +68,9 @@ final class PanelModel: ObservableObject {
 
     var wordCount: Int { WordCounter.count(draft) }
 
-    var isOverridden: Bool { takeCount != preset.takes || modelID != preset.model || effort != preset.effort }
+    var isOverridden: Bool {
+        takeCount != preset.takes || modelID != store.settings.runModel(for: preset) || (!usesLocalEngine && effort != preset.effort)
+    }
 
     /// Cards to show: the takes so far plus placeholders for ones still coming.
     var cardCount: Int { running ? max(takeCount, takes.count) : takes.count }
@@ -94,6 +96,7 @@ final class PanelModel: ObservableObject {
             autoPicked = false
         }
         applyPresetSettings()
+        if usesLocalEngine { Task { await LocalModels.shared.refresh() } }
         takes = []
         running = false
         error = nil
@@ -187,7 +190,7 @@ final class PanelModel: ObservableObject {
     private func applyPresetSettings() {
         let preset = self.preset
         takeCount = preset.takes
-        modelID = preset.model
+        modelID = store.settings.runModel(for: preset)
         effort = preset.effort
     }
 

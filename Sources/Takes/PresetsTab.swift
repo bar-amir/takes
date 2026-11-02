@@ -215,6 +215,7 @@ private struct PresetEditor: View {
                 LabeledMenu(label: "Effort", options: Models.efforts.map { (value: $0, title: $0.capitalized) }, selection: $preset.effort)
                 LabeledMenu(label: "Length", options: TakeLength.allCases.map { (value: $0, title: $0.label) }, selection: $preset.length)
             }
+            LocalEngineModelNote()
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)

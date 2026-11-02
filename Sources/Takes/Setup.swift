@@ -56,6 +56,8 @@ final class SetupMonitor: ObservableObject {
     func refreshEngine() async {
         lastEngineCheck = Date()
         switch Store.shared.settings.engine {
+        case .local:
+            engine = await Self.localEngineStatus()
         case .apiKey:
             engine = Keychain.apiKey?.isEmpty == false ? .ready("Anthropic API key saved") : .problem("No API key saved yet")
         case .claudeCode:
@@ -192,6 +194,8 @@ struct SetupView: View {
         return SetupStep(number: 2, title: "Connect Claude", done: done, status: status,
                          detail: store.settings.engine == .claudeCode
                             ? "Takes runs Claude Code on this Mac, using your Claude subscription."
+                            : store.settings.engine == .local
+                            ? "Takes runs a local model with Ollama or LM Studio. Nothing leaves this Mac."
                             : "Takes calls Claude with your Anthropic API key.") {
             if !done, monitor.engine != .checking {
                 if store.settings.engine == .claudeCode {
@@ -214,7 +218,7 @@ struct SetupView: View {
                         .font(.system(size: 12))
                         .foregroundStyle(Theme.secondaryText)
                 } else {
-                    Button("Add your API key") {
+                    Button(store.settings.engine == .local ? "Open Engine settings" : "Add your API key") {
                         onDone()
                         SettingsWindowController.shared.show(tab: .engine)
                     }

@@ -26,6 +26,14 @@ It goes through one of two routes, whichever you choose:
 - **Claude Code on this Mac:** Takes runs the Claude Code you installed and signed in to. Your Claude subscription and Anthropic's terms for it apply.
 - **Anthropic API key:** Takes calls Anthropic's API with your key. The key is stored in your macOS keychain, never in Takes' files.
 
+### Local model: nothing leaves your Mac
+
+If you choose **Local model** in Settings › Engine, Takes sends the same draft, preset and voice rules to a model server running **on your own Mac** (Ollama or LM Studio) instead of to Anthropic, and nothing leaves your Mac:
+
+- Takes only connects to addresses on this Mac (`localhost`, `127.0.0.1`, `::1`). It refuses any other address, ignores system proxies for these requests, and won't follow a redirect to another machine.
+- To find a server, Takes asks `localhost:11434` (Ollama) and `localhost:1234` (LM Studio) which models are installed, when you open Settings › Engine or the panel. It never downloads or installs models or apps.
+- What the server and model do with your text is up to them. Ollama and LM Studio run models locally, but check their own settings if you've connected them to anything else.
+
 What Anthropic does with that text is covered by [Anthropic's privacy policy](https://www.anthropic.com/legal/privacy) and the terms of your Claude account, not by Takes.
 
 **Don't use Takes on text you're not allowed to share with an AI provider,** for example confidential work material, other people's personal data, or anything your employer's policies forbid sending to third parties.

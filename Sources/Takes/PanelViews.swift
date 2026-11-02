@@ -141,11 +141,13 @@ struct ComposeView: View {
             }
             HStack(spacing: Spacing.item) {
                 StripLabel("Model")
-                MenuPicker(options: Models.all.map { (value: $0.id, title: $0.label) }, selection: $model.modelID)
+                MenuPicker(options: model.modelOptions, selection: $model.modelID)
             }
-            HStack(spacing: Spacing.item) {
-                StripLabel("Effort")
-                MenuPicker(options: Models.efforts.map { (value: $0, title: $0.capitalized) }, selection: $model.effort)
+            if !model.usesLocalEngine {
+                HStack(spacing: Spacing.item) {
+                    StripLabel("Effort")
+                    MenuPicker(options: Models.efforts.map { (value: $0, title: $0.capitalized) }, selection: $model.effort)
+                }
             }
             Spacer(minLength: 0)
             Text(model.isOverridden ? "Changed for this run" : "From the preset")
@@ -319,7 +321,7 @@ struct PresetPickerView: View {
                 VStack(alignment: .leading, spacing: Spacing.section) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(preset.name).font(.system(size: 17, weight: .bold))
-                        Text(preset.summary).font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
+                        Text(preset.summary(for: model.store.settings)).font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
                     }
                     Text(preset.instruction).font(.system(size: 14)).foregroundStyle(Theme.controlText).lineSpacing(3)
                     if !preset.dos.isEmpty {
@@ -455,7 +457,7 @@ struct TakesView: View {
             .padding(.horizontal, Spacing.inner)
             .frame(height: Spacing.control)
             .background(RoundedRectangle(cornerRadius: 7).fill(Theme.accentSoft))
-            Text("\(model.takeCount) take\(model.takeCount == 1 ? "" : "s") · \(Models.label(model.modelID)) · \(model.effort.capitalized)")
+            Text(model.runLabel)
                 .font(.system(size: 13))
                 .foregroundStyle(Theme.secondaryText)
             Spacer()
