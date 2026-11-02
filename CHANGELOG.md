@@ -2,7 +2,7 @@
 
 All notable changes to Takes. Versions follow [semantic versioning](https://semver.org).
 
-## Unreleased
+## 0.3.0
 
 - **Onboarding.** A guided first run: Accessibility, connecting Claude (or a local model), privacy, hotkey, starter presets, and a practice box that ends with a real take. Existing users don't see it. The setup window shares its look.
 - **Write and paste right away.** A preset's own hotkey can write 1 take and paste it with no panel, with a note to cancel, undo or open it in Takes. Nothing is typed if you've switched apps.
