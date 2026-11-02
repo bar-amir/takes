@@ -67,6 +67,7 @@ enum Snapshot {
         renderToneCheck(to: url)
         dictation(to: url)
         renderOnboarding(to: url)
+        renderPresetOptions(to: url)
         print("Wrote snapshots to \(url.path)")
     }
 

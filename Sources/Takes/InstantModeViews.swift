@@ -148,29 +148,11 @@ struct InstantModeSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            FieldLabel("Write and paste right away")
-            HStack(alignment: .top, spacing: 10) {
-                Checkbox(isOn: $preset.writesInstantly, label: "Write and paste right away")
-                    .disabled(!hasHotKey)
-                    .opacity(hasHotKey ? 1 : 0.5)
-                    .padding(.top, 2)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(hasHotKey
-                         ? "\(preset.hotKey!.display) writes 1 take and pastes it into the text box, without opening the panel."
-                         : "This preset's own hotkey would write 1 take and paste it, without opening the panel.")
-                        .font(.system(size: 14))
-                        .foregroundStyle(hasHotKey ? Theme.text : Theme.secondaryText)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .onTapGesture { if hasHotKey { preset.writesInstantly.toggle() } }
-                    Text(hasHotKey
-                         ? "Uses this preset's model and effort. Esc cancels while it writes, ⌘Z undoes the paste. An empty text box opens the panel instead."
-                         : "It needs a hotkey of its own first.")
-                        .font(.system(size: 12))
-                        .foregroundStyle(Theme.secondaryText)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                Spacer(minLength: 0)
-            }
+            PresetOptionRow(isOn: $preset.writesInstantly, title: "Write and paste right away",
+                            detail: hasHotKey
+                                ? "\(preset.hotKey!.display) writes 1 take and pastes it, without opening the panel. Esc cancels while it writes, ⌘Z undoes the paste. An empty text box opens the panel instead."
+                                : "This preset's own hotkey would write 1 take and paste it, without opening the panel. It needs a hotkey of its own first.",
+                            enabled: hasHotKey)
             if !hasHotKey {
                 HStack(spacing: 10) {
                     HotKeyRecorder(combo: $preset.hotKey)
@@ -179,10 +161,6 @@ struct InstantModeSection: View {
                 .padding(.leading, 26)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Theme.strip))
         .accessibilityElement(children: .contain)
     }
 }

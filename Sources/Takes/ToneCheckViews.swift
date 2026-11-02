@@ -118,25 +118,7 @@ struct PresetToneSection: View {
     @Binding var preset: Preset
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            FieldLabel("Tone")
-            HStack(alignment: .top, spacing: 10) {
-                Checkbox(isOn: $preset.showTone, label: "Show tone")
-                    .padding(.top, 1)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Show how each take may come across").font(.system(size: 14)).foregroundStyle(Theme.text)
-                    Text("A few words under each take, like “may read as a bit curt”. ⌘T in compose checks your draft.")
-                        .font(.system(size: 12))
-                        .foregroundStyle(Theme.secondaryText)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture { preset.showTone.toggle() }
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Theme.strip))
+        PresetOptionRow(isOn: $preset.showTone, title: "Show tone",
+                        detail: "A few words under each take on how it may come across, like “may read as a bit curt”. ⌘T in compose checks your draft.")
     }
 }

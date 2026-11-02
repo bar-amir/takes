@@ -124,19 +124,7 @@ struct MinimalEditsSection: View {
     @Binding var preset: Preset
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            Checkbox(isOn: $preset.isMinimalEdits, label: "Minimal edits")
-                .padding(.top, 1)
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Minimal edits").font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.text)
-                Text("Fix mistakes only and keep my words. Takes open with each fix marked, and say so when there's nothing to fix.")
-                    .font(.system(size: 12))
-                    .foregroundStyle(Theme.secondaryText)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .contentShape(Rectangle())
-            .onTapGesture { preset.isMinimalEdits.toggle() }
-            .accessibilityHidden(true)
-        }
+        PresetOptionRow(isOn: $preset.isMinimalEdits, title: "Minimal edits",
+                        detail: "Fix mistakes only and keep my words. Takes open with each fix marked, and say so when there's nothing to fix.")
     }
 }
