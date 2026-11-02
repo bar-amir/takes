@@ -519,7 +519,8 @@ private struct PresetsStep: View {
                         PresetDot(hex: preset.colorHex)
                         Text(preset.name).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.text).lineLimit(1)
                     }
-                    Text(preset.instruction).font(.system(size: 12)).foregroundStyle(Theme.secondaryText).lineLimit(2)
+                    Text(PresetGallery.blurb(for: preset).isEmpty ? preset.instruction : PresetGallery.blurb(for: preset))
+                        .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
