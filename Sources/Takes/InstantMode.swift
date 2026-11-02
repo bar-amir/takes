@@ -28,6 +28,8 @@ enum InstantMode {
 
     enum Outcome: Equatable {
         case pasted(take: String)
+        /// The take is the draft as written (nothing to fix): nothing was typed.
+        case unchanged
         /// Esc, or the panel was opened: nothing was typed.
         case cancelled
         case failed(Failure)
@@ -77,13 +79,17 @@ final class InstantRun {
     private let engine: TakesEngine
     private let paste: Paste
     private let stillInField: () -> Bool
+    private let unchanged: (String) -> Bool
     private(set) var isCancelled = false
     private(set) var result: EngineResult?
 
-    init(engine: TakesEngine, paste: @escaping Paste, stillInField: @escaping () -> Bool) {
+    /// `unchanged` says whether a take is the draft as written; such a take is never pasted.
+    init(engine: TakesEngine, paste: @escaping Paste, stillInField: @escaping () -> Bool,
+         unchanged: @escaping (String) -> Bool = { _ in false }) {
         self.engine = engine
         self.paste = paste
         self.stillInField = stillInField
+        self.unchanged = unchanged
     }
 
     /// Nothing is pasted after this, even if the take arrives a moment later.
@@ -101,6 +107,7 @@ final class InstantRun {
         guard let take = result.takes.first?.trimmingCharacters(in: .whitespacesAndNewlines), !take.isEmpty else {
             return .failed(.noTake)
         }
+        if unchanged(take) { return .unchanged }
         guard stillInField() else { return .failed(.leftField(take: take)) }
         let pasted = await withCheckedContinuation { continuation in
             paste(take) { continuation.resume(returning: $0) }
@@ -164,7 +171,8 @@ final class InstantModeController {
             paste: { take, done in
                 Paster.paste(take, into: focus, replaceAll: replaceAll, restoreClipboard: restore, done: done)
             },
-            stillInField: { pid == nil || NSWorkspace.shared.frontmostApplication?.processIdentifier == pid })
+            stillInField: { pid == nil || NSWorkspace.shared.frontmostApplication?.processIdentifier == pid },
+            unchanged: { take in Proofread.nothingToFix(draft: draft, takes: [take]) })
         self.run = run
         show(.writing(preset: preset.name), near: focus.caretRect)
         listenForEscape()
@@ -188,6 +196,10 @@ final class InstantModeController {
         case .cancelled:
             show(.cancelled, near: focus.caretRect)
             return
+        case .unchanged:
+            hold = InstantToast.pastedSeconds
+            last = (preset.id, focus, draft, nil, Date().addingTimeInterval(hold))
+            show(.unchanged(hotKey: hotKey), near: focus.caretRect)
         case .pasted(let take):
             hold = InstantToast.pastedSeconds
             last = (preset.id, focus, draft, take, Date().addingTimeInterval(hold))

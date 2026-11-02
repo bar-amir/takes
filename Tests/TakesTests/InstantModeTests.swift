@@ -71,6 +71,17 @@ final class InstantModeTests: XCTestCase {
         XCTAssertEqual(pasted, ["Thursday works."])
     }
 
+    func testUnchangedTakePastesNothing() async {
+        let draft = "ya thursday works"
+        let run = InstantRun(engine: FakeEngine(takes: ["ya  thursday works"]),
+                             paste: { [unowned self] take, done in pasted.append(take); done(true) },
+                             stillInField: { false },
+                             unchanged: { Proofread.nothingToFix(draft: draft, takes: [$0]) })
+        let outcome = await run.run(request)
+        XCTAssertEqual(outcome, .unchanged, "Checked before the field, so a take that changes nothing never pastes anywhere")
+        XCTAssertTrue(pasted.isEmpty)
+    }
+
     func testEngineErrorPastesNothing() async {
         let outcome = await runner(FakeEngine(error: EngineError.failed("Add your Anthropic API key in Settings › Engine."))).run(request)
         XCTAssertEqual(outcome, .failed(.engine("Add your Anthropic API key in Settings › Engine.")))

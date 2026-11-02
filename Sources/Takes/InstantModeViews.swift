@@ -14,6 +14,8 @@ struct InstantToast: View {
     enum State: Equatable {
         case writing(preset: String)
         case pasted(clipboardBack: Bool, hotKey: String?)
+        /// The take matched the draft, so nothing was pasted.
+        case unchanged(hotKey: String?)
         case failed(message: String, hotKey: String?)
         case cancelled
 
@@ -21,7 +23,7 @@ struct InstantToast: View {
         var hideAfter: TimeInterval? {
             switch self {
             case .writing: return nil
-            case .pasted: return InstantToast.pastedSeconds
+            case .pasted, .unchanged: return InstantToast.pastedSeconds
             case .failed: return InstantToast.failedSeconds
             case .cancelled: return 2
             }
@@ -31,6 +33,7 @@ struct InstantToast: View {
             switch self {
             case .writing(let preset): return "Writing with \(preset). Press Escape to cancel."
             case .pasted: return "Pasted. Command Z undoes it."
+            case .unchanged: return "No changes needed. Nothing was pasted."
             case .failed(let message, _): return message
             case .cancelled: return "Cancelled. Nothing was pasted."
             }
@@ -75,7 +78,7 @@ struct InstantToast: View {
                 // The spinner follows the appearance; the toast is always dark.
                 ProgressView().controlSize(.small).environment(\.colorScheme, .dark).frame(width: 16, height: 16)
             }
-        case .pasted:
+        case .pasted, .unchanged:
             Image(systemName: "checkmark").font(.system(size: 14, weight: .bold)).foregroundStyle(Self.success)
         case .failed:
             Image(systemName: "exclamationmark.circle.fill").font(.system(size: 14, weight: .bold)).foregroundStyle(Self.failure)
@@ -94,6 +97,9 @@ struct InstantToast: View {
         case .pasted(let clipboardBack, let hotKey):
             Text("Pasted" + (clipboardBack ? " · your clipboard is back" : "")).font(.system(size: 13))
             keyLabel("⌘Z", "undo").accessibilityLabel("Command Z undoes the paste")
+            openButton(hotKey)
+        case .unchanged(let hotKey):
+            Text("No changes needed. Your text is as you wrote it.").font(.system(size: 13))
             openButton(hotKey)
         case .failed(let message, let hotKey):
             Text(message).font(.system(size: 13)).lineLimit(3).frame(maxWidth: 360, alignment: .leading)

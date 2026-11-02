@@ -8,6 +8,7 @@ extension Snapshot {
         let toasts: [(String, InstantToast.State)] = [
             ("writing", .writing(preset: "Proofread only, keep my words")),
             ("pasted", .pasted(clipboardBack: true, hotKey: hotKey)),
+            ("unchanged", .unchanged(hotKey: hotKey)),
             ("failed-engine", .failed(message: InstantMode.Failure.engine("Claude Code: You've hit your usage limit. It resets at 4 pm.").message(app: "Slack"), hotKey: hotKey)),
             ("failed-left", .failed(message: InstantMode.Failure.leftField(take: "").message(app: "Slack"), hotKey: hotKey)),
             ("cancelled", .cancelled),
