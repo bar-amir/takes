@@ -389,7 +389,7 @@ fill="currentColor" stroke="none">
   // Each hover on the logo plays the next psychedelic clip. They start and end on the logo, so the clip hands back to it seamlessly.
   // A hover mid-clip is ignored, except in the last half second, when the clip already looks like the logo again.
   const logo = document.querySelector(".logo-anim");
-  const clips = ["melt", "chatter", "kaleido", "bubblegum", "spiral"];
+  const clips = ["melt", "chatter", "zipper", "kaleido", "split", "bubblegum", "tv", "spiral"];
   let next = Math.floor(Math.random() * clips.length);
   const ext = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) ? "mov" : "webm"; // Safari plays alpha only in HEVC
   if (logo) {
