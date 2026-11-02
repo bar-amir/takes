@@ -50,12 +50,15 @@ final class PanelController {
             guard let textView = self?.panel?.firstResponder as? NSTextView else { return false }
             return textView.selectedRange().length > 0
         }
+        ClipboardWatch.shared.activate()
     }
 
     var isVisible: Bool { panel?.isVisible == true }
 
     func summon(presetID: String? = nil) {
         toast.dismiss()
+        // Before the field is read: its ⌘A ⌘C fallback changes the clipboard.
+        model.summonClipboard = ClipboardWatch.shared.captureForSummon()
         let focus = FocusReader.snapshot(prefill: Store.shared.settings.prefill)
         caretRect = focus.caretRect
         fieldRect = FocusReader.fieldFrame(of: focus.element)
@@ -93,7 +96,7 @@ final class PanelController {
         guard let panel else { return }
         let size: CGSize
         switch model.screen {
-        case .compose: size = CGSize(width: 720, height: 400)
+        case .compose: size = CGSize(width: 720, height: 400 + ReplyContextBar.extraHeight(model))
         case .presets: size = CGSize(width: 800, height: 560)
         case .takes:
             let count = max(model.cardCount, model.takeCount)

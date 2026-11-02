@@ -72,6 +72,7 @@ struct ComposeView: View {
         VStack(alignment: .leading, spacing: 0) {
             PanelHeader(model: model)
             Rule()
+            ReplyContextBar(model: model)
 
             ZStack(alignment: .topLeading) {
                 DraftEditor(text: $model.draft, focusToken: model.focusToken,
@@ -90,9 +91,13 @@ struct ComposeView: View {
             .padding(.horizontal, Spacing.gutter - 7)
             .padding(.top, Spacing.section)
 
-            Text([model.sourceLabel, "\(model.wordCount) word\(model.wordCount == 1 ? "" : "s")"].filter { !$0.isEmpty }.joined(separator: " · "))
-                .font(.system(size: 12))
-                .foregroundStyle(Theme.secondaryText)
+            HStack(spacing: Spacing.item) {
+                Text([model.sourceLabel, "\(model.wordCount) word\(model.wordCount == 1 ? "" : "s")"].filter { !$0.isEmpty }.joined(separator: " · "))
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.secondaryText)
+                Spacer(minLength: 0)
+                ReplyContextAddButton(model: model)
+            }
                 .padding(.horizontal, Spacing.gutter)
                 .padding(.top, Spacing.item)
                 .padding(.bottom, Spacing.section)
@@ -188,6 +193,7 @@ struct ComposeView: View {
             }
             ShortcutButton(key: "k") { model.onMore() }
             ShortcutButton(key: ",") { model.onOpenSettings(.presets, false) }
+            ReplyContextShortcuts(model: model)
         }
     }
 }

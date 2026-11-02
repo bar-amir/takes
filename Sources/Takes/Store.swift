@@ -135,6 +135,8 @@ struct AppSettings: Codable {
     var lastFirstTextMs: Int?
     /// The user has read what Takes reads and where it sends it (setup step).
     var privacyAccepted = false
+    /// Attach the clipboard as reply context when it looks like a message copied just now (ReplyContext.swift). Off by default.
+    var clipboardContext = false
 }
 
 extension AppSettings {
@@ -155,6 +157,7 @@ extension AppSettings {
         defaultEffort = try c.decodeIfPresent(String.self, forKey: .defaultEffort) ?? d.defaultEffort
         lastFirstTextMs = try c.decodeIfPresent(Int.self, forKey: .lastFirstTextMs)
         privacyAccepted = try c.decodeIfPresent(Bool.self, forKey: .privacyAccepted) ?? d.privacyAccepted
+        clipboardContext = try c.decodeIfPresent(Bool.self, forKey: .clipboardContext) ?? d.clipboardContext
     }
 }
 

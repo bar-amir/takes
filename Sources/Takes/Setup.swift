@@ -228,7 +228,7 @@ struct SetupView: View {
         let accepted = store.settings.privacyAccepted
         return SetupStep(number: 3, title: "Your text and Claude", done: accepted,
                          status: accepted ? "Understood" : "Please read",
-                         detail: "When you press the hotkey, Takes reads the text box you're typing in. When you ask for takes, it sends your draft and your preset's instructions straight from your Mac to Anthropic, under your own Claude account. Nothing goes to the developer: there's no server and no tracking. Claude can get things wrong, so read a take before you send it.") {
+                         detail: "When you press the hotkey, Takes reads the text box you're typing in. When you ask for takes, it sends your draft, your preset's instructions and any context you add straight from your Mac to Anthropic, under your own Claude account. Nothing goes to the developer: there's no server and no tracking. Claude can get things wrong, so read a take before you send it.") {
             HStack(spacing: 8) {
                 if !accepted {
                     Button("I understand") { store.settings.privacyAccepted = true }
