@@ -4,6 +4,17 @@ All notable changes to Takes. Versions follow [semantic versioning](https://semv
 
 ## Unreleased
 
+- **Onboarding.** A guided first run: Accessibility, connecting Claude (or a local model), privacy, hotkey, starter presets, and a practice box that ends with a real take. Existing users don't see it. The setup window shares its look.
+- **Write and paste right away.** A preset's own hotkey can write 1 take and paste it with no panel, with a note to cancel, undo or open it in Takes. Nothing is typed if you've switched apps.
+- **Proofread.** A built-in Proofread preset and a "Minimal edits" option for any preset. Fixes are marked inline with a count, and "No mistakes found" replaces an identical take. The word diff handles punctuation and case better and reads each change to VoiceOver.
+- **Preset gallery.** 12 ready-made presets to add from Settings › Presets, the new-preset state and the panel's preset list. New installs start with 7; existing presets are never touched.
+- **Reply context.** ⌘J or ⇧⌘V adds what you're replying to, as reference only. Optional: use a message you just copied automatically (off by default).
+- **Tone.** A short note on how each take may come across, and ⌘T for your draft. Per preset, on by default (off for Proofread).
+- **Dictation.** ⌘D speaks a draft, recognised on this Mac only.
+- **Local models.** A third engine: Ollama or LM Studio on this Mac, localhost only.
+- Preset options (Minimal edits, Show tone, Write and paste right away) sit together in one "How it writes" card.
+- Release builds can use the microphone (hardened-runtime entitlement), for dictation.
+
 - The panel is evenly spaced: one spacing scale on every screen, and the takes window fits its cards instead of leaving a gap under them.
 - The panel opens beside the text box you're writing in, never over it. Settings › Engine › Open the panel lets you pick a spot instead (next to the text box, a screen corner, top or bottom center, or the center); if that spot would cover the text box, the panel moves to the nearest clear spot.
 - Setup now flags a Takes hotkey that macOS also uses (for example ⌃⌥Space for "Show Finder search window" or for switching input sources). Both used to fire: Finder opened, took the focus and pulled full-screen apps off their Space.
