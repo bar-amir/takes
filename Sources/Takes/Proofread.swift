@@ -99,7 +99,7 @@ struct NoFixesView: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: Spacing.item) {
                 Text("No mistakes found").font(.system(size: 17, weight: .semibold)).foregroundStyle(Theme.text)
-                Text("Your draft reads fine as written. Paste it as it is, or go back and keep writing.")
+                Text("Checked spelling, grammar, punctuation and capitals, and kept your shorthand. Paste it as it is, or go back and keep writing.")
                     .font(.system(size: 14))
                     .foregroundStyle(Theme.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)

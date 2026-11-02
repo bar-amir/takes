@@ -10,6 +10,10 @@ enum PromptBuilder {
         case moreLike(take: String)
     }
 
+    /// Rewrites start sentences with a capital and punctuate them, even from a lowercase draft. A casual draft is
+    /// a tone to keep, not lowercase to copy, unless the user's own rules or examples write that way.
+    static let cleanWriting = "Every version starts with a capital letter, and so does every sentence in it, with punctuation at the end, even in a chat message and even when the draft is all lowercase. Only write in lowercase if the Do rules or the user's own examples do."
+
     static func system(preset: Preset, takes: Int, rules: [VoiceRule], hasContext: Bool = false) -> String {
         var lines = [
             preset.isMinimalEdits ? "You proofread a draft message the user is about to send." : "You rewrite a draft message the user is about to send.",
@@ -26,7 +30,7 @@ enum PromptBuilder {
         if hasContext { lines.insert(ReplyContextPrompt.systemRule, at: 4) }
         if !preset.dos.isEmpty { lines.append("Do: " + preset.dos.joined(separator: "; ")) }
         if !preset.avoid.isEmpty { lines.append("Avoid: " + preset.avoid.joined(separator: "; ")) }
-        if preset.isMinimalEdits { lines += Proofread.rules }
+        if preset.isMinimalEdits { lines += Proofread.rules } else { lines.append(Self.cleanWriting) }
 
         switch preset.language {
         case .sameAsDraft: lines.append("Write in the language of the draft; a draft that mixes languages stays mixed.")
