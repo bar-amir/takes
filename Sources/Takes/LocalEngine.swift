@@ -209,6 +209,15 @@ enum LocalTakeCleaner {
                 takes.removeFirst()
             }
         }
+        // Small models also introduce later versions ("Here is a more formal suggestion:"): drop those lines too,
+        // except while the last one is still streaming in.
+        takes = takes.enumerated().compactMap { index, take in
+            guard index > 0, !(streaming && index == takes.count - 1) else { return take }
+            let lines = take.components(separatedBy: "\n")
+            guard isIntro(lines[0]) else { return take }
+            let rest = lines.dropFirst().joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+            return rest.isEmpty ? nil : rest
+        }
         if takes.count > max(expected, 1), let last = takes.last, isClosingRemark(last) { takes.removeLast() }
         takes = takes.map(unquote).filter { !$0.isEmpty }
         return Array(takes.prefix(max(expected, 1)))
@@ -284,6 +293,12 @@ enum LocalTakeCleaner {
         if take.hasSuffix(":"), !strict { return true }
         return ["here are", "here is", "here's", "sure", "certainly", "of course", "okay, here"].contains { lower.hasPrefix($0) }
             && (lower.contains("version") || lower.contains("rewrite") || lower.contains("take") || lower.contains("option"))
+    }
+
+    /// A line that only introduces a version: "Here is a more formal suggestion, still friendly:".
+    static func isIntro(_ line: String) -> Bool {
+        let lower = line.trimmingCharacters(in: .whitespaces).lowercased()
+        return lower.hasSuffix(":") && ["here are", "here is", "here's", "and here", "this one", "a more", "or, ", "or "].contains { lower.hasPrefix($0) }
     }
 
     static func isClosingRemark(_ take: String) -> Bool {

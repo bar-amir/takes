@@ -465,3 +465,21 @@ final class LocalEngineIntegrationTests: XCTestCase {
         XCTAssertEqual(InstantMode.request(preset: preset, draft: "hi", rules: []).model, preset.model)
     }
 }
+
+final class LocalIntroLineTests: XCTestCase {
+    func testIntroBeforeALaterVersionIsDropped() {
+        let raw = "Thursday works, I need the specs by Wednesday.\n===\nThursday is fine if specs land Wednesday.\n===\nHere is a more formal suggestion, still friendly and clear:\nThursday works for me, provided the specs arrive by Wednesday."
+        XCTAssertEqual(LocalTakeCleaner.split(raw, streaming: false, expected: 3).last,
+                       "Thursday works for me, provided the specs arrive by Wednesday.")
+    }
+
+    func testAnIntroWithNothingAfterItIsNotATake() {
+        let raw = "One.\n===\nTwo.\n===\nHere is a more formal suggestion:"
+        XCTAssertEqual(LocalTakeCleaner.split(raw, streaming: false, expected: 3), ["One.", "Two."])
+    }
+
+    func testAMessageEndingInAColonStays() {
+        let raw = "One.\n===\nTwo things before Thursday:\n- specs\n- notes"
+        XCTAssertEqual(LocalTakeCleaner.split(raw, streaming: false, expected: 2).last, "Two things before Thursday:\n- specs\n- notes")
+    }
+}
