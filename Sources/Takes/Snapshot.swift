@@ -62,6 +62,7 @@ enum Snapshot {
         runLocalModels(to: url)
         instantMode(to: url)
         renderProofread(to: url)
+        presetGallery(to: url, draft: draft)
         print("Wrote snapshots to \(url.path)")
     }
 

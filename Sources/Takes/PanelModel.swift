@@ -44,6 +44,7 @@ final class PanelModel: ObservableObject {
     var onClose: () -> Void = {}
     var onOpenSettings: (SettingsTab, Bool) -> Void = { _, _ in }
     var onMore: () -> Void = {}
+    var onOpenGallery: () -> Void = {}
     var onScreenChange: () -> Void = {}
     /// The takes screen reports the height it needs; the panel grows or shrinks to it.
     var onContentHeight: (CGFloat) -> Void = { _ in }
@@ -149,9 +150,18 @@ final class PanelModel: ObservableObject {
     }
 
     var highlightedPreset: Preset? {
+        if browseRowHighlighted { return nil }
         let list = filteredPresets
         return list.indices.contains(highlighted) ? list[highlighted] : list.first
     }
+
+    /// The picker ends with a quiet "Browse more presets" row while the user has only a few presets,
+    /// and whenever the filter matches none.
+    var browseRowLimit = PresetGallery.browseRowLimit
+    var showsBrowseRow: Bool {
+        filteredPresets.isEmpty || (filter.trimmingCharacters(in: .whitespaces).isEmpty && store.presets.count < browseRowLimit)
+    }
+    var browseRowHighlighted: Bool { showsBrowseRow && highlighted == filteredPresets.count }
 
     /// ⌘1–9 follow the order in Settings › Presets.
     func shortcutNumber(of preset: Preset) -> Int? {
@@ -166,7 +176,7 @@ final class PanelModel: ObservableObject {
     }
 
     func moveHighlight(_ delta: Int) {
-        let count = filteredPresets.count
+        let count = filteredPresets.count + (showsBrowseRow ? 1 : 0)
         guard count > 0 else { return }
         highlighted = (highlighted + delta + count) % count
     }
@@ -174,6 +184,7 @@ final class PanelModel: ObservableObject {
     func filterChanged() { highlighted = 0 }
 
     func chooseHighlighted() {
+        if browseRowHighlighted { onOpenGallery(); return }
         if let preset = highlightedPreset { choose(preset.id) }
     }
 

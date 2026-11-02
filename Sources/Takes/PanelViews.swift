@@ -253,7 +253,8 @@ struct PresetPickerView: View {
                         sectionTitle("All presets")
                         ForEach(others, id: \.element.id) { row($0.element, index: $0.offset) }
                     }
-                    if rows.isEmpty {
+                    if model.showsBrowseRow { BrowsePresetsRow(model: model) }
+                    if rows.isEmpty && !model.showsBrowseRow {
                         Text("No preset matches “\(model.filter)”.")
                             .font(.system(size: 14)).foregroundStyle(Theme.secondaryText).padding(12)
                     }
@@ -343,6 +344,8 @@ struct PresetPickerView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .background(Theme.strip)
+        } else if model.browseRowHighlighted {
+            BrowsePresetsPreview(model: model)
         } else {
             Theme.strip
         }

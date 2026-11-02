@@ -76,6 +76,8 @@ struct Preset: Codable, Identifiable, Hashable {
     /// Proofread-style: fix mistakes only and show the fixes inline. Optional so older presets decode
     /// (missing means off); read it through `isMinimalEdits`.
     var minimalEdits: Bool? = nil
+    /// The gallery template this preset was copied from, so the gallery can show it as added.
+    var galleryID: String?
 
     static let maxExamples = 5
     static let colors = ["#2F55E0", "#1D6B4F", "#8A4B08", "#7A3FD1", "#B42318", "#0E6E8C", "#55555E"]
@@ -198,10 +200,14 @@ final class Store: ObservableObject {
     }()
 
     private init() {
-        presets = Proofread.upgraded(Store.load("presets.json") ?? Store.defaultPresets)
+        let existingUser = FileManager.default.fileExists(atPath: Store.directory.appendingPathComponent("settings.json").path)
+        let presetsFile = Store.directory.appendingPathComponent("presets.json")
+        presets = Proofread.upgraded(Store.load("presets.json") ?? PresetGallery.initialPresets(existingUser: existingUser))
         settings = Store.load("settings.json") ?? AppSettings()
         history = Store.load("history.json") ?? []
         pruneHistory()
+        // Saved right away so the starters keep their ids across launches.
+        if !FileManager.default.fileExists(atPath: presetsFile.path) { save(presets, "presets.json") }
     }
 
     func preset(id: String?) -> Preset? { presets.first { $0.id == id } }
