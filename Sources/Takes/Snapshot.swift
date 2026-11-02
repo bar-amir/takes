@@ -24,6 +24,7 @@ enum Snapshot {
             let model = PanelModel()
             model.reset(focus: FocusSnapshot(app: nil, text: draft, source: .field, caretRect: nil), presetID: Store.shared.presets.first?.id)
             model.previewAppName = "Slack"
+            model.previewAppURL = AppGlyph.url(forBundleID: "com.tinyspeck.slackmacgap")
             return model
         }
 

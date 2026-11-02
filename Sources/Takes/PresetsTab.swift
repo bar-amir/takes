@@ -273,6 +273,7 @@ private struct AppsEditor: View {
         FlowLayout(spacing: 6) {
             ForEach(apps) { app in
                 HStack(spacing: 6) {
+                    AppGlyph(appURL: AppGlyph.url(forBundleID: app.bundleID), size: 16)
                     Text(app.name).font(.system(size: 13))
                     Button { apps.removeAll { $0.id == app.id } } label: { Image(systemName: "xmark").font(.system(size: 8, weight: .bold)) }
                         .buttonStyle(.plain)
@@ -291,6 +292,11 @@ private struct AppsEditor: View {
         for app in runningApps {
             let item = ClosureMenuItem(title: app.name) { if !apps.contains(app) { apps.append(app) } }
             item.state = apps.contains(app) ? .on : .off
+            item.image = AppGlyph.icon(for: AppGlyph.url(forBundleID: app.bundleID)).map { icon in
+                let small = icon.copy() as! NSImage
+                small.size = NSSize(width: 16, height: 16)
+                return small
+            }
             menu.addItem(item)
         }
         menu.addItem(.separator())
