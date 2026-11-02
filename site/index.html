@@ -44,6 +44,11 @@ img, video { max-width: 100%; height: auto; display: block; }
 /* Masthead */
 .mast { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 108px; }
 .wordmark { width: 108px; height: auto; color: var(--ink); display: block; }
+/* Hover clips (img/logo/): a square twice the logo's width, centred on it, so each clip sits exactly over the static logo. */
+.logo-anim { position: relative; display: block; }
+.logo-anim video { position: absolute; left: 50%; top: 50%; width: 200%; max-width: none; aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none; z-index: 2; visibility: hidden; }
+.logo-anim.playing video { visibility: visible; }
+.logo-anim.playing .wordmark { visibility: hidden; }
 .mast nav { display: flex; align-items: center; gap: 28px; }
 .mast nav a { text-decoration: none; }
 .mast nav a:hover { text-decoration: underline; }
@@ -249,7 +254,7 @@ fill="currentColor" stroke="none">
   <header>
     <div class="wrap">
       <div class="mast">
-        <a href="#" aria-label="Takes home"><svg class="wordmark" viewBox="0 0 1260 840" role="img" aria-label="takes"><use href="#wordmark"/></svg></a>
+        <a class="logo-anim" href="#" aria-label="Takes home"><svg class="wordmark" viewBox="0 0 1260 840" role="img" aria-label="takes"><use href="#wordmark"/></svg><video muted playsinline preload="none" aria-hidden="true"></video></a>
         <nav aria-label="Main">
           <span class="label hide-sm">A Mac writing companion</span>
           <a class="hide-sm" href="#how">How it works</a>
@@ -379,6 +384,28 @@ fill="currentColor" stroke="none">
     } else {
       hero.play().catch(() => {});
     }
+  }
+
+  // Each hover on the logo plays the next psychedelic clip. They start and end on the logo, so the clip hands back to it seamlessly.
+  // A hover mid-clip is ignored, except in the last half second, when the clip already looks like the logo again.
+  const logo = document.querySelector(".logo-anim");
+  const clips = ["melt", "chatter", "kaleido", "bubblegum", "spiral"];
+  let next = Math.floor(Math.random() * clips.length);
+  const ext = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) ? "mov" : "webm"; // Safari plays alpha only in HEVC
+  if (logo) {
+    const v = logo.querySelector("video");
+    const stop = () => logo.classList.remove("playing");
+    v.addEventListener("playing", () => logo.classList.add("playing"));
+    v.addEventListener("ended", stop);
+    v.addEventListener("error", stop);
+    logo.addEventListener("pointerenter", () => {
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      if (logo.classList.contains("playing") && v.duration - v.currentTime > 0.5) return;
+      stop();
+      v.src = `img/logo/${clips[next]}.${ext}`;
+      next = (next + 1) % clips.length;
+      v.play().catch(stop);
+    });
   }
 </script>
 </body>
