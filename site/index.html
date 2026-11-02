@@ -336,12 +336,37 @@ fill="currentColor" stroke="none">
     </div>
   </section>
 
+  <section id="new" class="paper" style="padding-top: 0">
+    <div class="wrap">
+      <h2 class="display">New in 0.3.</h2>
+      <p class="lead">Fix a typo without a round trip, write in your own languages, and keep everything on your Mac if you want.</p>
+      <div class="split">
+        <div>
+          <img class="shot" src="img/proofread.png" width="720" height="473" alt="A proofread take with each fix struck through and underlined, and 7 fixes in its footer">
+          <h3>Proofread, marked</h3>
+          <p>Fixes spelling, grammar and punctuation, and keeps your words. Each fix is marked; when nothing needs fixing, Takes says so.</p>
+        </div>
+        <div>
+          <img class="shot" src="img/local-model.png" width="720" height="600" alt="Settings, Engine, with Local model selected, Ollama found and a model picked">
+          <h3>A model on your Mac</h3>
+          <p>Use Ollama or LM Studio instead of Claude, and your drafts never leave the Mac.</p>
+        </div>
+      </div>
+      <div class="voice">
+        <div class="voice-row"><div class="label">01</div><h3>Right away</h3><p>Give a preset its own shortcut and it writes and pastes, no panel.</p></div>
+        <div class="voice-row"><div class="label">02</div><h3>Your languages</h3><p>Reply in any language, with a translate preset for each one you write in.</p></div>
+        <div class="voice-row"><div class="label">03</div><h3>Context and tone</h3><p>Add the message you're answering. See how each take may land.</p></div>
+        <div class="voice-row"><div class="label">04</div><h3>Say it</h3><p>Dictate a draft. Speech stays on your Mac.</p></div>
+      </div>
+    </div>
+  </section>
+
   <section id="privacy" class="truth">
     <div class="wrap">
       <h2 class="display">Your Mac. Your Claude. Your choice.</h2>
       <div class="truth-rows">
         <div class="truth-row"><div class="label">Local utility</div><p>Presets and optional history live on your Mac.</p></div>
-        <div class="truth-row"><div class="label">Your connection</div><p>Drafts, instructions and voice examples go to Anthropic through your Claude connection.</p></div>
+        <div class="truth-row"><div class="label">Your connection</div><p>Drafts, instructions and voice examples go to Anthropic through your Claude connection, or nowhere, with a model on your Mac.</p></div>
         <div class="truth-row"><div class="label">Your decision</div><p>Takes pastes the version you choose into the original field. You decide when to send.</p></div>
       </div>
       <p class="small">Only the focused field or selection is read, and only when you press the shortcut. Takes has no developer-run server and no analytics. <a href="https://github.com/bar-amir/takes/blob/main/PRIVACY.md">Read the privacy notice</a>.</p>
@@ -351,7 +376,7 @@ fill="currentColor" stroke="none">
   <section class="paper">
     <div class="wrap">
       <h2 class="display" style="margin-bottom: 40px">Good to know.</h2>
-      <details><summary>What do I need?</summary><p>macOS 14 or later, Accessibility access so Takes can read the field and paste, and a working Claude connection: Claude Code signed in to your account, or an Anthropic API key.</p></details>
+      <details><summary>What do I need?</summary><p>macOS 14 or later, Accessibility access so Takes can read the field and paste, and a working Claude connection: Claude Code signed in to your account, or an Anthropic API key. Or run a model on your Mac with Ollama or LM Studio.</p></details>
       <details><summary>Does it work in my app?</summary><p>In apps whose text fields macOS can read, including Slack, Mail, Messages, Notes, browsers and Claude's desktop app. Where an app hides its field, Takes copies the text instead and puts your clipboard back.</p></details>
       <details><summary>What does it cost?</summary><p>Takes is free and open source under the MIT license. Generation uses your own Claude plan or API account.</p></details>
       <details><summary>Is it made by Anthropic?</summary><p>No. Takes is an independent app that runs Claude Code or calls the Claude API with your own account.</p></details>
