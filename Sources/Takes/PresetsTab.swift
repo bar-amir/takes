@@ -11,12 +11,33 @@ struct PresetsTab: View {
             sidebar.frame(width: 260)
             Rectangle().fill(Theme.border).frame(width: 1)
             if let index = store.presets.firstIndex(where: { $0.id == state.selectedPresetID }) {
-                PresetEditor(preset: $store.presets[index])
-                    .id(store.presets[index].id)
+                VStack(spacing: 0) {
+                    if PresetGallery.isUntouchedNew(store.presets[index], blank: store.newPreset()) {
+                        GalleryHintBar { state.showGallery = true }
+                    }
+                    PresetEditor(preset: $store.presets[index])
+                        .id(store.presets[index].id)
+                }
             } else {
-                Text("Choose a preset").foregroundStyle(Theme.secondaryText).frame(maxWidth: .infinity, maxHeight: .infinity)
+                VStack(spacing: 12) {
+                    Text("Choose a preset, or start from a ready-made one.").foregroundStyle(Theme.secondaryText)
+                    Button("Browse presets") { state.showGallery = true }.buttonStyle(SecondaryButtonStyle(height: 34))
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .sheet(isPresented: $state.showGallery) {
+            PresetGalleryView(onAdd: galleryAdded, onClose: { state.showGallery = false })
+        }
+    }
+
+    /// Selects the first new copy. A blank "New preset" the gallery was opened from gives way to it.
+    private func galleryAdded(_ added: [Preset]) {
+        if let current = store.preset(id: state.selectedPresetID), PresetGallery.isUntouchedNew(current, blank: store.newPreset()) {
+            store.presets.removeAll { $0.id == current.id }
+        }
+        state.selectedPresetID = added.first?.id ?? state.selectedPresetID
+        state.showGallery = false
     }
 
     private var sidebar: some View {
@@ -29,6 +50,12 @@ struct PresetsTab: View {
                 }
                 .padding(12)
             }
+            Button { state.showGallery = true } label: {
+                HStack(spacing: 6) { Image(systemName: "square.grid.2x2"); Text("Browse presets") }.frame(maxWidth: .infinity)
+            }
+            .buttonStyle(SecondaryButtonStyle(height: 34))
+            .padding(.horizontal, 12)
+            .padding(.top, 12)
             HStack(spacing: 6) {
                 Button {
                     let preset = store.newPreset()
@@ -42,7 +69,9 @@ struct PresetsTab: View {
                 Button(action: importPresets) { Text("Import").lineLimit(1).frame(maxWidth: .infinity) }
             }
             .buttonStyle(SecondaryButtonStyle(height: 34))
-            .padding(12)
+            .padding(.horizontal, 12)
+            .padding(.top, 6)
+            .padding(.bottom, 12)
         }
         .background(Theme.sidebar)
     }

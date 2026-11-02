@@ -70,6 +70,8 @@ struct Preset: Codable, Identifiable, Hashable {
     var takes = 3
     var model = Models.sonnet
     var effort = "low"
+    /// The gallery template this preset was copied from, so the gallery can show it as added.
+    var galleryID: String?
 
     static let maxExamples = 5
     static let colors = ["#2F55E0", "#1D6B4F", "#8A4B08", "#7A3FD1", "#B42318", "#0E6E8C", "#55555E"]
@@ -186,10 +188,14 @@ final class Store: ObservableObject {
     }()
 
     private init() {
-        presets = Store.load("presets.json") ?? Store.defaultPresets
+        let existingUser = FileManager.default.fileExists(atPath: Store.directory.appendingPathComponent("settings.json").path)
+        let presetsFile = Store.directory.appendingPathComponent("presets.json")
+        presets = Store.load("presets.json") ?? PresetGallery.initialPresets(existingUser: existingUser)
         settings = Store.load("settings.json") ?? AppSettings()
         history = Store.load("history.json") ?? []
         pruneHistory()
+        // Saved right away so the starters keep their ids across launches.
+        if !FileManager.default.fileExists(atPath: presetsFile.path) { save(presets, "presets.json") }
     }
 
     func preset(id: String?) -> Preset? { presets.first { $0.id == id } }

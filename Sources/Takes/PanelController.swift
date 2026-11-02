@@ -46,6 +46,10 @@ final class PanelController {
             SettingsWindowController.shared.show(tab: tab, newPreset: newPreset)
         }
         model.onMore = { [weak self] in self?.showMoreMenu() }
+        model.onOpenGallery = { [weak self] in
+            self?.close()
+            SettingsWindowController.shared.show(tab: .presets, gallery: true)
+        }
         model.textSelectionActive = { [weak self] in
             guard let textView = self?.panel?.firstResponder as? NSTextView else { return false }
             return textView.selectedRange().length > 0
