@@ -2,8 +2,11 @@
 
 All notable changes to Takes. Versions follow [semantic versioning](https://semver.org).
 
-## Unreleased
+## 0.2.0 · 2026-11-02
 
+- A new look from the Takes brand book: Ink and Paper accents throughout, and the compact t (a speech bubble whose t flows into its tail) in the menu bar and the panel header.
+- A new app icon: the holographic t, with a matching disk icon and a branded install window when you open the .dmg.
+- The panel header shows the icon of the app you're writing in, and preset app chips and the app menu show app icons too.
 - The panel is evenly spaced: one spacing scale on every screen, and the takes window fits its cards instead of leaving a gap under them.
 - The panel opens beside the text box you're writing in, never over it. Settings › Engine › Open the panel lets you pick a spot instead (next to the text box, a screen corner, top or bottom center, or the center); if that spot would cover the text box, the panel moves to the nearest clear spot.
 - Setup now flags a Takes hotkey that macOS also uses (for example ⌃⌥Space for "Show Finder search window" or for switching input sources). Both used to fire: Finder opened, took the focus and pulled full-screen apps off their Space.
