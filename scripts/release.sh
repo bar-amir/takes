@@ -78,11 +78,7 @@ rm "$DIST/Takes-notarize.zip"
 $UNSIGNED || $NO_NOTARIZE || xcrun stapler staple "$APP"
 
 step "Build the disk image"
-STAGING=$(mktemp -d)
-ditto "$APP" "$STAGING/Takes.app"
-ln -s /Applications "$STAGING/Applications"
-hdiutil create -volname "Takes $VERSION" -srcfolder "$STAGING" -fs HFS+ -format UDZO -ov "$DMG" >/dev/null
-rm -rf "$STAGING"
+scripts/make-dmg.sh "$APP" "$DMG" "Takes $VERSION"
 if $UNSIGNED; then codesign --force --sign - "$DMG"; else codesign --force --sign "$SIGN_ID" --timestamp "$DMG"; fi
 
 step "Notarize the disk image"

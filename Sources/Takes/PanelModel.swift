@@ -55,7 +55,9 @@ final class PanelModel: ObservableObject {
     var preset: Preset { store.preset(id: presetID) ?? store.presets.first ?? Store.defaultPresets[0] }
     /// Stands in for the focused app in `--snapshot` renders.
     var previewAppName: String?
+    var previewAppURL: URL?
     var appName: String { previewAppName ?? focus?.app?.localizedName ?? "the focused app" }
+    var appURL: URL? { previewAppName != nil ? previewAppURL : focus?.app?.bundleURL }
     var appBundleID: String? { focus?.app?.bundleIdentifier }
 
     var sourceLabel: String {

@@ -255,14 +255,36 @@ struct PresetDot: View {
     var body: some View { Circle().fill(Color(hex: hex)).frame(width: 8, height: 8) }
 }
 
-/// The Takes mark, used in the panel header.
+/// An app's own icon, or the Takes mark when the app is unknown or has no icon of its own.
 struct AppGlyph: View {
+    var appURL: URL? = nil
     var size: CGFloat = 24
+
     var body: some View {
-        BrandMarkShape()
-            .fill(Theme.text)
-            .frame(width: size * 1.06, height: size)
-            .accessibilityHidden(true)
+        Group {
+            if let icon = AppGlyph.icon(for: appURL) {
+                // App icons leave a ~10% margin around their tile; overscan so the tile matches the mark's size.
+                Image(nsImage: icon).resizable().interpolation(.high).frame(width: size * 1.24, height: size * 1.24)
+            } else {
+                BrandMarkShape(small: size < 24).fill(Theme.text).frame(width: size, height: size)
+            }
+        }
+        .frame(width: size, height: size)
+        .accessibilityHidden(true)
+    }
+
+    /// The app's icon at full resolution, or nil for the generic application icon.
+    static func icon(for appURL: URL?) -> NSImage? {
+        guard let appURL, FileManager.default.fileExists(atPath: appURL.path) else { return nil }
+        let bundle = Bundle(url: appURL)
+        let hasIcon = bundle?.object(forInfoDictionaryKey: "CFBundleIconFile") != nil
+            || bundle?.object(forInfoDictionaryKey: "CFBundleIconName") != nil
+            || bundle?.object(forInfoDictionaryKey: "CFBundleIcons") != nil
+        return hasIcon ? NSWorkspace.shared.icon(forFile: appURL.path) : nil
+    }
+
+    static func url(forBundleID id: String?) -> URL? {
+        id.flatMap { NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0) }
     }
 }
 
