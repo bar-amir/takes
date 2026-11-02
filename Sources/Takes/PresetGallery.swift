@@ -4,18 +4,31 @@ import Foundation
 /// itself never changes. Fresh installs start with `starters`.
 enum PresetGallery {
     static var all: [Preset] {
-        [.proofread, slack, email, shorter, friendlier, direct, professional, explainSimply, summarize, statusUpdate, decline, translate]
+        [.proofread, slack, email, shorter, friendlier, direct, professional, explainSimply, summarize, statusUpdate, decline]
+            + translations(for: Store.shared.settings.writingLanguages)
     }
 
-    /// Installed on a fresh setup. Existing users keep their own presets.
-    static var starters: [Preset] { [.proofread, slack, email, shorter, friendlier, direct, decline] }
+    /// Installed on a fresh setup. Existing users keep their own presets. People who write in more than one
+    /// language also start with "Translate to …" for each of them.
+    static var starters: [Preset] { starters(languages: Store.shared.settings.writingLanguages) }
+
+    static func starters(languages: [String]) -> [Preset] {
+        [.proofread, slack, email, shorter, friendlier, direct, decline] + (languages.count > 1 ? translations(for: languages) : [])
+    }
+
+    /// One "Translate to …" per language the user writes in.
+    static func translations(for languages: [String]) -> [Preset] { languages.map(translate(to:)) }
 
     /// The panel's picker ends with "Browse more presets" while the user has fewer presets than this.
     static let browseRowLimit = 8
 
     /// One line for the gallery list.
     static func blurb(for preset: Preset) -> String {
-        blurbs[preset.galleryID ?? preset.id] ?? ""
+        let id = preset.galleryID ?? preset.id
+        if id.hasPrefix("gallery.translate"), case .language(let code) = preset.language {
+            return "Natural \(Languages.englishName(code)) from any language."
+        }
+        return blurbs[id] ?? ""
     }
 
     // MARK: Adding
@@ -48,8 +61,9 @@ enum PresetGallery {
 
     /// The presets a Store starts with when there's no presets file. Someone who used an older version
     /// (their settings file exists) gets the presets they were already seeing, so nothing changes under them.
-    static func initialPresets(existingUser: Bool) -> [Preset] {
-        existingUser ? Store.defaultPresets : starters.map(copy(of:))
+    /// Runs inside `Store.init`, before settings load, so it reads the Mac's languages rather than `Store.shared`.
+    static func initialPresets(existingUser: Bool, languages: [String] = Languages.fromSystem()) -> [Preset] {
+        existingUser ? Store.defaultPresets : starters(languages: languages).map(copy(of:))
     }
 
     /// A preset just made with "New" and not edited yet: the moment to suggest the gallery instead.
@@ -126,12 +140,16 @@ enum PresetGallery {
         dos: ["Make the no unmistakable", "Thank them once, briefly"],
         avoid: ["Over-apologising", "Vague maybes that invite a follow-up", "Reasons or alternatives I didn't give"])
 
-    static let translate = Preset(
-        id: "gallery.translate", name: "Translate to English", colorHex: "#0E6E8C",
-        instruction: "Translate my draft into natural English, the way a native speaker would write it. Keep my meaning, tone, register and formatting.",
-        dos: ["Names, product terms, links and numbers as written", "Idioms become natural equivalents"],
-        avoid: ["Word-for-word translation", "Adding or dropping anything", "More formal than my draft"],
-        language: .english, length: .any)
+    /// English keeps the id it had when it was the only translate preset, so copies made then still show as added.
+    static func translate(to code: String) -> Preset {
+        let name = Languages.englishName(code)
+        return Preset(
+            id: code == "en" ? "gallery.translate" : "gallery.translate.\(code)", name: "Translate to \(name)", colorHex: "#0E6E8C",
+            instruction: "Translate my draft into natural \(name), the way a native speaker would write it. Keep my meaning, tone, register and formatting.",
+            dos: ["Names, product terms, links and numbers as written", "Idioms become natural equivalents"],
+            avoid: ["Word-for-word translation", "Adding or dropping anything", "More formal than my draft"],
+            language: .language(code), length: .any)
+    }
 
     private static let blurbs: [String: String] = [
         Preset.proofread.id: "Fixes mistakes only. Keeps your words.",
@@ -145,6 +163,5 @@ enum PresetGallery {
         summarize.id: "Notes or a long thread into a short reply.",
         statusUpdate.id: "Done, next and blocked.",
         decline.id: "A clear no that keeps things warm.",
-        translate.id: "Natural English from any language.",
     ]
 }

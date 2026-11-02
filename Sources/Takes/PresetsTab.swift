@@ -188,7 +188,7 @@ private struct PresetEditor: View {
                     HStack(alignment: .top, spacing: 28) {
                         VStack(alignment: .leading, spacing: 6) {
                             FieldLabel("Reply language")
-                            ChoiceSegments(options: ReplyLanguage.allCases.map { (value: $0, title: $0.label) }, selection: $preset.language)
+                            ReplyLanguagePicker(selection: $preset.language, writingLanguages: Store.shared.settings.writingLanguages)
                         }
                         VStack(alignment: .leading, spacing: 6) {
                             FieldLabel("Picked automatically in")

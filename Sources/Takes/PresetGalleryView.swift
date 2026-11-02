@@ -199,7 +199,7 @@ struct GalleryPresetPreview: View {
 
     private var footnote: String {
         var parts: [String] = []
-        if preset.language == .english { parts.append("Always writes in English.") }
+        if case .language(let code) = preset.language { parts.append("Always writes in \(Languages.englishName(code)).") }
         if !preset.apps.isEmpty { parts.append("Picked automatically in \(preset.apps.map(\.name).joined(separator: ", ")).") }
         parts.append(added ? "Already in your presets. Edit it there."
                            : "You can change everything after adding it, including the apps it's picked in.")

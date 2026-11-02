@@ -53,7 +53,7 @@ final class PresetGalleryTests: XCTestCase {
 
     func testAllGalleryPresetsAreValid() {
         let all = PresetGallery.all
-        XCTAssertTrue((8...12).contains(all.count))
+        XCTAssertTrue((12...14).contains(all.count))
         XCTAssertEqual(Set(all.map(\.id)).count, all.count, "Unique ids")
         XCTAssertEqual(Set(all.map { $0.name.lowercased() }).count, all.count, "Unique names")
         for preset in all {

@@ -17,18 +17,6 @@ struct AppRef: Codable, Hashable, Identifiable {
     var id: String { bundleID }
 }
 
-enum ReplyLanguage: String, Codable, CaseIterable, Identifiable {
-    case sameAsDraft, english, hebrew
-    var id: String { rawValue }
-    var label: String {
-        switch self {
-        case .sameAsDraft: return "Same as draft"
-        case .english: return "English"
-        case .hebrew: return "עברית"
-        }
-    }
-}
-
 enum TakeLength: String, Codable, CaseIterable, Identifiable {
     case sameOrShorter, shorter, any, longer
     var id: String { rawValue }
@@ -161,7 +149,7 @@ struct AppSettings: Codable {
     var voiceRules: [VoiceRule] = [
         VoiceRule(text: "Never use em dashes"),
         VoiceRule(text: "No corporate filler (\"hope this finds you well\")"),
-        VoiceRule(text: "Keep Hebrew and English as I wrote them unless a preset translates"),
+        VoiceRule(text: "Keep each language as I wrote it unless a preset translates"),
         VoiceRule(text: "Spell these names exactly: [names, product terms]", enabled: false),
     ]
     var defaultTakes = 3
@@ -178,6 +166,8 @@ struct AppSettings: Codable {
     var clipboardContext = false
     /// Dictation language (a locale identifier); empty follows macOS.
     var dictationLanguage = ""
+    /// The languages the user writes in (codes such as "he"); nil follows the Mac's list. Read it through `writingLanguages`.
+    var languages: [String]?
     /// Where a new user is in onboarding. Settings saved before onboarding existed decode as finished.
     var onboarding = OnboardingProgress()
 }
@@ -205,6 +195,7 @@ extension AppSettings {
         localModel = try c.decodeIfPresent(String.self, forKey: .localModel) ?? d.localModel
         clipboardContext = try c.decodeIfPresent(Bool.self, forKey: .clipboardContext) ?? d.clipboardContext
         dictationLanguage = try c.decodeIfPresent(String.self, forKey: .dictationLanguage) ?? d.dictationLanguage
+        languages = try c.decodeIfPresent([String].self, forKey: .languages)
         onboarding = try c.decodeIfPresent(OnboardingProgress.self, forKey: .onboarding) ?? .existingUser
     }
 }

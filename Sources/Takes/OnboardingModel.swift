@@ -4,7 +4,7 @@ import SwiftUI
 
 /// The starter presets offered in onboarding.
 enum OnboardingPresets {
-    static var starters: [Preset] { PresetGallery.starters }
+    static func starters(languages: [String]) -> [Preset] { PresetGallery.starters(languages: languages) }
 }
 
 /// State behind the onboarding window: the step flow plus what each step shows.
@@ -26,6 +26,20 @@ final class OnboardingModel: ObservableObject {
     @Published var apiKeyInput = ""
     @Published var copiedSignIn = false
     @Published var chosenPresets: Set<String>
+    /// The languages the user writes in, shown on the presets step. Adding one offers (and picks) its translate
+    /// preset; removing one drops it.
+    @Published var languages: [String] {
+        didSet {
+            guard languages != oldValue else { return }
+            let before = Set(OnboardingPresets.starters(languages: oldValue).map(\.name))
+            let after = Set(OnboardingPresets.starters(languages: languages).map(\.name))
+            chosenPresets.subtract(before.subtracting(after))
+            chosenPresets.formUnion(after.subtracting(before))
+            saveLanguages(languages)
+        }
+    }
+    var starters: [Preset] { OnboardingPresets.starters(languages: languages) }
+    var saveLanguages: ([String]) -> Void = { _ in }
     @Published var practiceText = Onboarding.sampleDraft
     @Published var practiceStage = PracticeStage.write
     /// A step that has just become true, shown with its check for a moment before moving on.
@@ -47,7 +61,9 @@ final class OnboardingModel: ObservableObject {
 
     init(progress: OnboardingProgress = OnboardingProgress(), conditions: OnboardingConditions = OnboardingConditions()) {
         flow = OnboardingFlow(progress: progress, conditions: conditions)
-        chosenPresets = Set(OnboardingPresets.starters.map(\.name))
+        let languages = Languages.fromSystem()
+        self.languages = languages
+        chosenPresets = Set(OnboardingPresets.starters(languages: languages).map(\.name))
     }
 
     var step: OnboardingStep { flow.step }
@@ -61,7 +77,9 @@ final class OnboardingModel: ObservableObject {
         engineKind = store.settings.engine
         hotKey = store.settings.summonHotKey
         let installed = Set(store.presets.map(\.name))
-        chosenPresets = Set(OnboardingPresets.starters.map(\.name)).intersection(installed)
+        languages = store.settings.writingLanguages
+        chosenPresets = Set(starters.map(\.name)).intersection(installed)
+        saveLanguages = { languages in store.settings.languages = languages }
         save = { progress in if store.settings.onboarding != progress { store.settings.onboarding = progress } }
         onEngineKindChange = { [weak self] kind in
             if store.settings.engine != kind { store.settings.engine = kind }
@@ -253,7 +271,10 @@ final class OnboardingModel: ObservableObject {
 
     func applyPresets() {
         let store = Store.shared
-        let updated = Self.applying(chosen: chosenPresets, starters: OnboardingPresets.starters.map(PresetGallery.copy(of:)),
+        // Also the translate presets of languages removed on this step, so the ones installed at first launch go.
+        let removed = Languages.fromSystem().filter { !languages.contains($0) }
+        let offered = starters + PresetGallery.translations(for: removed)
+        let updated = Self.applying(chosen: chosenPresets, starters: offered.map(PresetGallery.copy(of:)),
                                     to: store.presets)
         if updated.map(\.id) != store.presets.map(\.id) { store.presets = updated }
     }

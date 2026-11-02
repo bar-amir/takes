@@ -210,12 +210,33 @@ struct VoiceTab: View {
                 Text("These apply on top of each preset's own Do and Avoid lists. Untick a rule to pause it.")
                     .font(.system(size: 14)).foregroundStyle(Theme.secondaryText)
                 VoiceRulesEditor()
+                WritingLanguagesSection()
+                    .padding(.top, 18)
             }
             .padding(32)
             .frame(maxWidth: 760, alignment: .leading)
             .frame(maxWidth: .infinity)
         }
         .background(Theme.sidebar)
+    }
+}
+
+/// The languages the user writes in: presets can reply in any of them, and the gallery offers a translate preset for each.
+struct WritingLanguagesSection: View {
+    @ObservedObject var store = Store.shared
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            SectionTitle("Languages you write in")
+            Text("Presets can reply in any of these, and Browse presets offers a translate preset for each. They start as your Mac's languages.")
+                .font(.system(size: 14)).foregroundStyle(Theme.secondaryText)
+            LanguageChips(languages: Binding(get: { store.settings.writingLanguages },
+                                             set: { store.settings.languages = $0 }))
+            if store.settings.languages != nil, store.settings.languages != Languages.fromSystem() {
+                Button("Use my Mac's languages") { store.settings.languages = nil }
+                    .buttonStyle(SecondaryButtonStyle(height: 30))
+            }
+        }
     }
 }
 

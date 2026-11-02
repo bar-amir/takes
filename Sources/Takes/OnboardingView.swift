@@ -491,10 +491,17 @@ private struct PresetsStep: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             StepHeader(title: "Pick your presets",
-                       subtitle: "A preset says how to rewrite a draft. Keep the ones you'll use. You can change them any time in Settings › Presets.")
+                       subtitle: "A preset says how to rewrite a draft. Keep the ones you'll use; each language you write in gets a translate preset.")
+            HStack(alignment: .firstTextBaseline, spacing: Spacing.inner) {
+                Text("You write in").font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.secondaryText).fixedSize()
+                LanguageChips(languages: $model.languages)
+            }
+            .padding(.bottom, Spacing.section)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("Languages you write in")
             ScrollView {
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-                    ForEach(OnboardingPresets.starters, id: \.name) { preset in card(preset) }
+                    ForEach(model.starters, id: \.name) { preset in card(preset) }
                 }
                 .padding(1)
             }

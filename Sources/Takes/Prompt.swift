@@ -29,9 +29,8 @@ enum PromptBuilder {
         if preset.isMinimalEdits { lines += Proofread.rules }
 
         switch preset.language {
-        case .sameAsDraft: lines.append("Write in the language of the draft (Hebrew stays Hebrew, English stays English, mixed stays mixed).")
-        case .english: lines.append("Write in English.")
-        case .hebrew: lines.append("Write in Hebrew.")
+        case .sameAsDraft: lines.append("Write in the language of the draft; a draft that mixes languages stays mixed.")
+        case .language(let code): lines.append("Write in \(Languages.englishName(code)).")
         }
         switch preset.isMinimalEdits ? .any : preset.length {
         case .sameOrShorter: lines.append("Length: the same as the draft or shorter.")
