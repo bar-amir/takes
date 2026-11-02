@@ -45,6 +45,13 @@ final class PanelModel: ObservableObject {
     @Published var contextNotice: String?
     /// The clipboard as it was at summon, for the opt-in clipboard context.
     var summonClipboard: ClipboardCandidate?
+    /// Speaking into the draft (⌘D).
+    let dictation = Dictation()
+    /// Where the draft editor puts the caret after the draft changes from outside (UTF-16 offset); nil is the end.
+    @Published var draftCaret: Int?
+    /// The draft editor's selection, reported as it changes.
+    var draftSelection: NSRange?
+    private var dictationInsertion: DictationInsertion?
 
     let store = Store.shared
     private(set) var focus: FocusSnapshot?
@@ -99,6 +106,9 @@ final class PanelModel: ObservableObject {
     func reset(focus: FocusSnapshot, presetID forced: String?) {
         runToken += 1
         self.focus = focus
+        dictation.dismiss()
+        draftCaret = nil
+        draftSelection = nil
         draft = focus.text
         if let forced, store.preset(id: forced) != nil {
             presetID = forced
@@ -134,11 +144,14 @@ final class PanelModel: ObservableObject {
             running = false
             show(.compose)
         case .compose:
+            // One step back at a time: dictation first, then the tone read, then close.
+            if dictation.handleEscape() { return }
             if toneRead.isShown { toneRead.dismiss() } else { onClose() }
         }
     }
 
     func show(_ next: Screen) {
+        if next != .compose { dictation.dismiss() }
         screen = next
         focusToken += 1
         onScreenChange()
@@ -298,6 +311,31 @@ final class PanelModel: ObservableObject {
                        "firstTextMs": result.firstTextMs ?? -1, "app": appBundleID ?? ""])
         takeTones.fetch(takes: takes, showTone: preset.showTone, settings: store.settings)
         onScreenChange()
+    }
+
+    // MARK: Dictation
+
+    func toggleDictation() {
+        guard screen == .compose else { return }
+        if !dictation.isActive { dictationInsertion = nil }
+        dictation.onTranscript = { [weak self] in self?.insertDictated($0) }
+        dictation.toggle()
+    }
+
+    /// ↵ in the draft: dictation's note uses it first, otherwise it writes the takes.
+    func submitDraft() {
+        if dictation.handleReturn() { return }
+        generate()
+    }
+
+    /// Puts the latest transcript at the caret, replacing the previous one from the same recording.
+    func insertDictated(_ transcript: String) {
+        let insertion = dictationInsertion ?? DictationInsertion(
+            text: draft, selection: draftSelection ?? NSRange(location: (draft as NSString).length, length: 0))
+        dictationInsertion = insertion
+        let result = insertion.apply(transcript)
+        draftCaret = result.caret
+        draft = result.text
     }
 
     // MARK: Takes

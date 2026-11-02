@@ -58,6 +58,8 @@ struct EngineTab: View {
                     VoiceRulesEditor()
                     SectionTitle("Panel and paste").padding(.top, 14)
                     PanelSettings()
+                    SectionTitle("Dictation").padding(.top, 14)
+                    DictationSettings()
                 }
                 .padding(32)
                 .frame(maxWidth: .infinity, alignment: .leading)

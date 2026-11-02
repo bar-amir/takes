@@ -173,6 +173,8 @@ struct AppSettings: Codable {
     var localModel = ""
     /// Attach the clipboard as reply context when it looks like a message copied just now (ReplyContext.swift). Off by default.
     var clipboardContext = false
+    /// Dictation language (a locale identifier); empty follows macOS.
+    var dictationLanguage = ""
 }
 
 extension AppSettings {
@@ -197,6 +199,7 @@ extension AppSettings {
         localBaseURL = try c.decodeIfPresent(String.self, forKey: .localBaseURL) ?? d.localBaseURL
         localModel = try c.decodeIfPresent(String.self, forKey: .localModel) ?? d.localModel
         clipboardContext = try c.decodeIfPresent(Bool.self, forKey: .clipboardContext) ?? d.clipboardContext
+        dictationLanguage = try c.decodeIfPresent(String.self, forKey: .dictationLanguage) ?? d.dictationLanguage
     }
 }
 

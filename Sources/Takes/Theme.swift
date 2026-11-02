@@ -19,6 +19,8 @@ enum Theme {
     static let doFill = Color.dynamic(light: "#E6F2EC", dark: "#1C3A2D")
     static let avoidText = Color.dynamic(light: "#8A2418", dark: "#F2A196")
     static let avoidFill = Color.dynamic(light: "#FBEAE7", dark: "#43231F")
+    /// The live-microphone dot and level meter. Recording reads as red everywhere; `avoidText` is too muted for it.
+    static let recording = Color.dynamic(light: "#D93025", dark: "#FF6B5E")
 }
 
 /// One spacing scale for the panel, so every screen has the same rhythm (in points).

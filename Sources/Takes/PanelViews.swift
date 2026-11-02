@@ -76,7 +76,9 @@ struct ComposeView: View {
 
             ZStack(alignment: .topLeading) {
                 DraftEditor(text: $model.draft, focusToken: model.focusToken,
-                            onSubmit: model.generate, onPresets: model.openPicker, onEscape: model.escape)
+                            onSubmit: model.submitDraft, onPresets: model.openPicker, onEscape: model.escape,
+                            caret: model.draftCaret, onSelection: { model.draftSelection = $0 },
+                            onType: model.dictation.userTyped)
                 if model.draft.isEmpty {
                     Text("Write what you want to say…")
                         .font(.system(size: 17))
@@ -86,21 +88,22 @@ struct ComposeView: View {
                         .allowsHitTesting(false)
                 }
             }
-            .frame(minHeight: 96, maxHeight: .infinity)
+            // 80 (three lines) leaves room for a two-line dictation note on the fixed-height compose screen.
+            .frame(minHeight: 80, maxHeight: .infinity)
             // The text view insets its text by 7 pt (container inset 2 + line padding 5), so text starts on the gutter.
             .padding(.horizontal, Spacing.gutter - 7)
             .padding(.top, Spacing.section)
 
-            HStack(spacing: Spacing.item) {
+            DictationRow(dictation: model.dictation, onToggle: model.toggleDictation) {
                 Text([model.sourceLabel, "\(model.wordCount) word\(model.wordCount == 1 ? "" : "s")"].filter { !$0.isEmpty }.joined(separator: " · "))
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.secondaryText)
-                Spacer(minLength: 0)
+            } trailing: {
                 ReplyContextAddButton(model: model)
             }
-                .padding(.horizontal, Spacing.gutter)
-                .padding(.top, Spacing.item)
-                .padding(.bottom, Spacing.section)
+            .padding(.horizontal, Spacing.gutter)
+            .padding(.top, Spacing.item)
+            .padding(.bottom, Spacing.section)
             ToneReadSection(model: model)
 
             Rule()
@@ -198,6 +201,7 @@ struct ComposeView: View {
             ShortcutButton(key: "k") { model.onMore() }
             ShortcutButton(key: ",") { model.onOpenSettings(.presets, false) }
             ReplyContextShortcuts(model: model)
+            ShortcutButton(key: "d") { model.toggleDictation() }
         }
     }
 }

@@ -50,6 +50,7 @@ final class PanelController {
             self?.close()
             SettingsWindowController.shared.show(tab: .presets, gallery: true)
         }
+        model.dictation.onRegainFocus = { [weak self] in self?.panel?.makeKey() }
         model.textSelectionActive = { [weak self] in
             guard let textView = self?.panel?.firstResponder as? NSTextView else { return false }
             return textView.selectedRange().length > 0
@@ -195,6 +196,7 @@ final class PanelController {
     }
 
     func close() {
+        model.dictation.dismiss()
         panel?.orderOut(nil)
     }
 }
