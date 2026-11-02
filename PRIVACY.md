@@ -75,6 +75,10 @@ Takes itself is free. Runs through Claude Code count toward your Claude plan's u
 
 Downloaded copies of Takes can check for new versions with [Sparkle](https://sparkle-project.org). The second time you open Takes, it asks whether to check automatically; you can also use "Check for Updates…" in its menu. A check downloads the update feed (`appcast.xml`) from GitHub's servers at github.com. Like any web request, GitHub sees your IP address. Takes sends no information about you, your Mac or your text with it (Sparkle's "system profile" reporting is off). Updates are only installed if they're signed with the developer's update key and Developer ID. Copies you build yourself never check for updates.
 
+## The website
+
+This notice is about the app. The Takes website (the landing page on GitHub Pages) counts visits with [GoatCounter](https://www.goatcounter.com), which uses no cookies and stores no IP addresses or personal data: only the page, the site you came from, your country, screen size and browser, and clicks on the download buttons. The app never loads it. The developer also keeps GitHub's own counts of release downloads, update-feed downloads and repository visits, which say nothing about who you are.
+
 ## Changes
 
 If Takes ever starts sending anything anywhere else, this page will say so first and the app will ask you.
