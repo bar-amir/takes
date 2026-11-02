@@ -161,7 +161,7 @@ struct PanelSettings: View {
             }
             RowDivider()
             row("Open the panel") {
-                MenuPicker(options: PanelPosition.allCases.map { (value: $0, title: $0.label) }, selection: $store.settings.panelPosition)
+                PanelPositionPicker(selection: $store.settings.panelPosition)
             }
             RowDivider()
             row("Start with") {

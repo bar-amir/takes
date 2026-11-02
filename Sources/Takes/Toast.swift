@@ -23,7 +23,7 @@ final class ToastController {
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.contentView = hosting
 
-        let screen = NSScreen.screens.first { caret.map($0.frame.intersects) ?? false } ?? NSScreen.main ?? NSScreen.screens[0]
+        let screen = ScreenChoice.screen(for: caret)
         let visible = screen.visibleFrame
         var origin = caret.map { CGPoint(x: $0.minX - 20, y: $0.maxY + 16) }
             ?? CGPoint(x: visible.midX - size.width / 2, y: visible.minY + 80)

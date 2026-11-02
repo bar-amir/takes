@@ -86,10 +86,22 @@ struct VoiceRule: Codable, Identifiable, Hashable {
 }
 
 enum EngineKind: String, Codable { case claudeCode, apiKey }
+/// Where the panel opens. Whichever is picked, the panel moves aside rather than cover the text box.
 enum PanelPosition: String, Codable, CaseIterable, Identifiable {
-    case nearCursor, center
+    case nearCursor, topLeft, topCenter, topRight, center, bottomLeft, bottomCenter, bottomRight
     var id: String { rawValue }
-    var label: String { self == .nearCursor ? "Next to the cursor" : "Center of the screen" }
+    var label: String {
+        switch self {
+        case .nearCursor: "Next to the text box"
+        case .topLeft: "Top left"
+        case .topCenter: "Top center"
+        case .topRight: "Top right"
+        case .center: "Center of the screen"
+        case .bottomLeft: "Bottom left"
+        case .bottomCenter: "Bottom center"
+        case .bottomRight: "Bottom right"
+        }
+    }
 }
 enum Prefill: String, Codable, CaseIterable, Identifiable {
     case fieldText, selectionOnly, empty

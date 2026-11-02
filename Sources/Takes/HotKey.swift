@@ -43,6 +43,16 @@ final class HotKeyCenter {
         }
         return failed
     }
+
+    /// Whether `combo` could be registered now. Tries it on its own, so the hotkeys already in place stay put.
+    func isFree(_ combo: KeyCombo) -> Bool {
+        var ref: EventHotKeyRef?
+        let status = RegisterEventHotKey(combo.keyCode, combo.modifiers, EventHotKeyID(signature: OSType(0x5441_4B53), id: 0),
+                                         GetApplicationEventTarget(), 0, &ref)
+        guard status == noErr, let ref else { return false }
+        UnregisterEventHotKey(ref)
+        return true
+    }
 }
 
 extension KeyCombo {
