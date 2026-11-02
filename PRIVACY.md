@@ -44,6 +44,10 @@ What Anthropic does with that text is covered by [Anthropic's privacy policy](ht
 
 Takes shows text written by Claude. It can be wrong or say things you didn't mean. Read a take before you paste or send it, and don't rely on factual statements in it without checking.
 
+### Write and paste right away
+
+A preset can be set to write 1 take and paste it as soon as you press its own hotkey, without showing the panel first. It's off for every preset until you turn it on. It reads and sends exactly what the panel would (the text box, then your draft to your chosen engine), except that it reads the text box even when "Start with" is set to an empty draft, since it has nothing else to write from. Because you don't see the take before it's pasted, read it in the text box before you send it; ⌘Z in that app undoes the paste.
+
 ## Update checks
 
 Downloaded copies of Takes can check for new versions with [Sparkle](https://sparkle-project.org). The second time you open Takes, it asks whether to check automatically; you can also use "Check for Updates…" in its menu. A check downloads the update feed (`appcast.xml`) from GitHub's servers at github.com. Like any web request, GitHub sees your IP address. Takes sends no information about you, your Mac or your text with it (Sparkle's "system profile" reporting is off). Updates are only installed if they're signed with the developer's update key and Developer ID. Copies you build yourself never check for updates.

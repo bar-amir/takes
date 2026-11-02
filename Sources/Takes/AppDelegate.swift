@@ -6,6 +6,7 @@ import Sparkle
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private let panel = PanelController()
+    private lazy var instant = InstantModeController(panel: panel)
     private var subscriptions: Set<AnyCancellable> = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -55,6 +56,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             SetupWindowController.shared.show()
             return
         }
+        if instant.handle(presetID: presetID) { return }
         panel.summon(presetID: presetID)
     }
 
