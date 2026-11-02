@@ -389,6 +389,8 @@ struct TakesView: View {
                 .padding(.horizontal, Spacing.gutter)
                 .padding(.vertical, Spacing.section)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
+            } else if model.noFixesFound {
+                NoFixesView(model: model)
             } else {
                 // The grid scrolls only past `maxGridHeight`; below that the panel grows to fit it, so the gaps
                 // above and below the cards stay equal.
@@ -498,18 +500,23 @@ struct TakesView: View {
                 KeyHint(keys: ["⌘", "C"], label: "copy only")
                 KeyHint(keys: ["esc"], label: "back")
             }
-            Spacer()
+            .fixedSize()
+            Spacer(minLength: 0)
             if model.running {
                 TimelineView(.periodic(from: model.startedAt, by: 0.1)) { context in
                     Text(String(format: "Writing… %.1f s", context.date.timeIntervalSince(model.startedAt)))
                         .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).monospacedDigit()
                 }
             } else if !model.timing.isEmpty {
-                Text(model.timing).font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
+                // In the narrow one-take panel the timing gives way rather than squeeze the key hints.
+                ViewThatFits(in: .horizontal) {
+                    Text(model.timing).font(.system(size: 12)).foregroundStyle(Theme.secondaryText).fixedSize()
+                    Color.clear.frame(width: 0, height: 0)
+                }
             }
-            Button(action: model.pasteSelected) {
+            Button(action: model.noFixesFound ? model.pasteOriginal : model.pasteSelected) {
                 HStack(spacing: Spacing.item) {
-                    Text("Paste take \(model.selected + 1)")
+                    Text(model.noFixesFound ? "Paste original" : "Paste take \(model.selected + 1)")
                     Text("↵").font(.system(size: 12)).opacity(0.85)
                 }
             }
@@ -560,6 +567,7 @@ private struct TakeCard: View {
             Group {
                 if showChanges {
                     Text(WordDiff.attributed(from: model.sourceDraft, to: model.takes[index]))
+                        .accessibilityLabel(WordDiff.spoken(from: model.sourceDraft, to: model.takes[index]))
                 } else if hasText {
                     Text(model.takes[index])
                 } else {
@@ -578,7 +586,8 @@ private struct TakeCard: View {
 
             Rule()
             HStack(spacing: Spacing.item) {
-                Text(finished ? "\(WordCounter.count(model.takes[index])) words" : "writing")
+                Text(!finished ? "writing" : model.showsFixes ? Proofread.fixLabel(model.fixCount(index))
+                     : "\(WordCounter.count(model.takes[index])) words")
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.secondaryText)
                 Spacer()

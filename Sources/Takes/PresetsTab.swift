@@ -167,6 +167,7 @@ private struct PresetEditor: View {
                         }
                     }
                     runDefaults
+                    MinimalEditsSection(preset: $preset)
                 }
                 .padding(.horizontal, 28)
                 .padding(.vertical, 24)

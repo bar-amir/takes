@@ -70,6 +70,9 @@ struct Preset: Codable, Identifiable, Hashable {
     var takes = 3
     var model = Models.sonnet
     var effort = "low"
+    /// Proofread-style: fix mistakes only and show the fixes inline. Optional so older presets decode
+    /// (missing means off); read it through `isMinimalEdits`.
+    var minimalEdits: Bool? = nil
 
     static let maxExamples = 5
     static let colors = ["#2F55E0", "#1D6B4F", "#8A4B08", "#7A3FD1", "#B42318", "#0E6E8C", "#55555E"]
@@ -186,7 +189,7 @@ final class Store: ObservableObject {
     }()
 
     private init() {
-        presets = Store.load("presets.json") ?? Store.defaultPresets
+        presets = Proofread.upgraded(Store.load("presets.json") ?? Store.defaultPresets)
         settings = Store.load("settings.json") ?? AppSettings()
         history = Store.load("history.json") ?? []
         pruneHistory()
