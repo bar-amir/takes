@@ -336,9 +336,9 @@ private struct EngineStep: View {
         VStack(alignment: .leading, spacing: 0) {
             StepHeader(title: "Connect Claude", subtitle: "Takes writes with Claude, under your own account. Pick how, or use a model on your Mac.")
             VStack(spacing: Spacing.inner) {
-                option(.claudeCode, title: "Your Claude subscription", detail: "Through Claude Code on this Mac.") { claudeCodeDetail }
-                option(.apiKey, title: "An Anthropic API key", detail: "Pay per use, billed by Anthropic. Usually a cent or two per run.") { apiKeyDetail }
-                option(.local, title: "A model on this Mac", detail: "Ollama or LM Studio. Nothing leaves your Mac.") { localDetail }
+                option(.claudeCode, title: "Your Claude subscription", detail: "Through Claude Code. Counts toward your plan's usage limits.") { claudeCodeDetail }
+                option(.apiKey, title: "An Anthropic API key", detail: "Pay per use, billed by Anthropic. Usually a cent or two per run; Takes doesn't cap your spending.") { apiKeyDetail }
+                option(.local, title: "A model on this Mac", detail: "Ollama or LM Studio. Free, and nothing leaves your Mac.") { localDetail }
             }
         }
     }
@@ -435,7 +435,7 @@ private struct PrivacyStep: View {
                     InfoRow(icon: "text.cursor", text: "When you press the hotkey, Takes reads the text box you're typing in.")
                     InfoRow(icon: "arrow.up.right", text: "When you ask for takes, it sends your draft and your preset's instructions straight from your Mac to Anthropic, under your own Claude account.")
                     InfoRow(icon: "lock", text: "Nothing goes to the developer: there's no server and no tracking. History stays on this Mac.")
-                    InfoRow(icon: "eye", text: "Claude can get things wrong, so read a take before you send it.")
+                    InfoRow(icon: "eye", text: "Claude can get things wrong, and takes are only as good as your preset's instructions. Read a take before you send it: what you send is up to you.")
                 }
             }
             StepNote("Don't use Takes on text you're not allowed to share with an AI provider, such as confidential work material.")

@@ -26,7 +26,7 @@ struct LocalEngineSettings: View {
                 Text("Local model").font(.system(size: 15, weight: .semibold))
                 badge
             }
-            Text("Runs on this Mac with Ollama or LM Studio, so your drafts never leave it. Small models write plainer takes than Claude.")
+            Text("Runs on this Mac with Ollama or LM Studio, so your drafts never leave it. Small models write plainer takes than Claude. It's free, but uses this Mac's memory and battery.")
                 .font(.system(size: 13)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
             if selected {
                 details.padding(.top, 4)

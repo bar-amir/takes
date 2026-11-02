@@ -61,15 +61,23 @@ The words you dictate become part of your draft, and like any draft they're sent
 
 ## AI output
 
-Takes shows text written by Claude. It can be wrong or say things you didn't mean. Read a take before you paste or send it, and don't rely on factual statements in it without checking.
+Takes shows text written by Claude (or your local model). It can be wrong or say things you didn't mean, and it's only as good as the preset's instructions, examples and the model you pick. Read a take before you paste or send it, and don't rely on factual statements in it without checking. What you send is up to you.
 
 ### Write and paste right away
 
 A preset can be set to write 1 take and paste it as soon as you press its own hotkey, without showing the panel first. It's off for every preset until you turn it on. It reads and sends exactly what the panel would (the text box, then your draft to your chosen engine), except that it reads the text box even when "Start with" is set to an empty draft, since it has nothing else to write from. Because you don't see the take before it's pasted, read it in the text box before you send it; ⌘Z in that app undoes the paste.
 
+## Cost
+
+Takes itself is free. Runs through Claude Code count toward your Claude plan's usage limits; runs with an API key are billed to your Anthropic account by the tokens they use, and Takes doesn't cap that spending. More takes, bigger models, higher effort, tone notes, refine and regenerate each use more. See [Costs and responsibility](README.md#costs-and-responsibility).
+
 ## Update checks
 
 Downloaded copies of Takes can check for new versions with [Sparkle](https://sparkle-project.org). The second time you open Takes, it asks whether to check automatically; you can also use "Check for Updates…" in its menu. A check downloads the update feed (`appcast.xml`) from GitHub's servers at github.com. Like any web request, GitHub sees your IP address. Takes sends no information about you, your Mac or your text with it (Sparkle's "system profile" reporting is off). Updates are only installed if they're signed with the developer's update key and Developer ID. Copies you build yourself never check for updates.
+
+## The website
+
+This notice is about the app. The Takes website (the landing page on GitHub Pages) counts visits with [GoatCounter](https://www.goatcounter.com), which uses no cookies and stores no IP addresses or personal data: only the page, the site you came from, your country, screen size and browser, and clicks on the download buttons. The app never loads it. The developer also keeps GitHub's own counts of release downloads, update-feed downloads and repository visits, which say nothing about who you are.
 
 ## Changes
 

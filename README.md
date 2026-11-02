@@ -107,6 +107,18 @@ Opus 5.5 needs Claude Code 2.1.280 or newer (`claude update`). The Opus rows wer
 
 With Claude Code: `claude -p` with a preset-built system prompt, `--model`, `--effort` and `--output-format stream-json --include-partial-messages`. Takes are separated by `===` lines and appear in the panel as they're written. It runs from an empty temp folder so no CLAUDE.md is picked up. See `Sources/Takes/ClaudeCodeEngine.swift`. With an API key, the Messages API is called directly with streaming (`Sources/Takes/APIEngine.swift`). With a local model, Takes streams from the server's OpenAI-compatible chat endpoint and only ever connects to `localhost` (`Sources/Takes/LocalEngine.swift`). Tone notes are one extra short request after the takes (Haiku, or the local model).
 
+## Costs and responsibility
+
+Takes is free, but the model it calls isn't always:
+
+- **Claude Code (your subscription):** each run counts toward your Claude plan's usage limits, like any other Claude Code use.
+- **Anthropic API key:** you're billed by Anthropic for the tokens each run uses, usually a cent or two. Takes doesn't cap your spending; set a spend limit in the [Anthropic Console](https://console.anthropic.com).
+- **Local model:** free, but it runs on your Mac's memory, CPU and battery.
+
+What makes a run use more: more takes, a bigger model (Opus over Sonnet over Haiku), higher effort, a long draft or reply context, and write-like-me examples. Each of these is a request of its own: the tone notes after the takes (Haiku, unless you turn "Show tone" off), ⌘T, refine, "More like take N" and ⌘R.
+
+Takes are written by an AI model. They can be wrong, miss your meaning or sound different from what you intended, and they're only as good as the preset's instructions, examples and the model you pick. Read a take before you send it. What you send, and to whom, is up to you. Takes is provided as is, without warranty (see the [License](LICENSE)).
+
 ## Privacy
 
 Takes sends your draft only to Anthropic, directly from your Mac and under your own Claude account, or, with a local model, nowhere outside your Mac. Dictation audio never leaves the Mac. The developer runs no server and receives nothing; there's no analytics or tracking. See [PRIVACY.md](PRIVACY.md) for exactly what's read, sent and stored. Claude can get things wrong: read a take before you send it.
