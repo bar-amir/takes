@@ -6,7 +6,7 @@
 <title>Takes: does this sound rude?</title>
 <meta name="description" content="Ask your Mac. Takes shows a few ways to say your draft, shorter, warmer or more formal, and pastes the one you choose back where you started.">
 <meta property="og:title" content="Takes: does this sound rude?">
-<meta property="og:description" content="Ask your Mac. Takes shows a few ways to say it and pastes the one you choose. A free Mac writing companion that uses your own Claude.">
+<meta property="og:description" content="Ask your Mac. Takes shows a few ways to say it and pastes the one you choose. A free Mac writing companion that uses your own Claude, or a model of your choice.">
 <meta property="og:image" content="img/hero-og.jpg">
 <meta name="theme-color" content="#F3EBDD">
 <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
@@ -363,10 +363,10 @@ fill="currentColor" stroke="none">
 
   <section id="privacy" class="truth">
     <div class="wrap">
-      <h2 class="display">Your Mac. Your Claude. Your choice.</h2>
+      <h2 class="display">Your Mac. Your model. Your choice.</h2>
       <div class="truth-rows">
         <div class="truth-row"><div class="label">Local utility</div><p>Presets and optional history live on your Mac.</p></div>
-        <div class="truth-row"><div class="label">Your connection</div><p>Drafts, instructions and voice examples go to Anthropic through your Claude connection, or nowhere, with a model on your Mac.</p></div>
+        <div class="truth-row"><div class="label">Your connection</div><p>Drafts, instructions and voice examples go to Anthropic through your Claude connection, to OpenAI through your ChatGPT plan, to the provider whose key you added, or nowhere, with a model on your Mac.</p></div>
         <div class="truth-row"><div class="label">Your decision</div><p>Takes pastes the version you choose into the original field. You decide when to send.</p></div>
       </div>
       <p class="small">Only the focused field or selection is read, and only when you press the shortcut. Takes has no developer-run server and no analytics. <a href="https://github.com/bar-amir/takes/blob/main/PRIVACY.md">Read the privacy notice</a>.</p>
@@ -376,10 +376,11 @@ fill="currentColor" stroke="none">
   <section class="paper">
     <div class="wrap">
       <h2 class="display" style="margin-bottom: 40px">Good to know.</h2>
-      <details><summary>What do I need?</summary><p>macOS 14 or later, Accessibility access so Takes can read the field and paste, and a working Claude connection: Claude Code signed in to your account, or an Anthropic API key. Or run a model on your Mac with Ollama or LM Studio.</p></details>
+      <details><summary>What do I need?</summary><p>macOS 14 or later, Accessibility access so Takes can read the field and paste, and a model to write with: Claude Code signed in to your account or an Anthropic API key, your ChatGPT plan, an API key from another provider, or a model on your Mac with Ollama or LM Studio.</p></details>
+      <details><summary>Which models can it use?</summary><p>Claude, through Claude Code on your Mac or your Anthropic API key. Your ChatGPT Plus or Pro plan, through Sign in with ChatGPT. Your own API key for OpenAI, Google Gemini, OpenRouter, Groq, Mistral or another compatible https server. Or a model running on your Mac with Ollama or LM Studio, so nothing leaves it.</p></details>
       <details><summary>Does it work in my app?</summary><p>In apps whose text fields macOS can read, including Slack, Mail, Messages, Notes, browsers and Claude's desktop app. Where an app hides its field, Takes copies the text instead and puts your clipboard back.</p></details>
-      <details><summary>What does it cost?</summary><p>Takes is free and open source under the MIT license. Generation uses your own Claude plan or API account.</p></details>
-      <details><summary>Is it made by Anthropic?</summary><p>No. Takes is an independent app that runs Claude Code or calls the Claude API with your own account.</p></details>
+      <details><summary>What does it cost?</summary><p>Takes is free and open source under the MIT license, and always will be for every engine. Generation uses your own Claude plan, ChatGPT plan or API account, or costs nothing with a model on your Mac.</p></details>
+      <details><summary>Is it made by Anthropic or OpenAI?</summary><p>No. Takes is an independent app. It runs Claude Code or calls the provider you chose with your own account.</p></details>
     </div>
   </section>
 
@@ -398,7 +399,7 @@ fill="currentColor" stroke="none">
 <footer>
   <div class="wrap">
     <div class="links"><a href="https://github.com/bar-amir/takes">GitHub</a><a href="https://github.com/bar-amir/takes/blob/main/PRIVACY.md">Privacy</a><a href="https://github.com/bar-amir/takes/blob/main/LICENSE">License</a><a href="https://github.com/sponsors/bar-amir">Support Takes</a></div>
-    <div>Takes isn't made or endorsed by Anthropic.</div>
+    <div>Takes isn't made or endorsed by Anthropic, OpenAI or any other model provider.</div>
   </div>
 </footer>
 <script>

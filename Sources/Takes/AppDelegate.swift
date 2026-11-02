@@ -181,7 +181,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func showAbout() {
         NSApp.activate(ignoringOtherApps: true)
         NSApp.orderFrontStandardAboutPanel(options: [
-            .credits: NSAttributedString(string: "Rewrite anything, in any text box, with Claude.\ngithub.com/bar-amir/takes"),
+            .credits: NSAttributedString(string: "Rewrite anything, in any text box, with Claude or a model of your choice.\ngithub.com/bar-amir/takes"),
         ])
     }
 

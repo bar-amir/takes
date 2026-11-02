@@ -15,4 +15,4 @@ Thanks for helping. A few things before you open a pull request.
 
 ## Privacy
 
-Takes never sends data to the project or its maintainer. Don't add analytics, crash reporting or any network call other than to the user's chosen Claude engine, unless it's discussed first and added to [PRIVACY.md](PRIVACY.md).
+Takes never sends data to the project or its maintainer. Don't add analytics, crash reporting or any network call other than to the user's chosen engine, unless it's discussed first and added to [PRIVACY.md](PRIVACY.md).

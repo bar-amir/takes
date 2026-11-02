@@ -55,7 +55,7 @@ enum InstantMode {
         func message(app: String) -> String {
             switch self {
             case .engine(let reason): return "Nothing was pasted. \(reason)"
-            case .noTake: return "Claude sent back an empty take. Nothing was pasted."
+            case .noTake: return "The model sent back an empty take. Nothing was pasted."
             case .leftField: return "You left \(app), so nothing was pasted."
             case .couldNotReturn: return "Couldn't get back to \(app). The take is on the clipboard: press ⌘V."
             }
