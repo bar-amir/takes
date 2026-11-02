@@ -335,12 +335,16 @@ private struct EngineStep: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             StepHeader(title: "Connect a model", subtitle: "Takes writes with Claude under your own account, with your ChatGPT plan or another provider's key, or with a model on your Mac.")
-            VStack(spacing: Spacing.inner) {
-                option(.claudeCode, title: "Your Claude subscription", detail: "Through Claude Code on this Mac.") { claudeCodeDetail }
-                option(.apiKey, title: "An Anthropic API key", detail: "Pay per use, billed by Anthropic. Usually a cent or two per run.") { apiKeyDetail }
-                option(.chatGPT, title: "Your ChatGPT plan", detail: "Sign in with ChatGPT. Plus or Pro, no extra cost.") { ChatGPTOnboardingDetail(model: model) }
-                option(.provider, title: "An OpenAI or other API key", detail: "Pay per use, billed by the provider.") { ProviderOnboardingDetail(model: model) }
-                option(.local, title: "A model on this Mac", detail: "Ollama or LM Studio. Nothing leaves your Mac.") { localDetail }
+            // Five options don't fit the window; the header stays put and the options scroll.
+            ScrollView {
+                VStack(spacing: Spacing.inner) {
+                    option(.claudeCode, title: "Your Claude subscription", detail: "Through Claude Code on this Mac.") { claudeCodeDetail }
+                    option(.apiKey, title: "An Anthropic API key", detail: "Pay per use, billed by Anthropic. Usually a cent or two per run.") { apiKeyDetail }
+                    option(.chatGPT, title: "Your ChatGPT plan", detail: "Sign in with ChatGPT. Plus or Pro, no extra cost.") { ChatGPTOnboardingDetail(model: model) }
+                    option(.provider, title: "An OpenAI or other API key", detail: "Pay per use, billed by the provider.") { ProviderOnboardingDetail(model: model) }
+                    option(.local, title: "A model on this Mac", detail: "Ollama or LM Studio. Nothing leaves your Mac.") { localDetail }
+                }
+                .padding(2)
             }
         }
     }

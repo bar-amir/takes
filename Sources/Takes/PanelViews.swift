@@ -161,6 +161,16 @@ struct ComposeView: View {
                     MenuPicker(options: Models.efforts.map { (value: $0, title: $0.capitalized) }, selection: $model.effort)
                 }
             }
+            if model.store.settings.engine == .chatGPT {
+                // OpenAI's Sign in with ChatGPT guidelines: say the plan is in use next to the model, with a way to manage it.
+                HStack(spacing: Spacing.item) {
+                    StripLabel("ChatGPT plan")
+                    Button("Manage") { NSWorkspace.shared.open(ChatGPTOAuth.usageURL) }
+                        .buttonStyle(PillButtonStyle(height: Spacing.control))
+                        .accessibilityLabel("Manage ChatGPT plan usage")
+                        .accessibilityHint("Opens your ChatGPT usage settings in the browser")
+                }
+            }
             Spacer(minLength: 0)
             Text(model.isOverridden ? "Changed for this run" : "From the preset")
                 .font(.system(size: 12))
@@ -401,7 +411,13 @@ struct TakesView: View {
                 VStack(alignment: .leading, spacing: Spacing.inner) {
                     Text(error).font(.system(size: 14)).foregroundStyle(Theme.avoidText).textSelection(.enabled)
                     HStack {
-                        Button("Try again", action: model.generate).buttonStyle(PrimaryButtonStyle())
+                        if error == ChatGPTEngine.usageLimitMessage || error == ChatGPTEngine.unavailableMessage {
+                            // Usage limit: the fix is in ChatGPT's settings, so that's the primary action.
+                            Button("Manage usage") { NSWorkspace.shared.open(ChatGPTOAuth.usageURL) }.buttonStyle(PrimaryButtonStyle())
+                            Button("Try again", action: model.generate).buttonStyle(SecondaryButtonStyle(height: 36))
+                        } else {
+                            Button("Try again", action: model.generate).buttonStyle(PrimaryButtonStyle())
+                        }
                         Button("Edit draft") { model.show(.compose) }.buttonStyle(SecondaryButtonStyle(height: 36))
                     }
                 }
