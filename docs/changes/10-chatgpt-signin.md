@@ -159,7 +159,14 @@ with a fake browser hitting the loopback callback, a forged callback refused, ca
 
 ## Live check
 
-LIVE_CHECK_RESULT
+Not completed. On 2 November 2026 this session ran `TAKES_LIVE_CHATGPT=1 swift test --filter ChatGPTLiveTests` once.
+The listener started, the default browser opened the real authorize URL (first-time registration), and nobody was at
+the Mac to sign in. After 5 minutes the test ended with `timedOut`, as designed. Nothing was registered, no token was
+issued and no inference request was sent. A plain `curl` of the same authorize URL got HTTP 403 from auth.openai.com,
+and so did one with a bogus client ID. That's bot protection, not a verdict on the parameters, so it proves nothing
+either way. So registration, the token exchange against the real endpoint, the real JWKS signature check, the model
+list's real shape and one real Responses stream are **still unverified live**. Run the test above at the Mac (it keeps
+tokens in memory, prints the model list and two takes, and revokes the session at the end), or follow the steps below.
 
 ### For the orchestrator (after merge)
 
