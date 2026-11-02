@@ -5,7 +5,7 @@
 <h1 align="center">Takes</h1>
 
 <p align="center">
-  <b>Rewrite anything you type, in any Mac app, with the Claude subscription you already have.</b><br>
+  <b>Rewrite anything you type, in any Mac app, with the Claude or ChatGPT plan you already have.</b><br>
   No server, no sign-up. Free and open source.
 </p>
 
@@ -70,7 +70,7 @@ brew install --cask bar-amir/tap/takes
 brew install --cask bar-amir/tap/takes
 ```
 
-Open Takes. It lives in the menu bar, and a short guided setup walks you through Accessibility access, connecting Claude, the hotkey and your first presets, ending with a real take in a practice box.
+Open Takes. It lives in the menu bar, and a short guided setup walks you through Accessibility access, connecting a model, the hotkey and your first presets, ending with a real take in a practice box.
 
 - macOS 14 or later.
 - Signed with a Developer ID and notarized by Apple. Updates arrive through Sparkle, and Takes asks before it starts checking.
@@ -82,13 +82,15 @@ Open Takes. It lives in the menu bar, and a short guided setup walks you through
 |---|---|---|
 | **Claude Code** | [Claude Code](https://claude.com/claude-code) installed and signed in to your Claude plan | Anthropic, under your account |
 | **Anthropic API key** | A key from the [Anthropic Console](https://console.anthropic.com), stored in your keychain | Anthropic, under your account |
+| **Your ChatGPT plan** | A ChatGPT Plus or Pro plan; you sign in with ChatGPT in the browser, no extra cost | OpenAI, under your account |
+| **Other provider** | Your own API key for OpenAI, Google Gemini, OpenRouter, Groq, Mistral or any https server that speaks the OpenAI API, stored in your keychain | That provider, under your account |
 | **Local model** | [Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai) running on your Mac | Nowhere: it stays on your Mac |
 
-You can switch any time in Settings › Engine.
+Claude Code is the default. You can switch any time in Settings › Engine.
 
 ## Privacy
 
-Takes sends your draft only to Anthropic, directly from your Mac and under your own Claude account, or, with a local model, nowhere outside your Mac. Dictation audio never leaves the Mac. The developer runs no server and receives nothing from the app; the app has no analytics, crash reporting or tracking. [PRIVACY.md](PRIVACY.md) lists exactly what's read, sent and stored, and what the website counts.
+Takes sends your draft only to the engine you chose, directly from your Mac and under your own account: Anthropic with Claude, OpenAI with your ChatGPT plan, the provider you picked with your own key, or, with a local model, nowhere outside your Mac. Dictation audio never leaves the Mac. The developer runs no server and receives nothing from the app; the app has no analytics, crash reporting or tracking. [PRIVACY.md](PRIVACY.md) lists exactly what's read, sent and stored, how Takes follows Anthropic's and OpenAI's rules, and what the website counts.
 
 ## Costs and responsibility
 
@@ -96,6 +98,8 @@ Takes is free, but the model it calls isn't always:
 
 - **Claude Code (your subscription):** each run counts toward your Claude plan's usage limits, like any other Claude Code use.
 - **Anthropic API key:** you're billed by Anthropic for the tokens each run uses, usually a cent or two. Takes doesn't cap your spending; set a spend limit in the [Anthropic Console](https://console.anthropic.com).
+- **Your ChatGPT plan:** no extra cost; each run counts toward your Plus or Pro plan's limits. You can cap how much Takes may use in ChatGPT › Settings › Usage.
+- **OpenAI or other API key:** you're billed by that provider for the tokens each run uses. Takes doesn't cap your spending; set a limit in the provider's console.
 - **Local model:** free, but it runs on your Mac's memory, CPU and battery.
 
 What makes a run use more: more takes, a bigger model (Opus over Sonnet over Haiku), higher effort, a long draft or reply context, and write-like-me examples. Each of these is a request of its own: the tone notes after the takes (Haiku, unless you turn "Show tone" off), ⌘T, refine, "More like take N" and ⌘R.
@@ -135,9 +139,9 @@ With Sonnet 5.5 at low effort, the first words of 3 takes appear in about 1.3 se
 </details>
 
 <details>
-<summary><b>Is it made by Anthropic?</b></summary>
+<summary><b>Is it made by Anthropic or OpenAI?</b></summary>
 
-No. Takes is an independent app that runs Claude Code or calls the Claude API with your own account.
+No. Takes is an independent app. It runs the unmodified Claude Code you signed in to, or calls Anthropic's, OpenAI's or another provider's API with your own account or key. It never sees your Claude credentials; the ChatGPT sign-in happens in your browser on OpenAI's pages. [PRIVACY.md](PRIVACY.md) spells out how it follows each company's rules.
 </details>
 
 ## Contributing
@@ -149,7 +153,7 @@ Takes is a small Swift package with no Xcode project. To build and run it:
 open build/Takes.app
 ```
 
-- [docs/development.md](docs/development.md) covers the code layout, how Takes reads text fields and calls Claude, screenshots (`Takes --snapshot <folder>`) and speed tests.
+- [docs/development.md](docs/development.md) covers the code layout, how Takes reads text fields and calls the model, screenshots (`Takes --snapshot <folder>`) and speed tests.
 - Issues labelled [good first issue](https://github.com/bar-amir/takes/labels/good%20first%20issue) and [help wanted](https://github.com/bar-amir/takes/labels/help%20wanted) are a good place to start. Reports of apps where reading or pasting fails are very welcome.
 - Read [CONTRIBUTING.md](CONTRIBUTING.md) and sign the [Contributor License Agreement](CLA.md) before your first pull request.
 - Maintainers: [docs/releasing.md](docs/releasing.md).
@@ -162,4 +166,4 @@ Takes is free, has no ads or paid tier, and is built in spare time. If it saves 
 
 The code is released under the [MIT License](LICENSE). The "Takes" name and icon aren't covered by the license; please don't use them for your own fork or product.
 
-Takes isn't made, endorsed or supported by Anthropic. It runs Claude Code or calls the Claude API with your own account.
+Takes isn't made, endorsed or supported by Anthropic, OpenAI or any other provider. It runs Claude Code or calls a provider's API with your own account.

@@ -245,7 +245,7 @@ private struct WelcomeStep: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             StepHeader(title: "Rewrite anything, in any text box",
-                       subtitle: "Press a hotkey wherever you're typing, write what you mean, and pick from a few takes by Claude. The one you pick is pasted back.")
+                       subtitle: "Press a hotkey wherever you're typing, write what you mean, and pick from a few takes by Claude or a model of your choice. The one you pick is pasted back.")
             HStack(alignment: .top, spacing: 6) {
                 tile(number: 1, title: "Press the hotkey") { BigKeysMini(combo: model.hotKey) }
                 arrow
@@ -334,11 +334,17 @@ private struct EngineStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(title: "Connect Claude", subtitle: "Takes writes with Claude, under your own account. Pick how, or use a model on your Mac.")
-            VStack(spacing: Spacing.inner) {
-                option(.claudeCode, title: "Your Claude subscription", detail: "Through Claude Code. Counts toward your plan's usage limits.") { claudeCodeDetail }
-                option(.apiKey, title: "An Anthropic API key", detail: "Pay per use, billed by Anthropic. Usually a cent or two per run; Takes doesn't cap your spending.") { apiKeyDetail }
-                option(.local, title: "A model on this Mac", detail: "Ollama or LM Studio. Free, and nothing leaves your Mac.") { localDetail }
+            StepHeader(title: "Connect a model", subtitle: "Takes writes with Claude under your own account, with your ChatGPT plan or another provider's key, or with a model on your Mac.")
+            // Five options don't fit the window; the header stays put and the options scroll.
+            ScrollView {
+                VStack(spacing: Spacing.inner) {
+                    option(.claudeCode, title: "Your Claude subscription", detail: "Through Claude Code on this Mac. Counts toward your plan's usage limits.") { claudeCodeDetail }
+                    option(.apiKey, title: "An Anthropic API key", detail: "Pay per use, billed by Anthropic. Usually a cent or two per run; Takes doesn't cap your spending.") { apiKeyDetail }
+                    option(.chatGPT, title: "Your ChatGPT plan", detail: "Sign in with ChatGPT. Plus or Pro, no extra cost; counts toward your plan's limits.") { ChatGPTOnboardingDetail(model: model) }
+                    option(.provider, title: "An OpenAI or other API key", detail: "Pay per use, billed by the provider; Takes doesn't cap your spending.") { ProviderOnboardingDetail(model: model) }
+                    option(.local, title: "A model on this Mac", detail: "Ollama or LM Studio. Free, and nothing leaves your Mac.") { localDetail }
+                }
+                .padding(2)
             }
         }
     }
@@ -426,16 +432,35 @@ private struct EngineStep: View {
 
 private struct PrivacyStep: View {
     @ObservedObject var model: OnboardingModel
+    @ObservedObject var store = Store.shared
+
+    /// The settings with the engine picked a step earlier.
+    private var settings: AppSettings {
+        var settings = store.settings
+        settings.engine = model.engineKind
+        return settings
+    }
+
+    private var recipients: String {
+        switch settings.engine {
+        case .claudeCode, .apiKey: return "your Mac and Anthropic"
+        case .chatGPT: return "your Mac and OpenAI"
+        case .provider:
+            let provider = Provider.current(settings)
+            return provider.id == "custom" ? "your Mac and the server you added" : "your Mac and \(provider.name)"
+        case .local: return "your Mac"
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(title: "Your text and Claude", subtitle: "What Takes reads, and where it goes. In short: your Mac and Anthropic, nobody else.")
+            StepHeader(title: "Your text and the model", subtitle: "What Takes reads, and where it goes. In short: \(recipients), nobody else.")
             StepCard {
                 VStack(alignment: .leading, spacing: Spacing.inner) {
                     InfoRow(icon: "text.cursor", text: "When you press the hotkey, Takes reads the text box you're typing in.")
-                    InfoRow(icon: "arrow.up.right", text: "When you ask for takes, it sends your draft and your preset's instructions straight from your Mac to Anthropic, under your own Claude account.")
+                    InfoRow(icon: "arrow.up.right", text: SetupMonitor.privacySummary(for: settings))
                     InfoRow(icon: "lock", text: "Nothing goes to the developer: there's no server and no tracking. History stays on this Mac.")
-                    InfoRow(icon: "eye", text: "Claude can get things wrong, and takes are only as good as your preset's instructions. Read a take before you send it: what you send is up to you.")
+                    InfoRow(icon: "eye", text: SetupMonitor.mistakesNote(for: settings))
                 }
             }
             StepNote("Don't use Takes on text you're not allowed to share with an AI provider, such as confidential work material.")

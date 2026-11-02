@@ -2,7 +2,7 @@ import AppKit
 import Combine
 import SwiftUI
 
-/// Watches everything Takes needs to work: Accessibility access, a working Claude engine, and a free hotkey.
+/// Watches everything Takes needs to work: Accessibility access, a working engine, and a free hotkey.
 @MainActor
 final class SetupMonitor: ObservableObject {
     static let shared = SetupMonitor()
@@ -27,6 +27,25 @@ final class SetupMonitor: ObservableObject {
     var blocking: Bool { !accessibility || !engine.isReady || !privacyAccepted }
 
     static let privacyURL = URL(string: "https://github.com/bar-amir/takes/blob/main/PRIVACY.md")!
+
+    /// Where the text goes with the chosen engine, in one sentence. Setup and onboarding both show it, so they can't drift.
+    static func privacySummary(for settings: AppSettings) -> String {
+        let destination: String
+        switch settings.engine {
+        case .claudeCode, .apiKey: destination = "to Anthropic, under your own Claude account"
+        case .chatGPT: destination = "to OpenAI, under your own ChatGPT plan"
+        case .provider:
+            let provider = Provider.current(settings)
+            destination = provider.id == "custom" ? "to the server you added, under your own account" : "to \(provider.name), under your own account"
+        case .local: return "When you ask for takes, it sends your draft, your preset's instructions and any context you add to the model server on this Mac; nothing leaves it."
+        }
+        return "When you ask for takes, it sends your draft, your preset's instructions and any context you add straight from your Mac \(destination)."
+    }
+
+    /// The reminder to check a take, naming Claude only when it's Claude writing.
+    static func mistakesNote(for settings: AppSettings) -> String {
+        (settings.engine.isClaude ? "Claude" : "Models") + " can get things wrong, and takes are only as good as your preset's instructions. Read a take before you send it: what you send is up to you."
+    }
 
     private var timer: Timer?
     private var lastEngineCheck = Date.distantPast
@@ -58,6 +77,10 @@ final class SetupMonitor: ObservableObject {
         switch Store.shared.settings.engine {
         case .local:
             engine = await Self.localEngineStatus()
+        case .provider:
+            engine = await Self.providerEngineStatus()
+        case .chatGPT:
+            engine = await Self.chatGPTEngineStatus()
         case .apiKey:
             engine = Keychain.apiKey?.isEmpty == false ? .ready("Anthropic API key saved") : .problem("No API key saved yet")
         case .claudeCode:
@@ -195,12 +218,7 @@ struct SetupView: View {
         case .checking: status = "Checking…"
         case .ready(let text), .problem(let text): status = text
         }
-        return SetupStep(number: 2, title: "Connect Claude", done: done, status: status,
-                         detail: store.settings.engine == .claudeCode
-                            ? "Takes runs Claude Code on this Mac, using your Claude subscription."
-                            : store.settings.engine == .local
-                            ? "Takes runs a local model with Ollama or LM Studio. Nothing leaves this Mac."
-                            : "Takes calls Claude with your Anthropic API key.") {
+        return SetupStep(number: 2, title: "Connect a model", done: done, status: status, detail: engineDetail) {
             if !done, monitor.engine != .checking {
                 if store.settings.engine == .claudeCode {
                     HStack(spacing: 8) {
@@ -222,7 +240,7 @@ struct SetupView: View {
                         .font(.system(size: 12))
                         .foregroundStyle(Theme.secondaryText)
                 } else {
-                    Button(store.settings.engine == .local ? "Open Engine settings" : "Add your API key") {
+                    Button(engineButton) {
                         onDone()
                         SettingsWindowController.shared.show(tab: .engine)
                     }
@@ -232,11 +250,29 @@ struct SetupView: View {
         }
     }
 
+    private var engineDetail: String {
+        switch store.settings.engine {
+        case .claudeCode: return "Takes runs Claude Code on this Mac, using your Claude subscription."
+        case .apiKey: return "Takes calls Claude with your Anthropic API key."
+        case .local: return "Takes runs a local model with Ollama or LM Studio. Nothing leaves this Mac."
+        case .chatGPT: return "Takes writes with your ChatGPT plan after you sign in with ChatGPT."
+        case .provider: return "Takes calls \(Provider.current(store.settings).name) with your own API key."
+        }
+    }
+
+    private var engineButton: String {
+        switch store.settings.engine {
+        case .chatGPT: return "Sign in with ChatGPT"
+        case .local: return "Open Engine settings"
+        case .claudeCode, .apiKey, .provider: return "Add your API key"
+        }
+    }
+
     private var privacyStep: some View {
         let accepted = store.settings.privacyAccepted
-        return SetupStep(number: 3, title: "Your text and Claude", done: accepted,
+        return SetupStep(number: 3, title: "Your text and the model", done: accepted,
                          status: accepted ? "Understood" : "Please read",
-                         detail: "When you press the hotkey, Takes reads the text box you're typing in. When you ask for takes, it sends your draft, your preset's instructions and any context you add straight from your Mac to Anthropic, under your own Claude account. Nothing goes to the developer: there's no server and no tracking. Claude can get things wrong, so read a take before you send it.") {
+                         detail: "When you press the hotkey, Takes reads the text box you're typing in. \(SetupMonitor.privacySummary(for: store.settings)) Nothing goes to the developer: there's no server and no tracking. \(SetupMonitor.mistakesNote(for: store.settings))") {
             HStack(spacing: 8) {
                 if !accepted {
                     Button("I understand") { store.settings.privacyAccepted = true }

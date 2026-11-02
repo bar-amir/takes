@@ -76,12 +76,17 @@ struct APIEngine: TakesEngine {
     }
 }
 
-/// The API key lives in the login keychain, never in the settings file.
+/// API keys live in the login keychain, never in the settings file. One item per account: the Anthropic key, and
+/// one per other provider host ("provider-api.openai.com").
 enum Keychain {
     private static let service = "com.baramir.takes"
-    private static let account = "anthropic-api-key"
+    private static let anthropicAccount = "anthropic-api-key"
 
-    static var apiKey: String? {
+    static var apiKey: String? { string(account: anthropicAccount) }
+
+    static func setAPIKey(_ key: String?) { set(key, account: anthropicAccount) }
+
+    static func string(account: String) -> String? {
         var item: CFTypeRef?
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
                                     kSecAttrAccount as String: account, kSecReturnData as String: true]
@@ -89,13 +94,14 @@ enum Keychain {
         return String(data: data, encoding: .utf8)
     }
 
-    static func setAPIKey(_ key: String?) {
+    /// Replaces the item; nil or empty removes it.
+    static func set(_ value: String?, account: String) {
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
                                     kSecAttrAccount as String: account]
         SecItemDelete(query as CFDictionary)
-        guard let key, !key.isEmpty else { return }
+        guard let value, !value.isEmpty else { return }
         var add = query
-        add[kSecValueData as String] = Data(key.utf8)
+        add[kSecValueData as String] = Data(value.utf8)
         SecItemAdd(add as CFDictionary, nil)
     }
 }

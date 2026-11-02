@@ -4,7 +4,7 @@ All notable changes to Takes. Versions follow [semantic versioning](https://semv
 
 ## 0.3.0
 
-- **Onboarding.** A guided first run: Accessibility, connecting Claude (or a local model), privacy, hotkey, starter presets, and a practice box that ends with a real take. Existing users don't see it. The setup window shares its look.
+- **Onboarding.** A guided first run: Accessibility, connecting a model, privacy, hotkey, starter presets, and a practice box that ends with a real take. Existing users don't see it. The setup window shares its look.
 - **Write and paste right away.** A preset's own hotkey can write 1 take and paste it with no panel, with a note to cancel, undo or open it in Takes. Nothing is typed if you've switched apps.
 - **Proofread.** A built-in Proofread preset and a "Minimal edits" option for any preset. Fixes are marked inline with a count, and "No mistakes found" replaces an identical take. The word diff handles punctuation and case better and reads each change to VoiceOver.
 - **Preset gallery.** 12 ready-made presets to add from Settings › Presets, the new-preset state and the panel's preset list. New installs start with 7; existing presets are never touched.
@@ -12,6 +12,9 @@ All notable changes to Takes. Versions follow [semantic versioning](https://semv
 - **Tone.** A short note on how each take may come across, and ⌘T for your draft. Per preset, on by default (off for Proofread).
 - **Dictation.** ⌘D speaks a draft, recognised on this Mac only.
 - **Local models.** A third engine: Ollama or LM Studio on this Mac, localhost only.
+- **Your ChatGPT plan.** Sign in with ChatGPT in the browser and write with the models in your Plus or Pro plan, at no extra cost. Tokens stay in your keychain; requests come from this Mac, for you, for Takes only. "Manage usage" opens your ChatGPT settings, also when the week's allowance runs out.
+- **Other provider.** Your own API key for OpenAI, Google Gemini, OpenRouter, Groq, Mistral, or any https server that speaks the OpenAI API. Keys stay in your keychain; the Engine tab lists the provider's models and tests the key.
+- **Privacy notice.** One section per engine, and a new section on how Takes follows Anthropic's and OpenAI's rules. Setup, onboarding, the Engine tab, the README and the website name whichever engine you picked. The disabled "Sign in with Claude" card is gone: Anthropic doesn't allow it for third-party apps.
 - **Your languages.** Takes starts from your Mac's languages instead of a fixed English/Hebrew choice. Presets can reply in any language, the gallery has a "Translate to …" preset for each of yours, and you can change the list in onboarding and Settings › Voice. Existing presets keep their language.
 - Preset options (Minimal edits, Show tone, Write and paste right away) sit together in one "How it writes" card.
 - Release builds can use the microphone (hardened-runtime entitlement), for dictation.

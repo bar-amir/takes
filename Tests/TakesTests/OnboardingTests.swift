@@ -56,7 +56,7 @@ final class OnboardingFlowTests: XCTestCase {
     func testSatisfiedStepsPassByThemselvesWithACheck() {
         var flow = OnboardingFlow(conditions: OnboardingConditions(accessibility: true, engineReady: true, privacyAccepted: false, hotKeyFree: true))
         flow.next()
-        XCTAssertEqual(flow.step, .privacy, "Accessibility and Claude were already done")
+        XCTAssertEqual(flow.step, .privacy, "Accessibility and the engine were already done")
         XCTAssertEqual(flow.progress.autoPassed, [.accessibility, .engine])
         XCTAssertEqual(flow.mark(for: .accessibility), .done)
         XCTAssertEqual(flow.mark(for: .engine), .done)
@@ -299,5 +299,35 @@ private final class FakePanel {
         openedFrame = frame
         self.paste = paste
         self.cancel = cancel
+    }
+}
+
+/// Setup and onboarding share one sentence on where the text goes; it must name the right place for each engine.
+@MainActor
+final class PrivacySummaryTests: XCTestCase {
+    private func settings(_ engine: EngineKind) -> AppSettings {
+        var settings = AppSettings()
+        settings.engine = engine
+        return settings
+    }
+
+    func testEachEngineNamesWhereTheTextGoes() {
+        XCTAssertTrue(SetupMonitor.privacySummary(for: settings(.claudeCode)).contains("to Anthropic, under your own Claude account"))
+        XCTAssertTrue(SetupMonitor.privacySummary(for: settings(.apiKey)).contains("to Anthropic"))
+        XCTAssertTrue(SetupMonitor.privacySummary(for: settings(.chatGPT)).contains("to OpenAI, under your own ChatGPT plan"))
+        var openAI = settings(.provider)
+        openAI.providerID = "openai"
+        XCTAssertTrue(SetupMonitor.privacySummary(for: openAI).contains("to OpenAI, under your own account"))
+        var custom = settings(.provider)
+        custom.providerID = "custom"
+        XCTAssertTrue(SetupMonitor.privacySummary(for: custom).contains("to the server you added"))
+        XCTAssertTrue(SetupMonitor.privacySummary(for: settings(.local)).contains("nothing leaves it"))
+        XCTAssertFalse(SetupMonitor.privacySummary(for: settings(.local)).contains("Anthropic"))
+    }
+
+    func testOnlyClaudeIsNamedInTheMistakesNote() {
+        XCTAssertTrue(SetupMonitor.mistakesNote(for: settings(.claudeCode)).hasPrefix("Claude can get things wrong"))
+        XCTAssertTrue(SetupMonitor.mistakesNote(for: settings(.chatGPT)).hasPrefix("Models can get things wrong"))
+        XCTAssertTrue(SetupMonitor.mistakesNote(for: settings(.local)).hasPrefix("Models can get things wrong"))
     }
 }

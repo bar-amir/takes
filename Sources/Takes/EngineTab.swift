@@ -18,12 +18,13 @@ struct EngineTab: View {
                                select: { store.settings.engine = .local }) {
                         LocalEngineSettings(selected: store.settings.engine == .local)
                     }
-                    EngineCard(selected: false, enabled: false, label: "Sign in with Claude") {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Sign in with Claude").font(.system(size: 15, weight: .semibold))
-                            Text("Public build, only if Anthropic approves it.").font(.system(size: 13))
-                        }
-                        .foregroundStyle(Theme.secondaryText)
+                    EngineCard(selected: store.settings.engine == .chatGPT, enabled: true, label: "Your ChatGPT plan",
+                               select: { store.settings.engine = .chatGPT }) {
+                        ChatGPTEngineSettings(selected: store.settings.engine == .chatGPT)
+                    }
+                    EngineCard(selected: store.settings.engine == .provider, enabled: true, label: "Other provider",
+                               select: { store.settings.engine = .provider }) {
+                        ProviderEngineSettings(selected: store.settings.engine == .provider)
                     }
 
                     SectionTitle("Defaults for new presets").padding(.top, 14)
@@ -39,9 +40,7 @@ struct EngineTab: View {
                     }
 
                     SectionTitle("Privacy").padding(.top, 14)
-                    Text(store.settings.engine == .local
-                         ? "With a local model, your drafts stay on this Mac: Takes talks only to the model server on localhost. There's no server of ours and no tracking. History and logs stay on this Mac, and logs never contain your text."
-                         : "Takes sends your draft only to Anthropic, under your own account. There's no server and no tracking. History and logs stay on this Mac, and logs never contain your text.")
+                    Text(privacyText + " There's no server of ours and no tracking. History and logs stay on this Mac, and logs never contain your text.")
                         .font(.system(size: 13)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
                     Button("Read the privacy notice") { NSWorkspace.shared.open(SetupMonitor.privacyURL) }
                         .buttonStyle(SecondaryButtonStyle())
@@ -67,6 +66,19 @@ struct EngineTab: View {
             .background(Theme.sidebar)
         }
         .task { status = await ClaudeCodeEngine.status() }
+    }
+
+    /// Where the draft goes with the chosen engine, in one sentence.
+    private var privacyText: String {
+        switch store.settings.engine {
+        case .local: return "With a local model, your drafts stay on this Mac: Takes talks only to the model server on localhost."
+        case .claudeCode, .apiKey: return "Takes sends your draft only to Anthropic, under your own account."
+        case .chatGPT: return "Takes sends your draft to OpenAI under your own ChatGPT plan, from this Mac only, and only for Takes."
+        case .provider:
+            let provider = Provider.current(store.settings)
+            return provider.id == "custom" ? "Takes sends your draft to the server you added, under your own account."
+                                           : "Takes sends your draft to \(provider.name) under your own account."
+        }
     }
 
     private var claudeCodeCard: some View {

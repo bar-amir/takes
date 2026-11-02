@@ -158,7 +158,7 @@ struct PresetGalleryView: View {
     }
 }
 
-/// The right side of the gallery: what the preset tells Claude, as the panel's preset preview shows it.
+/// The right side of the gallery: what the preset tells the model, as the panel's preset preview shows it.
 struct GalleryPresetPreview: View {
     let preset: Preset
     var added = false

@@ -25,11 +25,11 @@ Copies you build yourself never check for updates.
 | Panel state and screens | `PanelModel.swift`, `PanelViews.swift` |
 | Reading the focused field | `FocusReader.swift`, `AXProbe.swift` |
 | Pasting and restoring the clipboard | `Paster.swift`, `Toast.swift` |
-| Prompts and engines | `Prompt.swift`, `Engine.swift`, `ClaudeCodeEngine.swift`, `APIEngine.swift`, `LocalEngine.swift` |
+| Prompts and engines | `Prompt.swift`, `Engine.swift`, `ClaudeCodeEngine.swift`, `APIEngine.swift`, `LocalEngine.swift`, `ProviderEngine.swift`, `ChatGPTEngine.swift`, `ChatGPTAuth.swift` |
 | Presets, gallery and options | `Store.swift`, `PresetsTab.swift`, `PresetGallery*.swift`, `PresetOptions.swift` |
 | Features | `Proofread.swift`, `Diff.swift`, `InstantMode*.swift`, `ReplyContext*.swift`, `ToneCheck*.swift`, `Dictation*.swift` |
 | Setup and onboarding | `Setup.swift`, `Onboarding*.swift`, `SystemShortcuts.swift` |
-| Settings | `SettingsWindow.swift`, `EngineTab.swift`, `LocalEngineViews.swift` |
+| Settings | `SettingsWindow.swift`, `EngineTab.swift`, `LocalEngineViews.swift`, `ProviderEngineViews.swift`, `ChatGPTEngineViews.swift` |
 | Screenshots | `Snapshot*.swift` |
 | Speed tests | `Bench.swift`, `ToneBench.swift`, `RunLog.swift` |
 
@@ -37,13 +37,17 @@ Copies you build yourself never check for updates.
 
 `build/Takes.app/Contents/MacOS/Takes --snapshot <folder>` renders every screen with sample data to PNGs. Include the relevant ones in pull requests that change the UI. The images in `site/img` come from it.
 
-## How it calls Claude
+## How it calls the model
 
 With Claude Code: `claude -p` with a preset-built system prompt, `--model`, `--effort` and `--output-format stream-json --include-partial-messages`. Takes are separated by `===` lines and appear in the panel as they're written. It runs from an empty temp folder so no CLAUDE.md is picked up. See `Sources/Takes/ClaudeCodeEngine.swift`.
 
 With an API key, the Messages API is called directly with streaming (`Sources/Takes/APIEngine.swift`).
 
 With a local model, Takes streams from the server's OpenAI-compatible chat endpoint and only ever connects to `localhost` (`Sources/Takes/LocalEngine.swift`).
+
+With another provider, Takes streams from the provider's OpenAI-compatible chat endpoint over https with the user's key, reusing the local engine's parser (`Sources/Takes/ProviderEngine.swift`).
+
+With a ChatGPT plan, Takes signs the user in with OpenAI's Sign in with ChatGPT (OIDC + PKCE, loopback callback on 127.0.0.1, `Sources/Takes/ChatGPTAuth.swift`) and streams from the Responses API with `store: false` and the system prompt in `instructions` (`Sources/Takes/ChatGPTEngine.swift`). The one-model engines share the hooks at the end of `LocalEngine.swift`.
 
 Tone notes are one extra short request after the takes (Haiku, or the local model).
 
