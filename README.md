@@ -154,6 +154,10 @@ open build/Takes.app
 - Read [CONTRIBUTING.md](CONTRIBUTING.md) and sign the [Contributor License Agreement](CLA.md) before your first pull request.
 - Maintainers: [docs/releasing.md](docs/releasing.md).
 
+## Support Takes
+
+Takes is free, has no ads or paid tier, and is built in spare time. If it saves you time, you can support it on [GitHub Sponsors](https://github.com/sponsors/bar-amir), also reachable from the menu-bar icon › Support Takes…. Starring the repo, reporting bugs and telling a friend help too.
+
 ## License
 
 The code is released under the [MIT License](LICENSE). The "Takes" name and icon aren't covered by the license; please don't use them for your own fork or product.
