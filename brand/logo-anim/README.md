@@ -1,6 +1,6 @@
 # Logo hover animations: green-screen masters
 
-Eight Higgsfield clips (Seedance 2.5, 5 s, 960×960, no audio) for the masthead logo on the site. Each uses `logo-greenscreen.png` (the wordmark at half the frame's width, letters in Paper) as both its start and end image, so it opens and closes on the static logo. The screen is pure green because none of the brand colours is near it; the prompts limit every clip to Ink, Paper, Acid, Cobalt and Tomato.
+Nine Higgsfield clips (Seedance 2.5, 5 s, 960×960, no audio) for the masthead logo on the site. Each uses `logo-greenscreen.png` (the wordmark at half the frame's width, letters in Paper) as both its start and end image, so it opens and closes on the static logo. The screen is pure green because none of the brand colours is near it; the prompts limit every clip to Ink, Paper, Acid, Cobalt and Tomato.
 
 | Clip | What happens |
 | --- | --- |
@@ -11,6 +11,7 @@ Eight Higgsfield clips (Seedance 2.5, 5 s, 960×960, no audio) for the masthead 
 | `spiral` | The bubble twists into a hypnotic target and untwists |
 | `zipper` | The bubble unzips onto a Cobalt night sky with a Tomato planet |
 | `split` | The bubble divides into three arguing bubbles (three takes) and merges back |
+| `shuffle` | The letters pop off as cards, shuffle themselves, fan out and flip to Tomato, Cobalt and Acid backs |
 | `tv` | The bubble becomes a retro TV flipping channels |
 
 `process.py <name> <url>` downloads a master, measures the screen colour and the still frames at each end, and calls `key.sh`, which writes the transparent files in `site/img/logo/` (VP9-alpha WebM for Chrome and Firefox, HEVC-alpha MOV for Safari), trimmed so a hover always meets a moving clip.
