@@ -1,6 +1,6 @@
 # Takes
 
-A macOS menu-bar app. Focus any text field and press ⌃⌥Space. Write what you mean, pick a preset, and choose from several takes written by Claude. The one you choose is pasted back into the field you were in.
+A macOS menu-bar app. Focus any text field and press ⌃⌥Space. Write what you mean, pick a preset, and choose from several takes written by Claude, or by a model of your choice: your ChatGPT plan, your own OpenAI or other API key, or a model running on your Mac. The one you choose is pasted back into the field you were in.
 
 ## Install
 
@@ -8,7 +8,7 @@ A macOS menu-bar app. Focus any text field and press ⌃⌥Space. Write what you
 2. Open Takes. It lives in the menu bar (a speech-bubble icon) and opens a setup window.
 3. A short guided window walks you through it:
    - allow Accessibility access;
-   - connect Claude, with your own Claude Code (subscription) or an Anthropic API key, or pick a local model (Ollama or LM Studio);
+   - connect a model: Claude Code or an Anthropic API key, your ChatGPT plan, an OpenAI or other provider key, or a local model (Ollama or LM Studio);
    - read what Takes reads and sends;
    - check the hotkey is free and pick your starter presets;
    - try it once in a practice box, ending with a real take.
@@ -44,12 +44,12 @@ On first launch macOS asks for Accessibility access (System Settings › Privacy
 
 On first launch Takes opens the onboarding window described under Install. You can close it at any time; it reopens where you left off (menu-bar icon › Finish setting up Takes…). People who used Takes before onboarding existed never see it.
 
-After that, Takes watches everything it needs and opens a "Set up Takes" window when something's missing: Accessibility access, a working Claude engine (Claude Code signed in, or an API key) and a free hotkey. The window updates live as each step is done. While something is missing, the menu-bar icon shows an exclamation mark and the hotkey opens this window instead of the panel. You can open it any time from the menu-bar icon › Setup and permissions.
+After that, Takes watches everything it needs and opens a "Set up Takes" window when something's missing: Accessibility access, a working engine (Claude Code signed in, an Anthropic API key saved, signed in with ChatGPT, a provider key saved with a model picked, or a local model server running with a model) and a free hotkey. The window updates live as each step is done. While something is missing, the menu-bar icon shows an exclamation mark and the hotkey opens this window instead of the panel. You can open it any time from the menu-bar icon › Setup and permissions.
 
 ## The panel
 
 - **Compose.** The draft starts with the field's text (or the selection). The preset picked for this app is pre-selected. Change the number of takes, the model and the effort for this run only. ↵ writes the takes, ⇧↵ adds a line, ⇥ (or / in an empty draft) opens the presets, ⌘1–9 switches preset, ⌘K opens a menu of settings.
-- **What you're replying to.** ⌘J adds the message you're answering (paste or type it), ⇧⌘V uses the clipboard's text. It shows as a chip above the draft and goes to Claude as reference only, never rewritten. ⇧⌘⌫ removes it. It's cleared on every summon.
+- **What you're replying to.** ⌘J adds the message you're answering (paste or type it), ⇧⌘V uses the clipboard's text. It shows as a chip above the draft and goes to the model as reference only, never rewritten. ⇧⌘⌫ removes it. It's cleared on every summon.
 - **Dictation.** ⌘D speaks into the draft at the caret; ⌘D or Esc stops, ↵ stops and writes the takes. Speech is recognised on this Mac only; if the Mac has no on-device model for the language, Takes says so instead of using a server.
 - **How it reads.** ⌘T gives one line on how your draft may come across, and at most one thing to try. It goes away when you edit the draft.
 - **Presets.** Type to filter, ↑↓ and ↵ to choose. A preview on the right shows the preset's instruction and its Do and Avoid rules.
@@ -62,7 +62,7 @@ After that, Takes watches everything it needs and opens a "Set up Takes" window 
 
 - **Presets:** Browse presets adds ready-made ones (Proofread, Slack message, Polish email, Shorter, Friendlier, More direct, and more) as your own copies; new installs start with seven. Each preset has a name, color, an optional hotkey of its own, instruction, Do and Avoid lists, up to five write-like-me examples, reply language, the apps where it's picked automatically, the defaults for takes, model, effort and length, and "How it writes": Minimal edits, Show tone, and Write and paste right away. "Try it" runs the preset as edited. Presets can be duplicated, exported and imported as JSON.
 - **Voice:** rules applied on top of every preset, and the languages you write in. These start as your Mac's languages (System Settings › General › Language & Region); presets can reply in any language, and Browse presets offers a "Translate to …" preset for each of yours.
-- **Engine:** Claude Code on this Mac (your subscription), an Anthropic API key (stored in the keychain), or a local model (Ollama or LM Studio on this Mac; Takes finds them and lists their models, with a Test button). Also the dictation language, and an opt-in to use the clipboard as reply context when it looks like a message you just copied. Also defaults for new presets, the summon hotkey, where the panel opens, what the draft starts with, clipboard restore and history.
+- **Engine:** Claude Code on this Mac (your subscription), an Anthropic API key (stored in the keychain), your ChatGPT plan (Sign in with ChatGPT), another provider's API key (OpenAI, Google Gemini, OpenRouter, Groq, Mistral or a custom https server; stored in the keychain), or a local model (Ollama or LM Studio on this Mac; Takes finds them and lists their models, with a Test button). Also the dictation language, and an opt-in to use the clipboard as reply context when it looks like a message you just copied. Also defaults for new presets, the summon hotkey, where the panel opens, what the draft starts with, clipboard restore and history.
 - **History:** the last 30 days of runs, stored only on this Mac.
 
 Everything is saved in `~/Library/Application Support/Takes/`. Each run's timing is logged to `~/Library/Logs/Takes/runs.jsonl`.
@@ -103,13 +103,13 @@ What made it fast:
 
 Opus 5.5 needs Claude Code 2.1.280 or newer (`claude update`). The Opus rows were measured on 2.1.310.
 
-## How it calls Claude
+## How it calls the model
 
-With Claude Code: `claude -p` with a preset-built system prompt, `--model`, `--effort` and `--output-format stream-json --include-partial-messages`. Takes are separated by `===` lines and appear in the panel as they're written. It runs from an empty temp folder so no CLAUDE.md is picked up. See `Sources/Takes/ClaudeCodeEngine.swift`. With an API key, the Messages API is called directly with streaming (`Sources/Takes/APIEngine.swift`). With a local model, Takes streams from the server's OpenAI-compatible chat endpoint and only ever connects to `localhost` (`Sources/Takes/LocalEngine.swift`). Tone notes are one extra short request after the takes (Haiku, or the local model).
+With Claude Code: `claude -p` with a preset-built system prompt, `--model`, `--effort` and `--output-format stream-json --include-partial-messages`. Takes are separated by `===` lines and appear in the panel as they're written. It runs from an empty temp folder so no CLAUDE.md is picked up. See `Sources/Takes/ClaudeCodeEngine.swift`. With an API key, the Messages API is called directly with streaming (`Sources/Takes/APIEngine.swift`). With a local model, Takes streams from the server's OpenAI-compatible chat endpoint and only ever connects to `localhost` (`Sources/Takes/LocalEngine.swift`). Other provider streams from the provider's OpenAI-compatible chat endpoint over https with your key (`Sources/Takes/ProviderEngine.swift`). Your ChatGPT plan signs you in with OpenAI's Sign in with ChatGPT and streams from the Responses API with `store: false` (`Sources/Takes/ChatGPTEngine.swift`). Tone notes are one extra short request after the takes (Haiku with Claude, otherwise the model you picked).
 
 ## Privacy
 
-Takes sends your draft only to Anthropic, directly from your Mac and under your own Claude account, or, with a local model, nowhere outside your Mac. Dictation audio never leaves the Mac. The developer runs no server and receives nothing; there's no analytics or tracking. See [PRIVACY.md](PRIVACY.md) for exactly what's read, sent and stored. Claude can get things wrong: read a take before you send it.
+Takes sends your draft only to the engine you chose, directly from your Mac and under your own account: Anthropic with Claude, OpenAI with your ChatGPT plan, the provider you picked with your own key, or, with a local model, nowhere outside your Mac. Dictation audio never leaves the Mac. The developer runs no server and receives nothing; there's no analytics or tracking. See [PRIVACY.md](PRIVACY.md) for exactly what's read, sent and stored, and how Takes follows Anthropic's and OpenAI's rules. Takes runs the unmodified Claude Code you signed in to and never sees your Claude credentials. Models can get things wrong: read a take before you send it.
 
 ## Contributing
 
@@ -119,4 +119,4 @@ Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) and si
 
 The code is released under the [MIT License](LICENSE). The "Takes" name and icon aren't covered by the license; please don't use them for your own fork or product.
 
-Takes isn't made, endorsed or supported by Anthropic. It runs Claude Code or calls the Claude API with your own account.
+Takes isn't made, endorsed or supported by Anthropic, OpenAI or any other model provider. It runs Claude Code or calls the provider you chose with your own account.

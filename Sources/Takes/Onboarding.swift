@@ -11,7 +11,7 @@ enum OnboardingStep: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .welcome: return "Welcome"
         case .accessibility: return "Accessibility"
-        case .engine: return "Connect Claude"
+        case .engine: return "Connect a model"
         case .privacy: return "Your text"
         case .hotkey: return "Hotkey"
         case .presets: return "Presets"
