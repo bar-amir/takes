@@ -5,6 +5,7 @@ import SwiftUI
 final class SettingsState: ObservableObject {
     @Published var tab = SettingsTab.presets
     @Published var selectedPresetID: String?
+    @Published var showGallery = false
 }
 
 @MainActor
@@ -14,7 +15,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     private var window: NSWindow?
     private let state = SettingsState()
 
-    func show(tab: SettingsTab, newPreset: Bool = false) {
+    func show(tab: SettingsTab, newPreset: Bool = false, gallery: Bool = false) {
         let store = Store.shared
         state.tab = tab
         if newPreset {
@@ -24,6 +25,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         } else if state.selectedPresetID == nil || store.preset(id: state.selectedPresetID) == nil {
             state.selectedPresetID = store.presets.first?.id
         }
+        if gallery { state.showGallery = true }
 
         let window = self.window ?? makeWindow()
         self.window = window

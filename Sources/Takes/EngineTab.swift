@@ -11,10 +11,14 @@ struct EngineTab: View {
         HStack(alignment: .top, spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    SectionTitle("Where Claude runs")
+                    SectionTitle("Where your takes are written")
                     claudeCodeCard
                     apiKeyCard
-                    EngineCard(selected: false, enabled: false) {
+                    EngineCard(selected: store.settings.engine == .local, enabled: true, label: "Local model",
+                               select: { store.settings.engine = .local }) {
+                        LocalEngineSettings(selected: store.settings.engine == .local)
+                    }
+                    EngineCard(selected: false, enabled: false, label: "Sign in with Claude") {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Sign in with Claude").font(.system(size: 15, weight: .semibold))
                             Text("Public build, only if Anthropic approves it.").font(.system(size: 13))
@@ -28,16 +32,21 @@ struct EngineTab: View {
                         LabeledMenu(label: "Model", options: Models.all.map { (value: $0.id, title: $0.label) }, selection: $store.settings.defaultModel)
                         LabeledMenu(label: "Effort", options: Models.efforts.map { (value: $0, title: $0.capitalized) }, selection: $store.settings.defaultEffort)
                     }
+                    LocalEngineModelNote()
                     if let ms = store.settings.lastFirstTextMs {
                         Text(String(format: "Last run: first words after %.1f s.", Double(ms) / 1000))
                             .font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
                     }
 
                     SectionTitle("Privacy").padding(.top, 14)
-                    Text("Takes sends your draft only to Anthropic, under your own account. There's no server and no tracking. History and logs stay on this Mac, and logs never contain your text.")
+                    Text(store.settings.engine == .local
+                         ? "With a local model, your drafts stay on this Mac: Takes talks only to the model server on localhost. There's no server of ours and no tracking. History and logs stay on this Mac, and logs never contain your text."
+                         : "Takes sends your draft only to Anthropic, under your own account. There's no server and no tracking. History and logs stay on this Mac, and logs never contain your text.")
                         .font(.system(size: 13)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
                     Button("Read the privacy notice") { NSWorkspace.shared.open(SetupMonitor.privacyURL) }
                         .buttonStyle(SecondaryButtonStyle())
+
+                    ReplyContextSettings()
                 }
                 .padding(32)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -49,6 +58,8 @@ struct EngineTab: View {
                     VoiceRulesEditor()
                     SectionTitle("Panel and paste").padding(.top, 14)
                     PanelSettings()
+                    SectionTitle("Dictation").padding(.top, 14)
+                    DictationSettings()
                 }
                 .padding(32)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -59,7 +70,7 @@ struct EngineTab: View {
     }
 
     private var claudeCodeCard: some View {
-        EngineCard(selected: store.settings.engine == .claudeCode, enabled: true, select: { store.settings.engine = .claudeCode }) {
+        EngineCard(selected: store.settings.engine == .claudeCode, enabled: true, label: "Claude Code on this Mac", select: { store.settings.engine = .claudeCode }) {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
                     Text("Claude Code on this Mac").font(.system(size: 15, weight: .semibold))
@@ -93,7 +104,7 @@ struct EngineTab: View {
     }
 
     private var apiKeyCard: some View {
-        EngineCard(selected: store.settings.engine == .apiKey, enabled: true, select: { store.settings.engine = .apiKey }) {
+        EngineCard(selected: store.settings.engine == .apiKey, enabled: true, label: "Anthropic API key", select: { store.settings.engine = .apiKey }) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Anthropic API key").font(.system(size: 15, weight: .semibold))
                 Text("Pay per use, billed by Anthropic. Usually a cent or two per run.").font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
@@ -125,6 +136,8 @@ struct EngineTab: View {
 private struct EngineCard<Content: View>: View {
     let selected: Bool
     let enabled: Bool
+    /// For VoiceOver: the card's controls stay separate elements, and the radio dot says what it picks.
+    var label = ""
     var select: () -> Void = {}
     @ViewBuilder var content: Content
 
@@ -135,6 +148,11 @@ private struct EngineCard<Content: View>: View {
                 if selected { Circle().fill(Theme.accent).frame(width: 8, height: 8) }
             }
             .padding(.top, 3)
+            .accessibilityElement()
+            .accessibilityLabel(label)
+            .accessibilityValue(selected ? "Selected" : enabled ? "Not selected" : "Not available")
+            .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
+            .accessibilityAction { if enabled { select() } }
             content
             Spacer(minLength: 0)
         }
@@ -144,8 +162,7 @@ private struct EngineCard<Content: View>: View {
                                                            style: StrokeStyle(lineWidth: selected ? 2 : 1, dash: enabled ? [] : [4, 3])))
         .contentShape(Rectangle())
         .onTapGesture { if enabled { select() } }
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
+        .accessibilityElement(children: .contain)
     }
 }
 
@@ -193,12 +210,33 @@ struct VoiceTab: View {
                 Text("These apply on top of each preset's own Do and Avoid lists. Untick a rule to pause it.")
                     .font(.system(size: 14)).foregroundStyle(Theme.secondaryText)
                 VoiceRulesEditor()
+                WritingLanguagesSection()
+                    .padding(.top, 18)
             }
             .padding(32)
             .frame(maxWidth: 760, alignment: .leading)
             .frame(maxWidth: .infinity)
         }
         .background(Theme.sidebar)
+    }
+}
+
+/// The languages the user writes in: presets can reply in any of them, and the gallery offers a translate preset for each.
+struct WritingLanguagesSection: View {
+    @ObservedObject var store = Store.shared
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            SectionTitle("Languages you write in")
+            Text("Presets can reply in any of these, and Browse presets offers a translate preset for each. They start as your Mac's languages.")
+                .font(.system(size: 14)).foregroundStyle(Theme.secondaryText)
+            LanguageChips(languages: Binding(get: { store.settings.writingLanguages },
+                                             set: { store.settings.languages = $0 }))
+            if store.settings.languages != nil, store.settings.languages != Languages.fromSystem() {
+                Button("Use my Mac's languages") { store.settings.languages = nil }
+                    .buttonStyle(SecondaryButtonStyle(height: 30))
+            }
+        }
     }
 }
 

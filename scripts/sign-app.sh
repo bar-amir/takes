@@ -19,5 +19,5 @@ if [[ -d "$FW" ]]; then
   sign "$FW/Versions/B/Updater.app"
   sign "$FW"
 fi
-sign --identifier com.baramir.takes "$APP"
+sign --identifier com.baramir.takes --entitlements "$(dirname "$0")/../Resources/Takes.entitlements" "$APP"
 codesign --verify --strict --verbose=2 "$APP"

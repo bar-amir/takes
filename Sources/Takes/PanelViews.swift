@@ -15,6 +15,9 @@ struct PanelRootView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .foregroundStyle(Theme.text)
         .background(Theme.surface)
+        // The panel is a titled window with its title bar hidden: draw from the very top, as the snapshots do,
+        // or the reserved title-bar height pushes everything down and clips the bottom row.
+        .ignoresSafeArea(.container, edges: .top)
         .tint(Theme.accent)
     }
 }
@@ -72,10 +75,13 @@ struct ComposeView: View {
         VStack(alignment: .leading, spacing: 0) {
             PanelHeader(model: model)
             Rule()
+            ReplyContextBar(model: model)
 
             ZStack(alignment: .topLeading) {
                 DraftEditor(text: $model.draft, focusToken: model.focusToken,
-                            onSubmit: model.generate, onPresets: model.openPicker, onEscape: model.escape)
+                            onSubmit: model.submitDraft, onPresets: model.openPicker, onEscape: model.escape,
+                            caret: model.draftCaret, onSelection: { model.draftSelection = $0 },
+                            onType: model.dictation.userTyped)
                 if model.draft.isEmpty {
                     Text("Write what you want to say…")
                         .font(.system(size: 17))
@@ -85,17 +91,23 @@ struct ComposeView: View {
                         .allowsHitTesting(false)
                 }
             }
-            .frame(minHeight: 96, maxHeight: .infinity)
+            // 80 (three lines) leaves room for a two-line dictation note on the fixed-height compose screen.
+            .frame(minHeight: 80, maxHeight: .infinity)
             // The text view insets its text by 7 pt (container inset 2 + line padding 5), so text starts on the gutter.
             .padding(.horizontal, Spacing.gutter - 7)
             .padding(.top, Spacing.section)
 
-            Text([model.sourceLabel, "\(model.wordCount) word\(model.wordCount == 1 ? "" : "s")"].filter { !$0.isEmpty }.joined(separator: " · "))
-                .font(.system(size: 12))
-                .foregroundStyle(Theme.secondaryText)
-                .padding(.horizontal, Spacing.gutter)
-                .padding(.top, Spacing.item)
-                .padding(.bottom, Spacing.section)
+            DictationRow(dictation: model.dictation, onToggle: model.toggleDictation) {
+                Text([model.sourceLabel, "\(model.wordCount) word\(model.wordCount == 1 ? "" : "s")"].filter { !$0.isEmpty }.joined(separator: " · "))
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.secondaryText)
+            } trailing: {
+                ReplyContextAddButton(model: model)
+            }
+            .padding(.horizontal, Spacing.gutter)
+            .padding(.top, Spacing.item)
+            .padding(.bottom, Spacing.section)
+            ToneReadSection(model: model)
 
             Rule()
             presetRow
@@ -141,11 +153,13 @@ struct ComposeView: View {
             }
             HStack(spacing: Spacing.item) {
                 StripLabel("Model")
-                MenuPicker(options: Models.all.map { (value: $0.id, title: $0.label) }, selection: $model.modelID)
+                MenuPicker(options: model.modelOptions, selection: $model.modelID)
             }
-            HStack(spacing: Spacing.item) {
-                StripLabel("Effort")
-                MenuPicker(options: Models.efforts.map { (value: $0, title: $0.capitalized) }, selection: $model.effort)
+            if !model.usesLocalEngine {
+                HStack(spacing: Spacing.item) {
+                    StripLabel("Effort")
+                    MenuPicker(options: Models.efforts.map { (value: $0, title: $0.capitalized) }, selection: $model.effort)
+                }
             }
             Spacer(minLength: 0)
             Text(model.isOverridden ? "Changed for this run" : "From the preset")
@@ -166,6 +180,7 @@ struct ComposeView: View {
                 KeyHint(keys: ["⇥"], label: "presets")
                 KeyHint(keys: ["⌘", "1–9"], label: "jump")
                 KeyHint(keys: ["⌘", "K"], label: "more")
+                ToneReadHint(model: model)
             }
             Spacer()
             Button(action: model.generate) {
@@ -188,6 +203,8 @@ struct ComposeView: View {
             }
             ShortcutButton(key: "k") { model.onMore() }
             ShortcutButton(key: ",") { model.onOpenSettings(.presets, false) }
+            ReplyContextShortcuts(model: model)
+            ShortcutButton(key: "d") { model.toggleDictation() }
         }
     }
 }
@@ -251,7 +268,8 @@ struct PresetPickerView: View {
                         sectionTitle("All presets")
                         ForEach(others, id: \.element.id) { row($0.element, index: $0.offset) }
                     }
-                    if rows.isEmpty {
+                    if model.showsBrowseRow { BrowsePresetsRow(model: model) }
+                    if rows.isEmpty && !model.showsBrowseRow {
                         Text("No preset matches “\(model.filter)”.")
                             .font(.system(size: 14)).foregroundStyle(Theme.secondaryText).padding(12)
                     }
@@ -319,7 +337,7 @@ struct PresetPickerView: View {
                 VStack(alignment: .leading, spacing: Spacing.section) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(preset.name).font(.system(size: 17, weight: .bold))
-                        Text(preset.summary).font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
+                        Text(preset.summary(for: model.store.settings)).font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
                     }
                     Text(preset.instruction).font(.system(size: 14)).foregroundStyle(Theme.controlText).lineSpacing(3)
                     if !preset.dos.isEmpty {
@@ -341,6 +359,8 @@ struct PresetPickerView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .background(Theme.strip)
+        } else if model.browseRowHighlighted {
+            BrowsePresetsPreview(model: model)
         } else {
             Theme.strip
         }
@@ -363,7 +383,6 @@ struct TakesView: View {
     @FocusState private var gridFocused: Bool
     @State private var refineFocus = 0
     @State private var gridHeight: CGFloat = 0
-    @State private var contentHeight: CGFloat = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -389,6 +408,8 @@ struct TakesView: View {
                 .padding(.horizontal, Spacing.gutter)
                 .padding(.vertical, Spacing.section)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
+            } else if model.noFixesFound {
+                NoFixesView(model: model)
             } else {
                 // The grid scrolls only past `maxGridHeight`; below that the panel grows to fit it, so the gaps
                 // above and below the cards stay equal.
@@ -416,9 +437,10 @@ struct TakesView: View {
             footer
         }
         .fixedSize(horizontal: false, vertical: true)
-        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0; model.onContentHeight($0) }
-        // The panel doesn't shrink while takes stream in; once they're done it fits again.
-        .onChange(of: model.running) { model.onContentHeight(contentHeight) }
+        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { model.takesContentHeight = $0; model.onContentHeight($0) }
+        // The panel doesn't shrink while takes stream in; once they're done it fits again. Deferred and read from
+        // the model, so it uses the finished screen's height (say "No mistakes found"), not the streaming one.
+        .onChange(of: model.running) { DispatchQueue.main.async { model.onContentHeight(model.takesContentHeight) } }
         .background(shortcuts)
         .onAppear { gridFocused = true }
         .onChange(of: model.focusToken) { gridFocused = true }
@@ -455,7 +477,7 @@ struct TakesView: View {
             .padding(.horizontal, Spacing.inner)
             .frame(height: Spacing.control)
             .background(RoundedRectangle(cornerRadius: 7).fill(Theme.accentSoft))
-            Text("\(model.takeCount) take\(model.takeCount == 1 ? "" : "s") · \(Models.label(model.modelID)) · \(model.effort.capitalized)")
+            Text(model.runLabel)
                 .font(.system(size: 13))
                 .foregroundStyle(Theme.secondaryText)
             Spacer()
@@ -498,18 +520,23 @@ struct TakesView: View {
                 KeyHint(keys: ["⌘", "C"], label: "copy only")
                 KeyHint(keys: ["esc"], label: "back")
             }
-            Spacer()
+            .fixedSize()
+            Spacer(minLength: 0)
             if model.running {
                 TimelineView(.periodic(from: model.startedAt, by: 0.1)) { context in
                     Text(String(format: "Writing… %.1f s", context.date.timeIntervalSince(model.startedAt)))
                         .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).monospacedDigit()
                 }
             } else if !model.timing.isEmpty {
-                Text(model.timing).font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
+                // In the narrow one-take panel the timing gives way rather than squeeze the key hints.
+                ViewThatFits(in: .horizontal) {
+                    Text(model.timing).font(.system(size: 12)).foregroundStyle(Theme.secondaryText).fixedSize()
+                    Color.clear.frame(width: 0, height: 0)
+                }
             }
-            Button(action: model.pasteSelected) {
+            Button(action: model.noFixesFound ? model.pasteOriginal : model.pasteSelected) {
                 HStack(spacing: Spacing.item) {
-                    Text("Paste take \(model.selected + 1)")
+                    Text(model.noFixesFound ? "Paste original" : "Paste take \(model.selected + 1)")
                     Text("↵").font(.system(size: 12)).opacity(0.85)
                 }
             }
@@ -560,6 +587,7 @@ private struct TakeCard: View {
             Group {
                 if showChanges {
                     Text(WordDiff.attributed(from: model.sourceDraft, to: model.takes[index]))
+                        .accessibilityLabel(WordDiff.spoken(from: model.sourceDraft, to: model.takes[index]))
                 } else if hasText {
                     Text(model.takes[index])
                 } else {
@@ -575,10 +603,12 @@ private struct TakeCard: View {
             .lineSpacing(4)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, minHeight: 96, maxHeight: .infinity, alignment: .topLeading)
+            TakeToneLine(model: model, index: index)
 
             Rule()
             HStack(spacing: Spacing.item) {
-                Text(finished ? "\(WordCounter.count(model.takes[index])) words" : "writing")
+                Text(!finished ? "writing" : model.showsFixes ? Proofread.fixLabel(model.fixCount(index))
+                     : "\(WordCounter.count(model.takes[index])) words")
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.secondaryText)
                 Spacer()

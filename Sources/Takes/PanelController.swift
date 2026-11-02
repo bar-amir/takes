@@ -34,6 +34,8 @@ final class PanelController {
     private var lastScreen: PanelModel.Screen?
     /// What the takes screen last said it needs (0 until it has laid out).
     private var takesHeight: CGFloat = 0
+    /// Onboarding's practice box: the chosen take goes back to it instead of being pasted into another app.
+    private var practice: (paste: (String) -> Void, cancel: () -> Void)?
 
     init() {
         model.onClose = { [weak self] in self?.close() }
@@ -46,20 +48,61 @@ final class PanelController {
             SettingsWindowController.shared.show(tab: tab, newPreset: newPreset)
         }
         model.onMore = { [weak self] in self?.showMoreMenu() }
+        model.onOpenGallery = { [weak self] in
+            self?.close()
+            SettingsWindowController.shared.show(tab: .presets, gallery: true)
+        }
+        model.dictation.onRegainFocus = { [weak self] in self?.panel?.makeKey() }
         model.textSelectionActive = { [weak self] in
             guard let textView = self?.panel?.firstResponder as? NSTextView else { return false }
             return textView.selectedRange().length > 0
         }
+        ClipboardWatch.shared.activate()
     }
 
     var isVisible: Bool { panel?.isVisible == true }
 
     func summon(presetID: String? = nil) {
+        // Before the field is read: its ⌘A ⌘C fallback changes the clipboard.
+        let clipboard = ClipboardWatch.shared.captureForSummon()
+        summon(focus: FocusReader.snapshot(prefill: Store.shared.settings.prefill), presetID: presetID, clipboard: clipboard)
+    }
+
+    /// Opens the panel on a field already read (instant mode hands over here), letting the caller set it up.
+    func summon(focus: FocusSnapshot, presetID: String?, clipboard: ClipboardCandidate? = nil,
+                configure: (PanelModel) -> Void = { _ in }) {
         toast.dismiss()
-        let focus = FocusReader.snapshot(prefill: Store.shared.settings.prefill)
+        endPractice()
+        model.summonClipboard = clipboard
         caretRect = focus.caretRect
         fieldRect = FocusReader.fieldFrame(of: focus.element)
+        open(focus: focus, presetID: presetID, configure: configure)
+    }
+
+    /// Opens the panel on onboarding's practice box: the same panel and model, with the box's text and frame
+    /// standing in for the focused field. `paste` gets the chosen take; `cancel` runs if the panel closes without one.
+    func summonPractice(text: String, boxFrame: CGRect?, paste: @escaping (String) -> Void, cancel: @escaping () -> Void) {
+        toast.dismiss()
+        endPractice()
+        practice = (paste, cancel)
+        caretRect = boxFrame
+        fieldRect = boxFrame
+        // The first try should show several takes to choose from, so it starts on a rewriting preset, not a proofreader.
+        let presetID = Store.shared.presets.first { !$0.isMinimalEdits }?.id
+        open(focus: FocusSnapshot(app: nil, text: text, source: .field, caretRect: boxFrame), presetID: presetID)
+        model.previewAppName = "the practice box"
+    }
+
+    private func endPractice() {
+        let cancel = practice?.cancel
+        practice = nil
+        cancel?()
+    }
+
+    private func open(focus: FocusSnapshot, presetID: String?, configure: (PanelModel) -> Void = { _ in }) {
+        model.previewAppName = nil
         model.reset(focus: focus, presetID: presetID)
+        configure(model)
         let panel = self.panel ?? makePanel()
         self.panel = panel
         lastScreen = nil
@@ -93,7 +136,7 @@ final class PanelController {
         guard let panel else { return }
         let size: CGSize
         switch model.screen {
-        case .compose: size = CGSize(width: 720, height: 400)
+        case .compose: size = CGSize(width: 720, height: 400 + ReplyContextBar.extraHeight(model))
         case .presets: size = CGSize(width: 800, height: 560)
         case .takes:
             let count = max(model.cardCount, model.takeCount)
@@ -135,6 +178,12 @@ final class PanelController {
     }
 
     private func paste(index: Int, text: String, presetID: String?) {
+        if let practice {
+            self.practice = nil
+            close()
+            practice.paste(text)
+            return
+        }
         let focus = model.focus
         let replaceAll = focus?.source == .field && !(focus?.text.isEmpty ?? true)
         let restore = Store.shared.settings.restoreClipboard
@@ -181,7 +230,9 @@ final class PanelController {
     }
 
     func close() {
+        model.dictation.dismiss()
         panel?.orderOut(nil)
+        endPractice()
     }
 }
 

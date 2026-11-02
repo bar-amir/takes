@@ -19,6 +19,10 @@ final class PanelModel: ObservableObject {
     @Published var effort = "low"
 
     @Published var takes: [String] = []
+    /// How each take may come across, filled in after the takes are written.
+    let takeTones = TakeTones()
+    /// "How does this read?" for the draft in compose.
+    let toneRead = ToneReadModel()
     @Published var running = false
     @Published var error: String?
     @Published var selected = 0
@@ -34,6 +38,21 @@ final class PanelModel: ObservableObject {
     /// Bumped to move keyboard focus to the screen's main input.
     @Published var focusToken = 0
 
+    /// What the user is replying to (ReplyContext.swift). Cleared on every summon.
+    @Published var replyContext: ReplyContext?
+    @Published var editingContext = false
+    @Published var contextFocusToken = 0
+    @Published var contextNotice: String?
+    /// The clipboard as it was at summon, for the opt-in clipboard context.
+    var summonClipboard: ClipboardCandidate?
+    /// Speaking into the draft (⌘D).
+    let dictation = Dictation()
+    /// Where the draft editor puts the caret after the draft changes from outside (UTF-16 offset); nil is the end.
+    @Published var draftCaret: Int?
+    /// The draft editor's selection, reported as it changes.
+    var draftSelection: NSRange?
+    private var dictationInsertion: DictationInsertion?
+
     let store = Store.shared
     private(set) var focus: FocusSnapshot?
     private var historyID: String?
@@ -44,15 +63,20 @@ final class PanelModel: ObservableObject {
     var onClose: () -> Void = {}
     var onOpenSettings: (SettingsTab, Bool) -> Void = { _, _ in }
     var onMore: () -> Void = {}
+    var onOpenGallery: () -> Void = {}
     var onScreenChange: () -> Void = {}
     /// The takes screen reports the height it needs; the panel grows or shrinks to it.
     var onContentHeight: (CGFloat) -> Void = { _ in }
+    /// The takes screen's last measured height.
+    var takesContentHeight: CGFloat = 0
     /// True when a text field in the panel has selected text, so ⌘C copies that instead of a take.
     var textSelectionActive: () -> Bool = { false }
 
     // MARK: Derived
 
-    var preset: Preset { store.preset(id: presetID) ?? store.presets.first ?? Store.defaultPresets[0] }
+    var preset: Preset { previewPreset ?? store.preset(id: presetID) ?? store.presets.first ?? Store.defaultPresets[0] }
+    /// Stands in for the chosen preset in `--snapshot` renders, without touching the saved presets.
+    var previewPreset: Preset?
     /// Stands in for the focused app in `--snapshot` renders.
     var previewAppName: String?
     var previewAppURL: URL?
@@ -70,7 +94,9 @@ final class PanelModel: ObservableObject {
 
     var wordCount: Int { WordCounter.count(draft) }
 
-    var isOverridden: Bool { takeCount != preset.takes || modelID != preset.model || effort != preset.effort }
+    var isOverridden: Bool {
+        takeCount != preset.takes || modelID != store.settings.runModel(for: preset) || (!usesLocalEngine && effort != preset.effort)
+    }
 
     /// Cards to show: the takes so far plus placeholders for ones still coming.
     var cardCount: Int { running ? max(takeCount, takes.count) : takes.count }
@@ -84,6 +110,9 @@ final class PanelModel: ObservableObject {
     func reset(focus: FocusSnapshot, presetID forced: String?) {
         runToken += 1
         self.focus = focus
+        dictation.dismiss()
+        draftCaret = nil
+        draftSelection = nil
         draft = focus.text
         if let forced, store.preset(id: forced) != nil {
             presetID = forced
@@ -96,7 +125,11 @@ final class PanelModel: ObservableObject {
             autoPicked = false
         }
         applyPresetSettings()
+        if usesLocalEngine { Task { await LocalModels.shared.refresh() } }
+        resetReplyContext(draft: focus.text)
         takes = []
+        takeTones.reset()
+        toneRead.dismiss()
         running = false
         error = nil
         refineText = ""
@@ -115,11 +148,14 @@ final class PanelModel: ObservableObject {
             running = false
             show(.compose)
         case .compose:
-            onClose()
+            // One step back at a time: dictation first, then the tone read, then close.
+            if dictation.handleEscape() { return }
+            if toneRead.isShown { toneRead.dismiss() } else { onClose() }
         }
     }
 
     func show(_ next: Screen) {
+        if next != .compose { dictation.dismiss() }
         screen = next
         focusToken += 1
         onScreenChange()
@@ -146,9 +182,18 @@ final class PanelModel: ObservableObject {
     }
 
     var highlightedPreset: Preset? {
+        if browseRowHighlighted { return nil }
         let list = filteredPresets
         return list.indices.contains(highlighted) ? list[highlighted] : list.first
     }
+
+    /// The picker ends with a quiet "Browse more presets" row while the user has only a few presets,
+    /// and whenever the filter matches none.
+    var browseRowLimit = PresetGallery.browseRowLimit
+    var showsBrowseRow: Bool {
+        filteredPresets.isEmpty || (filter.trimmingCharacters(in: .whitespaces).isEmpty && store.presets.count < browseRowLimit)
+    }
+    var browseRowHighlighted: Bool { showsBrowseRow && highlighted == filteredPresets.count }
 
     /// ⌘1–9 follow the order in Settings › Presets.
     func shortcutNumber(of preset: Preset) -> Int? {
@@ -163,7 +208,7 @@ final class PanelModel: ObservableObject {
     }
 
     func moveHighlight(_ delta: Int) {
-        let count = filteredPresets.count
+        let count = filteredPresets.count + (showsBrowseRow ? 1 : 0)
         guard count > 0 else { return }
         highlighted = (highlighted + delta + count) % count
     }
@@ -171,6 +216,7 @@ final class PanelModel: ObservableObject {
     func filterChanged() { highlighted = 0 }
 
     func chooseHighlighted() {
+        if browseRowHighlighted { onOpenGallery(); return }
         if let preset = highlightedPreset { choose(preset.id) }
     }
 
@@ -189,7 +235,7 @@ final class PanelModel: ObservableObject {
     private func applyPresetSettings() {
         let preset = self.preset
         takeCount = preset.takes
-        modelID = preset.model
+        modelID = store.settings.runModel(for: preset)
         effort = preset.effort
     }
 
@@ -213,8 +259,9 @@ final class PanelModel: ObservableObject {
         let draft = self.draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !draft.isEmpty else { return }
         let request = EngineRequest(
-            system: PromptBuilder.system(preset: preset, takes: takeCount, rules: store.settings.voiceRules),
-            user: PromptBuilder.user(draft: draft, mode: mode, takes: takeCount),
+            system: PromptBuilder.system(preset: preset, takes: takeCount, rules: store.settings.voiceRules,
+                                         hasContext: promptContext != nil),
+            user: PromptBuilder.user(draft: draft, mode: mode, takes: takeCount, context: promptContext),
             takes: takeCount, model: modelID, effort: effort)
         let engine = Engines.current(store.settings)
 
@@ -223,8 +270,10 @@ final class PanelModel: ObservableObject {
         running = true
         error = nil
         takes = []
+        takeTones.reset()
+        toneRead.dismiss()
         selected = 0
-        changesShown = []
+        changesShown = showsFixes ? Set(0..<takeCount) : []
         timing = ""
         sourceDraft = draft
         startedAt = Date()
@@ -264,7 +313,33 @@ final class PanelModel: ObservableObject {
         RunLog.append(["kind": "app", "model": request.model, "effort": request.effort, "takes": request.takes,
                        "engine": store.settings.engine.rawValue, "wallMs": result.wallMs,
                        "firstTextMs": result.firstTextMs ?? -1, "app": appBundleID ?? ""])
+        takeTones.fetch(takes: takes, showTone: preset.showTone, settings: store.settings)
         onScreenChange()
+    }
+
+    // MARK: Dictation
+
+    func toggleDictation() {
+        guard screen == .compose else { return }
+        if !dictation.isActive { dictationInsertion = nil }
+        dictation.onTranscript = { [weak self] in self?.insertDictated($0) }
+        dictation.toggle()
+    }
+
+    /// ↵ in the draft: dictation's note uses it first, otherwise it writes the takes.
+    func submitDraft() {
+        if dictation.handleReturn() { return }
+        generate()
+    }
+
+    /// Puts the latest transcript at the caret, replacing the previous one from the same recording.
+    func insertDictated(_ transcript: String) {
+        let insertion = dictationInsertion ?? DictationInsertion(
+            text: draft, selection: draftSelection ?? NSRange(location: (draft as NSString).length, length: 0))
+        dictationInsertion = insertion
+        let result = insertion.apply(transcript)
+        draftCaret = result.caret
+        draft = result.text
     }
 
     // MARK: Takes

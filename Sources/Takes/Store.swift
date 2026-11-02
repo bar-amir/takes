@@ -17,18 +17,6 @@ struct AppRef: Codable, Hashable, Identifiable {
     var id: String { bundleID }
 }
 
-enum ReplyLanguage: String, Codable, CaseIterable, Identifiable {
-    case sameAsDraft, english, hebrew
-    var id: String { rawValue }
-    var label: String {
-        switch self {
-        case .sameAsDraft: return "Same as draft"
-        case .english: return "English"
-        case .hebrew: return "עברית"
-        }
-    }
-}
-
 enum TakeLength: String, Codable, CaseIterable, Identifiable {
     case sameOrShorter, shorter, any, longer
     var id: String { rawValue }
@@ -70,6 +58,16 @@ struct Preset: Codable, Identifiable, Hashable {
     var takes = 3
     var model = Models.sonnet
     var effort = "low"
+    /// Instant mode: the preset's hotkey writes 1 take and pastes it with no panel. Optional so presets saved
+    /// before it existed still load; read it through `writesInstantly`.
+    var instantMode: Bool?
+    /// Proofread-style: fix mistakes only and show the fixes inline. Optional so older presets decode
+    /// (missing means off); read it through `isMinimalEdits`.
+    var minimalEdits: Bool? = nil
+    /// The gallery template this preset was copied from, so the gallery can show it as added.
+    var galleryID: String?
+    /// A short note on how each take may come across, and ⌘T in compose.
+    var showTone = true
 
     static let maxExamples = 5
     static let colors = ["#2F55E0", "#1D6B4F", "#8A4B08", "#7A3FD1", "#B42318", "#0E6E8C", "#55555E"]
@@ -79,13 +77,39 @@ struct Preset: Codable, Identifiable, Hashable {
     }
 }
 
+extension Preset {
+    /// Tolerant decoding: presets saved by an older version (missing newer keys) still load.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = Preset(name: "", colorHex: Preset.colors[0], instruction: "")
+        id = try c.decodeIfPresent(String.self, forKey: .id) ?? d.id
+        name = try c.decode(String.self, forKey: .name)
+        colorHex = try c.decodeIfPresent(String.self, forKey: .colorHex) ?? d.colorHex
+        hotKey = try c.decodeIfPresent(KeyCombo.self, forKey: .hotKey)
+        instruction = try c.decode(String.self, forKey: .instruction)
+        dos = try c.decodeIfPresent([String].self, forKey: .dos) ?? d.dos
+        avoid = try c.decodeIfPresent([String].self, forKey: .avoid) ?? d.avoid
+        examples = try c.decodeIfPresent([String].self, forKey: .examples) ?? d.examples
+        language = try c.decodeIfPresent(ReplyLanguage.self, forKey: .language) ?? d.language
+        length = try c.decodeIfPresent(TakeLength.self, forKey: .length) ?? d.length
+        apps = try c.decodeIfPresent([AppRef].self, forKey: .apps) ?? d.apps
+        takes = try c.decodeIfPresent(Int.self, forKey: .takes) ?? d.takes
+        model = try c.decodeIfPresent(String.self, forKey: .model) ?? d.model
+        effort = try c.decodeIfPresent(String.self, forKey: .effort) ?? d.effort
+        showTone = try c.decodeIfPresent(Bool.self, forKey: .showTone) ?? d.showTone
+        instantMode = try c.decodeIfPresent(Bool.self, forKey: .instantMode)
+        minimalEdits = try c.decodeIfPresent(Bool.self, forKey: .minimalEdits)
+        galleryID = try c.decodeIfPresent(String.self, forKey: .galleryID)
+    }
+}
+
 struct VoiceRule: Codable, Identifiable, Hashable {
     var id = UUID().uuidString
     var text: String
     var enabled = true
 }
 
-enum EngineKind: String, Codable { case claudeCode, apiKey }
+enum EngineKind: String, Codable { case claudeCode, apiKey, local }
 /// Where the panel opens. Whichever is picked, the panel moves aside rather than cover the text box.
 enum PanelPosition: String, Codable, CaseIterable, Identifiable {
     case nearCursor, topLeft, topCenter, topRight, center, bottomLeft, bottomCenter, bottomRight
@@ -125,7 +149,7 @@ struct AppSettings: Codable {
     var voiceRules: [VoiceRule] = [
         VoiceRule(text: "Never use em dashes"),
         VoiceRule(text: "No corporate filler (\"hope this finds you well\")"),
-        VoiceRule(text: "Keep Hebrew and English as I wrote them unless a preset translates"),
+        VoiceRule(text: "Keep each language as I wrote it unless a preset translates"),
         VoiceRule(text: "Spell these names exactly: [names, product terms]", enabled: false),
     ]
     var defaultTakes = 3
@@ -135,6 +159,17 @@ struct AppSettings: Codable {
     var lastFirstTextMs: Int?
     /// The user has read what Takes reads and where it sends it (setup step).
     var privacyAccepted = false
+    /// Local engine: an OpenAI-compatible server on this Mac, and the model every preset runs on with it.
+    var localBaseURL = LocalServerKind.ollama.defaultBaseURL
+    var localModel = ""
+    /// Attach the clipboard as reply context when it looks like a message copied just now (ReplyContext.swift). Off by default.
+    var clipboardContext = false
+    /// Dictation language (a locale identifier); empty follows macOS.
+    var dictationLanguage = ""
+    /// The languages the user writes in (codes such as "he"); nil follows the Mac's list. Read it through `writingLanguages`.
+    var languages: [String]?
+    /// Where a new user is in onboarding. Settings saved before onboarding existed decode as finished.
+    var onboarding = OnboardingProgress()
 }
 
 extension AppSettings {
@@ -143,7 +178,8 @@ extension AppSettings {
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let d = AppSettings()
-        engine = try c.decodeIfPresent(EngineKind.self, forKey: .engine) ?? d.engine
+        // An engine this version doesn't know (saved by a newer one) falls back to the default.
+        engine = (try? c.decodeIfPresent(EngineKind.self, forKey: .engine)) ?? d.engine
         summonHotKey = try c.decodeIfPresent(KeyCombo.self, forKey: .summonHotKey) ?? d.summonHotKey
         panelPosition = try c.decodeIfPresent(PanelPosition.self, forKey: .panelPosition) ?? d.panelPosition
         prefill = try c.decodeIfPresent(Prefill.self, forKey: .prefill) ?? d.prefill
@@ -155,6 +191,12 @@ extension AppSettings {
         defaultEffort = try c.decodeIfPresent(String.self, forKey: .defaultEffort) ?? d.defaultEffort
         lastFirstTextMs = try c.decodeIfPresent(Int.self, forKey: .lastFirstTextMs)
         privacyAccepted = try c.decodeIfPresent(Bool.self, forKey: .privacyAccepted) ?? d.privacyAccepted
+        localBaseURL = try c.decodeIfPresent(String.self, forKey: .localBaseURL) ?? d.localBaseURL
+        localModel = try c.decodeIfPresent(String.self, forKey: .localModel) ?? d.localModel
+        clipboardContext = try c.decodeIfPresent(Bool.self, forKey: .clipboardContext) ?? d.clipboardContext
+        dictationLanguage = try c.decodeIfPresent(String.self, forKey: .dictationLanguage) ?? d.dictationLanguage
+        languages = try c.decodeIfPresent([String].self, forKey: .languages)
+        onboarding = try c.decodeIfPresent(OnboardingProgress.self, forKey: .onboarding) ?? .existingUser
     }
 }
 
@@ -186,10 +228,14 @@ final class Store: ObservableObject {
     }()
 
     private init() {
-        presets = Store.load("presets.json") ?? Store.defaultPresets
+        let existingUser = FileManager.default.fileExists(atPath: Store.directory.appendingPathComponent("settings.json").path)
+        let presetsFile = Store.directory.appendingPathComponent("presets.json")
+        presets = Proofread.upgraded(Store.load("presets.json") ?? PresetGallery.initialPresets(existingUser: existingUser))
         settings = Store.load("settings.json") ?? AppSettings()
         history = Store.load("history.json") ?? []
         pruneHistory()
+        // Saved right away so the starters keep their ids across launches.
+        if !FileManager.default.fileExists(atPath: presetsFile.path) { save(presets, "presets.json") }
     }
 
     func preset(id: String?) -> Preset? { presets.first { $0.id == id } }
@@ -232,7 +278,11 @@ final class Store: ObservableObject {
         if kept.count != history.count { history = kept }
     }
 
+    /// `--snapshot` renders change settings to show other states; they must not reach the real files.
+    static var readOnly = false
+
     private func save<T: Encodable>(_ value: T, _ name: String) {
+        guard !Store.readOnly else { return }
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601

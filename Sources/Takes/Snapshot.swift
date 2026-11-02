@@ -60,6 +60,15 @@ enum Snapshot {
         }
         render(SetupView(monitor: SetupMonitor.shared, onDone: {}), size: CGSize(width: 640, height: 820),
                to: url.appendingPathComponent("6-setup.png"))
+        runLocalModels(to: url)
+        instantMode(to: url)
+        renderProofread(to: url)
+        presetGallery(to: url, draft: draft)
+        renderReplyContext(to: url)
+        renderToneCheck(to: url)
+        dictation(to: url)
+        renderOnboarding(to: url)
+        renderPresetOptions(to: url)
         render(MenuBarPreview(), size: CGSize(width: 360, height: 120), to: url.appendingPathComponent("7-menu-bar.png"))
         print("Wrote snapshots to \(url.path)")
     }

@@ -56,6 +56,8 @@ final class SetupMonitor: ObservableObject {
     func refreshEngine() async {
         lastEngineCheck = Date()
         switch Store.shared.settings.engine {
+        case .local:
+            engine = await Self.localEngineStatus()
         case .apiKey:
             engine = Keychain.apiKey?.isEmpty == false ? .ready("Anthropic API key saved") : .problem("No API key saved yet")
         case .claudeCode:
@@ -104,6 +106,8 @@ final class SetupWindowController: NSObject, NSWindowDelegate {
         window.isReleasedWhenClosed = false
         // Stay above System Settings so the steps are visible while granting access.
         window.level = .floating
+        window.backgroundColor = NSColor(Theme.chrome)
+        window.collectionBehavior = [.fullScreenNone]
         window.delegate = self
         window.contentView = NSHostingView(rootView: SetupView(monitor: SetupMonitor.shared, onDone: { [weak self] in self?.close() }))
         window.center()
@@ -157,6 +161,8 @@ struct SetupView: View {
             .padding(.vertical, 16)
         }
         .frame(width: 640, height: 820)
+        .background(Theme.chrome)
+        .onExitCommand(perform: onDone)
         .tint(Theme.accent)
         .animation(.easeOut(duration: 0.2), value: monitor.accessibility)
         .animation(.easeOut(duration: 0.2), value: monitor.engine)
@@ -192,6 +198,8 @@ struct SetupView: View {
         return SetupStep(number: 2, title: "Connect Claude", done: done, status: status,
                          detail: store.settings.engine == .claudeCode
                             ? "Takes runs Claude Code on this Mac, using your Claude subscription."
+                            : store.settings.engine == .local
+                            ? "Takes runs a local model with Ollama or LM Studio. Nothing leaves this Mac."
                             : "Takes calls Claude with your Anthropic API key.") {
             if !done, monitor.engine != .checking {
                 if store.settings.engine == .claudeCode {
@@ -214,7 +222,7 @@ struct SetupView: View {
                         .font(.system(size: 12))
                         .foregroundStyle(Theme.secondaryText)
                 } else {
-                    Button("Add your API key") {
+                    Button(store.settings.engine == .local ? "Open Engine settings" : "Add your API key") {
                         onDone()
                         SettingsWindowController.shared.show(tab: .engine)
                     }
@@ -228,7 +236,7 @@ struct SetupView: View {
         let accepted = store.settings.privacyAccepted
         return SetupStep(number: 3, title: "Your text and Claude", done: accepted,
                          status: accepted ? "Understood" : "Please read",
-                         detail: "When you press the hotkey, Takes reads the text box you're typing in. When you ask for takes, it sends your draft and your preset's instructions straight from your Mac to Anthropic, under your own Claude account. Nothing goes to the developer: there's no server and no tracking. Claude can get things wrong, so read a take before you send it.") {
+                         detail: "When you press the hotkey, Takes reads the text box you're typing in. When you ask for takes, it sends your draft, your preset's instructions and any context you add straight from your Mac to Anthropic, under your own Claude account. Nothing goes to the developer: there's no server and no tracking. Claude can get things wrong, so read a take before you send it.") {
             HStack(spacing: 8) {
                 if !accepted {
                     Button("I understand") { store.settings.privacyAccepted = true }
@@ -275,32 +283,21 @@ private struct SetupStep<Actions: View>: View {
     @ViewBuilder var actions: Actions
 
     var body: some View {
-        HStack(alignment: .top, spacing: 14) {
-            ZStack {
-                Circle().fill(done ? Theme.doFill : Theme.accentSoft).frame(width: 30, height: 30)
-                if done {
-                    Image(systemName: "checkmark").font(.system(size: 13, weight: .bold)).foregroundStyle(Theme.doText)
-                } else {
-                    Text("\(number)").font(.system(size: 14, weight: .bold)).foregroundStyle(Theme.accent)
+        StepCard(highlighted: !done) {
+            HStack(alignment: .top, spacing: 14) {
+                StepBadge(number: number, state: done ? .done : .current)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
+                        Text(title).font(.system(size: 15, weight: .semibold))
+                        StatusPill(text: status, good: done)
+                    }
+                    Text(detail).font(.system(size: 13)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
+                    actions
                 }
+                Spacer(minLength: 0)
             }
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 8) {
-                    Text(title).font(.system(size: 15, weight: .semibold))
-                    Text(status)
-                        .font(.system(size: 11, weight: .semibold))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .foregroundStyle(done ? Theme.doText : Theme.avoidText)
-                        .background(Capsule().fill(done ? Theme.doFill : Theme.avoidFill))
-                }
-                Text(detail).font(.system(size: 13)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
-                actions
-            }
-            Spacer(minLength: 0)
         }
-        .padding(16)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .textBackgroundColor)))
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(done ? Theme.border : Theme.accent.opacity(0.5)))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Step \(number), \(title), \(status)")
     }
 }

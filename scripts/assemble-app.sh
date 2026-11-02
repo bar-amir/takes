@@ -47,6 +47,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>LSUIElement</key><true/>
   <key>LSApplicationCategoryType</key><string>public.app-category.productivity</string>
   <key>NSHumanReadableCopyright</key><string>© 2026 Bar Amir. MIT License.</string>
+  <key>NSMicrophoneUsageDescription</key><string>Takes listens only while you dictate a draft (⌘D in the panel). Your speech is turned into text on this Mac and the audio never leaves it.</string>
+  <key>NSSpeechRecognitionUsageDescription</key><string>Takes turns your dictated draft into text on this Mac, using on-device speech recognition only. Nothing is sent to Apple or anyone else.</string>
 $SPARKLE_KEYS
 </dict>
 </plist>

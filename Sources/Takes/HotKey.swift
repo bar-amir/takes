@@ -7,6 +7,8 @@ final class HotKeyCenter {
 
     private var refs: [EventHotKeyRef] = []
     private var handlers: [UInt32: () -> Void] = [:]
+    /// Short-lived hotkeys (Esc while instant mode writes), kept apart so `replaceAll` leaves them alone.
+    private var transient: [UInt32: (ref: EventHotKeyRef, handler: () -> Void)] = [:]
     private var nextID: UInt32 = 1
 
     private init() {
@@ -16,7 +18,7 @@ final class HotKeyCenter {
             GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID),
                               nil, MemoryLayout<EventHotKeyID>.size, nil, &hotKeyID)
             let id = hotKeyID.id
-            DispatchQueue.main.async { HotKeyCenter.shared.handlers[id]?() }
+            DispatchQueue.main.async { (HotKeyCenter.shared.handlers[id] ?? HotKeyCenter.shared.transient[id]?.handler)?() }
             return noErr
         }, 1, &spec, nil, nil)
     }
@@ -42,6 +44,23 @@ final class HotKeyCenter {
             }
         }
         return failed
+    }
+
+    /// Holds `combo` until `unregisterTransient`. Returns nil when macOS refuses it.
+    func registerTransient(_ combo: KeyCombo, handler: @escaping () -> Void) -> UInt32? {
+        let id = nextID
+        nextID += 1
+        var ref: EventHotKeyRef?
+        let status = RegisterEventHotKey(combo.keyCode, combo.modifiers, EventHotKeyID(signature: OSType(0x5441_4B53), id: id),
+                                         GetApplicationEventTarget(), 0, &ref)
+        guard status == noErr, let ref else { return nil }
+        transient[id] = (ref, handler)
+        return id
+    }
+
+    func unregisterTransient(_ id: UInt32) {
+        guard let entry = transient.removeValue(forKey: id) else { return }
+        UnregisterEventHotKey(entry.ref)
     }
 
     /// Whether `combo` could be registered now. Tries it on its own, so the hotkeys already in place stay put.
