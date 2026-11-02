@@ -158,6 +158,7 @@ enum LocalModelList {
 
     /// "llama3.2:latest" → "llama3.2", "lmstudio-community/qwen2.5-7b" → "qwen2.5-7b".
     static func label(_ id: String) -> String {
+        if let name = ChatGPTModelNames.name(for: id) { return name }
         var name = id.split(separator: "/").last.map(String.init) ?? id
         if name.hasSuffix(":latest") { name.removeLast(":latest".count) }
         return name.isEmpty ? id : name
