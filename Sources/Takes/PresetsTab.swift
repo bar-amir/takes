@@ -168,6 +168,7 @@ private struct PresetEditor: View {
                     }
                     runDefaults
                     InstantModeSection(preset: $preset)
+                    MinimalEditsSection(preset: $preset)
                 }
                 .padding(.horizontal, 28)
                 .padding(.vertical, 24)

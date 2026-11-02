@@ -61,6 +61,7 @@ enum Snapshot {
                to: url.appendingPathComponent("6-setup.png"))
         runLocalModels(to: url)
         instantMode(to: url)
+        renderProofread(to: url)
         print("Wrote snapshots to \(url.path)")
     }
 

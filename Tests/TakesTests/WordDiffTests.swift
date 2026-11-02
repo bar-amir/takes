@@ -43,3 +43,65 @@ final class WordDiffTests: XCTestCase {
         XCTAssertEqual(rebuilt(segments, keeping: ["added"]), "לי")
     }
 }
+
+/// Diff edge cases that matter for proofreading.
+final class WordDiffProofreadTests: XCTestCase {
+    private func changed(_ old: String, _ new: String) -> (removed: String, added: String) {
+        let segments = WordDiff.segments(from: old, to: new)
+        return (segments.filter { $0.kind == .removed }.map(\.text).joined(),
+                segments.filter { $0.kind == .added }.map(\.text).joined())
+    }
+
+    func testAddedCommaMarksOnlyTheComma() {
+        let change = changed("Thanks Dana see you then", "Thanks Dana, see you then")
+        XCTAssertEqual(change.removed, "")
+        XCTAssertEqual(change.added, ",")
+    }
+
+    func testChangedEndPunctuationMarksOnlyThePunctuation() {
+        let change = changed("Can you send it.", "Can you send it?")
+        XCTAssertEqual(change.removed, ".")
+        XCTAssertEqual(change.added, "?")
+    }
+
+    func testPunctuationInsideAWordStaysWithIt() {
+        XCTAssertEqual(WordDiff.fixes(from: "I dont know", to: "I don't know"), [WordDiff.Fix(removed: "dont", added: "don't")])
+        XCTAssertEqual(WordDiff.fixes(from: "see x.com/a.", to: "see x.com/a.").count, 0)
+    }
+
+    func testCapitalisationIsAFix() {
+        XCTAssertEqual(WordDiff.fixes(from: "see you on monday", to: "see you on Monday"),
+                       [WordDiff.Fix(removed: "monday", added: "Monday")])
+    }
+
+    func testRewritesGroupIntoOneChange() {
+        XCTAssertEqual(WordDiff.fixes(from: "a b c", to: "x y z"), [WordDiff.Fix(removed: "a b c", added: "x y z")])
+    }
+
+    func testLineBreakChangesAreNotFixes() {
+        XCTAssertTrue(WordDiff.fixes(from: "Hi Dana,\n\nThursday works", to: "Hi Dana, Thursday works").isEmpty)
+    }
+
+    func testEmojiAndLinksAreKept() {
+        let draft = "Shipped it 🎉 notes at https://example.com/notes"
+        XCTAssertTrue(WordDiff.fixes(from: draft, to: draft).isEmpty)
+        XCTAssertEqual(WordDiff.fixes(from: draft, to: "Shipped it 🎉, notes at https://example.com/notes"),
+                       [WordDiff.Fix(removed: "", added: ",")])
+    }
+
+    func testRebuildsTextWithPunctuationChanges() {
+        let old = "ya thursday works, but i need specs.", new = "Ya, Thursday works but I need the specs."
+        let segments = WordDiff.segments(from: old, to: new)
+        XCTAssertEqual(segments.filter { $0.kind != .removed }.map(\.text).joined(), new)
+        let words = { (text: String) in text.split(whereSeparator: \.isWhitespace) }
+        XCTAssertEqual(words(segments.filter { $0.kind != .added }.map(\.text).joined()), words(old))
+    }
+
+    func testAttributedMarksAreNotColorAlone() {
+        let text = WordDiff.attributed(from: "teh cat", to: "the cat")
+        let removed = text.runs.first { $0.strikethroughStyle != nil }
+        let added = text.runs.first { $0.underlineStyle != nil }
+        XCTAssertEqual(removed.map { String(text[$0.range].characters) }, "teh")
+        XCTAssertEqual(added.map { String(text[$0.range].characters) }, "the")
+    }
+}

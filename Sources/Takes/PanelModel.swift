@@ -52,7 +52,9 @@ final class PanelModel: ObservableObject {
 
     // MARK: Derived
 
-    var preset: Preset { store.preset(id: presetID) ?? store.presets.first ?? Store.defaultPresets[0] }
+    var preset: Preset { previewPreset ?? store.preset(id: presetID) ?? store.presets.first ?? Store.defaultPresets[0] }
+    /// Stands in for the chosen preset in `--snapshot` renders, without touching the saved presets.
+    var previewPreset: Preset?
     /// Stands in for the focused app in `--snapshot` renders.
     var previewAppName: String?
     var appName: String { previewAppName ?? focus?.app?.localizedName ?? "the focused app" }
@@ -225,7 +227,7 @@ final class PanelModel: ObservableObject {
         error = nil
         takes = []
         selected = 0
-        changesShown = []
+        changesShown = showsFixes ? Set(0..<takeCount) : []
         timing = ""
         sourceDraft = draft
         startedAt = Date()
