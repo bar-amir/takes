@@ -109,6 +109,9 @@ extension Preset {
         model = try c.decodeIfPresent(String.self, forKey: .model) ?? d.model
         effort = try c.decodeIfPresent(String.self, forKey: .effort) ?? d.effort
         showTone = try c.decodeIfPresent(Bool.self, forKey: .showTone) ?? d.showTone
+        instantMode = try c.decodeIfPresent(Bool.self, forKey: .instantMode)
+        minimalEdits = try c.decodeIfPresent(Bool.self, forKey: .minimalEdits)
+        galleryID = try c.decodeIfPresent(String.self, forKey: .galleryID)
     }
 }
 

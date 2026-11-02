@@ -48,6 +48,7 @@ extension Preset {
     static var proofread: Preset {
         Preset(id: "builtin.proofread", name: "Proofread", colorHex: "#1D6B4F",
                instruction: "Fix spelling, grammar, punctuation and clear typos. Keep my words, voice and tone.",
+               dos: ["Keep line breaks, emoji, links, code and names exactly as written"],
                avoid: ["Rewording what's already correct", "Adding or removing anything"],
                takes: 1, model: Models.haiku, effort: "low", minimalEdits: true)
     }

@@ -57,7 +57,7 @@ final class PresetGalleryTests: XCTestCase {
         XCTAssertEqual(Set(all.map(\.id)).count, all.count, "Unique ids")
         XCTAssertEqual(Set(all.map { $0.name.lowercased() }).count, all.count, "Unique names")
         for preset in all {
-            XCTAssertTrue(preset.id.hasPrefix("gallery."), preset.name)
+            XCTAssertTrue(preset.id.hasPrefix("gallery.") || preset.id.hasPrefix("builtin."), preset.name)
             XCTAssertFalse(preset.name.isEmpty)
             XCTAssertGreaterThan(preset.instruction.count, 40, preset.name)
             XCTAssertFalse(preset.dos.isEmpty, preset.name)
