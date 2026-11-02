@@ -118,3 +118,14 @@ final class PresetGalleryTests: XCTestCase {
         XCTAssertTrue(model.browseRowHighlighted)
     }
 }
+
+final class StarterOrderTests: XCTestCase {
+    /// The first preset is the default for apps without one, so it must write several takes, not proofread.
+    func testFirstStarterRewrites() {
+        for languages in [["en"], ["en", "he"]] {
+            let first = PresetGallery.starters(languages: languages)[0]
+            XCTAssertFalse(first.isMinimalEdits)
+            XCTAssertGreaterThan(first.takes, 1)
+        }
+    }
+}

@@ -15,6 +15,9 @@ struct PanelRootView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .foregroundStyle(Theme.text)
         .background(Theme.surface)
+        // The panel is a titled window with its title bar hidden: draw from the very top, as the snapshots do,
+        // or the reserved title-bar height pushes everything down and clips the bottom row.
+        .ignoresSafeArea(.container, edges: .top)
         .tint(Theme.accent)
     }
 }
@@ -380,7 +383,6 @@ struct TakesView: View {
     @FocusState private var gridFocused: Bool
     @State private var refineFocus = 0
     @State private var gridHeight: CGFloat = 0
-    @State private var contentHeight: CGFloat = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -435,9 +437,10 @@ struct TakesView: View {
             footer
         }
         .fixedSize(horizontal: false, vertical: true)
-        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0; model.onContentHeight($0) }
-        // The panel doesn't shrink while takes stream in; once they're done it fits again.
-        .onChange(of: model.running) { model.onContentHeight(contentHeight) }
+        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { model.takesContentHeight = $0; model.onContentHeight($0) }
+        // The panel doesn't shrink while takes stream in; once they're done it fits again. Deferred and read from
+        // the model, so it uses the finished screen's height (say "No mistakes found"), not the streaming one.
+        .onChange(of: model.running) { DispatchQueue.main.async { model.onContentHeight(model.takesContentHeight) } }
         .background(shortcuts)
         .onAppear { gridFocused = true }
         .onChange(of: model.focusToken) { gridFocused = true }

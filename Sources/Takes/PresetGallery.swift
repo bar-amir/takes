@@ -4,7 +4,7 @@ import Foundation
 /// itself never changes. Fresh installs start with `starters`.
 enum PresetGallery {
     static var all: [Preset] {
-        [.proofread, slack, email, shorter, friendlier, direct, professional, explainSimply, summarize, statusUpdate, decline]
+        [slack, .proofread, email, shorter, friendlier, direct, professional, explainSimply, summarize, statusUpdate, decline]
             + translations(for: Store.shared.settings.writingLanguages)
     }
 
@@ -13,7 +13,8 @@ enum PresetGallery {
     static var starters: [Preset] { starters(languages: Store.shared.settings.writingLanguages) }
 
     static func starters(languages: [String]) -> [Preset] {
-        [.proofread, slack, email, shorter, friendlier, direct, decline] + (languages.count > 1 ? translations(for: languages) : [])
+        // A rewriting preset comes first: it's the default when no preset is picked for the app.
+        [slack, .proofread, email, shorter, friendlier, direct, decline] + (languages.count > 1 ? translations(for: languages) : [])
     }
 
     /// One "Translate to …" per language the user writes in.

@@ -6,6 +6,8 @@ enum Proofread {
     /// Added to the system prompt for presets with minimal edits on.
     static let rules = [
         "Minimal edits: fix only real mistakes in spelling, grammar, punctuation, capitalisation and clear typos.",
+        "These count as mistakes even in casual writing: a lowercase first letter of the message or of a sentence (hey → Hey, i → I), missing capitals on names, days and months (fri → Fri), and missing apostrophes (thats → that's, dont → don't).",
+        "Deliberate shorthand is not a mistake: keep u, w, thx, pls, lol and the like as written.",
         "Keep everything else exactly as written: word choice, voice, tone, slang, sentence order, line breaks, emoji, links, code, names and formatting.",
         "Never add, remove or reorder content. Don't rephrase a sentence that is already correct, and don't make casual writing formal.",
         "If nothing needs fixing, return the draft exactly as written.",

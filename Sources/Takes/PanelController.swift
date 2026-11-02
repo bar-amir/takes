@@ -87,7 +87,9 @@ final class PanelController {
         practice = (paste, cancel)
         caretRect = boxFrame
         fieldRect = boxFrame
-        open(focus: FocusSnapshot(app: nil, text: text, source: .field, caretRect: boxFrame), presetID: nil)
+        // The first try should show several takes to choose from, so it starts on a rewriting preset, not a proofreader.
+        let presetID = Store.shared.presets.first { !$0.isMinimalEdits }?.id
+        open(focus: FocusSnapshot(app: nil, text: text, source: .field, caretRect: boxFrame), presetID: presetID)
         model.previewAppName = "the practice box"
     }
 

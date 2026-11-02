@@ -67,6 +67,8 @@ final class PanelModel: ObservableObject {
     var onScreenChange: () -> Void = {}
     /// The takes screen reports the height it needs; the panel grows or shrinks to it.
     var onContentHeight: (CGFloat) -> Void = { _ in }
+    /// The takes screen's last measured height.
+    var takesContentHeight: CGFloat = 0
     /// True when a text field in the panel has selected text, so ⌘C copies that instead of a take.
     var textSelectionActive: () -> Bool = { false }
 
