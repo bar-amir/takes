@@ -45,6 +45,8 @@ struct EngineTab: View {
                         .font(.system(size: 13)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
                     Button("Read the privacy notice") { NSWorkspace.shared.open(SetupMonitor.privacyURL) }
                         .buttonStyle(SecondaryButtonStyle())
+
+                    ReplyContextSettings()
                 }
                 .padding(32)
                 .frame(maxWidth: .infinity, alignment: .leading)

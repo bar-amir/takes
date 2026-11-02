@@ -1,6 +1,6 @@
 # Privacy
 
-Last updated: 2026-10-27
+Last updated: 2026-11-02
 
 Takes runs entirely on your Mac. The developer runs no server and never receives your text, your settings or anything about how you use the app. Takes has no analytics, crash reporting or tracking. The only other connection it makes is the optional update check described below.
 
@@ -10,8 +10,10 @@ Only when you press the Takes hotkey (or a preset's hotkey), Takes reads:
 
 - **The text box you're typing in:** the selected text, or the text already in the box, depending on your "Start with" setting. It reads this through macOS Accessibility, which you grant in System Settings. Takes only ever reads a real text box, never the page or window around it.
 - **The clipboard, briefly:** if an app doesn't expose its text box to Accessibility, Takes copies the text with ⌘A ⌘C and then puts your previous clipboard back. When pasting a take, it puts the take on the clipboard, sends ⌘V, and then restores your clipboard (unless you turn this off).
+- **What you're replying to, only if you add it:** in the panel you can add the message you're answering (⌘J to type or paste it, ⇧⌘V to use the clipboard's text). Nothing is added unless you do it, and it's cleared every time the panel opens.
+- **The clipboard as context, only if you turn it on** (Settings › Engine › Reply context, off by default): when the panel opens, Takes checks whether the clipboard changed in the last 2 minutes and holds plain text. Only then does it read that text, and it attaches it only if it looks like a message (a few words, under 4,000 characters, not a link, number or code). Passwords marked as private by password managers, files and images are skipped. While this is on, Takes notes when the clipboard changes (not what's on it) so it can tell a fresh copy from an old one. The chip in the panel says "copied just now", and one click or ⇧⌘⌫ removes it.
 
-Takes doesn't read anything in the background, and it doesn't take screenshots.
+Takes doesn't read anything in the background, and it doesn't take screenshots. It never reads the screen or other windows for context.
 
 ## Where your text goes
 
@@ -19,7 +21,8 @@ When you ask for takes, Takes sends the following **directly from your Mac to An
 
 - your draft;
 - the chosen preset (instruction, Do and Avoid rules, your "write like me" examples);
-- your voice rules.
+- your voice rules;
+- what you're replying to, if you added it (up to 8,000 characters), marked as reference only.
 
 It goes through one of two routes, whichever you choose:
 
@@ -43,7 +46,7 @@ What Anthropic does with that text is covered by [Anthropic's privacy policy](ht
 | What | Where | How to remove it |
 |---|---|---|
 | Presets, voice rules, settings | `~/Library/Application Support/Takes/` | Delete the folder |
-| History of drafts and takes (last 30 days) | `~/Library/Application Support/Takes/history.json` | Settings › History › Clear history, or turn history off in Settings › Engine |
+| History of drafts and takes (last 30 days; never the context you replied to) | `~/Library/Application Support/Takes/history.json` | Settings › History › Clear history, or turn history off in Settings › Engine |
 | Run timings (model, timing, the app you were in; no text) | `~/Library/Logs/Takes/runs.jsonl` | Delete the file |
 | Field-reading log (app, kind of text box, how it was read, character count; no text) | `~/Library/Logs/Takes/focus.log` | Delete the file |
 | API key, if you add one | macOS keychain, item "com.baramir.takes" | Settings › Engine › Remove |

@@ -34,6 +34,14 @@ final class PanelModel: ObservableObject {
     /// Bumped to move keyboard focus to the screen's main input.
     @Published var focusToken = 0
 
+    /// What the user is replying to (ReplyContext.swift). Cleared on every summon.
+    @Published var replyContext: ReplyContext?
+    @Published var editingContext = false
+    @Published var contextFocusToken = 0
+    @Published var contextNotice: String?
+    /// The clipboard as it was at summon, for the opt-in clipboard context.
+    var summonClipboard: ClipboardCandidate?
+
     let store = Store.shared
     private(set) var focus: FocusSnapshot?
     private var historyID: String?
@@ -100,6 +108,7 @@ final class PanelModel: ObservableObject {
         }
         applyPresetSettings()
         if usesLocalEngine { Task { await LocalModels.shared.refresh() } }
+        resetReplyContext(draft: focus.text)
         takes = []
         running = false
         error = nil
@@ -227,8 +236,9 @@ final class PanelModel: ObservableObject {
         let draft = self.draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !draft.isEmpty else { return }
         let request = EngineRequest(
-            system: PromptBuilder.system(preset: preset, takes: takeCount, rules: store.settings.voiceRules),
-            user: PromptBuilder.user(draft: draft, mode: mode, takes: takeCount),
+            system: PromptBuilder.system(preset: preset, takes: takeCount, rules: store.settings.voiceRules,
+                                         hasContext: promptContext != nil),
+            user: PromptBuilder.user(draft: draft, mode: mode, takes: takeCount, context: promptContext),
             takes: takeCount, model: modelID, effort: effort)
         let engine = Engines.current(store.settings)
 

@@ -1,6 +1,6 @@
 import Foundation
 
-/// `Takes --bench [--runs N] [--model M] [--effort E] [--takes N] [--naive]`
+/// `Takes --bench [--runs N] [--model M] [--effort E] [--takes N] [--naive] [--draft D] [--context C]`
 /// Runs the engine N times on a sample draft and prints timings.
 enum Bench {
     static func run(arguments: [String]) {
@@ -12,9 +12,10 @@ enum Bench {
         let draft = value("--draft") ?? "ya thursday works but i need the specs by wed eod otherwise qa slips again, also can someone own the release notes this time"
         let takes = Int(value("--takes") ?? "") ?? 3
         let preset = Store.defaultPresets[0]
+        let context = value("--context")
         let request = EngineRequest(
-            system: PromptBuilder.system(preset: preset, takes: takes, rules: AppSettings().voiceRules),
-            user: PromptBuilder.user(draft: draft, mode: .fresh, takes: takes),
+            system: PromptBuilder.system(preset: preset, takes: takes, rules: AppSettings().voiceRules, hasContext: context != nil),
+            user: PromptBuilder.user(draft: draft, mode: .fresh, takes: takes, context: context),
             takes: takes,
             model: value("--model") ?? Models.sonnet,
             effort: value("--effort") ?? "low"

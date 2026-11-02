@@ -146,6 +146,8 @@ struct AppSettings: Codable {
     /// Local engine: an OpenAI-compatible server on this Mac, and the model every preset runs on with it.
     var localBaseURL = LocalServerKind.ollama.defaultBaseURL
     var localModel = ""
+    /// Attach the clipboard as reply context when it looks like a message copied just now (ReplyContext.swift). Off by default.
+    var clipboardContext = false
 }
 
 extension AppSettings {
@@ -169,6 +171,7 @@ extension AppSettings {
         privacyAccepted = try c.decodeIfPresent(Bool.self, forKey: .privacyAccepted) ?? d.privacyAccepted
         localBaseURL = try c.decodeIfPresent(String.self, forKey: .localBaseURL) ?? d.localBaseURL
         localModel = try c.decodeIfPresent(String.self, forKey: .localModel) ?? d.localModel
+        clipboardContext = try c.decodeIfPresent(Bool.self, forKey: .clipboardContext) ?? d.clipboardContext
     }
 }
 

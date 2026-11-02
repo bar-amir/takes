@@ -10,7 +10,7 @@ enum PromptBuilder {
         case moreLike(take: String)
     }
 
-    static func system(preset: Preset, takes: Int, rules: [VoiceRule]) -> String {
+    static func system(preset: Preset, takes: Int, rules: [VoiceRule], hasContext: Bool = false) -> String {
         var lines = [
             preset.isMinimalEdits ? "You proofread a draft message the user is about to send." : "You rewrite a draft message the user is about to send.",
             takes == 1
@@ -23,6 +23,7 @@ enum PromptBuilder {
             "Preset: \(preset.name)",
             preset.instruction,
         ]
+        if hasContext { lines.insert(ReplyContextPrompt.systemRule, at: 4) }
         if !preset.dos.isEmpty { lines.append("Do: " + preset.dos.joined(separator: "; ")) }
         if !preset.avoid.isEmpty { lines.append("Avoid: " + preset.avoid.joined(separator: "; ")) }
         if preset.isMinimalEdits { lines += Proofread.rules }
@@ -55,7 +56,12 @@ enum PromptBuilder {
         return lines.joined(separator: "\n")
     }
 
-    static func user(draft: String, mode: Mode, takes: Int) -> String {
+    /// `context` is what the user is replying to; it goes first, delimited and escaped (ReplyContext.swift).
+    static func user(draft: String, mode: Mode, takes: Int, context: String? = nil) -> String {
+        ReplyContextPrompt.block(context) + draftBlock(draft: draft, mode: mode, takes: takes)
+    }
+
+    private static func draftBlock(draft: String, mode: Mode, takes: Int) -> String {
         let versions = takes == 1 ? "1 version" : "\(takes) versions"
         switch mode {
         case .fresh:

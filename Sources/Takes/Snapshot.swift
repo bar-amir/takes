@@ -63,6 +63,7 @@ enum Snapshot {
         instantMode(to: url)
         renderProofread(to: url)
         presetGallery(to: url, draft: draft)
+        renderReplyContext(to: url)
         print("Wrote snapshots to \(url.path)")
     }
 
