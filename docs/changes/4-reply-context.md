@@ -74,7 +74,7 @@ Decision: context is **not** stored in history, logs or anywhere on disk. It's u
 - Copy: sentence case, no exclamation marks; the error says what's wrong and what to do.
 - Text alignment: chip and box line up with the gutter; box text lines up with its title.
 
-## Tests added (`Tests/TakesTests/ReplyContextTests.swift`, 17 tests)
+## Tests added (`Tests/TakesTests/ReplyContextTests.swift`, 16 tests)
 
 Prompt with and without context (unchanged without); delimiting and order; refine and more-like keep context; `===` lines neutralised and a take echoing them still splits as one; context can't close `</context>` or open `<draft>`; long context keeps start and end ≤ 8,000; trimming and word counts; preview; origin labels; recency, private types, files and images; "looks like a message" (prose, Hebrew, links, codes, short, code, oversized); auto-context rejects the field's own text and repeat offers; setting off by default and decodes from old settings; context cleared on every summon and absent from history JSON; empty context dropped on leaving the box. All 63 tests pass; `./build.sh` has no warnings.
 
