@@ -406,6 +406,7 @@ struct TakesView: View {
                 .padding(.vertical, Spacing.bar)
                 .background(Theme.strip)
             Rule()
+            CoachStrip(run: model.coach)
 
             if let error = model.error {
                 VStack(alignment: .leading, spacing: Spacing.inner) {

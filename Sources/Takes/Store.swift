@@ -187,6 +187,8 @@ struct AppSettings: Codable {
     var providerModel = ""
     /// Sign in with ChatGPT: the one model every preset runs on (a slug from OpenAI's model list).
     var chatGPTModel = ""
+    /// English coach (EnglishCoach.swift). Off by default.
+    var coach = CoachSettings()
 }
 
 extension AppSettings {
@@ -218,6 +220,7 @@ extension AppSettings {
         providerBaseURL = try c.decodeIfPresent(String.self, forKey: .providerBaseURL) ?? d.providerBaseURL
         providerModel = try c.decodeIfPresent(String.self, forKey: .providerModel) ?? d.providerModel
         chatGPTModel = try c.decodeIfPresent(String.self, forKey: .chatGPTModel) ?? d.chatGPTModel
+        coach = (try? c.decodeIfPresent(CoachSettings.self, forKey: .coach)) ?? d.coach
     }
 }
 
