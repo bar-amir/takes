@@ -35,6 +35,7 @@ extension Snapshot {
         CoachStore.shared.data = sampleData()
         render(tab(.home), size: size, to: folder.appendingPathComponent("coach-3-overview.png"))
         render(tab(.lesson("conditionals")), size: size, to: folder.appendingPathComponent("coach-4-lesson.png"))
+        render(tab(.lesson("gerundInfinitive")), size: size, to: folder.appendingPathComponent("coach-4b-lesson-new-pattern.png"))
 
         CoachStore.shared.data = CoachData()
         render(tab(.home), size: size, to: folder.appendingPathComponent("coach-5-overview-empty.png"))

@@ -34,9 +34,19 @@ final class EnglishCoachTests: XCTestCase {
 
     func testWatchedFollowsFindAll() {
         var coach = CoachSettings()
-        XCTAssertEqual(coach.watched.count, CoachGuide.patterns.count)
+        XCTAssertEqual(coach.watched.count, CoachGuide.patterns.count - CoachGuide.optIn.count)
+        XCTAssertFalse(coach.watched.contains { $0.id == "politeRequests" }, "opt-in only")
+        coach.focus.append("politeRequests")
+        XCTAssertTrue(coach.watched.contains { $0.id == "politeRequests" })
         coach.findAll = false
-        XCTAssertEqual(coach.watched.map(\.id), ["conditionals", "collocations"])
+        XCTAssertEqual(coach.watched.map(\.id), ["conditionals", "collocations", "politeRequests"])
+    }
+
+    func testCheckPromptStaysSmall() {
+        let system = CoachCheck.system(settings: CoachSettings())
+        // About 4 characters a token: the guide adds well under 1,000 tokens to each check.
+        XCTAssertLessThan(system.count, 4000, "\(system.count) characters")
+        print("coach system prompt: \(system.count) characters")
     }
 
     // MARK: Check

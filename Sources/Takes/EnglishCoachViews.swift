@@ -192,7 +192,7 @@ struct CoachHeading: View {
 }
 
 enum CoachCopy {
-    static let tokens = "Each English draft gets one extra check on your engine’s quick model: about 1,200 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing."
+    static let tokens = "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing."
     static let billing = "Claude Code or ChatGPT: counts toward your plan. An API key (Anthropic, OpenAI or other): billed like any run. A local model: free, but slower and less accurate. Usage is shown here every month."
     static let privacy = "Only the phrase around each mistake is kept, never your whole message, for 30 days. Your draft goes to your engine, as it already does for takes. Turning the coach off deletes everything it kept."
 
@@ -232,9 +232,9 @@ struct CoachIntroView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     CoachHeading("What it watches")
                     HStack(alignment: .top, spacing: 12) {
-                        card("Grammar", "Tenses, conditionals, articles, prepositions, agreement, word order.", "if you will send", "if you send")
-                        card("Word choice", "The right word for what you mean: word pairs, false friends, confusable words.", "close the light", "turn off the light")
-                        card("Natural phrasing", "Correct, but not how a native speaker would say it.", "What’s with the report?", "Any update on the report?")
+                        card("Grammar", "Tenses, conditionals, articles, prepositions, -ing or to, countable nouns, word order and more.", "if you will send", "if you send")
+                        card("Word choice", "The right word for what you mean: word pairs, false friends, set phrases, too and very.", "close the light", "turn off the light")
+                        card("Natural phrasing", "Correct, but not how a native speaker would say it, or more direct than you meant.", "What’s with the report?", "Any update on the report?")
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Goals, not mistakes").font(.system(size: 14, weight: .bold))
                             Text("How you want to sound: less formal, more phrasal verbs. Tracked as tips.")
@@ -347,7 +347,7 @@ struct CoachSetupView: View {
                                         ForEach(CoachGuide.patterns.filter { $0.group == group }) { pattern in
                                             Button(pattern.name) { toggleFocus(pattern.id) }
                                                 .buttonStyle(PillButtonStyle(selected: draft.focus.contains(pattern.id)))
-                                                .help(pattern.definition)
+                                                .help(CoachGuide.optIn.contains(pattern.id) ? "Only checked when picked. " + pattern.definition : pattern.definition)
                                         }
                                     }
                                 }
@@ -411,7 +411,7 @@ struct CoachSetupView: View {
 
             RowDivider()
             HStack(spacing: 16) {
-                (Text("About 1,200 extra tokens per English draft").fontWeight(.semibold).foregroundStyle(Color(hex: "#8A6A0A"))
+                (Text("About 1,000 extra tokens per English draft").fontWeight(.semibold).foregroundStyle(Color(hex: "#8A6A0A"))
                  + Text(" (one check on your engine’s quick model, ~40% on top of a run). Lessons are free. Keeps only the phrase around each mistake, on this Mac, for 30 days."))
                     .font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
                     .frame(maxWidth: .infinity, alignment: .leading)
