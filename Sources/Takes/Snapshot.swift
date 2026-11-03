@@ -68,6 +68,7 @@ enum Snapshot {
         presetGallery(to: url, draft: draft)
         renderReplyContext(to: url)
         renderToneCheck(to: url)
+        renderCoach(to: url)
         dictation(to: url)
         renderOnboarding(to: url)
         renderPresetOptions(to: url)
@@ -83,7 +84,7 @@ enum Snapshot {
         return height.rounded(.up)
     }
 
-    private static func render<V: View>(_ view: V, size: CGSize, to url: URL) {
+    static func render<V: View>(_ view: V, size: CGSize, to url: URL) {
         try? bitmap(of: view, size: size)?.representation(using: .png, properties: [:])?.write(to: url)
     }
 

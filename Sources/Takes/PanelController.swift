@@ -187,6 +187,8 @@ final class PanelController {
         let focus = model.focus
         let replaceAll = focus?.source == .field && !(focus?.text.isEmpty ?? true)
         let restore = Store.shared.settings.restoreClipboard
+        let nudge = model.coachNudge
+        model.coachNudge = nil
         close()
         Paster.paste(text, into: focus, replaceAll: replaceAll, restoreClipboard: restore) { [weak self] pasted in
             guard let self else { return }
@@ -198,7 +200,7 @@ final class PanelController {
                 return
             }
             self.toast.show(message: "Pasted take \(index + 1)" + (restore ? " · your clipboard is back" : ""),
-                            showUndo: true, near: self.caretRect) { [presetID] in
+                            showUndo: true, near: self.caretRect, coachNote: nudge) { [presetID] in
                 guard let presetID else { return }
                 Store.shared.addExample(text, toPreset: presetID)
             }
@@ -215,7 +217,7 @@ final class PanelController {
     private func showMoreMenu() {
         guard let panel, let view = panel.contentView else { return }
         let menu = NSMenu()
-        let items: [(String, SettingsTab)] = [("Edit presets…", .presets), ("Voice rules…", .voice), ("Engine and defaults…", .engine), ("History…", .history)]
+        let items: [(String, SettingsTab)] = [("Edit presets…", .presets), ("Voice rules…", .voice), ("English coach…", .coach), ("Engine and defaults…", .engine), ("History…", .history)]
         for (title, tab) in items {
             let item = NSMenuItem(title: title, action: #selector(MenuTarget.open(_:)), keyEquivalent: "")
             item.representedObject = tab.rawValue

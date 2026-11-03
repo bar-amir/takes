@@ -6,6 +6,8 @@ final class SettingsState: ObservableObject {
     @Published var tab = SettingsTab.presets
     @Published var selectedPresetID: String?
     @Published var showGallery = false
+    /// Where Settings › English coach is: its overview, setup or a lesson.
+    @Published var coachScreen = CoachScreen.home
 }
 
 @MainActor
@@ -66,6 +68,7 @@ struct SettingsView: View {
                 switch state.tab {
                 case .presets: PresetsTab(state: state)
                 case .voice: VoiceTab()
+                case .coach: EnglishCoachTab(state: state)
                 case .engine: EngineTab()
                 case .history: HistoryTab()
                 }

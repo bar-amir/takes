@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum SettingsTab: String, CaseIterable, Identifiable {
-    case presets = "Presets", voice = "Voice", engine = "Engine", history = "History"
+    case presets = "Presets", voice = "Voice", coach = "English coach", engine = "Engine", history = "History"
     var id: String { rawValue }
 }
 
@@ -23,6 +23,10 @@ final class PanelModel: ObservableObject {
     let takeTones = TakeTones()
     /// "How does this read?" for the draft in compose.
     let toneRead = ToneReadModel()
+    /// The English coach's check of the draft, run alongside the takes when the coach is on.
+    let coach = CoachRun()
+    /// The coach's line for the paste toast, set just before `onPaste`.
+    var coachNudge: String?
     @Published var running = false
     @Published var error: String?
     @Published var selected = 0
@@ -135,6 +139,7 @@ final class PanelModel: ObservableObject {
         takes = []
         takeTones.reset()
         toneRead.dismiss()
+        coach.reset()
         running = false
         error = nil
         refineText = ""
@@ -277,6 +282,8 @@ final class PanelModel: ObservableObject {
         takes = []
         takeTones.reset()
         toneRead.dismiss()
+        // Refining keeps the same draft, so its check stands.
+        if case .fresh = mode { coach.start(draft: draft, preset: preset, appName: appName, settings: store.settings) }
         selected = 0
         changesShown = showsFixes ? Set(0..<takeCount) : []
         timing = ""
@@ -363,6 +370,7 @@ final class PanelModel: ObservableObject {
     func paste(_ index: Int) {
         guard isFinished(index) else { return }
         if let historyID { store.markPasted(entryID: historyID, index: index) }
+        coachNudge = coach.commit()
         onPaste(index, takes[index], presetID)
     }
 
