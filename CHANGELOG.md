@@ -2,6 +2,12 @@
 
 All notable changes to Takes. Versions follow [semantic versioning](https://semver.org).
 
+## 0.5.0 · 2026-11-03
+
+- **English coach.** Off by default; turn it on in Settings › English coach. When a draft is in English, a short check runs next to your takes on the quick model of whichever engine you use (about 1,000 tokens, roughly 40% on top of a run) and points out repeated mistakes: grammar such as conditionals, tenses, articles and prepositions, and word choice such as collocations, false friends and phrasal verbs. A built-in guide of 22 patterns, with notes for Hebrew speakers, keeps the check small and its explanations consistent.
+- **Learn from your own drafts.** Pick focus areas and your own goals ("less formal in Slack"). Fixes appear under your draft in the panel; after you paste, a short note with "See why" says when a mistake is a repeat (Nudges: off, focus areas only, or any repeat). The last 30 days show what you repeat most and whether it's going down, and after 10 sightings of a pattern there's a short lesson built from your own sentences, made on this Mac at no token cost.
+- Choose which presets count (translations into another language start off), American or British English, "Not a mistake" and mute per pattern. Coach data stays on this Mac for 30 days and can be cleared at any time.
+
 ## 0.4.0 · 2026-11-02
 
 - **Your ChatGPT plan.** Sign in with ChatGPT in the browser and write with the models in your Plus or Pro plan, at no extra cost. Tokens stay in your keychain; requests come from this Mac, for you, for Takes only. "Manage usage" opens your ChatGPT settings, also when the week's allowance runs out.
