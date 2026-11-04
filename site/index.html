@@ -101,6 +101,33 @@ section h2 { font-size: clamp(52px, 6.4vw, 84px); }
 .layers canvas { position: absolute; inset: 0; touch-action: pan-y; }
 .shot { background: #fff; box-shadow: 0 1px 0 rgba(23,23,20,.08), 0 24px 60px rgba(23,23,20,.12); }
 .caption { margin: 22px 0 0; font-size: 21px; max-width: 34em; }
+.features { overflow: hidden; }
+.carousel-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 36px; }
+.carousel-nav { display: flex; gap: 10px; }
+.cnav { width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--ink); background: transparent; color: var(--ink); font: 22px var(--text); cursor: pointer; }
+.cnav:hover { background: var(--ink); color: var(--paper); }
+.cnav:disabled { opacity: .3; cursor: default; background: transparent; color: var(--ink); }
+.track { --gutter: max(24px, calc((100vw - 1180px) / 2 + 24px)); list-style: none; margin: 0; padding: 0 var(--gutter);
+  display: grid; grid-auto-flow: column; grid-auto-columns: min(1132px, calc(100vw - 48px)); gap: 20px;
+  overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); scrollbar-width: none; }
+.track::-webkit-scrollbar { display: none; }
+.track:focus-visible { outline-offset: -3px; }
+.slide { position: relative; aspect-ratio: 16 / 9; border-radius: 24px; background: #ECE2D1; overflow: hidden; scroll-snap-align: start; }
+.slide img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.slide-copy { position: absolute; left: 5.5%; top: 50%; transform: translateY(-50%); width: 33%; }
+.slide-copy .label { color: var(--muted); margin-bottom: 14px; }
+.slide-copy h3 { font: 700 clamp(30px, 3.4vw, 44px)/1 var(--display); margin: 0 0 14px; }
+.slide-copy p { font-size: clamp(16px, 1.5vw, 19px); line-height: 1.45; margin: 0; }
+.dots { display: flex; gap: 8px; margin-top: 22px; }
+.dots button { width: 9px; height: 9px; padding: 0; border-radius: 50%; border: 0; background: var(--ink); opacity: .22; cursor: pointer; }
+.dots button[aria-current="true"] { opacity: 1; }
+@media (max-width: 720px) {
+  .slide { aspect-ratio: auto; display: grid; }
+  .slide img { position: static; aspect-ratio: 4 / 3; object-position: 100% 50%; }
+  .slide-copy { position: static; transform: none; width: auto; padding: 4px 22px 26px; }
+  .carousel-nav { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .track { scroll-behavior: auto; } }
 .split { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
 .split h3 { font: 700 32px/1 var(--display); margin: 28px 0 10px; }
 .split p { margin: 0; }
@@ -143,7 +170,7 @@ footer .links a { margin-right: 22px; }
   .split { grid-template-columns: 1fr; }
   /* On a phone the words come first and the photo follows, full width. */
   .hero { height: auto; background: var(--paper); }
-  .hero-bg { position: static; order: 1; height: auto; aspect-ratio: 4 / 3; object-position: 82% 50%; }
+  .hero-bg { position: static; order: 1; height: auto; aspect-ratio: 4 / 3; object-position: 100% 50%; }
   .hero-copy { max-width: none; padding: 40px 0 48px; }
   .hero .keys { margin-top: 28px; }
   .steps { grid-template-columns: 1fr; gap: 28px; }
@@ -321,53 +348,55 @@ fill="currentColor" stroke="none">
     <div class="wrap">
       <div class="label eyebrow">The product</div>
       <h2 class="display" style="margin-bottom: 48px">Choice is the product.</h2>
-      <div class="layers" data-scene="takes" tabindex="0" aria-label="The Takes panel as floating layers: the draft above three takes of a Slack message. Point at a take, or use the arrow keys, to bring it to the front."><img src="img/layers/takes.webp" width="1500" height="997" alt="The Takes panel as floating layers: the draft above three takes of a Slack message, the middle take lifted to the front"></div>
+      <div class="layers" data-scene="takes" data-sprites="img/layers/parts" tabindex="0" aria-label="The Takes panel as floating layers: the draft above three takes of a Slack message. Point at a take, or use the arrow keys, to bring it to the front."><img src="img/layers/takes-front.webp" width="1500" height="1000" alt="The Takes panel as floating layers: the draft above three takes of a Slack message, the middle take lifted to the front"></div>
       <p class="caption">Compare complete alternatives, inspect changes, refine a selected take, then paste it back.</p>
     </div>
   </section>
 
-  <section class="paper" style="padding-top: 0">
-    <div class="wrap">
-      <h2 class="display">Your voice has controls.</h2>
-      <p class="lead">Presets guide the rewrite. Rules and examples make the instruction personal.</p>
-      <div class="split">
-        <div>
-          <img class="concept" src="img/layers/compose.webp" width="1500" height="997" loading="lazy" alt="The draft panel as floating layers, prefilled with a rough Slack draft and the Slack preset picked, with Control, Option and Space keys in front">
-          <h3>A shortcut in the app you're using</h3>
-          <p>The draft starts with your selection or the text in the field. Each app can have its own preset, picked automatically.</p>
-        </div>
-        <div>
-          <img class="concept" src="img/layers/presets.webp" width="1500" height="997" loading="lazy" alt="A stack of preset tiles with Slack message pulled out, beside its instruction and its Do and Avoid rules">
-          <h3>Configured, personal style</h3>
-          <p>Set Do and Avoid rules, voice rules for every preset, and up to five examples of how you write.</p>
-        </div>
-      </div>
+  <section id="features" class="paper features" style="padding-top: 0" aria-roledescription="carousel" aria-label="Features">
+    <div class="wrap carousel-head">
+      <h2 class="display">Also in the box.</h2>
+      <div class="carousel-nav"><button type="button" class="cnav" data-dir="-1" aria-label="Previous feature">←</button><button type="button" class="cnav" data-dir="1" aria-label="Next feature">→</button></div>
     </div>
-  </section>
-
-  <section id="new" class="paper" style="padding-top: 0">
-    <div class="wrap">
-      <h2 class="display">New in 0.3.</h2>
-      <p class="lead">Fix a typo without a round trip, write in your own languages, and keep everything on your Mac if you want.</p>
-      <div class="split">
-        <div>
-          <img class="concept" src="img/layers/proofread.webp" width="1500" height="997" loading="lazy" alt="A proofread take with each fix marked, and three fixes floating beside it: reveiw to review, tommorow to tomorrow, its to it's">
-          <h3>Proofread, marked</h3>
-          <p>Fixes spelling, grammar and punctuation, and keeps your words. Each fix is marked; when nothing needs fixing, Takes says so.</p>
-        </div>
-        <div>
-          <img class="concept" src="img/layers/local.webp" width="1500" height="997" loading="lazy" alt="The model menu as floating layers with a local model picked, and an On this Mac badge">
-          <h3>A model on your Mac</h3>
-          <p>Use Ollama or LM Studio instead of Claude, and your drafts never leave the Mac.</p>
-        </div>
-      </div>
-      <div class="voice">
-        <div class="voice-row"><div class="label">01</div><h3>Right away</h3><p>Give a preset its own shortcut and it writes and pastes, no panel.</p></div>
-        <div class="voice-row"><div class="label">02</div><h3>Your languages</h3><p>Reply in any language, with a translate preset for each one you write in.</p></div>
-        <div class="voice-row"><div class="label">03</div><h3>Context and tone</h3><p>Add the message you're answering. See how each take may land.</p></div>
-        <div class="voice-row"><div class="label">04</div><h3>Say it</h3><p>Dictate a draft. Speech stays on your Mac.</p></div>
-      </div>
-    </div>
+    <ol class="track" tabindex="0" aria-label="Features, scroll sideways or use the arrow keys">
+        <li class="slide" id="slide-shortcut" aria-label="1 of 9: A shortcut in the app you're using">
+          <img src="img/slides/shortcut.webp" width="1600" height="900" alt="A message field with a rough Slack draft, the Control, Option and Space keys pressed above it, and the Slack message preset picked">
+          <div class="slide-copy"><div class="label">01</div><h3>A shortcut in the app you're using</h3><p>The draft starts with your selection or the text in the field. Each app can have its own preset, picked automatically.</p></div>
+        </li>
+        <li class="slide" id="slide-presets" aria-label="2 of 9: Configured, personal style">
+          <img src="img/slides/presets.webp" width="1600" height="900" alt="The Slack message preset pulled out of the preset list, with its instruction, its Do rules and its Avoid rules on separate tiles" loading="lazy">
+          <div class="slide-copy"><div class="label">02</div><h3>Configured, personal style</h3><p>Set Do and Avoid rules, voice rules for every preset, and up to five examples of how you write.</p></div>
+        </li>
+        <li class="slide" id="slide-proofread" aria-label="3 of 9: Proofread, marked">
+          <img src="img/slides/proofread.webp" width="1600" height="900" alt="A proofread take with three fixes marked, reveiw to review, tommorow to tomorrow and its to it's, and the fixes floating beside it" loading="lazy">
+          <div class="slide-copy"><div class="label">03</div><h3>Proofread, marked</h3><p>Fixes spelling, grammar and punctuation, and keeps your words. Each fix is marked; when nothing needs fixing, Takes says so.</p></div>
+        </li>
+        <li class="slide" id="slide-coach" aria-label="4 of 9: Write it better next time.">
+          <img src="img/slides/coach.webp" width="1600" height="900" alt="A draft with three flagged phrases and the English coach below it, its fixes lifted out: If you will send to If you send, until tomorrow to by tomorrow, make you a feedback to give you feedback" loading="lazy">
+          <div class="slide-copy"><div class="label">04</div><h3>Write it better next time.</h3><p>Turn on the English coach and it spots the mistakes your takes fix, notices the ones you repeat, and teaches them back with your own sentences.</p></div>
+        </li>
+        <li class="slide" id="slide-local" aria-label="5 of 9: A model on your Mac">
+          <img src="img/slides/local.webp" width="1600" height="900" alt="The model menu with llama3.2 from Ollama picked, and an On this Mac badge" loading="lazy">
+          <div class="slide-copy"><div class="label">05</div><h3>A model on your Mac</h3><p>Use Ollama or LM Studio instead of Claude, and your drafts never leave the Mac.</p></div>
+        </li>
+        <li class="slide" id="slide-instant" aria-label="6 of 9: Right away">
+          <img src="img/slides/instant.webp" width="1600" height="900" alt="A pasted message in a field, a Pasted toast with Command Z to undo, and a yellow Return key" loading="lazy">
+          <div class="slide-copy"><div class="label">06</div><h3>Right away</h3><p>Give a preset its own shortcut and it writes and pastes, no panel.</p></div>
+        </li>
+        <li class="slide" id="slide-dictation" aria-label="7 of 9: Say it">
+          <img src="img/slides/dictation.webp" width="1600" height="900" alt="A draft being dictated, with a blue waveform and a Dictating label" loading="lazy">
+          <div class="slide-copy"><div class="label">07</div><h3>Say it</h3><p>Dictate a draft. Speech stays on your Mac.</p></div>
+        </li>
+        <li class="slide" id="slide-tone" aria-label="8 of 9: Context and tone">
+          <img src="img/slides/tone.webp" width="1600" height="900" alt="A take replying to Any update on the launch, with a note that it may read as warm and polite" loading="lazy">
+          <div class="slide-copy"><div class="label">08</div><h3>Context and tone</h3><p>Add the message you're answering. See how each take may land.</p></div>
+        </li>
+        <li class="slide" id="slide-languages" aria-label="9 of 9: Your languages">
+          <img src="img/slides/languages.webp" width="1600" height="900" alt="The same take in German, Spanish and English, stacked" loading="lazy">
+          <div class="slide-copy"><div class="label">09</div><h3>Your languages</h3><p>Reply in any language, with a translate preset for each one you write in.</p></div>
+        </li>
+    </ol>
+    <div class="wrap"><div class="dots"><button type="button" aria-label="Show A shortcut in the app you're using" data-i="0"></button><button type="button" aria-label="Show Configured, personal style" data-i="1"></button><button type="button" aria-label="Show Proofread, marked" data-i="2"></button><button type="button" aria-label="Show Write it better next time." data-i="3"></button><button type="button" aria-label="Show A model on your Mac" data-i="4"></button><button type="button" aria-label="Show Right away" data-i="5"></button><button type="button" aria-label="Show Say it" data-i="6"></button><button type="button" aria-label="Show Context and tone" data-i="7"></button><button type="button" aria-label="Show Your languages" data-i="8"></button></div></div>
   </section>
 
   <section id="privacy" class="truth">
@@ -412,13 +441,31 @@ fill="currentColor" stroke="none">
     <div>Takes isn't made or endorsed by Anthropic, OpenAI or any other model provider.</div>
   </div>
 </footer>
+<script>
+  // Features carousel: buttons and dots scroll one slide; arrow keys work on the focused track.
+  (() => {
+    const track = document.querySelector(".track"); if (!track) return;
+    const slides = [...track.children], dots = [...document.querySelectorAll(".dots button")], nav = document.querySelectorAll(".cnav");
+    const smooth = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+    let current = 0;
+    const go = (i) => { i = Math.max(0, Math.min(slides.length - 1, i));
+      track.scrollTo({ left: slides[i].offsetLeft - slides[0].offsetLeft, behavior: smooth }); };
+    const mark = (i) => { current = i; dots.forEach((d, j) => d.setAttribute("aria-current", j === i ? "true" : "false"));
+      nav[0].disabled = i === 0; nav[1].disabled = i === slides.length - 1; };
+    nav.forEach((b) => b.addEventListener("click", () => go(current + +b.dataset.dir)));
+    dots.forEach((d) => d.addEventListener("click", () => go(+d.dataset.i)));
+    track.addEventListener("keydown", (e) => { if (e.key === "ArrowRight") { e.preventDefault(); go(current + 1); } if (e.key === "ArrowLeft") { e.preventDefault(); go(current - 1); } });
+    const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) mark(slides.indexOf(e.target)); }), { root: track, threshold: 0.6 });
+    slides.forEach((s) => io.observe(s)); mark(0);
+  })();
+</script>
 <script type="module">
-  // The product shot becomes live WebGL layers once it's near the screen; the PNG stays as the fallback.
+  // The product shot becomes live once it's near the screen: the same rendered parts, layered in WebGL. The still stays as the fallback.
   const el = document.querySelector(".layers[data-scene]");
   if (el && "IntersectionObserver" in window) {
     const io = new IntersectionObserver(async ([e]) => {
       if (!e.isIntersecting) return; io.disconnect();
-      try { const { mount } = await import("./js/layers.js"); mount(el, el.dataset.scene, { interactive: true }); el.classList.add("live"); }
+      try { const { mount } = await import("./js/layers.js?v=3"); mount(el, el.dataset.scene, { interactive: true, sprites: el.dataset.sprites }); el.classList.add("live"); }
       catch { /* no WebGL or offline: keep the still */ }
     }, { rootMargin: "300px" });
     io.observe(el);

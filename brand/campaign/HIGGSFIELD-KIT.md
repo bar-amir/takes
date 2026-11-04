@@ -1,4 +1,4 @@
-# Higgsfield kit: layered UI stills
+# Higgsfield kit: layered UI renders
 
 Status: v1 rendered November 2026 (GPT Image 2.5, high quality, 2K, transparent), encoded to WebP at 1500 px.
 
@@ -31,3 +31,33 @@ Model: GPT Image 2.5 (`gpt_image_2_5`), `quality: high`, `resolution: 2k`, `aspe
 - Encode with `cwebp -q 86 -alpha_q 100 -m 6 -resize 1500 0 <render>.png -o site/img/layers/<scene>.webp`. The README and the site point at these files.
 - Check every word against the layout frame. Generators misspell; Proofread is the only scene with typos on purpose.
 - To change a scene, edit it in `site/js/layers.js`, re-export its frame (`DIRECTION.md` has the command), and re-render with the same prompt.
+
+## Live takes panel: one render per part
+
+The "Choice is the product" scene on the site is built from separate renders of each part, layered in WebGL with
+perspective, so the hover keeps the rendered materials. Parts: `base`, `chip`, `draft`, `take1`–`take3`, `ring`
+(the selection outline), `paste`.
+
+- Layout: `brand/campaign/frames/parts/<part>.png` (`scripts/export-layers.sh` exports them).
+- Material: the textured takes render (`site/img/layers/takes.webp`).
+- Prompt: "Render ONLY the single <part> in the FIRST reference image as a physical object, with exactly the material,
+  colour and lighting of the matching part in the SECOND reference image … Seen straight on from the front with a very
+  slight top-down perspective … Transparent background, no shadow on the ground, nothing else." Aspect: `3:2` for the
+  base, `1:1` for takes and the ring, `21:9` for the chip, the draft strip and the paste button.
+- Post: `scripts/frame-render.sh part <render.png> site/img/layers/parts/<part>.webp`. The scene draws its own soft
+  shadows, stretches the blank base to its tile, and sizes the ring to the takes.
+- The page's still (`site/img/layers/takes-front.webp`) is the same scene exported once:
+  `layers.html?scene=takes&sprites=img/layers/parts&export=1&w=1500&h=1000`.
+
+## Features carousel: one wide render per feature
+
+Nine slides (`shortcut`, `presets`, `proofread`, `coach`, `local`, `instant`, `dictation`, `tone`, `languages`), each
+from a different camera angle (`SHOTS` in `site/js/layers.js`), with the object in the right part of a 16:9 frame and
+the left kept empty for the caption.
+
+- Layout: `brand/campaign/frames/slides/<scene>.png` (`scripts/export-layers.sh`).
+- Material: the matching feature render (the takes render for `tone` and `languages`).
+- Prompt: the shared prompt above, plus "Keep the first image's exact framing (the object sits in the right part of the
+  frame, the left 40% stays completely empty)". For `instant`, add "no glow, no haze, no light or white patch behind the
+  objects"; the first render had one.
+- Post: `scripts/frame-render.sh slide <render.png> site/img/slides/<scene>.webp`.

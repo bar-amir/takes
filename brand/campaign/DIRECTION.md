@@ -12,7 +12,8 @@ Three layers of production:
 
 | Asset | Made with | Where |
 |---|---|---|
-| Live hero of the product section | WebGL (`site/js/layers.js`, scene `takes`). Point at a take and it comes to the front; arrow keys do the same. | Site, "Choice is the product" |
+| Live hero of the product section | Higgsfield renders of each part, layered in WebGL straight on with perspective (`site/js/layers.js`, scene `takes`, sprites in `site/img/layers/parts/`). Point at a take and it comes to the front; arrow keys do the same. | Site, "Choice is the product" |
+| Features carousel | One wide Higgsfield render per feature, each from its own angle, object on the right, caption on the left | Site, "Also in the box", `site/img/slides/*.webp` |
 | Composition frames | The same engine, exported on transparent backgrounds (`site/layers.html?scene=…&export=1`) | `brand/campaign/frames/*.png` |
 | Final stills | Higgsfield, from the frame (layout) plus a material reference (look), as in `HIGGSFIELD-KIT.md` | `site/img/layers/*.webp`, the README grid and the site |
 
