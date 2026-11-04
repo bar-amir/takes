@@ -371,7 +371,7 @@ fill="currentColor" stroke="none">
           <img src="img/slides/proofread.webp" width="1600" height="900" alt="A proofread take with three fixes marked, reveiw to review, tommorow to tomorrow and its to it's, and the fixes floating beside it" loading="lazy">
           <div class="slide-copy"><div class="label">03</div><h3>Proofread, marked</h3><p>Fixes spelling, grammar and punctuation, and keeps your words. Each fix is marked; when nothing needs fixing, Takes says so.</p></div>
         </li>
-        <li class="slide" id="slide-coach" aria-label="4 of 9: Write it better next time.">
+        <li class="slide" id="coach" aria-label="4 of 9: Write it better next time.">
           <img src="img/slides/coach.webp" width="1600" height="900" alt="A draft with three flagged phrases and the English coach below it, its fixes lifted out: If you will send to If you send, until tomorrow to by tomorrow, make you a feedback to give you feedback" loading="lazy">
           <div class="slide-copy"><div class="label">04</div><h3>Write it better next time.</h3><p>Turn on the English coach and it spots the mistakes your takes fix, notices the ones you repeat, and teaches them back with your own sentences.</p></div>
         </li>
@@ -455,6 +455,9 @@ fill="currentColor" stroke="none">
     nav.forEach((b) => b.addEventListener("click", () => go(current + +b.dataset.dir)));
     dots.forEach((d) => d.addEventListener("click", () => go(+d.dataset.i)));
     track.addEventListener("keydown", (e) => { if (e.key === "ArrowRight") { e.preventDefault(); go(current + 1); } if (e.key === "ArrowLeft") { e.preventDefault(); go(current - 1); } });
+    // A link to a slide (#coach from the nav) scrolls the track to it.
+    const fromHash = () => { const i = slides.findIndex((s) => "#" + s.id === location.hash); if (i >= 0) go(i); };
+    addEventListener("hashchange", fromHash); fromHash();
     const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) mark(slides.indexOf(e.target)); }), { root: track, threshold: 0.6 });
     slides.forEach((s) => io.observe(s)); mark(0);
   })();
@@ -463,6 +466,9 @@ fill="currentColor" stroke="none">
   // The product shot becomes live once it's near the screen: the same rendered parts, layered in WebGL. The still stays as the fallback.
   const el = document.querySelector(".layers[data-scene]");
   if (el && "IntersectionObserver" in window) {
+    // A link to a slide (#coach from the nav) scrolls the track to it.
+    const fromHash = () => { const i = slides.findIndex((s) => "#" + s.id === location.hash); if (i >= 0) go(i); };
+    addEventListener("hashchange", fromHash); fromHash();
     const io = new IntersectionObserver(async ([e]) => {
       if (!e.isIntersecting) return; io.disconnect();
       try { const { mount } = await import("./js/layers.js?v=3"); mount(el, el.dataset.scene, { interactive: true, sprites: el.dataset.sprites }); el.classList.add("live"); }
