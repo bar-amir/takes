@@ -2,6 +2,15 @@
 
 All notable changes to Takes. Versions follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+- **A new first run.** Takes opens on a full-window photo, then five steps: Allow access, Connect a model (it starts on what already works on your Mac and names exactly where your text goes), Make it yours, Try it, Done.
+- **Never lose Takes.** When setup ends, a popover points at the menu bar icon. Opening Takes again from Finder, Spotlight or Launchpad shows the same popover. The menu is shorter, shows the hotkey like a real shortcut, runs presets directly and shows whether the English coach is on and which model you use.
+- **A calmer panel.** Presets and run options share one row; the run options are one chip (⌘K). Take cards drop their footers (hold ⌥ to see changes), and the coach note is one line until you open it (⌘;).
+- **The English coach offers itself.** When your takes keep fixing the same kind of English mistake and the coach is off, a short note under the takes shows your own fixes and offers to turn it on. At most once a week, and "Don't ask again" means never. Setup is three short steps with sensible defaults.
+- **Settings, reorganised.** Six tabs in a smaller native window: General, Presets, Writing, Coach, Model and History.
+- Short, consistent motion everywhere (all of it follows Reduce Motion), and labels set in JetBrains Mono, like the website.
+
 ## 0.5.1 · 2026-11-04
 
 - The English coach sits below the takes in its own card. Fixes are compact chips; pick one to see why, or mark it "Not a mistake" to never see that phrase flagged again.

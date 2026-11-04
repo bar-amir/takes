@@ -264,7 +264,7 @@ final class OnboardingModel: ObservableObject {
             else if engineKind == .apiKey { saveAPIKey() }
             else if engineKind == .local { checkLocalEngine() }
             else if engineKind == .chatGPT { ChatGPTSignIn.shared.start() }
-            else if engineKind == .provider { SettingsWindowController.shared.show(tab: .engine) }
+            else if engineKind == .provider { SettingsWindowController.shared.show(tab: .model) }
             else { copySignInCommand() }
         case .personalize:
             applyPresets()

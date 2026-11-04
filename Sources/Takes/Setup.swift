@@ -204,7 +204,7 @@ struct SetupView: View {
             HStack {
                 Button("Open Settings") {
                     onDone()
-                    SettingsWindowController.shared.show(tab: .engine)
+                    SettingsWindowController.shared.show(tab: .model)
                 }
                 .buttonStyle(SecondaryButtonStyle(height: 36))
                 Spacer()
@@ -265,7 +265,7 @@ struct SetupView: View {
                         }
                         Button("Use an API key instead") {
                             onDone()
-                            SettingsWindowController.shared.show(tab: .engine)
+                            SettingsWindowController.shared.show(tab: .model)
                         }
                     }
                     Text("Paste the command in Terminal, sign in in the browser, then paste the code it shows back into Terminal.")
@@ -274,7 +274,7 @@ struct SetupView: View {
                 } else {
                     Button(engineButton) {
                         onDone()
-                        SettingsWindowController.shared.show(tab: .engine)
+                        SettingsWindowController.shared.show(tab: .model)
                     }
                     .buttonStyle(PrimaryButtonStyle())
                 }
@@ -334,7 +334,7 @@ struct SetupView: View {
             if !free {
                 Button("Change shortcut") {
                     onDone()
-                    SettingsWindowController.shared.show(tab: .engine)
+                    SettingsWindowController.shared.show(tab: .model)
                 }
                 .buttonStyle(PrimaryButtonStyle())
             }
