@@ -1,12 +1,39 @@
 import AppKit
 import SwiftUI
 
-/// The "Local model" card in Settings › Engine: finds Ollama or LM Studio, lists installed models,
+/// The "Local model" row's status in Settings › Model: which server is running and how many models it has.
+struct LocalEngineBadge: View {
+    @ObservedObject var store = Store.shared
+    @ObservedObject var local = LocalModels.shared
+
+    private var baseURL: String { store.settings.localBaseURL }
+
+    var body: some View {
+        Group {
+            if !local.checked || (local.checking && local.server(at: baseURL) == nil) {
+                ProgressView().controlSize(.mini).accessibilityLabel("Looking for local models")
+            } else {
+                let serverName = LocalServerKind.displayName(baseURL)
+                if let models = local.server(at: baseURL)?.models {
+                    if models.isEmpty {
+                        StatusBadge(text: "\(serverName) · no models", good: false)
+                    } else {
+                        StatusBadge(text: "\(serverName) · \(models.count) model\(models.count == 1 ? "" : "s")", good: true)
+                    }
+                } else {
+                    StatusBadge(text: "Not running", good: false)
+                }
+            }
+        }
+        .task { if !local.checked { await local.refresh() } }
+    }
+}
+
+/// The selected "Local model" row in Settings › Model: finds Ollama or LM Studio, lists installed models,
 /// and says plainly what to do when nothing is running or nothing is installed. It never downloads anything.
 struct LocalEngineSettings: View {
     @ObservedObject var store = Store.shared
     @ObservedObject var local = LocalModels.shared
-    let selected: Bool
 
     enum TestState: Equatable { case idle, running, passed(Int), failed(String) }
     @State var test = TestState.idle
@@ -21,39 +48,6 @@ struct LocalEngineSettings: View {
     private var serverName: String { LocalServerKind.displayName(baseURL) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                Text("Local model").font(.system(size: 15, weight: .semibold))
-                badge
-            }
-            Text("Runs on this Mac with Ollama or LM Studio, so your drafts never leave it. Small models write plainer takes than Claude. It's free, but uses this Mac's memory and battery.")
-                .font(.system(size: 13)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
-            if selected {
-                details.padding(.top, 4)
-            }
-        }
-        .task { if !local.checked { await local.refresh() } }
-    }
-
-    @ViewBuilder private var badge: some View {
-        if !local.checked || (local.checking && current == nil) {
-            ProgressView().controlSize(.mini).accessibilityLabel("Looking for local models")
-        } else {
-            let (text, good): (String, Bool) = {
-                guard let models = current?.models else { return ("Not running", false) }
-                if models.isEmpty { return ("\(serverName) · no models", false) }
-                return ("\(serverName) · \(models.count) model\(models.count == 1 ? "" : "s")", true)
-            }()
-            Text(text)
-                .font(.system(size: 11, weight: .semibold))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 2)
-                .foregroundStyle(good ? Theme.doText : Theme.avoidText)
-                .background(Capsule().fill(good ? Theme.doFill : Theme.avoidFill))
-        }
-    }
-
-    @ViewBuilder private var details: some View {
         VStack(alignment: .leading, spacing: 10) {
             if !local.checked {
                 hint("Looking for Ollama and LM Studio on this Mac…")

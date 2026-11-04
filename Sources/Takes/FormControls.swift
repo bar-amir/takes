@@ -9,31 +9,6 @@ extension Theme {
     static let dashed = Color.dynamic(light: "#A8A8B2", dark: "#5E5E68")
 }
 
-/// Centered section tabs, as in the mockup's settings title bar.
-struct TabPills<Value: Hashable>: View {
-    let options: [(value: Value, title: String)]
-    @Binding var selection: Value
-
-    var body: some View {
-        HStack(spacing: 4) {
-            ForEach(options, id: \.value) { option in
-                let selected = option.value == selection
-                Button { selection = option.value } label: {
-                    Text(option.title)
-                        .font(.system(size: 13, weight: selected ? .semibold : .regular))
-                        .foregroundStyle(selected ? Theme.text : Theme.controlText)
-                        .padding(.horizontal, 12)
-                        .frame(height: 28)
-                        .background(RoundedRectangle(cornerRadius: 7).fill(selected ? Theme.selectedRow : .clear))
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(selected ? .isSelected : [])
-            }
-        }
-    }
-}
-
 /// A row of choices joined together; the chosen one is filled dark ("Same as draft | English | עברית").
 struct ChoiceSegments<Value: Hashable>: View {
     let options: [(value: Value, title: String)]

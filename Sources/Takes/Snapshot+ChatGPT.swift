@@ -33,7 +33,7 @@ extension Snapshot {
                 Store.shared.settings.chatGPTModel = state.model
                 let settings = SettingsState()
                 settings.tab = .engine
-                renderChatGPT(SettingsView(state: settings), size: CGSize(width: 1200, height: 1000), dark: dark,
+                renderChatGPT(SettingsView(state: settings), size: CGSize(width: 780, height: 760), dark: dark,
                               to: url.appendingPathComponent("10-chatgpt-card-\(state.name)-\(suffix).png"))
             }
 

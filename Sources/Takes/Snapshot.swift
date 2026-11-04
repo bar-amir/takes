@@ -52,12 +52,7 @@ enum Snapshot {
         done.timing = "first words 1.3 s · all takes 2.8 s"
         render(PanelRootView(model: done), size: CGSize(width: 1060, height: fittedHeight(done)), to: url.appendingPathComponent("4-takes.png"))
 
-        for tab in SettingsTab.allCases {
-            let state = SettingsState()
-            state.tab = tab
-            state.selectedPresetID = Store.shared.presets.first?.id
-            render(SettingsView(state: state), size: CGSize(width: 1200, height: 860), to: url.appendingPathComponent("5-settings-\(tab.rawValue.lowercased()).png"))
-        }
+        renderSettings(to: url)
         render(SetupView(monitor: SetupMonitor.shared, onDone: {}), size: CGSize(width: 640, height: 820),
                to: url.appendingPathComponent("6-setup.png"))
         runLocalModels(to: url)

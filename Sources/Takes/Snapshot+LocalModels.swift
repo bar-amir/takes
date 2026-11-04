@@ -27,7 +27,7 @@ extension Snapshot {
                 Store.shared.settings.localModel = state.model
                 let settings = SettingsState()
                 settings.tab = .engine
-                render(SettingsView(state: settings), size: CGSize(width: 1200, height: 1000), dark: dark,
+                render(SettingsView(state: settings), size: CGSize(width: 780, height: 760), dark: dark,
                        to: url.appendingPathComponent("7-local-engine-\(state.name)-\(suffix).png"))
             }
 

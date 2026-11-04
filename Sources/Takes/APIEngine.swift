@@ -87,6 +87,8 @@ enum Keychain {
     static func setAPIKey(_ key: String?) { set(key, account: anthropicAccount) }
 
     static func string(account: String) -> String? {
+        // Snapshots never read the keychain: a rebuilt app would stop at macOS's access prompt.
+        guard !Store.readOnly else { return nil }
         var item: CFTypeRef?
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
                                     kSecAttrAccount as String: account, kSecReturnData as String: true]

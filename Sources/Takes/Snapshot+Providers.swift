@@ -36,7 +36,7 @@ extension Snapshot {
                 models.checked = true
                 let settings = SettingsState()
                 settings.tab = .engine
-                render(SettingsView(state: settings), size: CGSize(width: 1200, height: 1500), dark: dark,
+                render(SettingsView(state: settings), size: CGSize(width: 780, height: 760), dark: dark,
                        to: url.appendingPathComponent("9-provider-engine-\(state.name)-\(suffix).png"))
             }
 

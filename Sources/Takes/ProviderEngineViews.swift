@@ -1,12 +1,30 @@
 import AppKit
 import SwiftUI
 
-/// The "Other provider" card in Settings › Engine: pick a provider, paste a key (kept in the keychain), pick a model
-/// from the provider's list (or type one when there's no list), and test it. Text only: no provider logos.
+/// The "Other provider" row's status in Settings › Model: the key and model it would use.
+struct ProviderEngineBadge: View {
+    @ObservedObject var store = Store.shared
+    @ObservedObject var models = ProviderModels.shared
+
+    var body: some View {
+        Group {
+            if models.state == .checking {
+                ProgressView().controlSize(.mini).accessibilityLabel("Checking your key")
+            } else if let badge = models.badge(store.settings) {
+                StatusBadge(text: badge.text, good: badge.good)
+            } else {
+                Text("OpenAI, Gemini and more").font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
+            }
+        }
+        .task { if !models.checked { await models.refresh() } }
+    }
+}
+
+/// The selected "Other provider" row in Settings › Model: pick a provider, paste a key (kept in the keychain), pick a
+/// model from the provider's list (or type one when there's no list), and test it. Text only: no provider logos.
 struct ProviderEngineSettings: View {
     @ObservedObject var store = Store.shared
     @ObservedObject var models = ProviderModels.shared
-    let selected: Bool
 
     @State private var keyInput = ""
     @State private var keyNote: String?
@@ -17,31 +35,7 @@ struct ProviderEngineSettings: View {
     private var provider: Provider { Provider.current(store.settings) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                Text("Other provider").font(.system(size: 15, weight: .semibold))
-                badge
-            }
-            Text("Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account.")
-                .font(.system(size: 13)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
-            if selected {
-                details.padding(.top, 4)
-            }
-        }
-        .task { if !models.checked { await models.refresh() } }
-    }
-
-    @ViewBuilder private var badge: some View {
-        if models.state == .checking || (!models.checked && selected) {
-            ProgressView().controlSize(.mini).accessibilityLabel("Checking your key")
-        } else if let badge = models.badge(store.settings) {
-            Text(badge.text)
-                .font(.system(size: 11, weight: .semibold))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 2)
-                .foregroundStyle(badge.good ? Theme.doText : Theme.avoidText)
-                .background(Capsule().fill(badge.good ? Theme.doFill : Theme.avoidFill))
-        }
+        details
     }
 
     private var details: some View {
@@ -87,10 +81,16 @@ struct ProviderEngineSettings: View {
     @ViewBuilder private var keyRow: some View {
         if models.hasKey {
             HStack(spacing: 10) {
-                Text("Saved in your keychain").font(.system(size: 13)).foregroundStyle(Theme.doText)
-                Button("Remove") { keyNote = nil; models.removeKey() }
-                    .buttonStyle(SecondaryButtonStyle(height: 26))
-                    .accessibilityLabel("Remove the \(provider.name) key")
+                Text("Key saved in your keychain").font(.system(size: 13)).foregroundStyle(Theme.doText)
+                Button("Remove Key…") {
+                    guard confirmDestructive("Remove your \(provider.name) key?",
+                                             message: "Takes deletes it from your keychain. You'll need to paste it again to write with \(provider.name).",
+                                             button: "Remove Key") else { return }
+                    keyNote = nil
+                    models.removeKey()
+                }
+                .buttonStyle(DestructiveButtonStyle(height: 26))
+                .accessibilityLabel("Remove the \(provider.name) key")
             }
         } else {
             HStack(spacing: 8) {

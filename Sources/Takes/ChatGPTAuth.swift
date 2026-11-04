@@ -377,6 +377,8 @@ enum ChatGPTKeychain {
     static let service = "com.baramir.takes"
 
     static func data(_ account: String) -> Data? {
+        // Snapshots never read the keychain: a rebuilt app would stop at macOS's access prompt.
+        guard !Store.readOnly else { return nil }
         var item: CFTypeRef?
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
                                     kSecAttrAccount as String: account, kSecReturnData as String: true]
