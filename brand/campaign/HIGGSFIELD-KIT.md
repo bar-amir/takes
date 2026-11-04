@@ -75,6 +75,9 @@ cursor a little. The pieces themselves stay still. Pieces per scene are the name
   and lighting of the matching piece in the SECOND reference image … Seen straight on with a very slight top-down
   perspective. Keep all text word for word … Transparent background, no ground shadow, nothing else."
 - Post: `scripts/frame-render.sh part <render.png> site/img/slides/parts/<scene>/<piece>.webp`.
-- Stills: `STILLS="<scenes>" scripts/export-layers.sh` exports each live scene once (992 × 900), saved as
-  `site/img/slides/<scene>.webp`. The page shows it until the live scene loads, so the swap is seamless.
+- Stills: `STILLS="<scenes>" scripts/export-layers.sh` exports each live scene once (1200 × 1000, the stage's aspect),
+  saved as `site/img/slides/stills/<scene>.webp`. The page shows it until the live scene loads, so the swap is seamless;
+  if the renders fail to load, the still stays and the canvas is removed.
+- Card surfaces: `site/img/slides/bg/1–9.webp` are crops of the hero tabletop (`brand/hero/key-*.jpg`), flipped, tinted
+  and blended half into the card colour, one per slide, with a CSS gradient for the hero's diagonal light.
 - The page keeps a WebGL context only for slides on screen; the others are freed and fall back to their still.

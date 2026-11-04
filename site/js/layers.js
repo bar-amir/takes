@@ -381,7 +381,7 @@ export function mount(el, name, { interactive = false, exportMode = false, part 
       if (ring) { const tw = takes[0].userData.w, th = takes[0].userData.h; ring.userData.sprite.geometry.dispose(); // hug a take on every side
         ring.userData.sprite.geometry = new THREE.PlaneGeometry(tw * 1.045, th + tw * 0.045); ring.userData.sprite.renderOrder = 90; }
       ready = true; pose(1); renderer.render(scene, camera); canvas.style.opacity = "1"; onReady?.();
-    }).catch(() => { canvas.style.opacity = "1"; /* keep the drawn tiles */ });
+    }).catch((err) => { console.warn("layers: renders missing, keeping the still", name, err); canvas.remove(); });
   }
 
   if (exportMode) {

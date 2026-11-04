@@ -112,12 +112,23 @@ section h2 { font-size: clamp(52px, 6.4vw, 84px); }
   overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); scrollbar-width: none; }
 .track::-webkit-scrollbar { display: none; }
 .track:focus-visible { outline-offset: -3px; }
-.slide { position: relative; aspect-ratio: 16 / 9; border-radius: 24px; background: #ECE2D1; overflow: hidden; scroll-snap-align: start; }
-.slide-stage { position: absolute; top: 0; right: 0; bottom: 0; width: 62%; }
+.slide { position: relative; aspect-ratio: 2 / 1; border-radius: 24px; background: #ECE2D1 center / cover no-repeat; overflow: hidden; scroll-snap-align: start; }
+.slide::before { content: ""; position: absolute; inset: 0; background: linear-gradient(118deg, rgba(255,250,240,.22), rgba(255,250,240,0) 45%, rgba(60,40,15,.07)); pointer-events: none; }
+#slide-shortcut { background-image: url(img/slides/bg/1.webp); }
+#slide-presets { background-image: url(img/slides/bg/2.webp); }
+#slide-proofread { background-image: url(img/slides/bg/3.webp); }
+#coach { background-image: url(img/slides/bg/4.webp); }
+#slide-local { background-image: url(img/slides/bg/5.webp); }
+#slide-instant { background-image: url(img/slides/bg/6.webp); }
+#slide-dictation { background-image: url(img/slides/bg/7.webp); }
+#slide-tone { background-image: url(img/slides/bg/8.webp); }
+#slide-languages { background-image: url(img/slides/bg/9.webp); }
+
+.slide-stage { position: absolute; top: 0; right: 0; bottom: 0; width: 60%; }
 .slide-stage > img { display: block; width: 100%; height: 100%; object-fit: contain; transition: opacity .5s ease; }
 .slide-stage canvas { position: absolute; inset: 0; }
 .slide-stage.live > img { opacity: 0; }
-.slide-copy { position: absolute; left: 5.5%; top: 50%; transform: translateY(-50%); width: 33%; }
+.slide-copy { position: absolute; left: 5.5%; top: 50%; transform: translateY(-50%); width: 32%; }
 .slide-copy .label { color: var(--ink); margin-bottom: 14px; }
 .slide-copy h3 { font: 700 clamp(30px, 3.4vw, 44px)/1 var(--display); margin: 0 0 14px; }
 .slide-copy p { font-size: clamp(16px, 1.5vw, 19px); line-height: 1.45; margin: 0; }
@@ -364,39 +375,39 @@ fill="currentColor" stroke="none">
     </div>
     <ol class="track" tabindex="0" aria-label="Features, scroll sideways or use the arrow keys">
         <li class="slide" id="slide-shortcut" aria-label="1 of 9: A shortcut in the app you're using">
-          <div class="slide-stage" data-scene="shortcut" data-sprites="img/slides/parts/shortcut"><img src="img/slides/shortcut.webp" width="992" height="900" alt="A message field with a rough Slack draft, the Control, Option and Space keys pressed above it, and the Slack message preset picked"></div>
+          <div class="slide-stage" data-scene="shortcut" data-sprites="img/slides/parts/shortcut"><img src="img/slides/stills/shortcut.webp" width="1200" height="1000" alt="A message field with a rough Slack draft, the Control, Option and Space keys pressed above it, and the Slack message preset picked"></div>
           <div class="slide-copy"><div class="label">Shortcut</div><h3>A shortcut in the app you're using</h3><p>The draft starts with your selection or the text in the field. Each app can have its own preset, picked automatically.</p></div>
         </li>
         <li class="slide" id="slide-presets" aria-label="2 of 9: Configured, personal style">
-          <div class="slide-stage" data-scene="presets" data-sprites="img/slides/parts/presets"><img src="img/slides/presets.webp" width="992" height="900" alt="The Slack message preset pulled out of the preset list, with its instruction, its Do rules and its Avoid rules on separate tiles" loading="lazy"></div>
+          <div class="slide-stage" data-scene="presets" data-sprites="img/slides/parts/presets"><img src="img/slides/stills/presets.webp" width="1200" height="1000" alt="The Slack message preset pulled out of the preset list, with its instruction, its Do rules and its Avoid rules on separate tiles" loading="lazy"></div>
           <div class="slide-copy"><div class="label">Presets</div><h3>Configured, personal style</h3><p>Set Do and Avoid rules, voice rules for every preset, and up to five examples of how you write.</p></div>
         </li>
         <li class="slide" id="slide-proofread" aria-label="3 of 9: Proofread, marked">
-          <div class="slide-stage" data-scene="proofread" data-sprites="img/slides/parts/proofread"><img src="img/slides/proofread.webp" width="992" height="900" alt="A proofread take with three fixes marked, reveiw to review, tommorow to tomorrow and its to it's, and the fixes floating beside it" loading="lazy"></div>
+          <div class="slide-stage" data-scene="proofread" data-sprites="img/slides/parts/proofread"><img src="img/slides/stills/proofread.webp" width="1200" height="1000" alt="A proofread take with three fixes marked, reveiw to review, tommorow to tomorrow and its to it's, and the fixes floating beside it" loading="lazy"></div>
           <div class="slide-copy"><div class="label">Proofread</div><h3>Proofread, marked</h3><p>Fixes spelling, grammar and punctuation, and keeps your words. Each fix is marked; when nothing needs fixing, Takes says so.</p></div>
         </li>
         <li class="slide" id="coach" aria-label="4 of 9: Write it better next time.">
-          <div class="slide-stage" data-scene="coach" data-sprites="img/slides/parts/coach"><img src="img/slides/coach.webp" width="992" height="900" alt="A draft with three flagged phrases and the English coach below it, its fixes lifted out: If you will send to If you send, until tomorrow to by tomorrow, make you a feedback to give you feedback" loading="lazy"></div>
+          <div class="slide-stage" data-scene="coach" data-sprites="img/slides/parts/coach"><img src="img/slides/stills/coach.webp" width="1200" height="1000" alt="A draft with three flagged phrases and the English coach below it, its fixes lifted out: If you will send to If you send, until tomorrow to by tomorrow, make you a feedback to give you feedback" loading="lazy"></div>
           <div class="slide-copy"><div class="label">English Coach</div><h3>Write it better next time.</h3><p>Turn on the English coach and it spots the mistakes your takes fix, notices the ones you repeat, and teaches them back with your own sentences.</p><p class="slide-note">Off until you turn it on. About 1,000 extra tokens per English draft; lessons are made on your Mac at no cost. Only the phrase around each mistake is kept, on your Mac, for 30 days.</p></div>
         </li>
         <li class="slide" id="slide-local" aria-label="5 of 9: A model on your Mac">
-          <div class="slide-stage" data-scene="local" data-sprites="img/slides/parts/local"><img src="img/slides/local.webp" width="992" height="900" alt="The model menu with llama3.2 from Ollama picked, and an On this Mac badge" loading="lazy"></div>
+          <div class="slide-stage" data-scene="local" data-sprites="img/slides/parts/local"><img src="img/slides/stills/local.webp" width="1200" height="1000" alt="The model menu with llama3.2 from Ollama picked, and an On this Mac badge" loading="lazy"></div>
           <div class="slide-copy"><div class="label">Local model</div><h3>A model on your Mac</h3><p>Use Ollama or LM Studio instead of Claude, and your drafts never leave the Mac.</p></div>
         </li>
         <li class="slide" id="slide-instant" aria-label="6 of 9: Right away">
-          <div class="slide-stage" data-scene="instant" data-sprites="img/slides/parts/instant"><img src="img/slides/instant.webp" width="992" height="900" alt="A pasted message in a field, a Pasted toast with Command Z to undo, and a yellow Return key" loading="lazy"></div>
+          <div class="slide-stage" data-scene="instant" data-sprites="img/slides/parts/instant"><img src="img/slides/stills/instant.webp" width="1200" height="1000" alt="A pasted message in a field, a Pasted toast with Command Z to undo, and a yellow Return key" loading="lazy"></div>
           <div class="slide-copy"><div class="label">Instant paste</div><h3>Right away</h3><p>Give a preset its own shortcut and it writes and pastes, no panel.</p></div>
         </li>
         <li class="slide" id="slide-dictation" aria-label="7 of 9: Say it">
-          <div class="slide-stage" data-scene="dictation" data-sprites="img/slides/parts/dictation"><img src="img/slides/dictation.webp" width="992" height="900" alt="A draft being dictated, with a blue waveform and a Dictating label" loading="lazy"></div>
+          <div class="slide-stage" data-scene="dictation" data-sprites="img/slides/parts/dictation"><img src="img/slides/stills/dictation.webp" width="1200" height="1000" alt="A draft being dictated, with a blue waveform and a Dictating label" loading="lazy"></div>
           <div class="slide-copy"><div class="label">Dictation</div><h3>Say it</h3><p>Dictate a draft. Speech stays on your Mac.</p></div>
         </li>
         <li class="slide" id="slide-tone" aria-label="8 of 9: Context and tone">
-          <div class="slide-stage" data-scene="tone" data-sprites="img/slides/parts/tone"><img src="img/slides/tone.webp" width="992" height="900" alt="A take replying to Any update on the launch, with a note that it may read as warm and polite" loading="lazy"></div>
+          <div class="slide-stage" data-scene="tone" data-sprites="img/slides/parts/tone"><img src="img/slides/stills/tone.webp" width="1200" height="1000" alt="A take replying to Any update on the launch, with a note that it may read as warm and polite" loading="lazy"></div>
           <div class="slide-copy"><div class="label">Context and tone</div><h3>Context and tone</h3><p>Add the message you're answering. See how each take may land.</p></div>
         </li>
         <li class="slide" id="slide-languages" aria-label="9 of 9: Your languages">
-          <div class="slide-stage" data-scene="languages" data-sprites="img/slides/parts/languages"><img src="img/slides/languages.webp" width="992" height="900" alt="The same take in German, Spanish and English, stacked" loading="lazy"></div>
+          <div class="slide-stage" data-scene="languages" data-sprites="img/slides/parts/languages"><img src="img/slides/stills/languages.webp" width="1200" height="1000" alt="The same take in German, Spanish and English, stacked" loading="lazy"></div>
           <div class="slide-copy"><div class="label">Languages</div><h3>Your languages</h3><p>Reply in any language, with a translate preset for each one you write in.</p></div>
         </li>
     </ol>
@@ -467,10 +478,10 @@ fill="currentColor" stroke="none">
     // Each slide's graphic is a live WebGL scene of separately rendered pieces; only the slides on screen keep one.
     const live = new Map(); let lib;
     const wake = async (slide) => { const st = slide.querySelector(".slide-stage"); if (!st || live.has(st)) return; live.set(st, null);
-      try { lib = lib || await import("./js/layers.js?v=6");
+      try { lib = lib || await import("./js/layers.js?v=7");
         if (!live.has(st)) return;
         live.set(st, lib.mount(st, st.dataset.scene, { interactive: true, sprites: st.dataset.sprites, onReady: () => st.classList.add("live") }));
-      } catch { live.delete(st); } };
+      } catch (err) { console.warn("layers: slide failed", st.dataset.scene, err); live.delete(st); } };
     const sleep = (slide) => { const st = slide.querySelector(".slide-stage"); const m = live.get(st); live.delete(st); m?.destroy(); st?.classList.remove("live"); };
     const near = new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? wake : sleep)(e.target)), { root: track, threshold: 0.15 });
     const section = new IntersectionObserver(([e]) => { if (e.isIntersecting) { slides.forEach((s) => near.observe(s)); section.disconnect(); } }, { rootMargin: "200px" });
@@ -483,7 +494,7 @@ fill="currentColor" stroke="none">
   if (el && "IntersectionObserver" in window) {
     const io = new IntersectionObserver(async ([e]) => {
       if (!e.isIntersecting) return; io.disconnect();
-      try { const { mount } = await import("./js/layers.js?v=6"); mount(el, el.dataset.scene, { interactive: true, sprites: el.dataset.sprites }); el.classList.add("live"); }
+      try { const { mount } = await import("./js/layers.js?v=7"); mount(el, el.dataset.scene, { interactive: true, sprites: el.dataset.sprites }); el.classList.add("live"); }
       catch { /* no WebGL or offline: keep the still */ }
     }, { rootMargin: "300px" });
     io.observe(el);
