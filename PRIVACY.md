@@ -123,12 +123,16 @@ Downloaded copies of Takes can check for new versions with [Sparkle](https://spa
 
 ## The website
 
-This notice is about the app. The Takes website (the landing page on GitHub Pages) counts visits with [GoatCounter](https://www.goatcounter.com), which uses no cookies and stores no IP addresses or personal data: only the page, the site you came from, your country, screen size and browser, and clicks on the download buttons. The app never loads it. The website also loads its fonts from Google Fonts (fonts.googleapis.com and fonts.gstatic.com), so Google sees your IP address and browser when you visit, as with any web request; see [Google's privacy policy](https://policies.google.com/privacy). The developer also keeps GitHub's own counts of release downloads, update-feed downloads and repository visits, which say nothing about who you are.
+This notice is about the app. The Takes website (the landing page on GitHub Pages) counts visits with [GoatCounter](https://www.goatcounter.com), which uses no cookies and stores no IP addresses or personal data: only the page, the site you came from, your country, screen size and browser, and clicks on the download buttons. The app never loads it. Its fonts and images are served from the site itself, not from Google Fonts or another third party. The developer also keeps GitHub's own counts of release downloads, update-feed downloads and repository visits, which say nothing about who you are.
 
 ## Changes
 
 If Takes ever starts sending anything anywhere else, this page will say so first and the app will ask you.
 
+## Who's responsible
+
+Takes and its website are made by Bar Amir, an individual developer, who is responsible for this notice. For the website's visit counts, that makes Bar Amir the controller under data protection laws such as the GDPR.
+
 ## Contact
 
-Questions: open an issue at [github.com/bar-amir/takes](https://github.com/bar-amir/takes/issues).
+Questions, or a request about your data: email [baramir93@gmail.com](mailto:baramir93@gmail.com). For anything that doesn't need to be private, you can also open an issue at [github.com/bar-amir/takes](https://github.com/bar-amir/takes/issues).

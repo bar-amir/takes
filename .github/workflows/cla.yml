@@ -36,7 +36,7 @@ jobs:
           ALLOWLIST: ${{ vars.CLA_ALLOWLIST || 'bar-amir' }}
         with:
           script: |
-            const PHRASE = 'I have read the Takes CLA (version 1.0) and I agree to it.';
+            const PHRASE = 'I have read the Takes CLA (version 1.1) and I agree to it.';
             const CLA_URL = `https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/CLA.md`;
             const BRANCH = 'cla-signatures';
             const PATH = 'signatures.json';
@@ -70,7 +70,7 @@ jobs:
                 signatures.push({
                   login: user.login,
                   id: user.id,
-                  claVersion: '1.0',
+                  claVersion: '1.1',
                   signedAt: new Date().toISOString(),
                   comment: context.payload.comment.html_url,
                 });
