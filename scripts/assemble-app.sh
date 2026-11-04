@@ -29,6 +29,9 @@ if [[ "${RELEASE:-0}" == "1" ]]; then
   <key>SUPublicEDKey</key><string>$(cat Resources/SUPublicEDKey)</string>"
 fi
 [[ -f Resources/AppIcon.icns ]] && cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
+# Mono label font (JetBrains Mono, SIL OFL 1.1; license travels with it) and the onboarding opening photo.
+[[ -d Resources/Fonts ]] && ditto Resources/Fonts "$APP/Contents/Resources/Fonts"
+[[ -d Resources/Onboarding ]] && ditto Resources/Onboarding "$APP/Contents/Resources/Onboarding"
 
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>

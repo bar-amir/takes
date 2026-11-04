@@ -18,6 +18,8 @@ if CommandLine.arguments.contains("--ax-probe") {
     exit(0)
 }
 
+BrandResources.registerFonts()
+
 if CommandLine.arguments.contains("--snapshot") {
     MainActor.assumeIsolated { Snapshot.run(arguments: CommandLine.arguments) }
     exit(0)
