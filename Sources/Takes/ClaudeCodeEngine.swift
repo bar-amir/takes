@@ -1,4 +1,4 @@
-import Foundation
+import AppKit
 
 /// Runs the Claude Code CLI on this Mac, so requests use the user's own Claude login.
 struct ClaudeCodeEngine: TakesEngine {
@@ -95,8 +95,7 @@ struct ClaudeCodeEngine: TakesEngine {
                 }
                 if result["is_error"] as? Bool == true {
                     let message = result["result"] as? String ?? "unknown error"
-                    let hint = message.contains("Not logged in") ? " Run `claude auth login` in Terminal." : ""
-                    continuation.resume(throwing: EngineError.failed("Claude Code: \(message)\(hint)"))
+                    continuation.resume(throwing: EngineError.failed(Self.errorMessage(message)))
                     return
                 }
                 // The result line holds the full text; prefer it over the streamed pieces.
@@ -107,6 +106,51 @@ struct ClaudeCodeEngine: TakesEngine {
                 }
                 continuation.resume(returning: EngineResult(takes: takes, wallMs: elapsedMs(), firstTextMs: firstTextMs))
             }
+        }
+    }
+
+    /// Shown instead of the CLI's own wording when the login is the problem. Plain words, no commands: the
+    /// panel puts a "Sign in to Claude" button under it. The Claude desktop app keeps its own sign-in, so
+    /// it can still work while this one has expired; say so, or the message looks wrong.
+    static let signedOutMessage = "Takes got signed out of Claude. Sign in again to keep going. This sign-in is separate from the Claude app, so it can expire even while the app still works."
+
+    /// The CLI's error, in words a person can act on. A sign-in problem (not signed in, or a session that
+    /// expired and couldn't be refreshed: "Failed to authenticate: OAuth session expired…") becomes
+    /// `signedOutMessage`; anything else keeps the CLI's wording.
+    static func errorMessage(_ message: String) -> String {
+        isSignInProblem(message) ? signedOutMessage : "Claude Code: \(message)"
+    }
+
+    static func isSignInProblem(_ message: String) -> Bool {
+        let lower = message.lowercased()
+        return ["not logged in", "failed to authenticate", "oauth", "/login", "invalid api key", "token has expired"]
+            .contains { lower.contains($0) }
+    }
+
+    /// Opens Terminal already running `claude auth login`, which sends the person to the browser to sign in.
+    /// A .command file runs on open without the Automation permission that scripting Terminal would need.
+    static func openSignIn() {
+        let claude = claudePath ?? "claude"
+        let quoted = "'" + claude.replacingOccurrences(of: "'", with: "'\\''") + "'"
+        let script = """
+            #!/bin/zsh
+            clear
+            echo "Signing Takes in to Claude. Finish in the browser window that opens, then go back to Takes and press Try again."
+            echo
+            \(quoted) auth login
+            echo
+            echo "You can close this window now."
+            """
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("Sign in to Claude.command")
+        do {
+            try script.write(to: url, atomically: true, encoding: .utf8)
+            try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: url.path)
+            NSWorkspace.shared.open(url)
+        } catch {
+            // Fall back to what onboarding does: copy the command and open Terminal.
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString("claude auth login", forType: .string)
+            NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Utilities/Terminal.app"))
         }
     }
 

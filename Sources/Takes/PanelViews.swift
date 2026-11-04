@@ -409,6 +409,10 @@ struct TakesView: View {
                             // Usage limit: the fix is in ChatGPT's settings, so that's the primary action.
                             Button("Manage usage") { NSWorkspace.shared.open(ChatGPTOAuth.usageURL) }.buttonStyle(PrimaryButtonStyle())
                             Button("Try again", action: model.generate).buttonStyle(SecondaryButtonStyle(height: 36))
+                        } else if error == ClaudeCodeEngine.signedOutMessage {
+                            // Signed out: signing in is the fix, then Try again once it's done.
+                            Button("Sign in to Claude", action: ClaudeCodeEngine.openSignIn).buttonStyle(PrimaryButtonStyle())
+                            Button("Try again", action: model.generate).buttonStyle(SecondaryButtonStyle(height: 36))
                         } else {
                             Button("Try again", action: model.generate).buttonStyle(PrimaryButtonStyle())
                         }
