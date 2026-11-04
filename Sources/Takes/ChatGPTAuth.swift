@@ -507,6 +507,10 @@ final class ChatGPTCallbackServer: @unchecked Sendable {
     private var received: Result<[URLQueryItem], Error>?
     /// Picks the page the browser shows for a callback: true when sign-in can go on.
     var accepts: ([URLQueryItem]) -> Bool = { _ in true }
+    /// Whether a callback is for this sign-in at all (its `state` matches). Any web page or local program can send a
+    /// request to the loopback port; one that isn't for this sign-in gets a 400 and the listener keeps waiting, so it
+    /// can't end the sign-in.
+    var belongs: ([URLQueryItem]) -> Bool = { _ in true }
     private(set) var port: UInt16 = 0
 
     private init(listener: NWListener) {
@@ -611,6 +615,11 @@ final class ChatGPTCallbackServer: @unchecked Sendable {
                 return
             }
             let items = components?.queryItems ?? []
+            guard self.belongs(items) else {
+                self.respond(connection, status: "400 Bad Request",
+                             html: Self.page(title: "Not this sign-in", body: "Go back to Takes. You can close this tab."))
+                return
+            }
             let ok = self.accepts(items)
             self.respond(connection, status: "200 OK", html: ok
                 ? Self.page(title: "Signed in", body: "You can close this tab and go back to Takes.")

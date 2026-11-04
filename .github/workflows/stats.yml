@@ -9,8 +9,7 @@ on:
     - cron: "17 3 * * *"
   workflow_dispatch:
 
-permissions:
-  contents: write
+permissions: {}
 
 concurrency:
   group: stats
@@ -20,8 +19,10 @@ jobs:
   snapshot:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: write        # push to the stats branch
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Check out the stats branch
         run: |
           if git ls-remote --exit-code --heads origin stats >/dev/null; then
