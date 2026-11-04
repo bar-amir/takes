@@ -7,6 +7,7 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 const C = { ink: "#171714", paper: "#F3EBDD", card: "#F5EEE2", strip: "#ECE4D5", tray: "#EADFCB",
   cobalt: "#3045FF", acid: "#E8F449", tomato: "#F0543D", mute: "#8A8478", red: "#B3261E", green: "#1E6B3A",
   redBg: "rgba(240,84,61,.13)", greenBg: "rgba(30,107,58,.11)" };
+const ASSET_V = "2"; // bump when the rendered pieces change, so browsers fetch the new files
 const FONT = 'Arial, "Helvetica Neue", Helvetica, sans-serif';
 const PX = 100;           // drawing units per world unit
 const SCALE = 2.6;        // canvas pixels per drawing unit
@@ -28,7 +29,7 @@ function wrap(ctx, s, x, y, maxW, { size = 22, lead = 1.4, color = C.ink, weight
     if (ctx.measureText(t).width > maxW && line) { ctx.fillText(line, x, yy); line = word; yy += size * lead; } else line = t;
   }
   if (line) ctx.fillText(line, x, yy);
-  return yy;
+  return { y: yy, x: x + ctx.measureText(line).width }; // where the text ends
 }
 // Runs of [text, kind] where kind is "", "del" (struck, red) or "ins" (green), wrapped like a paragraph.
 function diff(ctx, runs, x, y, maxW, { size = 22, lead = 1.5 } = {}) {
@@ -143,19 +144,19 @@ const SCENES = {
       draw: (c) => { text(c, "Your draft", 26, 40, { size: 16, weight: 700, color: C.mute });
         let x = 26; x += underline(c, "If you will send", x, 92, 24, C.tomato); x += text(c, " me the file ", x, 92, { size: 24 });
         x += underline(c, "until tomorrow", x, 92, 24, C.tomato); x += text(c, ", I will check it and ", x, 92, { size: 24 });
-        underline(c, "make you a feedback", x, 92, 24, C.tomato); } }), -0.3, 2.55, 0.6, "draft"));
+        underline(c, "make you a feedback", x, 92, 24, C.tomato); } }), 0.2, 3.5, 0.9, "draft"));
     root.add(place(tile(renderer, { w: 10, h: 3.9, r: 0.3, depth: 0.14, bg: C.tray,
       draw: (c, cw, ch) => { text(c, "English coach", 30, 52, { size: 24, weight: 700 }); text(c, "3 notes on your draft", 210, 52, { size: 21, color: C.mute });
         text(c, "Conditionals", 30, ch - 34, { size: 20, weight: 700 });
-        text(c, "A future condition takes the present after “if”.", 170, ch - 34, { size: 20, color: "#4A463F" }); } }), 0, -0.55, 0.3, "tray"));
+        text(c, "A future condition takes the present after “if”.", 170, ch - 34, { size: 20, color: "#4A463F" }); } }), 0, -0.85, 0, "tray"));
     const fix = (a, b, sel) => tile(renderer, { w: 1.0 + measure(a, 22, 400) + measure(b, 22, 700), h: 0.66, r: 0.18, depth: 0.1, bg: C.card,
       outline: sel ? { width: 4, color: C.ink } : { width: 2, color: "#E3DED4" },
       draw: (c, cw, ch) => { const y = ch / 2 + 8; const w1 = text(c, a, 22, y, { size: 22, color: C.red });
         c.fillStyle = C.red; c.fillRect(22, y - 7, w1, 2); text(c, "→", 34 + w1, y, { size: 22, color: C.mute });
         text(c, b, 70 + w1, y, { size: 22, weight: 700, color: C.green }); } });
-    root.add(sized(place(fix("If you will send", "If you send", true), -2.4, 0.3, 1.4, "fix1"), 1.2));
-    root.add(sized(place(fix("until tomorrow", "by tomorrow"), 2.9, -0.15, 1.0, "fix2"), 1.2));
-    root.add(sized(place(fix("make you a feedback", "give you feedback"), -0.6, -1.1, 0.85, "fix3"), 1.2));
+    root.add(sized(place(fix("If you will send", "If you send", true), -2.4, 0.05, 1.9, "fix1"), 1.2));
+    root.add(sized(place(fix("until tomorrow", "by tomorrow"), 2.9, -0.45, 1.2, "fix2"), 1.2));
+    root.add(sized(place(fix("make you a feedback", "give you feedback"), -0.6, -1.45, 1.5, "fix3"), 1.2));
     return { bounds: [10.4, 6.6] };
   },
   proofread(renderer, root) {
@@ -167,67 +168,70 @@ const SCENES = {
     const f = (a, b) => tile(renderer, { w: 1.0 + measure(a, 22, 400) + measure(b, 22, 700), h: 0.62, r: 0.18, depth: 0.1, bg: C.card,
       outline: { width: 2, color: "#E3DED4" }, draw: (c, cw, ch) => { const y = ch / 2 + 8; const w1 = text(c, a, 20, y, { size: 22, color: C.red });
         c.fillStyle = C.red; c.fillRect(20, y - 7, w1, 2); text(c, "→", 32 + w1, y, { size: 22, color: C.mute }); text(c, b, 66 + w1, y, { size: 22, weight: 700, color: C.green }); } });
-    root.add(sized(place(f("reveiw", "review"), 3.85, 1.35, 1.0, "fix1"), 1.25));
-    root.add(sized(place(f("tommorow", "tomorrow"), 4.35, 0.25, 1.45, "fix2"), 1.25));
-    root.add(sized(place(f("its", "it's"), 3.55, -0.85, 0.8, "fix3"), 1.25));
+    root.add(sized(place(f("reveiw", "review"), 3.7, 2.0, 1.0, "fix1"), 1.25));
+    root.add(sized(place(f("tommorow", "tomorrow"), 4.3, 0.45, 1.7, "fix2"), 1.25));
+    root.add(sized(place(f("its", "it's"), 3.4, -1.3, 2.3, "fix3"), 1.25));
     return { bounds: [11.8, 5.2] };
   },
   presets(renderer, root) {
     [["Slack message", C.cobalt], ["Polish email", C.ink], ["Proofread", C.green], ["Shorter", C.tomato], ["Friendlier", C.acid]].forEach(([s, d], i) => {
       const sel = i === 0; const t = chip(renderer, s, { dotColor: d, bg: sel ? C.tray : C.card, w: 2.6 });
-      root.add(place(t, -3.3 + (sel ? 0.35 : 0), 1.9 - i * 0.8, sel ? 1.4 : 0.3 + i * 0.05, "chip" + (i + 1)));
+      root.add(place(t, -3.3 + (sel ? 0.35 : 0), 2.4 - i * 0.95, sel ? 1.8 : 0.3 + i * 0.1, "chip" + (i + 1)));
     });
     root.add(place(tile(renderer, { w: 6.2, h: 1.55, r: 0.22, depth: 0.14,
       draw: (c, cw) => { text(c, "Instruction", 30, 44, { size: 18, weight: 700, color: C.mute });
-        wrap(c, "Clear and friendly. Short lines, no corporate filler.", 30, 100, cw - 60, { size: 28 }); } }), 1.4, 1.45, 0.6, "instruction"));
+        wrap(c, "Clear and friendly. Short lines, no corporate filler.", 30, 100, cw - 60, { size: 28 }); } }), 1.4, 1.9, 0.5, "instruction"));
     const rules = (title, color, items) => (c) => { dot(c, 36, 44, 8, color); text(c, title, 54, 52, { size: 24, weight: 700, color });
       items.forEach((it, i) => text(c, it, 30, 112 + i * 52, { size: 24 })); };
-    root.add(place(tile(renderer, { w: 3.0, h: 2.2, r: 0.22, depth: 0.14, draw: rules("Do", C.green, ["Lead with the ask", "Keep my emoji"]) }), -0.15, -0.5, 0.95, "do"));
-    root.add(place(tile(renderer, { w: 3.0, h: 2.2, r: 0.22, depth: 0.14, draw: rules("Avoid", C.red, ["“Just circling back”", "Exclamation marks"]) }), 3.05, -0.85, 0.45, "avoid"));
+    root.add(place(tile(renderer, { w: 3.0, h: 2.2, r: 0.22, depth: 0.14, draw: rules("Do", C.green, ["Lead with the ask", "Keep my emoji"]) }), -0.15, -0.9, 1.2, "do"));
+    root.add(place(tile(renderer, { w: 3.0, h: 2.2, r: 0.22, depth: 0.14, draw: rules("Avoid", C.red, ["“Just circling back”", "Exclamation marks"]) }), 3.05, -1.55, 1.9, "avoid"));
     return { bounds: [10.6, 5.4] };
   },
   shortcut(renderer, root) {
     root.add(place(tile(renderer, { w: 9.0, h: 1.75, r: 0.26, depth: 0.16, outline: { width: 2, color: "#E3DED4" },
       draw: (c) => { text(c, "Message #design", 30, 44, { size: 18, weight: 700, color: C.mute });
         const w = text(c, "ya thursday works but i need the specs by wed eod", 30, 112, { size: 30 });
-        c.fillStyle = C.cobalt; c.fillRect(36 + w, 84, 3, 36); } }), 0, -1.0, 0, "field"));
+        c.fillStyle = C.cobalt; c.fillRect(36 + w, 84, 3, 36); } }), 0, -1.55, 0, "field"));
     const key = (s, w, bg = C.card) => tile(renderer, { w, h: 1.15, r: 0.22, depth: 0.45, bg,
       draw: (c, cw, ch) => text(c, s, cw / 2, ch / 2 + 15, { size: 44, align: "center" }) });
-    root.add(sized(place(key("⌃", 1.15), -2.45, 0.85, 1.3, "key-control"), 1.25));
-    root.add(sized(place(key("⌥", 1.15), -0.95, 0.85, 1.3, "key-option"), 1.25));
-    root.add(sized(place(key("", 3.4, C.cobalt), 1.78, 0.85, 1.3, "key-space"), 1.15));
-    root.add(place(chip(renderer, "Slack message"), 3.3, -0.05, 0.7, "chip"));
+    root.add(sized(place(key("⌃", 1.15), -2.6, 1.55, 2.1, "key-control"), 1.25));
+    root.add(sized(place(key("⌥", 1.15), -1.05, 1.55, 2.1, "key-option"), 1.25));
+    root.add(sized(place(key("", 3.4, C.cobalt), 1.75, 1.55, 2.1, "key-space"), 1.15));
+    root.add(place(chip(renderer, "Slack message"), 3.3, -0.35, 1.1, "chip"));
     return { bounds: [10, 5.4] };
   },
   tone(renderer, root) {
     root.add(place(tile(renderer, { w: 6.0, h: 1.25, r: 0.22, depth: 0.12, bg: C.strip,
-      draw: (c) => { text(c, "Replying to", 28, 42, { size: 17, weight: 700, color: C.mute }); text(c, "Any update on the launch?", 28, 92, { size: 26 }); } }), -1.3, 2.0, 0, "reply"));
+      draw: (c) => { text(c, "Replying to", 28, 42, { size: 17, weight: 700, color: C.mute }); text(c, "Any update on the launch?", 28, 92, { size: 26 }); } }), -1.3, 2.1, 0, "reply"));
     root.add(place(tile(renderer, { w: 7.4, h: 2.3, r: 0.24, depth: 0.16, outline: { width: 2, color: "#E3DED4" },
-      draw: (c, cw) => { label(c, "Take 1", 30, 50); wrap(c, "We're a bit behind, sorry. The new date is Friday, and I'll share a short update tomorrow.", 30, 110, cw - 60, { size: 27 }); } }), 0, 0.15, 0.45, "take"));
+      draw: (c, cw) => { label(c, "Take 1", 30, 50); wrap(c, "We're a bit behind, sorry. The new date is Friday, and I'll share a short update tomorrow.", 30, 110, cw - 60, { size: 27 }); } }), 0, 0.15, 1.0, "take"));
     root.add(place(tile(renderer, { w: 4.4, h: 0.74, r: 0.37, depth: 0.14, bg: C.tray,
-      draw: (c, cw, ch) => { dot(c, 34, ch / 2, 9, C.green); text(c, "May read as warm and polite", 56, ch / 2 + 8, { size: 23, weight: 700 }); } }), 1.7, -1.45, 1.15, "note"));
+      draw: (c, cw, ch) => { dot(c, 34, ch / 2, 9, C.green); text(c, "May read as warm and polite", 56, ch / 2 + 8, { size: 23, weight: 700 }); } }), 1.7, -1.55, 2.1, "note"));
     return { bounds: [9.6, 5.4] };
   },
   languages(renderer, root) {
     [["Deutsch", "Donnerstag passt mir. Die Specs brauche ich bis Mittwoch."], ["Español", "El jueves me viene bien. Necesito las especificaciones para el miércoles."],
      ["English", "Thursday works for me. I need the specs by Wednesday."]].forEach(([lang, line], i) => {
       root.add(place(tile(renderer, { w: 7.0, h: 1.45, r: 0.24, depth: 0.14, outline: i === 2 ? { width: 4, color: C.ink } : { width: 2, color: "#E3DED4" },
-        draw: (c, cw) => { text(c, lang, 30, 44, { size: 18, weight: 700, color: C.mute }); wrap(c, line, 30, 92, cw - 60, { size: 25 }); } }), -0.9 + i * 0.9, 1.5 - i * 1.5, 0.2 + i * 0.45, ["de", "es", "en"][i]));
+        draw: (c, cw) => { text(c, lang, 30, 44, { size: 18, weight: 700, color: C.mute }); wrap(c, line, 30, 92, cw - 60, { size: 25 }); } }), -0.9 + i * 0.9, 1.5 - i * 1.5, 0.2 + i * 0.85, ["de", "es", "en"][i]));
     });
     return { bounds: [9.4, 5.6] };
   },
   local(renderer, root) {
-    root.add(place(tile(renderer, { w: 8.8, h: 4.6, r: 0.3, depth: 0.16,
-      draw: (c) => { text(c, "Model", 34, 56, { size: 18, weight: 700, color: C.mute }); } }), 0, 0, 0, "panel"));
+    root.add(place(tile(renderer, { w: 8.2, h: 5.2, r: 0.3, depth: 0.16,
+      draw: (c, cw) => { text(c, "Engine", 34, 54, { size: 18, weight: 700, color: C.mute });
+        text(c, "Local model", 34, 118, { size: 34, weight: 700 });
+        text(c, "Ollama · found on this Mac", 34, 166, { size: 22, color: C.mute });
+        text(c, "Model", 34, 262, { size: 18, weight: 700, color: C.mute }); } }), 0.4, 0.3, 0, "panel"));
     root.add(place(tile(renderer, { w: 5.2, h: 2.9, r: 0.24, depth: 0.1, outline: { width: 2, color: "#E3DED4" },
       draw: (c, cw) => { const row = (y, a, b, on) => { if (on) { c.fillStyle = C.tray; roundRect(c, 12, y - 40, cw - 24, 60, 12); c.fill(); }
           text(c, a, 36, y, { size: 24, weight: on ? 700 : 400 }); text(c, b, cw - 70, y, { size: 20, color: C.mute, align: "right" });
           if (on) text(c, "✓", cw - 40, y, { size: 24, weight: 700, color: C.cobalt, align: "center" }); };
-        row(66, "llama3.2", "Ollama", true); row(146, "qwen3:8b", "Ollama"); row(226, "gemma-3-12b", "LM Studio"); } }), -1.2, -0.95, 0.8, "menu"));
+        row(66, "llama3.2", "Ollama", true); row(146, "qwen3:8b", "Ollama"); row(226, "gemma-3-12b", "LM Studio"); } }), -1.3, -1.35, 1.3, "menu"));
     const badge = tile(renderer, { w: 2.5, h: 0.78, r: 0.39, depth: 0.14, bg: C.acid,
       draw: (c, cw, ch) => text(c, "On this Mac", cw / 2, ch / 2 + 8, { size: 23, weight: 700, align: "center" }) });
-    root.add(sized(place(badge, 3.15, 1.75, 1.3, "badge"), 1.2));
-    return { bounds: [9.4, 5.4] };
+    root.add(sized(place(badge, 3.3, 2.35, 2.1, "badge"), 1.2));
+    return { bounds: [9.4, 6.4] };
   },
   instant(renderer, root) {
     root.add(place(tile(renderer, { w: 9.6, h: 2.2, r: 0.3, depth: 0.14, outline: { width: 2, color: "#E3DED4" },
@@ -235,21 +239,21 @@ const SCENES = {
         wrap(c, "Running about 5 minutes late, sorry! Start without me and I'll catch up.", 30, 100, cw - 60, { size: 26 }); } }), 0, -0.4, 0, "field"));
     const toast = tile(renderer, { w: 3.6, h: 0.86, r: 0.43, depth: 0.14, bg: C.ink,
       draw: (c, cw, ch) => { dot(c, 40, ch / 2, 13, C.acid); text(c, "Pasted · ⌘Z to undo", 66, ch / 2 + 8, { size: 23, weight: 700, color: C.paper }); } });
-    toast.rotation.z = -0.03; root.add(place(toast, -1.9, 0.95, 1.0, "toast"));
+    toast.rotation.z = -0.03; root.add(place(toast, -1.9, 1.45, 1.6, "toast"));
     const ret = tile(renderer, { w: 1.3, h: 1.3, r: 0.36, depth: 0.36, bg: "#F2D23C",
       draw: (c, cw, ch) => text(c, "↵", cw / 2, ch / 2 + 16, { size: 48, weight: 700, align: "center" }) });
-    root.add(sized(place(ret, 3.95, -1.3, 1.4, "return"), 1.35));
+    root.add(sized(place(ret, 3.95, -1.7, 2.3, "return"), 1.35));
     return { bounds: [10, 4.6] };
   },
   dictation(renderer, root) {
     root.add(place(tile(renderer, { w: 8.8, h: 3.6, r: 0.3, depth: 0.16,
-      draw: (c, cw) => { wrap(c, "can we push the call to four, the build is still running", 34, 66, cw - 70, { size: 27 });
-        c.fillStyle = C.cobalt; c.fillRect(34 + 0, 140, 3, 34); } }), 0, 0, 0, "card"));
-    root.add(place(pill(renderer, "● Dictating", { w: 2.4, h: 0.7, bg: C.tray, color: C.ink }), 2.95, -1.45, 0.9, "pill"));
+      draw: (c, cw) => { const end = wrap(c, "can we push the call to four, the build is still running", 34, 66, cw - 70, { size: 27 });
+        c.fillStyle = C.cobalt; c.fillRect(end.x + 6, end.y - 26, 3, 34); } }), 0, 0.5, 0, "card"));
+    root.add(place(pill(renderer, "● Dictating", { w: 2.4, h: 0.7, bg: C.tray, color: C.ink }), 3.0, -1.95, 1.1, "pill"));
     const bars = [0.35, 0.7, 1.1, 0.8, 1.35, 0.6, 0.95, 0.45, 0.75, 0.3];
     const wave = new THREE.Group(); wave.userData = { w: 3.1, h: 1.4 }; // the waveform is one piece
     bars.forEach((hgt, i) => { const b = tile(renderer, { w: 0.2, h: hgt, r: 0.1, depth: 0.12, bg: C.cobalt }); b.position.set(-1.44 + i * 0.32, 0, 0); wave.add(b); });
-    root.add(sized(place(wave, -1.0, -1.5, 1.1, "wave"), 1.5));
+    root.add(sized(place(wave, -1.2, -0.75, 1.9, "wave"), 1.5));
     return { bounds: [9.4, 4.4] };
   },
 };
@@ -322,15 +326,15 @@ export function mount(el, name, { interactive = false, exportMode = false, part 
   }
   // Rendered pieces are seen almost straight on, each scene turned a touch its own way; carousel frames use their
   // per-feature angle; otherwise the near-front three-quarter view of the stills.
-  const turn = name === "takes" ? 0 : Math.sign(SHOTS[name]?.[1] || 0) * 0.1;
-  const base = part ? { x: -0.12, y: 0 } : sprites ? { x: -0.05, y: turn } : shot && SHOTS[name] ? { x: SHOTS[name][0], y: SHOTS[name][1] } : { x: -0.2, y: 0.24 };
+  const turn = name === "takes" ? 0 : Math.sign(SHOTS[name]?.[1] || 0) * 0.26;
+  const base = part ? { x: -0.12, y: 0 } : sprites ? { x: name === "takes" ? -0.05 : -0.2, y: turn } : shot && SHOTS[name] ? { x: SHOTS[name][0], y: SHOTS[name][1] } : { x: -0.2, y: 0.24 };
   const camera = new THREE.PerspectiveCamera(26, 1, 0.1, 100);
   root.rotation.set(base.x, base.y, 0); floor.rotation.copy(root.rotation);
   function fit() {
     const w = el.clientWidth || 800, h = el.clientHeight || 520; renderer.setSize(w, h, false);
     canvas.style.width = "100%"; canvas.style.height = "100%";
     camera.aspect = w / h; const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-    const d = Math.max(bounds[1] / 2 / t, bounds[0] / 2 / (t * camera.aspect)) * (exportMode && !sprites ? (part ? 1.04 : 1.22) : name === "takes" ? 1.12 : 1.04);
+    const d = Math.max(bounds[1] / 2 / t, bounds[0] / 2 / (t * camera.aspect)) * (exportMode && !sprites ? (part ? 1.04 : 1.22) : name === "takes" ? 1.12 : 1.1);
     camera.position.set(0, 0, d + 1); camera.lookAt(0, 0, 0); camera.clearViewOffset(); camera.zoom = 1;
     camera.updateProjectionMatrix();
   }
@@ -362,7 +366,7 @@ export function mount(el, name, { interactive = false, exportMode = false, part 
   if (sprites) {
     const names = root.children.filter((o) => o.name && (o.visible || o.name === "ring")).map((o) => o.name);
     const loader = new THREE.TextureLoader();
-    Promise.all(names.map((n) => loader.loadAsync(`${sprites}/${n}.webp`).then((tex) => [n, tex]))).then((loaded) => {
+    Promise.all(names.map((n) => loader.loadAsync(`${sprites}/${n}.webp?v=${ASSET_V}`).then((tex) => [n, tex]))).then((loaded) => {
       for (const [n, tex] of loaded) {
         tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
         const obj = root.getObjectByName(n), { w } = obj.userData, aspect = tex.image.width / tex.image.height;

@@ -132,7 +132,6 @@ section h2 { font-size: clamp(52px, 6.4vw, 84px); }
 .slide-copy .label { color: var(--ink); margin-bottom: 14px; }
 .slide-copy h3 { font: 700 clamp(30px, 3.4vw, 44px)/1 var(--display); margin: 0 0 14px; }
 .slide-copy p { font-size: clamp(16px, 1.5vw, 19px); line-height: 1.45; margin: 0; }
-.slide-copy .slide-note { font-size: 14px; line-height: 1.45; color: var(--muted); margin-top: 14px; }
 .dots { display: flex; gap: 8px; margin-top: 22px; }
 .dots button { width: 9px; height: 9px; padding: 0; border-radius: 50%; border: 0; background: var(--ink); opacity: .22; cursor: pointer; }
 .dots button[aria-current="true"] { opacity: 1; }
@@ -327,7 +326,7 @@ fill="currentColor" stroke="none">
           <a class="text-link" href="https://github.com/bar-amir/takes" data-goatcounter-click="github-hero" data-goatcounter-title="GitHub (hero)">Free and open source</a>
         </div>
         <div class="label keys">Control + Option + Space</div>
-        <p class="small">Free. No account needed to download. macOS 14 or later.</p>
+        <p class="small">Free.<br>No account needed to download.<br>macOS 14 or later.</p>
       </div>
     </div>
   </section>
@@ -388,7 +387,7 @@ fill="currentColor" stroke="none">
         </li>
         <li class="slide" id="coach" aria-label="4 of 9: Write it better next time.">
           <div class="slide-stage" data-scene="coach" data-sprites="img/slides/parts/coach"><img src="img/slides/stills/coach.webp" width="1200" height="1000" alt="A draft with three flagged phrases and the English coach below it, its fixes lifted out: If you will send to If you send, until tomorrow to by tomorrow, make you a feedback to give you feedback" loading="lazy"></div>
-          <div class="slide-copy"><div class="label">English Coach</div><h3>Write it better next time.</h3><p>Turn on the English coach and it spots the mistakes your takes fix, notices the ones you repeat, and teaches them back with your own sentences.</p><p class="slide-note">Off until you turn it on. About 1,000 extra tokens per English draft; lessons are made on your Mac at no cost. Only the phrase around each mistake is kept, on your Mac, for 30 days.</p></div>
+          <div class="slide-copy"><div class="label">English Coach</div><h3>Write it better next time.</h3><p>Turn on the English coach and it spots the mistakes your takes fix, notices the ones you repeat, and teaches them back with your own sentences.</p></div>
         </li>
         <li class="slide" id="slide-local" aria-label="5 of 9: A model on your Mac">
           <div class="slide-stage" data-scene="local" data-sprites="img/slides/parts/local"><img src="img/slides/stills/local.webp" width="1200" height="1000" alt="The model menu with llama3.2 from Ollama picked, and an On this Mac badge" loading="lazy"></div>
@@ -422,7 +421,7 @@ fill="currentColor" stroke="none">
         <div class="truth-row"><div class="label">Your connection</div><p>Drafts, instructions and voice examples go to Anthropic through your Claude connection, to OpenAI through your ChatGPT plan, to the provider whose key you added, or nowhere, with a model on your Mac.</p></div>
         <div class="truth-row"><div class="label">Your decision</div><p>Takes pastes the version you choose into the original field. You decide when to send.</p></div>
       </div>
-      <p class="small">Only the focused field or selection is read, and only when you press the shortcut. The app has no developer-run server and no analytics. This website counts visits with GoatCounter, without cookies. <a href="https://github.com/bar-amir/takes/blob/main/PRIVACY.md">Read the privacy notice</a>.</p>
+      <p class="small">Only the focused field or selection is read, and only when you press the shortcut. The app has no developer-run server and no analytics. The English coach is off until you turn it on; it adds about 1,000 tokens per English draft, and keeps only the phrase around each mistake, on your Mac, for 30 days. This website counts visits with GoatCounter, without cookies. <a href="https://github.com/bar-amir/takes/blob/main/PRIVACY.md">Read the privacy notice</a>.</p>
     </div>
   </section>
 
@@ -478,7 +477,7 @@ fill="currentColor" stroke="none">
     // Each slide's graphic is a live WebGL scene of separately rendered pieces; only the slides on screen keep one.
     const live = new Map(); let lib;
     const wake = async (slide) => { const st = slide.querySelector(".slide-stage"); if (!st || live.has(st)) return; live.set(st, null);
-      try { lib = lib || await import("./js/layers.js?v=7");
+      try { lib = lib || await import("./js/layers.js?v=9");
         if (!live.has(st)) return;
         live.set(st, lib.mount(st, st.dataset.scene, { interactive: true, sprites: st.dataset.sprites, onReady: () => st.classList.add("live") }));
       } catch (err) { console.warn("layers: slide failed", st.dataset.scene, err); live.delete(st); } };
@@ -494,7 +493,7 @@ fill="currentColor" stroke="none">
   if (el && "IntersectionObserver" in window) {
     const io = new IntersectionObserver(async ([e]) => {
       if (!e.isIntersecting) return; io.disconnect();
-      try { const { mount } = await import("./js/layers.js?v=7"); mount(el, el.dataset.scene, { interactive: true, sprites: el.dataset.sprites }); el.classList.add("live"); }
+      try { const { mount } = await import("./js/layers.js?v=9"); mount(el, el.dataset.scene, { interactive: true, sprites: el.dataset.sprites }); el.classList.add("live"); }
       catch { /* no WebGL or offline: keep the still */ }
     }, { rootMargin: "300px" });
     io.observe(el);
