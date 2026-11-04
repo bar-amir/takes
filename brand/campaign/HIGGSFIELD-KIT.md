@@ -49,15 +49,32 @@ perspective, so the hover keeps the rendered materials. Parts: `base`, `chip`, `
 - The page's still (`site/img/layers/takes-front.webp`) is the same scene exported once:
   `layers.html?scene=takes&sprites=img/layers/parts&export=1&w=1500&h=1000`.
 
-## Features carousel: one wide render per feature
+## Features carousel: one render per piece
 
-Nine slides (`shortcut`, `presets`, `proofread`, `coach`, `local`, `instant`, `dictation`, `tone`, `languages`), each
-from a different camera angle (`SHOTS` in `site/js/layers.js`), with the object in the right part of a 16:9 frame and
-the left kept empty for the caption.
+Each carousel slide is a live WebGL scene like the takes panel: every piece (a key, a chip, a card, a tile) is its own
+transparent render, placed in depth and casting a soft shadow on the pieces below, with the camera following the
+cursor a little. The pieces themselves stay still. Pieces per scene are the names given to `place()` in `site/js/layers.js`:
 
-- Layout: `brand/campaign/frames/slides/<scene>.png` (`scripts/export-layers.sh`).
-- Material: the matching feature render (the takes render for `tone` and `languages`).
-- Prompt: the shared prompt above, plus "Keep the first image's exact framing (the object sits in the right part of the
-  frame, the left 40% stays completely empty)". For `instant`, add "no glow, no haze, no light or white patch behind the
-  objects"; the first render had one.
-- Post: `scripts/frame-render.sh slide <render.png> site/img/slides/<scene>.webp`.
+| Scene | Pieces |
+|---|---|
+| shortcut | field, key-control, key-option, key-space, chip (reuses the takes chip) |
+| presets | chip1 (reuses the takes chip), chip2–chip5, instruction, do, avoid |
+| proofread | card, fix1–fix3 |
+| coach | draft, tray, fix1–fix3 |
+| local | panel, menu, badge |
+| instant | field, toast, return |
+| dictation | card, pill, wave |
+| tone | reply, take, note |
+| languages | de, es, en |
+
+- Layout: `brand/campaign/frames/pieces/<scene>/<piece>.png` (`scripts/export-layers.sh`).
+- Material: that scene's earlier wide render (the angled carousel stills in `slides-sheet.jpg`), so the pieces keep
+  the same finish.
+- Settings: `quality: medium`, `resolution: 2k`, transparent; medium was enough for every piece's text.
+- Prompt: "Render ONLY the single piece in the FIRST reference image as a physical object, with the material, colour
+  and lighting of the matching piece in the SECOND reference image … Seen straight on with a very slight top-down
+  perspective. Keep all text word for word … Transparent background, no ground shadow, nothing else."
+- Post: `scripts/frame-render.sh part <render.png> site/img/slides/parts/<scene>/<piece>.webp`.
+- Stills: `STILLS="<scenes>" scripts/export-layers.sh` exports each live scene once (992 × 900), saved as
+  `site/img/slides/<scene>.webp`. The page shows it until the live scene loads, so the swap is seamless.
+- The page keeps a WebGL context only for slides on screen; the others are freed and fall back to their still.
