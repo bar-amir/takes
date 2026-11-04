@@ -9,54 +9,131 @@ enum CoachScreen: Hashable {
 
 // MARK: - Takes screen
 
-/// "English coach · 2 notes" under the draft on the takes screen: what the check found, each with a reason and a
-/// "Not a mistake" button. Nothing shows while the coach is off or found nothing.
+/// The English coach card under the takes: "Checking your English…" while the check runs, then each fix as a chip.
+/// Picking a chip shows why, and "Not a mistake" hides it for good. Nothing shows while the coach is off or found
+/// nothing.
 struct CoachStrip: View {
     @ObservedObject var run: CoachRun
+    @State private var picked = 0
 
     var body: some View {
-        if !run.findings.isEmpty || !run.tips.isEmpty {
-            VStack(alignment: .leading, spacing: Spacing.item) {
+        if run.state == .checking {
+            card {
                 HStack(spacing: Spacing.item) {
-                    Text("English coach").font(.system(size: 12, weight: .bold))
-                    Text(summary).font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
+                    title
+                    ProgressView().controlSize(.small)
+                    Text("Checking your English…").font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
                 }
-                ForEach(Array(run.findings.enumerated()), id: \.element) { index, finding in
+            }
+        } else if !run.findings.isEmpty || !run.tips.isEmpty {
+            card {
+                VStack(alignment: .leading, spacing: Spacing.item) {
                     HStack(spacing: Spacing.item) {
-                        Text("\(index + 1)")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundStyle(Theme.onAccent)
-                            .frame(width: 18, height: 18)
-                            .background(Circle().fill(Theme.accent))
-                        CoachFix(wrong: finding.wrong, right: finding.right)
-                        Text("· \(finding.why)").font(.system(size: 12)).foregroundStyle(Theme.secondaryText).lineLimit(1)
-                        Spacer(minLength: 0)
-                        Button("Not a mistake") { run.dismiss(finding) }
-                            .buttonStyle(.plain)
-                            .font(.system(size: 12))
-                            .foregroundStyle(Theme.secondaryText)
+                        title
+                        Text(summary).font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
                     }
-                }
-                ForEach(run.tips, id: \.self) { tip in
-                    HStack(spacing: Spacing.item) {
-                        Image(systemName: "arrow.up.right").font(.system(size: 10, weight: .bold)).foregroundStyle(Theme.doText)
-                            .frame(width: 18)
-                        Text("\(tip.goal):").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.doText)
-                        (Text("“\(tip.wrong)” could be ") + Text("“\(tip.better)”").fontWeight(.semibold))
-                            .font(.system(size: 13)).lineLimit(1)
+                    if !run.findings.isEmpty {
+                        FlowLayout(spacing: 6) {
+                            ForEach(Array(run.findings.enumerated()), id: \.element) { index, finding in
+                                chip(index, finding)
+                            }
+                        }
+                        if let finding = selected { detail(finding) }
+                    }
+                    ForEach(run.tips, id: \.self) { tip in
+                        HStack(spacing: 6) {
+                            Image(systemName: "arrow.up.right").font(.system(size: 10, weight: .bold)).foregroundStyle(Theme.doText)
+                            Text("\(tip.goal):").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.doText)
+                            (Text("“\(tip.wrong)” could be ") + Text("“\(tip.better)”").fontWeight(.semibold))
+                                .font(.system(size: 12)).lineLimit(1)
+                        }
                     }
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, Spacing.gutter)
-            .padding(.vertical, Spacing.inner)
-            RowDivider()
         }
+    }
+
+    private var title: some View {
+        Text("English coach").font(.system(size: 12, weight: .bold))
+    }
+
+    private var selected: CoachCheck.Finding? {
+        run.findings.indices.contains(picked) ? run.findings[picked] : run.findings.first
+    }
+
+    private func chip(_ index: Int, _ finding: CoachCheck.Finding) -> some View {
+        let on = finding == selected
+        return Button { picked = index } label: {
+            CoachFix(wrong: finding.wrong, right: finding.right, size: 12)
+                .padding(.horizontal, 9)
+                .frame(height: 24)
+                .background(RoundedRectangle(cornerRadius: 6).fill(on ? Theme.surface : Theme.surface.opacity(0.6)))
+                .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(on ? Theme.accent : Theme.border, lineWidth: on ? 1.5 : 1))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(finding.why)
+        .accessibilityLabel("\(finding.wrong) to \(finding.right)")
+        .accessibilityHint(finding.why)
+        .accessibilityAddTraits(on ? .isSelected : [])
+    }
+
+    /// "Conditionals · a future condition takes the present after if            Not a mistake"
+    private func detail(_ finding: CoachCheck.Finding) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: Spacing.item) {
+            (Text(CoachGuide.pattern(finding.pattern)?.name ?? "").fontWeight(.semibold).foregroundStyle(Theme.controlText)
+                + Text("  \(finding.why)").foregroundStyle(Theme.secondaryText))
+                .font(.system(size: 12))
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: Spacing.item)
+            Button("Not a mistake") { run.dismiss(finding) }
+                .buttonStyle(.plain)
+                .font(.system(size: 12))
+                .foregroundStyle(Theme.secondaryText)
+                .help("Hide this note and never flag this phrase again")
+        }
+    }
+
+    private func card<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        content()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, Spacing.inner)
+            .padding(.vertical, 10)
+            .background(RoundedRectangle(cornerRadius: 10).fill(Theme.accentSoft.opacity(0.55)))
+            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Theme.accentSoft))
+            .padding(.horizontal, Spacing.gutter)
+            .padding(.bottom, Spacing.section)
     }
 
     private var summary: String {
         let n = run.findings.count
-        return n == 0 ? "a tip for your goals" : "\(n) note\(n == 1 ? "" : "s") on your draft · kept when you paste"
+        return n == 0 ? "a tip for your goals" : "\(n) note\(n == 1 ? "" : "s") on your draft"
+    }
+}
+
+/// "Your draft" above the takes, with each phrase the coach flagged underlined.
+struct DraftStrip: View {
+    let draft: String
+    @ObservedObject var run: CoachRun
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Your draft").font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.tertiaryText)
+            Text(marked).font(.system(size: 14)).foregroundStyle(Theme.text).lineLimit(3).textSelection(.enabled)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, Spacing.gutter)
+        .padding(.vertical, Spacing.inner)
+        .background(Theme.strip)
+    }
+
+    private var marked: AttributedString {
+        var text = AttributedString(draft)
+        for finding in run.findings {
+            guard let range = text.range(of: finding.wrong, options: .caseInsensitive) else { continue }
+            text[range].underlineStyle = Text.LineStyle(pattern: .solid, color: Theme.avoidText)
+        }
+        return text
     }
 }
 

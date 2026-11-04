@@ -40,22 +40,33 @@ extension Snapshot {
         CoachStore.shared.data = CoachData()
         render(tab(.home), size: size, to: folder.appendingPathComponent("coach-5-overview-empty.png"))
 
-        let draft = "If you will send me the link today I will review it tomorrow, I did a mistake in the dashboard numbers."
+        let draft = "If you will send me the file until tomorrow, I will check it and make you a feedback. I am working here since 2020, so I know what means this error."
         let model = PanelModel()
         model.reset(focus: FocusSnapshot(app: nil, text: draft, source: .field, caretRect: nil), presetID: store.presets.first?.id)
         model.previewAppName = "Slack"
         model.screen = .takes
         model.sourceDraft = draft
         model.takes = [
-            "If you send me the link today, I'll review it tomorrow. I made a mistake in the dashboard numbers.",
-            "Send me the link today and I'll look at it tomorrow. Heads up: I made a mistake in the dashboard numbers.",
-            "Link today → review tomorrow. Also, the dashboard numbers had a mistake on my side.",
+            "Send me the file by tomorrow and I'll review it and give you feedback. I've worked here since 2020, so I know this error well.",
+            "Please send me the file by tomorrow. I'll check it and share my feedback, since I've been here since 2020 and know this error well.",
+            "Can you send me the file by tomorrow? I'll review it and get back to you with feedback. I've seen this error many times since 2020.",
         ]
-        model.timing = "first words 1.3 s · all takes 2.8 s"
+        model.timing = "first words 1.6 s · all takes 3.9 s"
+        model.coach.preview(.checking)
+        render(PanelRootView(model: model), size: CGSize(width: 1060, height: fittedHeight(model)),
+               to: folder.appendingPathComponent("coach-6a-takes-checking.png"))
         model.coach.preview(.done(.init(findings: [
-            .init(pattern: "conditionals", wrong: "If you will send", right: "If you send", why: "present after “if”"),
-            .init(pattern: "collocations", wrong: "I did a mistake", right: "I made a mistake", why: "you make a mistake"),
-        ], tips: [.init(goal: "Use more phrasal verbs", wrong: "review it", better: "look it over")])))
+            .init(pattern: "conditionals", wrong: "If you will send", right: "If you send",
+                  why: "A future condition takes the present after \"if\"; \"will\" goes in the result."),
+            .init(pattern: "timeExpressions", wrong: "until tomorrow", right: "by tomorrow",
+                  why: "\"By\" sets a deadline; \"until\" means continuing up to then."),
+            .init(pattern: "collocations", wrong: "make you a feedback", right: "give you feedback", why: "You give feedback, not make it."),
+            .init(pattern: "countable", wrong: "a feedback", right: "feedback", why: "\"Feedback\" is uncountable here, so no \"a\"."),
+            .init(pattern: "presentPerfect", wrong: "I am working here since", right: "I've been working here since",
+                  why: "With \"since\", a situation running up to now takes the present perfect."),
+            .init(pattern: "wordOrder", wrong: "what means this error", right: "what this error means",
+                  why: "Inside a sentence, a question keeps normal word order."),
+        ])))
         render(PanelRootView(model: model), size: CGSize(width: 1060, height: fittedHeight(model)),
                to: folder.appendingPathComponent("coach-6-takes.png"))
 

@@ -297,8 +297,9 @@ enum CoachCheck {
         Only use these pattern ids:
         \(list)
         For each mistake, reply with one line:
-        <id> | <the wrong words, copied exactly from the draft> | <the corrected words> | <why, under 10 words>
-        Keep the wrong words short: just the phrase around the mistake.
+        <id> | <the wrong words, copied exactly from the draft> | <the corrected words> | <why, under 12 words>
+        Keep the wrong words short: just the phrase around the mistake. The why must be true for this sentence and say when \
+        the rule applies ("a future condition takes the present after if"), never a rule that sounds like it always holds.
         \(goals.isEmpty ? "" : "The writer also has these goals. For a phrase that could better match one, reply with one line:\n<goal id> | <words copied exactly from the draft> | <how it could sound>\n\(goals)\n")\
         Use \(settings.variant == .uk ? "British" : "American") English. Never report typos, spelling, punctuation, capitals, \
         casual chat style, missing greetings, names, code, links or anything already correct. If there is nothing, reply "none".
@@ -318,7 +319,7 @@ enum CoachCheck {
         var result = Result()
         for line in text.components(separatedBy: "\n") {
             let parts = line.split(separator: "|", omittingEmptySubsequences: false)
-                .map { $0.trimmingCharacters(in: .whitespaces).trimmingCharacters(in: CharacterSet(charactersIn: "\"“”`")) }
+                .map { unquoted($0.trimmingCharacters(in: .whitespaces)) }
             guard parts.count >= 3, !parts[1].isEmpty, !parts[2].isEmpty,
                   normalized(parts[1]) != normalized(parts[2]), lowerDraft.contains(normalized(parts[1])) else { continue }
             let id = parts[0].trimmingCharacters(in: CharacterSet(charactersIn: "-*• "))
@@ -333,6 +334,15 @@ enum CoachCheck {
             }
         }
         return result
+    }
+
+    /// "“if you will send”" → "if you will send": drops one pair of quotes around the whole field, so a reason that
+    /// starts or ends with a quoted word ("By" marks a deadline) keeps its quotes.
+    static func unquoted(_ field: String) -> String {
+        let quotes: Set<Character> = ["\"", "“", "”", "`"]
+        guard field.count >= 2, let first = field.first, let last = field.last, quotes.contains(first), quotes.contains(last),
+              !field.dropFirst().dropLast().contains(where: quotes.contains) else { return field }
+        return String(field.dropFirst().dropLast())
     }
 
     /// Lowercased, curly quotes made straight, spaces collapsed: for comparing the model's quote with the draft.

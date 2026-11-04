@@ -398,15 +398,8 @@ struct TakesView: View {
         VStack(spacing: 0) {
             header
             Rule()
-            (Text("Your draft: ").fontWeight(.semibold).foregroundStyle(Theme.controlText) + Text(model.sourceDraft).foregroundStyle(Theme.secondaryText))
-                .font(.system(size: 13))
-                .lineLimit(2)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, Spacing.gutter)
-                .padding(.vertical, Spacing.bar)
-                .background(Theme.strip)
+            DraftStrip(draft: model.sourceDraft, run: model.coach)
             Rule()
-            CoachStrip(run: model.coach)
 
             if let error = model.error {
                 VStack(alignment: .leading, spacing: Spacing.inner) {
@@ -450,6 +443,7 @@ struct TakesView: View {
                 refineBar
             }
 
+            CoachStrip(run: model.coach)
             Rule()
             footer
         }
