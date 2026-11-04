@@ -31,7 +31,7 @@ gh label create "engine" --color 1D76DB --description "Claude Code, API, ChatGPT
 gh label create "english coach" --color 0E8A16 --description "The English coach" --force
 ```
 
-Before you remove any labels, check these existing ones by hand: `windows` ("Windows app") and `operations` ("agent workflow operations") look left over from another project. To remove them: `gh label delete windows --yes` and `gh label delete operations --yes`.
+Keep the existing `windows` and `operations` labels. They track the planned Windows port (#19–#23).
 
 Keep **good first issue** and **help wanted** stocked. GitHub lists them on the repository's `/contribute` page and in its search. A good first issue says which file to change and how to tell it works.
 
