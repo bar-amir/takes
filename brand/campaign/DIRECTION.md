@@ -13,8 +13,8 @@ Three layers of production:
 | Asset | Made with | Where |
 |---|---|---|
 | Live hero of the product section | WebGL (`site/js/layers.js`, scene `takes`). Point at a take and it comes to the front; arrow keys do the same. | Site, "Choice is the product" |
-| Composition frames | The same engine, exported on transparent backgrounds (`site/layers.html?scene=…&export=1`) | `site/img/layers/*.png`, the README and the site's feature slots today |
-| Final stills | Higgsfield, from the frame (layout) plus a material reference (look), as in `HIGGSFIELD-KIT.md` | Replace `site/img/layers/*.png` one-for-one |
+| Composition frames | The same engine, exported on transparent backgrounds (`site/layers.html?scene=…&export=1`) | `brand/campaign/frames/*.png` |
+| Final stills | Higgsfield, from the frame (layout) plus a material reference (look), as in `HIGGSFIELD-KIT.md` | `site/img/layers/*.webp`, the README grid and the site |
 
 Earlier explorations, kept for reference: the desk-object concepts (`desk-concepts-sheet.jpg`) and the first 3D UI renders (`material-refs-sheet.jpg`), which were too literal (every button and shortcut) but set the material target.
 
@@ -32,14 +32,14 @@ Reference points (Mobbin): Cycle's feature grid uses one chunky 3D object per fe
 
 | Feature | Scene | File |
 |---|---|---|
-| Takes (compare, choose) | The panel: draft strip, three takes, one lifted to the front | `site/img/layers/takes.png` (live on the site) |
-| Shortcut, draft panel | The draft field and preset chips, with ⌃ ⌥ and a cobalt space bar in front | `compose.png` |
-| Presets | A stack of preset tiles, Slack message pulled out, beside its instruction and Do / Avoid | `presets.png` |
-| Proofread | A take with each fix marked, the three fixes floating beside it | `proofread.png` |
-| English coach | The draft with flagged phrases, the coach tray with its fix chips lifted out | `coach.png` |
-| Local model, privacy | The model menu with a local model picked and an acid "On this Mac" badge | `local.png` |
-| Write and paste right away | A pasted message, a "Pasted" toast, a yellow Return key | `instant.png` |
-| Dictation | A draft being spoken, a cobalt waveform, the Dictating pill | `dictation.png` |
+| Takes (compare, choose) | The panel: draft strip, three takes, one lifted to the front | `site/img/layers/takes.webp` (live WebGL on the site) |
+| Shortcut, draft panel | The draft field and preset chips, with ⌃ ⌥ and a cobalt space bar in front | `compose.webp` |
+| Presets | A stack of preset tiles, Slack message pulled out, beside its instruction and Do / Avoid | `presets.webp` |
+| Proofread | A take with each fix marked, the three fixes floating beside it | `proofread.webp` |
+| English coach | The draft with flagged phrases, the coach tray with its fix chips lifted out | `coach.webp` |
+| Local model, privacy | The model menu with a local model picked and an acid "On this Mac" badge | `local.webp` |
+| Write and paste right away | A pasted message, a "Pasted" toast, a yellow Return key | `instant.webp` |
+| Dictation | A draft being spoken, a cobalt waveform, the Dictating pill | `dictation.webp` |
 
 Still to make: Context and tone (a take with its tone note as a separate tile) and Any language (the same take in three scripts, stacked).
 
@@ -47,9 +47,9 @@ Still to make: Context and tone (a take with its tone note as a separate tile) a
 
 | Placement | Ratio | Export | Notes |
 |---|---|---|---|
-| Site, `.split` columns | 3:2 | 1500 × 1000 PNG, transparent | `class="concept"`, no frame, `loading="lazy"` |
+| Site, `.split` columns | 3:2 | 1500 × 997 WebP, transparent | `class="concept"`, no frame, `loading="lazy"` |
 | Site hero | 16:9 | existing `hero.mp4`, `hero.jpg` | unchanged |
-| README feature grid | 3:2 | 1500 × 1000 PNG, transparent, under 250 KB | two per row in a `<table>`; reads on GitHub light and dark |
+| README feature grid | 3:2 | 1500 × 997 WebP, transparent, under 220 KB | two per row in a `<table>`; reads on GitHub light and dark |
 | README top | 16:9 GIF/MP4 | 1280 × 720, under 10 MB | the Claude Motion cut (see `MOTION-BRIEF.md`) or a 10 s real-use capture; keep `takes.png` until then |
 | Social / OG | 1.91:1 | 1200 × 630 | crop the hero or `takes.jpg`, wordmark top-left |
 | GitHub social preview | 2:1 | 1280 × 640 | the hero frame `brand/hero/key-4.jpg` with the wordmark |
@@ -57,6 +57,6 @@ Still to make: Context and tone (a take with its tone note as a separate tile) a
 
 ## Production notes
 
-- Frames: run `python3 -m http.server` in `site/`, open `layers.html?scene=<name>` to tune, then export with headless Chrome: `--headless=new --use-angle=swiftshader --enable-unsafe-swiftshader --window-size=1500,1000 --default-background-color=00000000 --screenshot=<file> "http://localhost:8000/layers.html?scene=<name>&export=1&w=1500&h=1000"`.
+- Frames: run `python3 -m http.server` in `site/`, open `layers.html?scene=<name>` to tune, then export with headless Chrome: `--headless=new --use-angle=swiftshader --enable-unsafe-swiftshader --window-size=1500,1000 --default-background-color=00000000 --screenshot=brand/campaign/frames/<name>.png "http://localhost:8000/layers.html?scene=<name>&export=1&w=1500&h=1000"`.
 - Stills: see `HIGGSFIELD-KIT.md`. Check every word by eye after generating.
 - `BRAND.md` says to explain the interface with real screenshots, not mockups. These scenes are deliberately abstract and use the app's real wording. Keep real `Takes --snapshot` screenshots for docs and release notes.

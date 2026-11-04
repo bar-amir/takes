@@ -52,7 +52,7 @@ No copy apart from the keycap overlay. Real recordings only.
 | Asset | Where |
 |---|---|
 | Hero video (style and the hand/dial footage) | `brand/hero/hero-master.mp4` (13 MB), keyframes `brand/hero/key-0…4.jpg` |
-| Feature stills | `site/img/layers/*.png`: transparent, layered UI per feature (final Higgsfield versions per `HIGGSFIELD-KIT.md`) |
+| Feature stills | `site/img/layers/*.webp`: transparent, textured layered UI per feature (2K PNG masters can be re-rendered per `HIGGSFIELD-KIT.md`) |
 | Layered UI, live | `site/layers.html?scene=takes`: record the hover moment (a take rising to the front) as a screen capture for shot 4 |
 | Wordmark, mark | `brand/logo.svg`, `brand/logo-inverted.svg`, `brand/t-mark.svg` |
 | Logo animations | `brand/logo-anim/*.mp4` (green-screened; `chatter.mp4` or `zipper.mp4` suit the end card) |

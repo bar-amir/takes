@@ -1,10 +1,10 @@
 // Layered UI: the Takes interface as an abstraction of thick, soft tiles floating in depth.
 // One engine, several scenes. The "takes" scene is interactive on the site (hover or tap a take to bring it
 // to the front); every scene can also render once on a transparent background for exporting stills
-// (layers.html?scene=coach&export=1). Text is drawn to canvas textures, so it stays crisp at any size.
+// (layers.html?scene=coach&export=1), the layout frames for the Higgsfield stills in brand/campaign/HIGGSFIELD-KIT.md. Text is drawn to canvas textures, so it stays crisp at any size.
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 
-const C = { ink: "#171714", paper: "#F3EBDD", card: "#FDFBF7", strip: "#EFEAE1", tray: "#F4ECDF",
+const C = { ink: "#171714", paper: "#F3EBDD", card: "#F5EEE2", strip: "#ECE4D5", tray: "#EADFCB",
   cobalt: "#3045FF", acid: "#E8F449", tomato: "#F0543D", mute: "#8A8478", red: "#B3261E", green: "#1E6B3A",
   redBg: "rgba(240,84,61,.13)", greenBg: "rgba(30,107,58,.11)" };
 const FONT = 'Arial, "Helvetica Neue", Helvetica, sans-serif';
@@ -248,10 +248,13 @@ export function mount(el, name, { interactive = false, exportMode = false } = {}
   let active = -1, pointer = { x: 0, y: 0 }, tilt = { x: 0, y: 0 };
   const setActive = (i) => { if (i === active || i < 0) return; active = i; takes?.forEach((t, j) => t.userData.face.material.map = t.userData.maps[j === i ? 1 : 0]); };
   // Moves each take toward its pose: the active one lifted toward the viewer, the others sunk slightly. k = 1 snaps.
-  const pose = (k) => takes?.forEach((t, i) => { const on = i === active, home = t.userData.home;
-    const tz = home.z + (on ? 1.9 : -0.3), ty = home.y + (on ? 0.15 : 0), ts = on ? 1.08 : 0.97;
-    const tx = home.x - (on ? 1.9 * Math.sin(base.y) : 0); // lift straight toward the viewer, not along the turned axis
-    t.position.x += (tx - t.position.x) * k; t.position.z += (tz - t.position.z) * k; t.position.y += (ty - t.position.y) * k; const s = t.scale.x + (ts - t.scale.x) * k; t.scale.set(s, s, 1); });
+  // Moves each take toward its pose. The active one travels along the line to the camera, so it grows toward the
+  // viewer without sliding sideways; the others settle back slightly. k = 1 snaps.
+  const toCam = new THREE.Vector3(), goal = new THREE.Vector3();
+  const pose = (k) => { if (!takes) return; root.updateMatrixWorld(); toCam.copy(camera.position); root.worldToLocal(toCam);
+    takes.forEach((t, i) => { const on = i === active, home = t.userData.home;
+      if (on) goal.copy(toCam).sub(home).normalize().multiplyScalar(2.0).add(home); else goal.set(home.x, home.y, home.z - 0.3);
+      t.position.lerp(goal, k); const s = t.scale.x + ((on ? 1.04 : 0.97) - t.scale.x) * k; t.scale.set(s, s, 1); }); };
   setActive(exportMode ? 1 : 0);
 
   if (exportMode) { pose(1); renderer.render(scene, camera); return { renderer }; }
