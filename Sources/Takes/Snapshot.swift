@@ -29,7 +29,7 @@ enum Snapshot {
         }
 
         let compose = model()
-        render(PanelRootView(model: compose), size: CGSize(width: 720, height: 400), to: url.appendingPathComponent("1-compose.png"))
+        render(PanelRootView(model: compose), size: CGSize(width: 720, height: ComposeView.height), to: url.appendingPathComponent("1-compose.png"))
 
         let picker = model()
         picker.openPicker()
@@ -69,6 +69,7 @@ enum Snapshot {
         renderReplyContext(to: url)
         renderToneCheck(to: url)
         renderCoach(to: url)
+        renderPanel(to: url)
         dictation(to: url)
         renderOnboarding(to: url)
         renderPresetOptions(to: url)

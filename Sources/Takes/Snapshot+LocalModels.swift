@@ -37,7 +37,7 @@ extension Snapshot {
             compose.reset(focus: FocusSnapshot(app: nil, text: "ya thursday works but i need the specs by wed eod otherwise qa slips again",
                                                source: .field, caretRect: nil), presetID: Store.shared.presets.first?.id)
             compose.previewAppName = "Slack"
-            render(PanelRootView(model: compose), size: CGSize(width: 720, height: 400), dark: dark,
+            render(PanelRootView(model: compose), size: CGSize(width: 720, height: ComposeView.height), dark: dark,
                    to: url.appendingPathComponent("7-local-panel-compose-\(suffix).png"))
             compose.openPicker()
             compose.highlighted = 0

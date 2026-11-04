@@ -25,7 +25,7 @@ extension Snapshot {
         ]
         for (dark, suffix) in [(false, "light"), (true, "dark")] {
             for (name, model) in states {
-                let size = CGSize(width: 720, height: 400 + ReplyContextBar.extraHeight(model))
+                let size = CGSize(width: 720, height: ComposeView.height + ReplyContextBar.extraHeight(model))
                 write(PanelRootView(model: model), size: size, dark: dark, to: folder.appendingPathComponent("rc-compose-\(name)-\(suffix).png"))
             }
             let settings = SettingsState()

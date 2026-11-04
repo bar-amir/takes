@@ -27,7 +27,7 @@ extension Snapshot {
         for (name, model) in screens {
             for dark in [false, true] {
                 let url = folder.appendingPathComponent("7-dictation-\(name)-\(dark ? "dark" : "light").png")
-                try? themedBitmap(of: PanelRootView(model: model), size: CGSize(width: 720, height: 400), dark: dark)?
+                try? themedBitmap(of: PanelRootView(model: model), size: CGSize(width: 720, height: ComposeView.height), dark: dark)?
                     .representation(using: .png, properties: [:])?.write(to: url)
             }
         }

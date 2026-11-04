@@ -15,17 +15,38 @@ extension Snapshot {
             CoachStore.shared.data = savedData
         }
 
+        // The coach tab on its own, at the Settings window's new width, light and dark.
+        func page<V: View>(_ view: V, _ name: String, height: CGFloat = 720) {
+            for (dark, suffix) in [(false, "light"), (true, "dark")] {
+                try? themedBitmap(of: view, size: CGSize(width: 780, height: height), dark: dark)?
+                    .representation(using: .png, properties: [:])?.write(to: folder.appendingPathComponent("\(name)-\(suffix).png"))
+            }
+        }
         func tab(_ screen: CoachScreen) -> some View {
             let state = SettingsState()
             state.tab = .coach
             state.coachScreen = screen
-            return SettingsView(state: state)
+            return EnglishCoachTab(state: state)
         }
-        let size = CGSize(width: 1200, height: 860)
+        func setup(step: Int, picking: Bool = false, editingPresets: Bool = false) -> some View {
+            let state = SettingsState()
+            state.coachScreen = .setup
+            return ZStack {
+                CoachIntroView(state: state)
+                Color.black.opacity(0.28)
+                CoachSetupView(state: state, suggested: ["conditionals", "prepositions", "collocations"], step: step,
+                               picking: picking, editingPresets: editingPresets)
+            }
+            .background(Theme.surface)
+        }
 
         store.settings.coach = CoachSettings()
-        render(tab(.home), size: size, to: folder.appendingPathComponent("coach-1-off.png"))
-        render(tab(.setup), size: size, to: folder.appendingPathComponent("coach-2-setup.png"))
+        page(tab(.home), "coach-1-off")
+        page(setup(step: 1), "coach-2a-setup-focus")
+        page(setup(step: 1, picking: true), "coach-2b-setup-focus-pick")
+        page(setup(step: 2), "coach-2c-setup-language")
+        page(setup(step: 3), "coach-2d-setup-presets")
+        page(setup(step: 3, editingPresets: true), "coach-2e-setup-presets-edit")
 
         var on = CoachSettings()
         on.enabled = true
@@ -33,12 +54,16 @@ extension Snapshot {
         on.goals = ["Use more phrasal verbs", "Sound less formal in Slack"]
         store.settings.coach = on
         CoachStore.shared.data = sampleData()
-        render(tab(.home), size: size, to: folder.appendingPathComponent("coach-3-overview.png"))
-        render(tab(.lesson("conditionals")), size: size, to: folder.appendingPathComponent("coach-4-lesson.png"))
-        render(tab(.lesson("gerundInfinitive")), size: size, to: folder.appendingPathComponent("coach-4b-lesson-new-pattern.png"))
+        page(tab(.home), "coach-3-overview", height: 760)
+        page(tab(.lesson("conditionals")), "coach-4-lesson")
+        page(tab(.lesson("gerundInfinitive")), "coach-4b-lesson-new-pattern")
+        // The old 1200 pt window, to check the pages still sit well in a wide one.
+        let wide = SettingsState()
+        wide.tab = .coach
+        render(SettingsView(state: wide), size: CGSize(width: 1200, height: 860), to: folder.appendingPathComponent("coach-3-overview-wide.png"))
 
         CoachStore.shared.data = CoachData()
-        render(tab(.home), size: size, to: folder.appendingPathComponent("coach-5-overview-empty.png"))
+        page(tab(.home), "coach-5-overview-empty")
 
         let draft = "If you will send me the file until tomorrow, I will check it and make you a feedback. I am working here since 2020, so I know what means this error."
         let model = PanelModel()
@@ -70,11 +95,6 @@ extension Snapshot {
         render(PanelRootView(model: model), size: CGSize(width: 1060, height: fittedHeight(model)),
                to: folder.appendingPathComponent("coach-6-takes.png"))
 
-        let toast = ToastView(message: "Pasted take 1 · your clipboard is back", showUndo: true,
-                              coachNote: "“If you will send” → “If you send” · 11th time this month · lesson ready",
-                              onSaveExample: {}, onDone: {})
-            .padding(20).background(Color(hex: "#E9E7E1"))
-        render(toast, size: CGSize(width: 820, height: 140), to: folder.appendingPathComponent("coach-7-toast.png"))
     }
 
     private static func sampleData() -> CoachData {
