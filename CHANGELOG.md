@@ -2,6 +2,13 @@
 
 All notable changes to Takes. Versions follow [semantic versioning](https://semver.org).
 
+## 0.5.1 · 2026-11-04
+
+- The English coach sits below the takes in its own card. Fixes are compact chips; pick one to see why, or mark it "Not a mistake" to never see that phrase flagged again.
+- "Checking your English…" shows while the coach is working.
+- Your draft is easier to read above the takes, with each phrase the coach flagged underlined.
+- Reasons are worded for your sentence ("a future condition takes the present after if") instead of rules that sound absolute, and keep their quote marks.
+
 ## 0.5.0 · 2026-11-03
 
 - **English coach.** Off by default; turn it on in Settings › English coach. When a draft is in English, a short check runs next to your takes on the quick model of whichever engine you use (about 1,000 tokens, roughly 40% on top of a run) and points out repeated mistakes: grammar such as conditionals, tenses, articles and prepositions, and word choice such as collocations, false friends and phrasal verbs. A built-in guide of 22 patterns, with notes for Hebrew speakers, keeps the check small and its explanations consistent.
