@@ -1,10 +1,19 @@
 name: Bug report
 description: Something doesn't work the way it should.
-labels: [bug]
+labels: [bug, triage]
 body:
   - type: markdown
     attributes:
-      value: Thanks for reporting. Please don't paste private messages or drafts here; describe them instead.
+      value: Thanks for reporting. Please don't paste private messages or drafts here; describe them instead. If the problem is that Takes can't read or paste in a particular app, use the app compatibility form instead.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you report
+      options:
+        - label: I searched the existing issues and this hasn't been reported.
+          required: true
+        - label: I'm on the latest version (menu-bar icon › Check for Updates…).
+          required: true
   - type: textarea
     id: what
     attributes:
@@ -24,18 +33,34 @@ body:
       options:
         - Claude Code on this Mac
         - Anthropic API key
+        - ChatGPT plan
+        - Other provider (own API key)
+        - Local model
         - Not sure
   - type: input
     id: versions
     attributes:
       label: Takes and macOS versions
       description: Takes version is in the menu-bar icon's About item; macOS version is in  › About This Mac.
-      placeholder: e.g. Takes 0.1.0, macOS 26.1
+      placeholder: e.g. Takes 0.5.1, macOS 26.1
     validations:
       required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open Notes and type a short draft
+        2. Press ⌃⌥Space and pick Proofread
+        3. …
   - type: textarea
     id: focus-log
     attributes:
       label: Field-reading log (if the draft wasn't read or the take wasn't pasted)
       description: The last few lines of ~/Library/Logs/Takes/focus.log. It contains the app, the kind of text box and character counts, never your text.
       render: text
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Optional. Crop or blur anything private before attaching.

@@ -1,0 +1,12 @@
+body:
+  - type: textarea
+    id: situation
+    attributes:
+      label: What are you trying to do?
+      description: The situation and what gets in the way today. Ideas that start from a real problem are easier to weigh.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What might help?
