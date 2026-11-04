@@ -103,6 +103,15 @@ final class EnglishCoachTests: XCTestCase {
         XCTAssertEqual(result.findings.count, 1)
     }
 
+    func testParseKeepsQuotesInsideTheReason() {
+        let result = CoachCheck.parse("timeExpressions | “until tomorrow” | \"by tomorrow\" | \"By\" sets a deadline; \"until\" means up to then",
+                                      draft: "Send it until tomorrow please, thanks", settings: CoachSettings())
+        XCTAssertEqual(result.findings.first?.wrong, "until tomorrow")
+        XCTAssertEqual(result.findings.first?.right, "by tomorrow")
+        XCTAssertEqual(result.findings.first?.why, "\"By\" sets a deadline; \"until\" means up to then")
+        XCTAssertEqual(CoachCheck.unquoted("\"if\" takes the present, not \"will\""), "\"if\" takes the present, not \"will\"")
+    }
+
     // MARK: Store
 
     private func finding(_ pattern: String, _ wrong: String = "if you will send") -> CoachCheck.Finding {
