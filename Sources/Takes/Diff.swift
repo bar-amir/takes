@@ -88,6 +88,44 @@ enum WordDiff {
         return fixes
     }
 
+    /// Like `fixes`, but a pure insertion or deletion borrows the next unchanged word (or the one before, at the
+    /// end), so it reads on its own: "will send → send" rather than "will → ".
+    static func readableFixes(from old: String, to new: String) -> [Fix] {
+        let segments = segments(from: old, to: new)
+        var fixes: [Fix] = []
+        var removed = "", added = "", previousSame = ""
+        var index = 0
+        func trimmed(_ s: String) -> String { s.trimmingCharacters(in: .whitespacesAndNewlines) }
+        func close(next: String) {
+            defer { removed = ""; added = "" }
+            var r = trimmed(removed), a = trimmed(added)
+            guard !r.isEmpty || !a.isEmpty else { return }
+            if r.isEmpty || a.isEmpty {
+                let after = next.split(whereSeparator: \.isWhitespace).first.map(String.init) ?? ""
+                let before = previousSame.split(whereSeparator: \.isWhitespace).last.map(String.init) ?? ""
+                if !after.isEmpty, after.first?.isLetter == true || after.first?.isNumber == true {
+                    r = trimmed(r + " " + after); a = trimmed(a + " " + after)
+                } else if !before.isEmpty {
+                    r = trimmed(before + " " + r); a = trimmed(before + " " + a)
+                }
+            }
+            fixes.append(Fix(removed: r, added: a))
+        }
+        while index < segments.count {
+            let segment = segments[index]
+            switch segment.kind {
+            case .same:
+                close(next: segment.text)
+                previousSame = segment.text
+            case .removed: removed += segment.text
+            case .added: added += segment.text
+            }
+            index += 1
+        }
+        close(next: "")
+        return fixes
+    }
+
     static func attributed(from old: String, to new: String) -> AttributedString {
         var output = AttributedString()
         var previous: Kind?

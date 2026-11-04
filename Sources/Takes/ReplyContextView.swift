@@ -125,16 +125,12 @@ struct ReplyContextAddButton: View {
             Text(notice).font(.system(size: 12)).foregroundStyle(Theme.avoidText).lineLimit(1)
         } else if !model.hasReplyContext && !model.editingContext {
             Button(action: model.startEditingContext) {
-                HStack(spacing: 6) {
-                    Image(systemName: "arrowshape.turn.up.left").font(.system(size: 10, weight: .semibold))
+                HStack(spacing: 5) {
                     Text("Add what you're replying to")
                     Kbd("⌘J")
                 }
-                .font(.system(size: 12))
-                .foregroundStyle(Theme.secondaryText)
-                .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(QuietButtonStyle())
             .fixedSize()
             .accessibilityLabel("Add what you're replying to")
             .accessibilityHint("Command J. Shift Command V uses the clipboard.")

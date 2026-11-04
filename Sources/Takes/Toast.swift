@@ -1,11 +1,16 @@
 import AppKit
 import SwiftUI
 
-/// The small dark confirmation shown after pasting or copying. It never takes focus.
+/// The small dark confirmation shown after pasting or copying. It never takes focus. It slides up 8 pt as it
+/// appears, waits while the pointer is on it, and Esc dismisses it.
 @MainActor
 final class ToastController {
     private var panel: NSPanel?
     private var hideWork: DispatchWorkItem?
+    /// When the toast hides, while it's counting down; how long was left when the pointer paused it.
+    private var hideAt: Date?
+    private var pausedRemaining: TimeInterval?
+    private var escMonitors: [Any] = []
 
     /// `coachNote` is the English coach's nudge, shown as a second line with a way to its lesson.
     func show(message: String, showUndo: Bool, near caret: CGRect?, coachNote: String? = nil, onSaveExample: (() -> Void)?) {
@@ -17,8 +22,8 @@ final class ToastController {
 
     /// Shows any toast content near the caret. `hideAfter: nil` keeps it up until it's dismissed or replaced.
     func present<V: View>(_ view: V, near caret: CGRect?, hideAfter: TimeInterval?) {
-        dismiss()
-        let hosting = NSHostingView(rootView: view)
+        dismiss(animated: false)
+        let hosting = NSHostingView(rootView: ToastHover(content: view) { [weak self] inside in self?.hover(inside) })
         // Toasts are always dark, so system controls in them (instant mode's spinner) draw for dark.
         hosting.appearance = NSAppearance(named: .darkAqua)
         let size = hosting.fittingSize
@@ -29,6 +34,7 @@ final class ToastController {
         panel.hasShadow = true
         panel.level = .floating
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        panel.acceptsMouseMovedEvents = true
         panel.contentView = hosting
 
         let screen = ScreenChoice.screen(for: caret)
@@ -37,21 +43,84 @@ final class ToastController {
             ?? CGPoint(x: visible.midX - size.width / 2, y: visible.minY + 80)
         origin.x = min(max(origin.x, visible.minX + 8), visible.maxX - size.width - 8)
         origin.y = min(max(origin.y, visible.minY + 8), visible.maxY - size.height - 8)
-        panel.setFrameOrigin(origin)
+        // Slides up 8 pt with a fade; Reduce Motion: the fade alone.
+        let rise: CGFloat = Motion.reduceMotion ? 0 : 8
+        panel.setFrameOrigin(CGPoint(x: origin.x, y: origin.y - rise))
+        panel.alphaValue = 0
         panel.orderFrontRegardless()
         self.panel = panel
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = Motion.standard
+            context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            panel.animator().alphaValue = 1
+            panel.animator().setFrameOrigin(origin)
+        }
 
         guard let hideAfter else { return }
-        let work = DispatchWorkItem { [weak self] in self?.dismiss() }
-        hideWork = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + hideAfter, execute: work)
+        schedule(after: hideAfter)
+        watchEscape()
     }
 
-    func dismiss() {
+    func dismiss() { dismiss(animated: true) }
+
+    private func dismiss(animated: Bool) {
         hideWork?.cancel()
-        panel?.orderOut(nil)
-        panel = nil
+        hideWork = nil
+        hideAt = nil
+        pausedRemaining = nil
+        escMonitors.forEach(NSEvent.removeMonitor)
+        escMonitors = []
+        guard let panel else { return }
+        self.panel = nil
+        guard animated else { panel.orderOut(nil); return }
+        NSAnimationContext.runAnimationGroup({ context in
+            context.duration = Motion.quick
+            panel.animator().alphaValue = 0
+        }, completionHandler: {
+            panel.orderOut(nil)
+        })
     }
+
+    private func schedule(after delay: TimeInterval) {
+        hideWork?.cancel()
+        let work = DispatchWorkItem { [weak self] in self?.dismiss() }
+        hideWork = work
+        hideAt = Date().addingTimeInterval(delay)
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
+    }
+
+    /// The countdown stops while the pointer is on the toast, and resumes (with at least 1.5 s) when it leaves.
+    private func hover(_ inside: Bool) {
+        if inside, let hideAt, hideWork != nil {
+            hideWork?.cancel()
+            hideWork = nil
+            pausedRemaining = max(hideAt.timeIntervalSinceNow, 0)
+        } else if !inside, let remaining = pausedRemaining {
+            pausedRemaining = nil
+            schedule(after: max(remaining, 1.5))
+        }
+    }
+
+    /// Esc dismisses the toast, wherever the keyboard focus is. The key still goes to the app.
+    private func watchEscape() {
+        let isEscape: (NSEvent) -> Bool = { $0.keyCode == 53 && $0.modifierFlags.intersection(.deviceIndependentFlagsMask).isEmpty }
+        if let global = NSEvent.addGlobalMonitorForEvents(matching: .keyDown, handler: { [weak self] event in
+            guard isEscape(event) else { return }
+            Task { @MainActor in self?.dismiss() }
+        }) { escMonitors.append(global) }
+        if let local = NSEvent.addLocalMonitorForEvents(matching: .keyDown, handler: { [weak self] event in
+            if isEscape(event), self?.panel != nil { self?.dismiss() }
+            return event
+        }) { escMonitors.append(local) }
+    }
+}
+
+/// Reports the pointer entering and leaving the toast.
+private struct ToastHover<Content: View>: View {
+    let content: Content
+    let onHover: (Bool) -> Void
+
+    var body: some View { content.onHover(perform: onHover) }
 }
 
 struct ToastView: View {
