@@ -53,12 +53,28 @@ brew install --cask bar-amir/tap/takes
 
 <table>
   <tr>
-    <td width="50%"><img src="site/img/presets.png" alt="Preset editor with instruction, Do and Avoid rules and write-like-me examples"></td>
-    <td width="50%"><img src="site/img/proofread.png" alt="A Proofread take with each fix struck through and underlined"></td>
+    <td width="50%"><img src="site/img/concepts/presets.jpg" alt="A row of swappable dial caps, each embossed with a preset name: Slack, Mail, Shorter, Warmer, Proof"></td>
+    <td width="50%"><img src="site/img/concepts/proofread.jpg" alt="A paper card with its typos corrected in red pencil"></td>
   </tr>
   <tr>
     <td align="center">Presets with your rules and examples</td>
     <td align="center">Proofread, with every fix marked</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="site/img/concepts/english-coach.jpg" alt="A flashcard box with one card pulled out reading “on time / in time”, three tally marks and a star"></td>
+    <td width="50%"><img src="site/img/concepts/on-your-mac.jpg" alt="The Takes device under a glass bell jar, no cables"></td>
+  </tr>
+  <tr>
+    <td align="center">English coach</td>
+    <td align="center">A model on your Mac</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="site/img/concepts/instant.jpg" alt="The yellow return button pressed and a card sliding out of the Takes device"></td>
+    <td width="50%"><img src="site/img/concepts/dictation.jpg" alt="A small cream desk microphone with a cobalt grille next to a draft card"></td>
+  </tr>
+  <tr>
+    <td align="center">Write and paste right away</td>
+    <td align="center">Dictation</td>
   </tr>
 </table>
 
