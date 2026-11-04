@@ -1,41 +1,48 @@
 import Foundation
 
-/// The first-run walk-through, one step at a time. New installs see it once; people who already had Takes
-/// never do (their settings have no `onboarding` key). Later problems go to the setup window instead.
+/// The first-run walk-through: an opening screen, then five steps. New installs see it once; people who already
+/// had Takes never do (their settings have no `onboarding` key). Later problems go to the setup window instead.
 enum OnboardingStep: String, Codable, CaseIterable, Identifiable {
-    case welcome, accessibility, engine, privacy, hotkey, presets, practice, done
+    case accessibility, engine, personalize, practice, done
     var id: String { rawValue }
 
     /// The short name in the step list.
     var title: String {
         switch self {
-        case .welcome: return "Welcome"
-        case .accessibility: return "Accessibility"
+        case .accessibility: return "Allow access"
         case .engine: return "Connect a model"
-        case .privacy: return "Your text"
-        case .hotkey: return "Hotkey"
-        case .presets: return "Presets"
+        case .personalize: return "Make it yours"
         case .practice: return "Try it"
         case .done: return "Done"
         }
     }
 
     /// Takes can't work without these, so they can't be skipped (the window can still be closed and resumed).
-    var isRequired: Bool { self == .accessibility || self == .engine || self == .privacy }
+    /// Connect a model includes where the text goes, so it needs both a working engine and that consent.
+    var isRequired: Bool { self == .accessibility || self == .engine }
 
     /// Optional steps with a Skip button.
-    var canSkip: Bool { self == .hotkey || self == .presets || self == .practice }
+    var canSkip: Bool { self == .personalize || self == .practice }
 
     /// Steps that are passed by themselves, with a check, when what they ask for is already true.
-    var passesWhenSatisfied: Bool { isRequired || self == .hotkey }
+    var passesWhenSatisfied: Bool { isRequired }
 
     func isSatisfied(_ conditions: OnboardingConditions) -> Bool {
         switch self {
         case .accessibility: return conditions.accessibility
-        case .engine: return conditions.engineReady
-        case .privacy: return conditions.privacyAccepted
-        case .hotkey: return conditions.hotKeyFree
+        case .engine: return conditions.engineReady && conditions.privacyAccepted
         default: return false
+        }
+    }
+
+    /// Reads a step name saved by any version. 0.5 and earlier had eight steps: Welcome is now the opening screen
+    /// (nil here), Your text is part of Connect a model, and Hotkey and Presets are Make it yours.
+    static func named(_ name: String) -> OnboardingStep? {
+        if let step = OnboardingStep(rawValue: name) { return step }
+        switch name {
+        case "privacy": return .engine
+        case "hotkey", "presets": return .personalize
+        default: return nil
         }
     }
 }
@@ -50,7 +57,7 @@ struct OnboardingConditions: Equatable {
 
 /// Where the user is in onboarding, saved in settings so quitting half-way picks up at the same step.
 struct OnboardingProgress: Codable, Equatable {
-    var step = OnboardingStep.welcome
+    var step = OnboardingStep.accessibility
     /// Steps left forward, in order; Back walks this.
     var history: [OnboardingStep] = []
     /// Steps passed by themselves because they were already done; Back skips over them.
@@ -59,34 +66,58 @@ struct OnboardingProgress: Codable, Equatable {
     /// The user pasted a take in the practice box.
     var practiced = false
     var finished = false
+    /// Get started was pressed on the opening screen, so it isn't shown again on resume.
+    var openingSeen = false
 
     /// Someone who used Takes before onboarding existed.
-    static let existingUser = OnboardingProgress(step: .done, finished: true)
+    static let existingUser = OnboardingProgress(step: .done, finished: true, openingSeen: true)
 
-    enum CodingKeys: String, CodingKey { case step, history, autoPassed, skipped, practiced, finished }
+    enum CodingKeys: String, CodingKey { case step, history, autoPassed, skipped, practiced, finished, openingSeen }
 
-    init(step: OnboardingStep = .welcome, history: [OnboardingStep] = [], autoPassed: Set<OnboardingStep> = [],
-         skipped: Set<OnboardingStep> = [], practiced: Bool = false, finished: Bool = false) {
+    init(step: OnboardingStep = .accessibility, history: [OnboardingStep] = [], autoPassed: Set<OnboardingStep> = [],
+         skipped: Set<OnboardingStep> = [], practiced: Bool = false, finished: Bool = false, openingSeen: Bool = false) {
         self.step = step
         self.history = history
         self.autoPassed = autoPassed
         self.skipped = skipped
         self.practiced = practiced
         self.finished = finished
+        self.openingSeen = openingSeen
     }
 
-    /// Steps are decoded by name; a name this version doesn't know (saved by a newer one) is dropped.
+    /// Steps are decoded by name. Names from 0.5 and earlier map onto the step that now holds them (see
+    /// `OnboardingStep.named`); a name this version doesn't know (saved by a newer one) is dropped.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        func steps(_ key: CodingKeys) -> [OnboardingStep] {
-            ((try? c.decodeIfPresent([String].self, forKey: key)) ?? []).compactMap(OnboardingStep.init(rawValue:))
-        }
-        step = ((try? c.decodeIfPresent(String.self, forKey: .step)) ?? nil).flatMap(OnboardingStep.init(rawValue:)) ?? .welcome
-        history = steps(.history)
-        autoPassed = Set(steps(.autoPassed))
-        skipped = Set(steps(.skipped))
+        func names(_ key: CodingKeys) -> [String] { (try? c.decodeIfPresent([String].self, forKey: key)) ?? [] }
+        let savedStep = (try? c.decodeIfPresent(String.self, forKey: .step)) ?? nil
+        step = savedStep.flatMap(OnboardingStep.named) ?? .accessibility
         practiced = (try? c.decodeIfPresent(Bool.self, forKey: .practiced)) ?? false
         finished = (try? c.decodeIfPresent(Bool.self, forKey: .finished)) ?? false
+        // Older versions had a Welcome step where the opening screen is now: anyone past it has seen it.
+        openingSeen = ((try? c.decodeIfPresent(Bool.self, forKey: .openingSeen)) ?? nil)
+            ?? (finished || (savedStep != nil && savedStep != "welcome"))
+
+        let oldHistory = names(.history), oldAuto = Set(names(.autoPassed)), oldSkipped = Set(names(.skipped))
+        var history: [OnboardingStep] = []
+        for name in oldHistory {
+            guard let mapped = OnboardingStep.named(name), mapped != step, !history.contains(mapped) else { continue }
+            history.append(mapped)
+        }
+        self.history = history
+        // A merged step passed by itself only if every old step in it did, and counts as skipped only if every old
+        // step in it the user saw was skipped.
+        let seen = Set(oldHistory).union(oldAuto).union(oldSkipped)
+        func members(of new: OnboardingStep) -> [String] { seen.filter { OnboardingStep.named($0) == new } }
+        let others = OnboardingStep.allCases.filter { $0 != step }
+        autoPassed = Set(others.filter { new in
+            let old = members(of: new)
+            return !old.isEmpty && old.allSatisfy(oldAuto.contains)
+        })
+        skipped = Set(others.filter { new in
+            let old = members(of: new)
+            return old.contains(where: oldSkipped.contains) && old.allSatisfy { oldSkipped.contains($0) || oldAuto.contains($0) }
+        })
     }
 
     func encode(to encoder: Encoder) throws {
@@ -97,6 +128,7 @@ struct OnboardingProgress: Codable, Equatable {
         try c.encode(skipped.map(\.rawValue).sorted(), forKey: .skipped)
         try c.encode(practiced, forKey: .practiced)
         try c.encode(finished, forKey: .finished)
+        try c.encode(openingSeen, forKey: .openingSeen)
     }
 }
 
@@ -112,7 +144,7 @@ struct OnboardingFlow: Equatable {
         self.progress = progress
         self.conditions = conditions
         self.steps = steps
-        if !steps.contains(progress.step) { self.progress.step = steps.first ?? .welcome }
+        if !steps.contains(progress.step) { self.progress.step = steps.first ?? .accessibility }
     }
 
     var step: OnboardingStep { progress.step }
@@ -125,13 +157,14 @@ struct OnboardingFlow: Equatable {
 
     enum Mark: Equatable { case current, done, skipped, todo }
 
-    /// What the step list shows for `step`: a check for anything finished or already true.
+    /// What the step list shows for `other`. Steps the user hasn't reached yet stay numbered, even when what they
+    /// ask for is already true; they get their check once they're passed.
     func mark(for other: OnboardingStep) -> Mark {
         if other == step { return .current }
+        guard let position = steps.firstIndex(of: other), position < index else { return .todo }
         if progress.skipped.contains(other) && !other.isSatisfied(conditions) { return .skipped }
-        if other.isSatisfied(conditions) { return .done }
-        if progress.history.contains(other) && !other.isRequired { return .done }
-        return .todo
+        if other.isRequired && !other.isSatisfied(conditions) { return .todo }
+        return .done
     }
 
     /// Moves to the next step that still needs the user, passing satisfied ones on the way.
@@ -175,8 +208,9 @@ struct OnboardingFlow: Equatable {
         return step.passesWhenSatisfied && !was && step.isSatisfied(new)
     }
 
-    /// On reopening (after a quit or a closed window): a required step that's no longer true (access revoked,
-    /// signed out) comes back, and everything after it is walked again.
+    /// On opening and reopening: a required step that's no longer true (access revoked, signed out) comes back,
+    /// and everything after it is walked again. The step shown, if already done (access granted before Get
+    /// started, or while Takes was closed), is passed by itself.
     mutating func resume() {
         guard !progress.finished, let current = steps.firstIndex(of: step) else { return }
         if let broken = steps[..<current].first(where: { $0.isRequired && !$0.isSatisfied(conditions) }) {
@@ -213,4 +247,13 @@ enum Onboarding {
     static func shouldShow(_ settings: AppSettings) -> Bool { !settings.onboarding.finished }
 
     static let sampleDraft = "hey can u send me the deck before fri, need to go over it w legal first and they're slow"
+
+    /// The engine Connect a model opens on: the one that already works, else Claude Code when it's installed,
+    /// else a local model server that's running, else whatever is picked.
+    static func recommendedEngine(current: EngineKind, currentReady: Bool, claudeInstalled: Bool, localRunning: Bool) -> EngineKind {
+        if currentReady { return current }
+        if claudeInstalled { return .claudeCode }
+        if localRunning { return .local }
+        return current
+    }
 }
