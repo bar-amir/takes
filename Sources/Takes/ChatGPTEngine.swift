@@ -16,7 +16,7 @@ struct ChatGPTEngine: TakesEngine {
     var session = URLSession.shared
 
     func run(_ request: EngineRequest, onUpdate: @escaping @Sendable ([String]) -> Void) async throws -> EngineResult {
-        guard !request.model.isEmpty else { throw EngineError.failed("Pick a ChatGPT model in Settings › Engine.") }
+        guard !request.model.isEmpty else { throw EngineError.failed("Pick a ChatGPT model in Settings › Model.") }
         let started = Date()
         let elapsedMs = { Int(Date().timeIntervalSince(started) * 1000) }
 
@@ -149,14 +149,14 @@ struct ChatGPTEngine: TakesEngine {
         case "subscription_sharing_usage_unavailable": return unavailableMessage
         case "subscription_sharing_user_unavailable": return "ChatGPT can't take requests from Takes right now. Try again in a moment."
         case "subscription_sharing_user_not_eligible":
-            return "This ChatGPT account can't use its plan in other apps. Pick another engine in Settings › Engine."
+            return "This ChatGPT account can't use its plan in other apps. Pick another engine in Settings › Model."
         case "subscription_sharing_invalid_user": return ChatGPTAuthError.signInAgain.errorDescription!
         case "chatpass_v2_scope_not_authorized", "chatpass_v2_invalid_authorization_context":
-            return "Plan usage wasn't allowed for Takes. Sign in again in Settings › Engine and allow it."
+            return "Plan usage wasn't allowed for Takes. Sign in again in Settings › Model and allow it."
         case "model_not_found":
-            return "This model isn't available with your ChatGPT plan. Pick another in Settings › Engine."
+            return "This model isn't available with your ChatGPT plan. Pick another in Settings › Model."
         case "subscription_sharing_unsupported_capability" where param == "model":
-            return "This model isn't available with your ChatGPT plan. Pick another in Settings › Engine."
+            return "This model isn't available with your ChatGPT plan. Pick another in Settings › Model."
         case "rate_limit_exceeded": return "ChatGPT is busy. Try again in a moment."
         default: break
         }
@@ -413,7 +413,7 @@ final class ChatGPTSignIn: ObservableObject {
     }
 }
 
-/// The models the signed-in account may use, for Settings › Engine and the panel's Model menu.
+/// The models the signed-in account may use, for Settings › Model and the panel's Model menu.
 @MainActor
 final class ChatGPTModels: ObservableObject {
     static let shared = ChatGPTModels()

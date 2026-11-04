@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 /// The languages someone writes in. They start as the Mac's own list (System Settings › General › Language & Region),
-/// read without asking for location, and can be changed in onboarding and Settings › Voice.
+/// read without asking for location, and can be changed in onboarding and Settings › Writing.
 enum Languages {
     /// Languages kept from the Mac's list: enough for "Translate to …" presets without crowding the gallery.
     static let maxFromSystem = 3

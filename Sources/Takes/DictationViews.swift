@@ -176,19 +176,20 @@ private struct DictationNote<Actions: View>: View {
     }
 }
 
-/// Settings › Engine: the language dictation listens for.
+/// Settings › General › Dictation: the panel's shortcut and the language dictation listens for.
 struct DictationSettings: View {
     @ObservedObject var store = Store.shared
     @State private var languages: [(id: String, name: String)] = []
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.item) {
-            LabeledMenu(label: "Language",
-                        options: [(value: "", title: "Same as macOS · \(Dictation.displayName(Locale.current))")]
-                            + languages.map { (value: $0.id, title: $0.name) },
-                        selection: $store.settings.dictationLanguage)
-            Text("Press ⌘D in the panel to speak your draft. Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed.")
-                .font(.system(size: 13)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
+        FormSection("Dictation", footer: "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed.") {
+            FormRow("Speak your draft in the panel") { Kbd("⌘D") }
+            FormDivider()
+            FormRow("Language") {
+                MenuPicker(options: [(value: "", title: "Same as macOS · \(Dictation.displayName(Locale.current))")]
+                               + languages.map { (value: $0.id, title: $0.name) },
+                           selection: $store.settings.dictationLanguage)
+            }
         }
         .task { languages = Dictation.onDeviceLanguages }
     }

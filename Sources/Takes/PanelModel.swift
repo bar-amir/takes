@@ -1,10 +1,5 @@
 import SwiftUI
 
-enum SettingsTab: String, CaseIterable, Identifiable {
-    case presets = "Presets", voice = "Voice", coach = "English coach", engine = "Engine", history = "History"
-    var id: String { rawValue }
-}
-
 /// State behind the floating panel: compose a draft, pick a preset, choose a take.
 @MainActor
 final class PanelModel: ObservableObject {

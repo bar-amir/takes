@@ -1,69 +1,69 @@
 import AppKit
 import SwiftUI
 
-struct EngineTab: View {
+/// Settings › Model: where takes are written (one compact row per engine; the selected one shows its key field or
+/// sign-in), the defaults for new presets, and where drafts go.
+struct ModelTab: View {
     @ObservedObject var store = Store.shared
     @State private var status: (found: Bool, signedIn: Bool, plan: String?)?
     @State private var keyInput = ""
     @State private var hasKey = Keychain.apiKey != nil
 
     var body: some View {
-        HStack(alignment: .top, spacing: 0) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 14) {
-                    SectionTitle("Where your takes are written")
-                    claudeCodeCard
-                    apiKeyCard
-                    EngineCard(selected: store.settings.engine == .local, enabled: true, label: "Local model",
-                               select: { store.settings.engine = .local }) {
-                        LocalEngineSettings(selected: store.settings.engine == .local)
-                    }
-                    EngineCard(selected: store.settings.engine == .chatGPT, enabled: true, label: "Your ChatGPT plan",
-                               select: { store.settings.engine = .chatGPT }) {
-                        ChatGPTEngineSettings(selected: store.settings.engine == .chatGPT)
-                    }
-                    EngineCard(selected: store.settings.engine == .provider, enabled: true, label: "Other provider",
-                               select: { store.settings.engine = .provider }) {
-                        ProviderEngineSettings(selected: store.settings.engine == .provider)
-                    }
-
-                    SectionTitle("Defaults for new presets").padding(.top, 14)
-                    FlowLayout(spacing: 18) {
-                        LabeledMenu(label: "Takes", options: (1...5).map { (value: $0, title: "\($0)") }, selection: $store.settings.defaultTakes)
-                        LabeledMenu(label: "Model", options: Models.all.map { (value: $0.id, title: $0.label) }, selection: $store.settings.defaultModel)
-                        LabeledMenu(label: "Effort", options: Models.efforts.map { (value: $0, title: $0.capitalized) }, selection: $store.settings.defaultEffort)
-                    }
-                    LocalEngineModelNote()
-                    if let ms = store.settings.lastFirstTextMs {
-                        Text(String(format: "Last run: first words after %.1f s.", Double(ms) / 1000))
-                            .font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
-                    }
-
-                    SectionTitle("Privacy").padding(.top, 14)
-                    Text(privacyText + " There's no server of ours and no tracking. History and logs stay on this Mac, and logs never contain your text.")
-                        .font(.system(size: 13)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
-                    Button("Read the privacy notice") { NSWorkspace.shared.open(SetupMonitor.privacyURL) }
-                        .buttonStyle(SecondaryButtonStyle())
-
-                    ReplyContextSettings()
-                }
-                .padding(32)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        SettingsPage {
+            FormSection("Where your takes are written") {
+                EngineRow(engine: .claudeCode, title: "Claude Code on this Mac",
+                          summary: "Uses your Claude subscription; each run counts toward its usage limits. Personal build only.") {
+                    claudeCodeBadge
+                } details: { claudeCodeDetails }
+                FormDivider(inset: 40)
+                EngineRow(engine: .apiKey, title: "Anthropic API key",
+                          summary: "Pay per use, billed by Anthropic. Usually a cent or two per run, more with Opus or more takes. Takes doesn't cap your spending; set a limit in the Anthropic Console.") {
+                    if hasKey { StatusBadge(text: "Key saved", good: true) } else { muted("Pay per use") }
+                } details: { apiKeyDetails }
+                FormDivider(inset: 40)
+                EngineRow(engine: .chatGPT, title: "Your ChatGPT plan",
+                          summary: "Sign in with ChatGPT and write with the models in your Plus or Pro plan. No extra cost; your plan's limits apply.") {
+                    ChatGPTEngineBadge()
+                } details: { ChatGPTEngineSettings() }
+                FormDivider(inset: 40)
+                EngineRow(engine: .provider, title: "Other provider",
+                          summary: "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account.") {
+                    ProviderEngineBadge()
+                } details: { ProviderEngineSettings() }
+                FormDivider(inset: 40)
+                EngineRow(engine: .local, title: "Local model",
+                          summary: "Runs on this Mac with Ollama or LM Studio, so your drafts never leave it. Small models write plainer takes than Claude. It's free, but uses this Mac's memory and battery.") {
+                    LocalEngineBadge()
+                } details: { LocalEngineSettings() }
             }
-            Rectangle().fill(Theme.border).frame(width: 1)
-            ScrollView {
-                VStack(alignment: .leading, spacing: 14) {
-                    SectionTitle("Voice rules for every preset")
-                    VoiceRulesEditor()
-                    SectionTitle("Panel and paste").padding(.top, 14)
-                    PanelSettings()
-                    SectionTitle("Dictation").padding(.top, 14)
-                    DictationSettings()
+
+            FormSection(header: "Defaults for new presets") {
+                FormRow("Takes · Model · Effort") {
+                    HStack(spacing: 6) {
+                        MenuPicker(options: (1...5).map { (value: $0, title: "\($0)") }, selection: $store.settings.defaultTakes)
+                        MenuPicker(options: Models.all.map { (value: $0.id, title: $0.label) }, selection: $store.settings.defaultModel)
+                        MenuPicker(options: Models.efforts.map { (value: $0, title: $0.capitalized) }, selection: $store.settings.defaultEffort)
+                    }
                 }
-                .padding(32)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                if let ms = store.settings.lastFirstTextMs {
+                    FormDivider()
+                    FormRow("Last run") {
+                        Text(String(format: "First words after %.1f s", Double(ms) / 1000))
+                            .font(.system(size: 12.5)).foregroundStyle(Theme.secondaryText)
+                    }
+                }
+            } footer: {
+                LocalEngineModelNote()
             }
-            .background(Theme.sidebar)
+
+            FormSection("Privacy", footer: privacyText + " No server of ours, no tracking; logs never contain your text.") {
+                FormRow("Privacy notice") {
+                    Button("Open…") { NSWorkspace.shared.open(SetupMonitor.privacyURL) }
+                        .buttonStyle(SecondaryButtonStyle(height: 28))
+                        .fixedSize()
+                }
+            }
         }
         .task { status = await ClaudeCodeEngine.status() }
     }
@@ -71,9 +71,9 @@ struct EngineTab: View {
     /// Where the draft goes with the chosen engine, in one sentence.
     private var privacyText: String {
         switch store.settings.engine {
-        case .local: return "With a local model, your drafts stay on this Mac: Takes talks only to the model server on localhost."
+        case .local: return "With a local model, your drafts stay on this Mac."
         case .claudeCode, .apiKey: return "Takes sends your draft only to Anthropic, under your own account."
-        case .chatGPT: return "Takes sends your draft to OpenAI under your own ChatGPT plan, from this Mac only, and only for Takes."
+        case .chatGPT: return "Takes sends your draft to OpenAI under your own ChatGPT plan."
         case .provider:
             let provider = Provider.current(store.settings)
             return provider.id == "custom" ? "Takes sends your draft to the server you added, under your own account."
@@ -81,58 +81,63 @@ struct EngineTab: View {
         }
     }
 
-    private var claudeCodeCard: some View {
-        EngineCard(selected: store.settings.engine == .claudeCode, enabled: true, label: "Claude Code on this Mac", select: { store.settings.engine = .claudeCode }) {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 8) {
-                    Text("Claude Code on this Mac").font(.system(size: 15, weight: .semibold))
-                    statusBadge
-                }
-                Text("Uses your Claude subscription; each run counts toward its usage limits. Personal build only.").font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
-                if let status, status.found, !status.signedIn {
-                    Text("Run `claude auth login` in Terminal, then check again.").font(.system(size: 12)).foregroundStyle(Theme.avoidText)
-                }
-                Button("Check again") { Task { status = nil; status = await ClaudeCodeEngine.status() } }
-                    .buttonStyle(SecondaryButtonStyle(height: 26))
-                    .padding(.top, 2)
-            }
-        }
+    private func muted(_ text: String) -> some View {
+        Text(text).font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
     }
 
-    @ViewBuilder private var statusBadge: some View {
+    // MARK: Claude Code
+
+    @ViewBuilder private var claudeCodeBadge: some View {
         if let status {
-            let (text, good): (String, Bool) = !status.found ? ("Not installed", false)
-                : status.signedIn ? ("Found · signed in" + (status.plan.map { " · \($0.capitalized) plan" } ?? ""), true)
-                : ("Not signed in", false)
-            Text(text)
-                .font(.system(size: 11, weight: .semibold))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 2)
-                .foregroundStyle(good ? Theme.doText : Theme.avoidText)
-                .background(Capsule().fill(good ? Theme.doFill : Theme.avoidFill))
+            if !status.found {
+                StatusBadge(text: "Not installed", good: false)
+            } else if status.signedIn {
+                StatusBadge(text: "Signed in" + (status.plan.map { " · \($0.capitalized) plan" } ?? ""), good: true)
+            } else {
+                StatusBadge(text: "Not signed in", good: false)
+            }
         } else {
-            ProgressView().controlSize(.mini)
+            ProgressView().controlSize(.mini).accessibilityLabel("Checking Claude Code")
         }
     }
 
-    private var apiKeyCard: some View {
-        EngineCard(selected: store.settings.engine == .apiKey, enabled: true, label: "Anthropic API key", select: { store.settings.engine = .apiKey }) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Anthropic API key").font(.system(size: 15, weight: .semibold))
-                Text("Pay per use, billed by Anthropic. Usually a cent or two per run, more with Opus or more takes. Takes doesn't cap your spending; set a limit in the Anthropic Console.").font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
-                if hasKey {
-                    HStack(spacing: 10) {
-                        Text("Key saved in your keychain").font(.system(size: 13)).foregroundStyle(Theme.doText)
-                        Button("Remove") { Keychain.setAPIKey(nil); hasKey = false }.buttonStyle(SecondaryButtonStyle(height: 26))
-                    }
-                } else {
-                    HStack(spacing: 8) {
-                        StyledTextField(placeholder: "Paste your key", text: $keyInput, secure: true, height: 34, onSubmit: saveKey)
-                        Button("Save", action: saveKey)
-                            .buttonStyle(SecondaryButtonStyle(height: 34))
-                            .disabled(keyInput.trimmingCharacters(in: .whitespaces).isEmpty)
-                    }
+    private var claudeCodeDetails: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let status, !status.found {
+                Text("Install Claude Code, sign in, then check again.").font(.system(size: 12)).foregroundStyle(Theme.avoidText)
+            } else if let status, !status.signedIn {
+                Text("Run `claude auth login` in Terminal, then check again.").font(.system(size: 12)).foregroundStyle(Theme.avoidText)
+            }
+            Button("Check again") { Task { status = nil; status = await ClaudeCodeEngine.status() } }
+                .buttonStyle(SecondaryButtonStyle(height: 26))
+                .fixedSize()
+        }
+    }
+
+    // MARK: API key
+
+    @ViewBuilder private var apiKeyDetails: some View {
+        if hasKey {
+            HStack(spacing: 10) {
+                Text("Key saved in your keychain").font(.system(size: 13)).foregroundStyle(Theme.doText)
+                Button("Remove Key…") {
+                    guard confirmDestructive("Remove your Anthropic API key?",
+                                             message: "Takes deletes it from your keychain. You'll need to paste it again to write with it.",
+                                             button: "Remove Key") else { return }
+                    Keychain.setAPIKey(nil)
+                    hasKey = false
                 }
+                .buttonStyle(DestructiveButtonStyle(height: 26))
+            }
+        } else {
+            HStack(spacing: 8) {
+                StyledTextField(placeholder: "Paste your key", text: $keyInput, secure: true, height: 30, onSubmit: saveKey)
+                    .frame(maxWidth: 360)
+                    .accessibilityLabel("Anthropic API key")
+                Button("Save", action: saveKey)
+                    .buttonStyle(SecondaryButtonStyle(height: 30))
+                    .fixedSize()
+                    .disabled(keyInput.trimmingCharacters(in: .whitespaces).isEmpty)
             }
         }
     }
@@ -144,180 +149,58 @@ struct EngineTab: View {
     }
 }
 
-/// A selectable option card with a radio dot, as in the mockup.
-private struct EngineCard<Content: View>: View {
-    let selected: Bool
-    let enabled: Bool
-    /// For VoiceOver: the card's controls stay separate elements, and the radio dot says what it picks.
-    var label = ""
-    var select: () -> Void = {}
-    @ViewBuilder var content: Content
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            ZStack {
-                Circle().stroke(selected ? Theme.accent : Theme.dashed, lineWidth: 1.5).frame(width: 16, height: 16)
-                if selected { Circle().fill(Theme.accent).frame(width: 8, height: 8) }
-            }
-            .padding(.top, 3)
-            .accessibilityElement()
-            .accessibilityLabel(label)
-            .accessibilityValue(selected ? "Selected" : enabled ? "Not selected" : "Not available")
-            .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
-            .accessibilityAction { if enabled { select() } }
-            content
-            Spacer(minLength: 0)
-        }
-        .padding(16)
-        .background(RoundedRectangle(cornerRadius: 12).fill(selected ? Theme.accentSoft : Theme.surface))
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(selected ? Theme.accent : Theme.border,
-                                                           style: StrokeStyle(lineWidth: selected ? 2 : 1, dash: enabled ? [] : [4, 3])))
-        .contentShape(Rectangle())
-        .onTapGesture { if enabled { select() } }
-        .accessibilityElement(children: .contain)
-    }
-}
-
-struct PanelSettings: View {
+/// One engine as a compact radio row: its name and status on one line. The selected row also shows a line about
+/// it and its key field or sign-in.
+private struct EngineRow<Status: View, Details: View>: View {
     @ObservedObject var store = Store.shared
+    let engine: EngineKind
+    let title: String
+    let summary: String
+    @ViewBuilder var status: Status
+    @ViewBuilder var details: Details
+
+    private var selected: Bool { store.settings.engine == engine }
 
     var body: some View {
-        RowGroup {
-            row("Hotkey") {
-                HotKeyRecorder(combo: Binding(get: { store.settings.summonHotKey },
-                                              set: { if let combo = $0 { store.settings.summonHotKey = combo } }),
-                               allowClear: false)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle().strokeBorder(selected ? Theme.accent : Theme.dashed, lineWidth: selected ? 5 : 1.5)
+                }
+                .frame(width: 16, height: 16)
+                Text(title).font(.system(size: 13, weight: selected ? .semibold : .regular)).foregroundStyle(Theme.text)
+                Spacer(minLength: 8)
+                status
             }
-            RowDivider()
-            row("Open the panel") {
-                PanelPositionPicker(selection: $store.settings.panelPosition)
-            }
-            RowDivider()
-            row("Start with") {
-                MenuPicker(options: Prefill.allCases.map { (value: $0, title: $0.label) }, selection: $store.settings.prefill)
-            }
-            RowDivider()
-            row("Put my clipboard back after pasting") { Checkbox(isOn: $store.settings.restoreClipboard, label: "Restore clipboard") }
-            RowDivider()
-            row("Keep 30 days of history, on this Mac only") { Checkbox(isOn: $store.settings.keepHistory, label: "Keep history") }
-        }
-    }
+            .frame(minHeight: 24)
+            .contentShape(Rectangle())
+            .onTapGesture { select() }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(title)
+            .accessibilityValue(selected ? "Selected" : "Not selected")
+            .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
+            .accessibilityAction { select() }
 
-    private func row<Content: View>(_ title: String, @ViewBuilder trailing: () -> Content) -> some View {
-        HStack {
-            Text(title).font(.system(size: 14))
-            Spacer()
-            trailing()
+            if selected {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(summary)
+                        .font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+                    details
+                }
+                .padding(.leading, 28)
+                .padding(.bottom, 4)
+                .transition(.opacity)
+            }
         }
         .padding(.horizontal, 14)
-        .frame(minHeight: 50)
-    }
-}
-
-struct VoiceTab: View {
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                SectionTitle("Voice rules for every preset")
-                Text("These apply on top of each preset's own Do and Avoid lists. Untick a rule to pause it.")
-                    .font(.system(size: 14)).foregroundStyle(Theme.secondaryText)
-                VoiceRulesEditor()
-                WritingLanguagesSection()
-                    .padding(.top, 18)
-            }
-            .padding(32)
-            .frame(maxWidth: 760, alignment: .leading)
-            .frame(maxWidth: .infinity)
-        }
-        .background(Theme.sidebar)
-    }
-}
-
-/// The languages the user writes in: presets can reply in any of them, and the gallery offers a translate preset for each.
-struct WritingLanguagesSection: View {
-    @ObservedObject var store = Store.shared
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            SectionTitle("Languages you write in")
-            Text("Presets can reply in any of these, and Browse presets offers a translate preset for each. They start as your Mac's languages.")
-                .font(.system(size: 14)).foregroundStyle(Theme.secondaryText)
-            LanguageChips(languages: Binding(get: { store.settings.writingLanguages },
-                                             set: { store.settings.languages = $0 }))
-            if store.settings.languages != nil, store.settings.languages != Languages.fromSystem() {
-                Button("Use my Mac's languages") { store.settings.languages = nil }
-                    .buttonStyle(SecondaryButtonStyle(height: 30))
-            }
-        }
-    }
-}
-
-struct HistoryTab: View {
-    @ObservedObject var store = Store.shared
-
-    private static let dateFormat: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        return formatter
-    }()
-
-    var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Text(store.settings.keepHistory ? "Last 30 days, stored only on this Mac." : "History is off (Settings › Engine).")
-                    .font(.system(size: 14)).foregroundStyle(Theme.secondaryText)
-                Spacer()
-                Button("Clear history") { store.history = [] }
-                    .buttonStyle(SecondaryButtonStyle())
-                    .disabled(store.history.isEmpty)
-            }
-            .padding(.horizontal, 32)
-            .frame(height: 60)
-            RowDivider()
-            if store.history.isEmpty {
-                Text("No runs yet.").foregroundStyle(Theme.secondaryText).frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 14) {
-                        ForEach(store.history) { entry in entryView(entry) }
-                    }
-                    .padding(32)
-                    .frame(maxWidth: 900)
-                    .frame(maxWidth: .infinity)
-                }
-            }
-        }
-        .background(Theme.sidebar)
+        .padding(.vertical, 9)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(selected ? Theme.formSelectedRow : Color.clear)
     }
 
-    private func entryView(_ entry: HistoryEntry) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 6) {
-                Text(Self.dateFormat.string(from: entry.date)).font(.system(size: 12, weight: .semibold))
-                Text("· \(entry.appName) · \(entry.presetName)").font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
-            }
-            (Text("Your draft: ").fontWeight(.semibold).foregroundStyle(Theme.controlText) + Text(entry.draft).foregroundStyle(Theme.secondaryText))
-                .font(.system(size: 13)).lineLimit(3)
-            ForEach(Array(entry.takes.enumerated()), id: \.offset) { index, take in
-                HStack(alignment: .top, spacing: 12) {
-                    Text(entry.pastedIndex == index ? "Pasted" : "Take \(index + 1)")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(entry.pastedIndex == index ? Theme.accent : Theme.secondaryText)
-                        .frame(width: 52, alignment: .leading)
-                        .padding(.top, 2)
-                    Text(take).font(.system(size: 14)).lineSpacing(3).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)
-                    Button {
-                        NSPasteboard.general.clearContents()
-                        NSPasteboard.general.setString(take, forType: .string)
-                    } label: { Image(systemName: "doc.on.doc").font(.system(size: 11, weight: .medium)) }
-                    .buttonStyle(SecondaryButtonStyle(height: 28))
-                    .accessibilityLabel("Copy take")
-                }
-            }
-        }
-        .padding(18)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Theme.surface))
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.border))
+    private func select() {
+        guard !selected else { return }
+        withAnimation(Motion.animation()) { store.settings.engine = engine }
     }
 }

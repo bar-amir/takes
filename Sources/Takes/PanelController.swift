@@ -307,7 +307,7 @@ final class PanelController {
     private func showMoreMenu() {
         guard let panel, let view = panel.contentView else { return }
         let menu = NSMenu()
-        let items: [(String, SettingsTab)] = [("Edit presets…", .presets), ("Voice rules…", .voice), ("English coach…", .coach), ("Engine and defaults…", .engine), ("History…", .history)]
+        let items: [(String, SettingsTab)] = [("Edit presets…", .presets), ("Writing rules…", .writing), ("English coach…", .coach), ("Model and defaults…", .model), ("History…", .history)]
         for (title, tab) in items {
             let item = NSMenuItem(title: title, action: #selector(MenuTarget.open(_:)), keyEquivalent: "")
             item.representedObject = tab.rawValue

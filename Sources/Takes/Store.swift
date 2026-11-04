@@ -116,7 +116,7 @@ enum EngineKind: String, Codable {
     /// Sign in with ChatGPT: a Plus or Pro plan used through OpenAI's OAuth flow (ChatGPTEngine.swift).
     case chatGPT
 
-    /// Engines where every preset runs on the one model picked in Settings › Engine, and Effort (a Claude setting) is hidden.
+    /// Engines where every preset runs on the one model picked in Settings › Model, and Effort (a Claude setting) is hidden.
     var usesOneModel: Bool { self == .local || self == .provider || self == .chatGPT }
     /// Engines that talk to Anthropic.
     var isClaude: Bool { self == .claudeCode || self == .apiKey }

@@ -124,7 +124,7 @@ struct Provider: Equatable, Identifiable {
 
 // MARK: - Addresses
 
-/// The inverse of `LocalEndpoint`: https only, no userinfo, nothing on this Mac (that's the Local model card), no IP
+/// The inverse of `LocalEndpoint`: https only, no userinfo, nothing on this Mac (that's the Local model row), no IP
 /// literals. Checked on every request URL, not just in settings.
 enum ProviderEndpoint {
     /// Tests run a mock server on http://127.0.0.1. Never set outside tests.
@@ -299,12 +299,12 @@ struct ProviderEngine: TakesEngine {
     func run(_ request: EngineRequest, onUpdate: @escaping @Sendable ([String]) -> Void) async throws -> EngineResult {
         let provider = providerOverride ?? Provider.current(settings)
         guard let url = ProviderEndpoint.url(provider.baseURL, "chat/completions") else {
-            throw EngineError.failed("Add an https address for your server in Settings › Engine.")
+            throw EngineError.failed("Add an https address for your server in Settings › Model.")
         }
         guard let key = keyOverride ?? provider.key else {
-            throw EngineError.failed("Add your \(provider.name) API key in Settings › Engine.")
+            throw EngineError.failed("Add your \(provider.name) API key in Settings › Model.")
         }
-        guard !request.model.isEmpty else { throw EngineError.failed("Pick a model in Settings › Engine.") }
+        guard !request.model.isEmpty else { throw EngineError.failed("Pick a model in Settings › Model.") }
         let system = provider.strictFormat ? request.system + "\n" + LocalPrompt.formatRules(takes: request.takes) : request.system
 
         let started = Date()
@@ -418,7 +418,7 @@ struct ProviderEngine: TakesEngine {
         let modelMissing = lower.contains("model") && ["not found", "does not exist", "not exist", "invalid model", "no such model", "unknown model", "not a valid model"].contains(where: lower.contains)
         if status == 404 && (lower.contains("model") || message.isEmpty) || (status == 400 && modelMissing) {
             return ProviderError(kind: .missingModel,
-                                 message: "\(provider.name) doesn't have the model “\(model)”. Pick another in Settings › Engine.")
+                                 message: "\(provider.name) doesn't have the model “\(model)”. Pick another in Settings › Model.")
         }
         if (300..<400).contains(status) {
             return ProviderError(kind: .other, message: "\(provider.name) tried to send Takes to another address, and Takes didn't follow.")
@@ -436,7 +436,7 @@ struct ProviderEngine: TakesEngine {
             return EngineError.failed("Couldn't reach \(provider.name): this Mac seems to be offline. Check your connection and try again.")
         case .cannotFindHost, .cannotConnectToHost, .dnsLookupFailed:
             return EngineError.failed(provider.isCustom
-                                      ? "Couldn't reach \(provider.name). Check the address in Settings › Engine."
+                                      ? "Couldn't reach \(provider.name). Check the address in Settings › Model."
                                       : "Couldn't reach \(provider.name). Check your internet connection and try again.")
         case .timedOut:
             return EngineError.failed("\(provider.name) took too long to answer. Try again, or pick a faster model.")
@@ -453,7 +453,7 @@ struct ProviderEngine: TakesEngine {
     /// The provider's chat models. Throws `ProviderError` (`.keyRefused` for a bad key) or a friendly network error.
     static func models(provider: Provider, key: String) async throws -> [String] {
         guard let url = ProviderEndpoint.url(provider.baseURL, "models") else {
-            throw EngineError.failed("Add an https address for your server in Settings › Engine.")
+            throw EngineError.failed("Add an https address for your server in Settings › Model.")
         }
         var request = URLRequest(url: url)
         request.timeoutInterval = 15
@@ -510,9 +510,9 @@ struct ProviderEngine: TakesEngine {
     }
 }
 
-// MARK: - Models and key state, for Settings › Engine, onboarding and the panel
+// MARK: - Models and key state, for Settings › Model, onboarding and the panel
 
-/// The provider's models, for Settings › Engine and the panel's Model menu.
+/// The provider's models, for Settings › Model and the panel's Model menu.
 @MainActor
 final class ProviderModels: ObservableObject {
     static let shared = ProviderModels()

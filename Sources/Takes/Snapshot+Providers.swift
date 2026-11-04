@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Other-provider screens for `--snapshot`, in light and dark: the Settings › Engine card with no key, ready with the
+/// Other-provider screens for `--snapshot`, in light and dark: the Settings › Model card with no key, ready with the
 /// model menu and a passed test, with a refused key, and with a custom address; and the panel running on a provider
 /// model. Nothing is saved, fetched or read from the keychain.
 extension Snapshot {
@@ -36,7 +36,7 @@ extension Snapshot {
                 models.checked = true
                 let settings = SettingsState()
                 settings.tab = .engine
-                render(SettingsView(state: settings), size: CGSize(width: 1200, height: 1500), dark: dark,
+                render(SettingsView(state: settings), size: CGSize(width: 780, height: 760), dark: dark,
                        to: url.appendingPathComponent("9-provider-engine-\(state.name)-\(suffix).png"))
             }
 

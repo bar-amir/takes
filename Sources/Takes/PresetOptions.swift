@@ -1,23 +1,18 @@
 import SwiftUI
 
-/// The preset editor's on/off options, in one card after "Run defaults": each feature adds a row here,
+/// The preset editor's on/off options, one group after "Run": each feature adds a row here,
 /// so the editor keeps one look however many options there are.
 struct PresetOptionsCard: View {
     @Binding var preset: Preset
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.inner) {
-            FieldLabel("How it writes")
-            VStack(alignment: .leading, spacing: Spacing.section) {
-                MinimalEditsSection(preset: $preset)
-                PresetToneSection(preset: $preset)
-                InstantModeSection(preset: $preset)
-            }
+        FormSection("How it writes") {
+            MinimalEditsSection(preset: $preset).padding(.horizontal, 14).padding(.vertical, 10)
+            FormDivider()
+            PresetToneSection(preset: $preset).padding(.horizontal, 14).padding(.vertical, 10)
+            FormDivider()
+            InstantModeSection(preset: $preset).padding(.horizontal, 14).padding(.vertical, 10)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Theme.strip))
         .accessibilityElement(children: .contain)
     }
 }

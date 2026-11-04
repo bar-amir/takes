@@ -229,28 +229,13 @@ struct ContextEditor: NSViewRepresentable {
     }
 }
 
-/// Settings › Engine: the opt-in clipboard context.
+/// Settings › General: the opt-in clipboard context, as a row in the Clipboard group.
 struct ReplyContextSettings: View {
     @ObservedObject var store = Store.shared
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            SectionTitle("Reply context").padding(.top, 14)
-            Text("In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context is sent with your draft as reference and isn't kept in history.")
-                .font(.system(size: 13)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
-            RowGroup {
-                HStack(alignment: .top, spacing: Spacing.inner) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Use the clipboard as context when it looks like a message").font(.system(size: 14))
-                        Text("Only text copied in the last 2 minutes, under 4,000 characters. Passwords, files and images are skipped. Takes never reads the screen or other windows.")
-                            .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
-                    }
-                    Spacer()
-                    Checkbox(isOn: $store.settings.clipboardContext, label: "Use the clipboard as context")
-                        .padding(.top, 2)
-                }
-                .padding(14)
-            }
-        }
+        FormToggle("Use the clipboard as context when it looks like a message",
+                   detail: "Only text copied in the last 2 minutes, under 4,000 characters. Passwords, files and images are skipped. Takes never reads the screen or other windows.",
+                   isOn: $store.settings.clipboardContext)
     }
 }

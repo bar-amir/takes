@@ -24,7 +24,7 @@ extension Snapshot {
 
             let state = SettingsState()
             state.selectedPresetID = Store.shared.presets.first?.id
-            render(SettingsView(state: state), size: CGSize(width: 1200, height: 860), dark: dark,
+            render(SettingsView(state: state), size: CGSize(width: 1040, height: 660), dark: dark,
                    to: url.appendingPathComponent("7-settings-presets-\(suffix).png"))
 
             render(GalleryHintBar {}.frame(width: 830), size: CGSize(width: 830, height: 48), dark: dark,

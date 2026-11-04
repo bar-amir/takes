@@ -32,9 +32,9 @@ extension Snapshot {
             }
         }
         for dark in [false, true] {
-            let settings = VStack(alignment: .leading, spacing: 14) { SectionTitle("Dictation"); DictationSettings() }
-                .padding(32).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading).background(Theme.sidebar)
-            try? themedBitmap(of: settings, size: CGSize(width: 600, height: 180), dark: dark)?
+            let settings = DictationSettings()
+                .padding(24).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading).background(Theme.formBackground)
+            try? themedBitmap(of: settings, size: CGSize(width: 732, height: 200), dark: dark)?
                 .representation(using: .png, properties: [:])?
                 .write(to: folder.appendingPathComponent("7-dictation-settings-\(dark ? "dark" : "light").png"))
         }

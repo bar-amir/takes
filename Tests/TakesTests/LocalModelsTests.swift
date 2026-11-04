@@ -68,7 +68,7 @@ final class LocalRequestTests: XCTestCase {
     func testHTTPErrors() {
         let missing = LocalEngine.httpError(status: 404, body: Data(#"{"error":{"message":"model \"qwen3\" not found, try pulling it first"}}"#.utf8),
                                             server: "Ollama", model: "qwen3:latest")
-        XCTAssertEqual(missing.localizedDescription, "Ollama doesn't have the model “qwen3”. Pick an installed model in Settings › Engine.")
+        XCTAssertEqual(missing.localizedDescription, "Ollama doesn't have the model “qwen3”. Pick an installed model in Settings › Model.")
         let other = LocalEngine.httpError(status: 500, body: Data(#"{"error":"out of memory"}"#.utf8), server: "LM Studio", model: "x")
         XCTAssertEqual(other.localizedDescription, "LM Studio error: out of memory")
     }
