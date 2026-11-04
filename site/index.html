@@ -94,7 +94,11 @@ section h2 { font-size: clamp(52px, 6.4vw, 84px); }
 .voice-note { color: var(--muted); max-width: 40em; }
 
 /* Product */
-.concept { display: block; width: 100%; height: auto; border-radius: 6px; }
+.concept { display: block; width: 100%; height: auto; }
+.layers { position: relative; aspect-ratio: 3 / 2; margin: 0 -2%; outline-offset: -3px; }
+.layers > img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.layers.live > img { visibility: hidden; }
+.layers canvas { position: absolute; inset: 0; touch-action: pan-y; }
 .shot { background: #fff; box-shadow: 0 1px 0 rgba(23,23,20,.08), 0 24px 60px rgba(23,23,20,.12); }
 .caption { margin: 22px 0 0; font-size: 21px; max-width: 34em; }
 .split { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
@@ -317,7 +321,7 @@ fill="currentColor" stroke="none">
     <div class="wrap">
       <div class="label eyebrow">The product</div>
       <h2 class="display" style="margin-bottom: 48px">Choice is the product.</h2>
-      <img class="shot" src="img/takes.png" width="1060" height="520" alt="The Takes panel: three takes of a Slack message side by side, one showing its changes against the draft">
+      <div class="layers" data-scene="takes" tabindex="0" aria-label="The Takes panel as floating layers: the draft above three takes of a Slack message. Point at a take, or use the arrow keys, to bring it to the front."><img src="img/layers/takes.png" width="1500" height="1000" alt="The Takes panel as floating layers: the draft above three takes of a Slack message, the middle take lifted to the front"></div>
       <p class="caption">Compare complete alternatives, inspect changes, refine a selected take, then paste it back.</p>
     </div>
   </section>
@@ -328,12 +332,12 @@ fill="currentColor" stroke="none">
       <p class="lead">Presets guide the rewrite. Rules and examples make the instruction personal.</p>
       <div class="split">
         <div>
-          <img class="concept" src="img/concepts/shortcut.jpg" width="1024" height="688" loading="lazy" alt="Three oversized keycaps on a paper desk: Control, Option and a cobalt space bar, with the Takes device behind them">
+          <img class="concept" src="img/layers/compose.png" width="1500" height="1000" loading="lazy" alt="The draft panel as floating layers, prefilled with a rough Slack draft and the Slack preset picked, with Control, Option and Space keys in front">
           <h3>A shortcut in the app you're using</h3>
           <p>The draft starts with your selection or the text in the field. Each app can have its own preset, picked automatically.</p>
         </div>
         <div>
-          <img class="concept" src="img/concepts/presets.jpg" width="1024" height="688" loading="lazy" alt="A row of swappable dial caps in cobalt, tomato, acid, ink and cream, each embossed with a preset name, next to the Takes device">
+          <img class="concept" src="img/layers/presets.png" width="1500" height="1000" loading="lazy" alt="A stack of preset tiles with Slack message pulled out, beside its instruction and its Do and Avoid rules">
           <h3>Configured, personal style</h3>
           <p>Set Do and Avoid rules, voice rules for every preset, and up to five examples of how you write.</p>
         </div>
@@ -347,12 +351,12 @@ fill="currentColor" stroke="none">
       <p class="lead">Fix a typo without a round trip, write in your own languages, and keep everything on your Mac if you want.</p>
       <div class="split">
         <div>
-          <img class="concept" src="img/concepts/proofread.jpg" width="1024" height="688" loading="lazy" alt="A paper card with its typos struck through and corrected in red pencil, the pencil lying beside it">
+          <img class="concept" src="img/layers/proofread.png" width="1500" height="1000" loading="lazy" alt="A proofread take with each fix marked, and three fixes floating beside it: reveiw to review, tommorow to tomorrow, its to it's">
           <h3>Proofread, marked</h3>
           <p>Fixes spelling, grammar and punctuation, and keeps your words. Each fix is marked; when nothing needs fixing, Takes says so.</p>
         </div>
         <div>
-          <img class="concept" src="img/concepts/on-your-mac.jpg" width="1024" height="688" loading="lazy" alt="The Takes device under a glass bell jar on a paper desk, with no cables, a draft card beside it">
+          <img class="concept" src="img/layers/local.png" width="1500" height="1000" loading="lazy" alt="The model menu as floating layers with a local model picked, and an On this Mac badge">
           <h3>A model on your Mac</h3>
           <p>Use Ollama or LM Studio instead of Claude, and your drafts never leave the Mac.</p>
         </div>
@@ -408,6 +412,18 @@ fill="currentColor" stroke="none">
     <div>Takes isn't made or endorsed by Anthropic, OpenAI or any other model provider.</div>
   </div>
 </footer>
+<script type="module">
+  // The product shot becomes live WebGL layers once it's near the screen; the PNG stays as the fallback.
+  const el = document.querySelector(".layers[data-scene]");
+  if (el && "IntersectionObserver" in window) {
+    const io = new IntersectionObserver(async ([e]) => {
+      if (!e.isIntersecting) return; io.disconnect();
+      try { const { mount } = await import("./js/layers.js"); mount(el, el.dataset.scene, { interactive: true }); el.classList.add("live"); }
+      catch { /* no WebGL or offline: keep the still */ }
+    }, { rootMargin: "300px" });
+    io.observe(el);
+  }
+</script>
 <script>
   // The hero video plays once and holds on the printed takes. With reduced motion it shows that end state still.
   const hero = document.querySelector(".hero-bg");

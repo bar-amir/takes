@@ -25,7 +25,7 @@ Paste everything under "Brief" into Claude Motion, and attach the assets listed 
 | 3 | 0:07–0:10 | Return pressed; three cards print and fan out on the table. | `ONE DRAFT. A FEW TAKES.` |
 | 4 | 0:10–0:16 | Match-cut from the card fan to the real Takes panel (screen recording) over the same Paper desk: three takes streaming in, "Changes" toggled on take 2, take 1 selected. | label: `CONTROL + OPTION + SPACE` |
 | 5 | 0:16–0:19 | Paste: the panel closes, and the chosen take lands in a Slack field (screen recording). | `YOUR CHOICE.` |
-| 6 | 0:19–0:25 | Feature montage, about 1 s each, desk stills with a gentle parallax push: dial caps (presets), red-pencil card (proofread), flashcard box (English coach), bell jar (local model), desk mic (dictation), gauge (tone). | one mono label per still: `PRESETS` `PROOFREAD` `ENGLISH COACH` `ON YOUR MAC` `DICTATION` `TONE` |
+| 6 | 0:19–0:25 | Feature montage, about 1 s each: the layered-UI stills on the Paper surface, each with its front layer rising toward the camera (separate the layers for a 2.5D parallax): presets, proofread, English coach, on your Mac, dictation, instant paste. | one mono label per still: `PRESETS` `PROOFREAD` `ENGLISH COACH` `ON YOUR MAC` `DICTATION` `TONE` |
 | 7 | 0:25–0:30 | Pull back to the device with the three cards; cut to Cobalt field, Acid wordmark (logo-inverted animation if available), then the line. | `WRITE IT ROUGH. PICK YOUR TAKE.` then `FREE FOR MAC · TAKES` |
 
 ### 10-second README loop (16:9, 1280 × 720, silent, seamless loop, MP4 + GIF under 10 MB)
@@ -52,7 +52,8 @@ No copy apart from the keycap overlay. Real recordings only.
 | Asset | Where |
 |---|---|
 | Hero video (style and the hand/dial footage) | `brand/hero/hero-master.mp4` (13 MB), keyframes `brand/hero/key-0…4.jpg` |
-| Feature stills | `site/img/concepts/*.jpg` (re-render picks at 2K first; see `DIRECTION.md`) |
+| Feature stills | `site/img/layers/*.png`: transparent, layered UI per feature (final Higgsfield versions per `HIGGSFIELD-KIT.md`) |
+| Layered UI, live | `site/layers.html?scene=takes`: record the hover moment (a take rising to the front) as a screen capture for shot 4 |
 | Wordmark, mark | `brand/logo.svg`, `brand/logo-inverted.svg`, `brand/t-mark.svg` |
 | Logo animations | `brand/logo-anim/*.mp4` (green-screened; `chatter.mp4` or `zipper.mp4` suit the end card) |
 | Brand summary | `brand/BRAND.md` |

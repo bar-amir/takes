@@ -30,7 +30,7 @@ brew install --cask bar-amir/tap/takes
 
 <!-- TODO: replace with a ~10-second demo GIF of real use: a chat field → ⌃⌥Space → 3 takes stream in → paste. -->
 <p align="center">
-  <a href="https://bar-amir.github.io/takes/"><img src="site/img/takes.png" alt="The Takes panel: a rough Slack draft at the top, three rewritten takes side by side below it, one showing its changes against the draft, and a Paste button" width="900"></a>
+  <a href="https://bar-amir.github.io/takes/"><img src="site/img/layers/takes.png" alt="The Takes panel as floating layers: a rough Slack draft at the top, three rewritten takes below it with the middle one lifted to the front, and a Paste button" width="820"></a>
 </p>
 
 ## How it works
@@ -53,24 +53,24 @@ brew install --cask bar-amir/tap/takes
 
 <table>
   <tr>
-    <td width="50%"><img src="site/img/concepts/presets.jpg" alt="A row of swappable dial caps, each embossed with a preset name: Slack, Mail, Shorter, Warmer, Proof"></td>
-    <td width="50%"><img src="site/img/concepts/proofread.jpg" alt="A paper card with its typos corrected in red pencil"></td>
+    <td width="50%"><img src="site/img/layers/presets.png" alt="A stack of preset tiles with Slack message pulled out, beside its instruction and Do and Avoid rules"></td>
+    <td width="50%"><img src="site/img/layers/proofread.png" alt="A proofread take with each fix marked and the fixes floating beside it"></td>
   </tr>
   <tr>
     <td align="center">Presets with your rules and examples</td>
     <td align="center">Proofread, with every fix marked</td>
   </tr>
   <tr>
-    <td width="50%"><img src="site/img/concepts/english-coach.jpg" alt="A flashcard box with one card pulled out reading “on time / in time”, three tally marks and a star"></td>
-    <td width="50%"><img src="site/img/concepts/on-your-mac.jpg" alt="The Takes device under a glass bell jar, no cables"></td>
+    <td width="50%"><img src="site/img/layers/coach.png" alt="The English coach card with its fixes lifted out: “If you will send” to “If you send”, and two more"></td>
+    <td width="50%"><img src="site/img/layers/local.png" alt="The model menu with a local model picked and an On this Mac badge"></td>
   </tr>
   <tr>
     <td align="center">English coach</td>
     <td align="center">A model on your Mac</td>
   </tr>
   <tr>
-    <td width="50%"><img src="site/img/concepts/instant.jpg" alt="The yellow return button pressed and a card sliding out of the Takes device"></td>
-    <td width="50%"><img src="site/img/concepts/dictation.jpg" alt="A small cream desk microphone with a cobalt grille next to a draft card"></td>
+    <td width="50%"><img src="site/img/layers/instant.png" alt="A pasted message with a “Pasted” toast and a Return key above it"></td>
+    <td width="50%"><img src="site/img/layers/dictation.png" alt="A draft being dictated, with a live waveform"></td>
   </tr>
   <tr>
     <td align="center">Write and paste right away</td>

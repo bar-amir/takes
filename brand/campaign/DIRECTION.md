@@ -4,16 +4,21 @@ Status: draft v1 (November 2026). Companion to `brand/BRAND.md`, the short versi
 
 ## The idea
 
-**Takes is a small desk object.** The hero video already sets up a world: a cream device with a cobalt dial, a mode readout and a yellow Return key, printing paper cards on a warm Paper tabletop in late-afternoon light. Every campaign image stays in that world. Each feature becomes one tactile object or gesture on the same desk, so a page of features reads as one still-life series, not a collage of UI crops.
+**The interface, abstracted into layers.** Every feature is shown as the real Takes UI, simplified to what matters (a draft, three takes, a chip, a fix) and pulled apart into thick, soft tiles floating in depth, seen from a near-front angle on a transparent background. Shortcut labels, secondary buttons and counters are left out: it's an abstraction of the app, not a screenshot.
 
-This splits the work cleanly between two kinds of visual:
+The materials come from the hero video's world: cream, matte, slightly tactile plastic and paper, with warm light and soft contact shadows. That keeps the stills, the hero and the site one family.
 
-| Job | Visual | Rule |
+Three layers of production:
+
+| Asset | Made with | Where |
 |---|---|---|
-| Explain **how the interface works** | Real screenshot (`Takes --snapshot`) | Per BRAND.md: never a mockup. Keep `site/img/takes.png` as the one product shot. |
-| Sell **what a feature means** | Concept still from the desk world | One idea per frame, no fake UI, no screens. |
+| Live hero of the product section | WebGL (`site/js/layers.js`, scene `takes`). Point at a take and it comes to the front; arrow keys do the same. | Site, "Choice is the product" |
+| Composition frames | The same engine, exported on transparent backgrounds (`site/layers.html?scene=…&export=1`) | `site/img/layers/*.png`, the README and the site's feature slots today |
+| Final stills | Higgsfield, from the frame (layout) plus a material reference (look), as in `HIGGSFIELD-KIT.md` | Replace `site/img/layers/*.png` one-for-one |
 
-Reference points (Mobbin): Cycle's feature grid uses one chunky 3D object per feature (a yellow search key, ⌘ K keycaps, a mask for incognito). Superr uses tiny hand-drawn objects per feature. Arc and Craft put product crops in coloured frames. Takes takes the Cycle approach and pushes it further into photography, to match the hero.
+Earlier explorations, kept for reference: the desk-object concepts (`desk-concepts-sheet.jpg`) and the first 3D UI renders (`material-refs-sheet.jpg`), which were too literal (every button and shortcut) but set the material target.
+
+Reference points (Mobbin): Cycle's feature grid uses one chunky 3D object per feature (a yellow search key, ⌘ K keycaps). Arc and Craft put product crops in coloured frames. Takes goes between the two: real UI, made into objects.
 
 ## Visual language
 
@@ -23,29 +28,28 @@ Reference points (Mobbin): Cycle's feature grid uses one chunky 3D object per fe
 - **Tone.** Cute but grown-up: small, tidy, a bit toy-like, never cartoonish. No people (the hand belongs to the hero video only), no screens, no logos besides the t on the dial.
 - **Words in images.** Only short, real-sounding draft lines on cards ("Thursday it is."). Never feature names or marketing copy inside the picture: that lives in HTML, where it's accessible and translatable.
 
-## Concepts per feature
+## Scenes per feature
 
-| Feature | Concept | File |
+| Feature | Scene | File |
 |---|---|---|
-| Takes (compare, choose) | Three cards fanned out of the slot, the chosen one clipped with a cobalt paper clip | `site/img/concepts/takes.jpg` |
-| Menu bar + shortcut | Oversized ⌃ ⌥ keycaps and a cobalt space bar, device behind | `shortcut.jpg` |
-| Presets | A row of swappable dial caps, each embossed with a preset name | `presets.jpg` |
-| Proofread | One card with its typos fixed in Tomato pencil, pencil beside it | `proofread.jpg` |
-| English coach | A flashcard box; one card out: "on time / in time", three tally marks, an Acid star | `english-coach.jpg` |
-| Local model, privacy | The device under a glass bell jar, no cables | `on-your-mac.jpg` |
-| Write and paste right away | Yellow Return pressed, a card already sliding out | `instant.jpg` |
-| Dictation | A small cream desk mic with a cobalt grille, a draft card in front | `dictation.jpg` |
-| Context and tone | A pinned incoming message, the reply card under it, a little gauge pointing toward WARM | `tone.jpg` |
+| Takes (compare, choose) | The panel: draft strip, three takes, one lifted to the front | `site/img/layers/takes.png` (live on the site) |
+| Shortcut, draft panel | The draft field and preset chips, with ⌃ ⌥ and a cobalt space bar in front | `compose.png` |
+| Presets | A stack of preset tiles, Slack message pulled out, beside its instruction and Do / Avoid | `presets.png` |
+| Proofread | A take with each fix marked, the three fixes floating beside it | `proofread.png` |
+| English coach | The draft with flagged phrases, the coach tray with its fix chips lifted out | `coach.png` |
+| Local model, privacy | The model menu with a local model picked and an acid "On this Mac" badge | `local.png` |
+| Write and paste right away | A pasted message, a "Pasted" toast, a yellow Return key | `instant.png` |
+| Dictation | A draft being spoken, a cobalt waveform, the Dictating pill | `dictation.png` |
 
-Still to make: **Any language** (a card with the same line in three scripts, stacked) and **menu-bar discovery** (the device's t mark glowing in a tiny menu-bar strip running along the table's edge) for onboarding and the site's "How it works".
+Still to make: Context and tone (a take with its tone note as a separate tile) and Any language (the same take in three scripts, stacked).
 
 ## Formats and sizes
 
 | Placement | Ratio | Export | Notes |
 |---|---|---|---|
-| Site, `.split` columns | 3:2 | 1440 × 960 JPEG (2x of 720) | `class="concept"`, no shadow or frame, `loading="lazy"` |
+| Site, `.split` columns | 3:2 | 1500 × 1000 PNG, transparent | `class="concept"`, no frame, `loading="lazy"` |
 | Site hero | 16:9 | existing `hero.mp4`, `hero.jpg` | unchanged |
-| README feature grid | 3:2 | 1024 × 683 JPEG, under 120 KB each | two per row in a `<table>`; GitHub caps width at about 880 px |
+| README feature grid | 3:2 | 1500 × 1000 PNG, transparent, under 250 KB | two per row in a `<table>`; reads on GitHub light and dark |
 | README top | 16:9 GIF/MP4 | 1280 × 720, under 10 MB | the Claude Motion cut (see `MOTION-BRIEF.md`) or a 10 s real-use capture; keep `takes.png` until then |
 | Social / OG | 1.91:1 | 1200 × 630 | crop the hero or `takes.jpg`, wordmark top-left |
 | GitHub social preview | 2:1 | 1280 × 640 | the hero frame `brand/hero/key-4.jpg` with the wordmark |
@@ -53,6 +57,6 @@ Still to make: **Any language** (a card with the same line in three scripts, sta
 
 ## Production notes
 
-- Generated with GPT Image 2.5 on Higgsfield, using `brand/hero/key-2.jpg` as the style reference. Prompts all begin with the same "same world, materials, lighting and camera as the reference photo" preamble, then describe one object.
-- The v1 set is drafts at low quality (1024 × 688). Re-render the picks at high quality and 2K before launch (about 2.75 credits each on Higgsfield), and fix text glitches: `proofread.jpg` garbles the correction, and the ⌥ glyph in `shortcut.jpg` is off.
-- Check every card's text by eye: generators misspell. Proofread is the one image where typos are on purpose.
+- Frames: run `python3 -m http.server` in `site/`, open `layers.html?scene=<name>` to tune, then export with headless Chrome: `--headless=new --use-angle=swiftshader --enable-unsafe-swiftshader --window-size=1500,1000 --default-background-color=00000000 --screenshot=<file> "http://localhost:8000/layers.html?scene=<name>&export=1&w=1500&h=1000"`.
+- Stills: see `HIGGSFIELD-KIT.md`. Check every word by eye after generating.
+- `BRAND.md` says to explain the interface with real screenshots, not mockups. These scenes are deliberately abstract and use the app's real wording. Keep real `Takes --snapshot` screenshots for docs and release notes.
