@@ -47,7 +47,7 @@ extension Snapshot {
         apiKey.engineKind = .apiKey
         apiKey.engineStatus = .problem("No API key saved yet")
         screens.append(("2-engine-api-key", apiKey))
-        let local = model(.engine, granted)
+        let local = model(.engine, ready)
         local.engineKind = .local
         local.recommendedEngine = .local
         local.localRunning = true
@@ -103,7 +103,7 @@ extension Snapshot {
                 let view = StatusPopoverView(kind: kind, hotKey: hotKey)
                     .background(Theme.chrome)
                     .fixedSize(horizontal: false, vertical: true)
-                try? bitmap(of: view, size: CGSize(width: StatusPopoverView.width, height: 200), scheme: scheme)?
+                try? bitmap(of: view, size: CGSize(width: StatusPopoverView.width, height: NSHostingView(rootView: view).fittingSize.height), scheme: scheme)?
                     .representation(using: .png, properties: [:])?.write(to: url.appendingPathComponent("6-popover-\(name)-\(suffix).png"))
             }
         }

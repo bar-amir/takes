@@ -28,6 +28,8 @@ final class OnboardingModel: ObservableObject {
     /// The option Connect a model opens on; the rest are behind "Other ways to connect".
     @Published var recommendedEngine = EngineKind.claudeCode
     @Published var showOtherEngines = false
+    /// English Coach is on; when it's off, Done says it's offered later.
+    @Published var coachEnabled = false
     @Published var engineStatus = SetupMonitor.EngineStatus.checking
     @Published var engineKind = EngineKind.claudeCode {
         didSet { if engineKind != oldValue { onEngineKindChange(engineKind) } }
@@ -91,6 +93,7 @@ final class OnboardingModel: ObservableObject {
         engineKind = store.settings.engine
         recommendedEngine = engineKind
         claudeInstalled = ClaudeCodeEngine.claudePath != nil
+        coachEnabled = store.settings.coach.enabled
         hotKey = store.settings.summonHotKey
         let installed = Set(store.presets.map(\.name))
         languages = store.settings.writingLanguages

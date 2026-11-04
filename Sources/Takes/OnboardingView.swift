@@ -222,6 +222,8 @@ struct BigKeys: View {
             ForEach(Array(Self.parts(combo.display).enumerated()), id: \.offset) { _, key in
                 Text(key)
                     .font(.system(size: size * 0.45, weight: .semibold))
+                    .lineLimit(1)
+                    .fixedSize()
                     .foregroundStyle(Theme.text)
                     .frame(minWidth: size, minHeight: size)
                     .padding(.horizontal, key.count > 1 ? size * 0.27 : 0)
@@ -296,7 +298,7 @@ private struct EngineStep: View {
             // Collapsed, everything fits and the privacy lines sit right under the option; opened, the options
             // scroll and the privacy lines stay in view at the bottom.
             if expanded {
-                ScrollView { options.padding(2) }.frame(maxHeight: .infinity)
+                ScrollView { options.padding(2) }.scrollIndicators(.visible).frame(maxHeight: .infinity)
                 privacy.padding(.top, Spacing.inner)
             } else {
                 options.padding(2)
@@ -338,9 +340,9 @@ private struct EngineStep: View {
     private func otherSummary(_ kinds: ArraySlice<EngineKind>) -> String {
         kinds.map { kind -> String in
             switch kind {
-            case .claudeCode: return "Claude subscription"
+            case .claudeCode: return "Claude plan"
             case .apiKey: return "API key"
-            case .chatGPT: return "ChatGPT plan"
+            case .chatGPT: return "ChatGPT"
             case .provider: return "other provider"
             case .local: return "local model"
             }
@@ -528,26 +530,22 @@ private struct PersonalizeStep: View {
         let free = model.hotKeyOwner == nil
         VStack(alignment: .leading, spacing: 0) {
             StepHeader(title: "Make it yours", subtitle: "Your hotkey, and the presets you start with. All of it can change later in Settings.")
-            HStack(spacing: Spacing.section) {
-                BigKeys(combo: model.hotKey, size: 34)
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: Spacing.item) {
-                        StatusPill(text: free ? "Free to use" : "Taken", good: free)
-                        Text(free ? "Nothing else on this Mac uses it." : "Also used by \(model.hotKeyOwner ?? "another app").")
-                            .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).lineLimit(1)
-                    }
-                    if !free {
-                        Text("Pick another, or turn the other one off in System Settings › Keyboard.")
-                            .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
-                    }
+            VStack(alignment: .leading, spacing: Spacing.item) {
+                HStack(spacing: Spacing.section) {
+                    BigKeys(combo: model.hotKey, size: 34)
+                    StatusPill(text: free ? "Free to use" : "Taken", good: free)
+                    Spacer(minLength: 0)
+                    Text("Change:").font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
+                    HotKeyRecorder(combo: Binding(get: { model.hotKey }, set: { combo in
+                        guard let combo else { return }
+                        Store.shared.settings.summonHotKey = combo
+                    }), allowClear: false)
+                    .fixedSize()
+                    .accessibilityLabel("Change hotkey")
                 }
-                Spacer(minLength: 0)
-                HotKeyRecorder(combo: Binding(get: { model.hotKey }, set: { combo in
-                    guard let combo else { return }
-                    Store.shared.settings.summonHotKey = combo
-                }), allowClear: false)
-                .fixedSize()
-                .accessibilityLabel("Change hotkey")
+                Text(free ? "Press it in any text box to open Takes. Nothing else on this Mac uses it."
+                          : "Also used by \(model.hotKeyOwner ?? "another app"). Pick another, or turn that one off in System Settings › Keyboard.")
+                    .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
             }
             .padding(Spacing.inner)
             .background(RoundedRectangle(cornerRadius: 12).fill(Theme.surface))
@@ -562,7 +560,7 @@ private struct PersonalizeStep: View {
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Languages you write in")
             ScrollView {
-                LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 10, alignment: .top), GridItem(.flexible(), spacing: 10, alignment: .top)], spacing: 10) {
                     ForEach(model.starters, id: \.name) { preset in card(preset) }
                 }
                 .padding(1)
@@ -716,7 +714,7 @@ private struct DoneStep: View {
                 InfoRow(icon: "menubar.arrow.up.rectangle", text: "Takes lives in the menu bar. Click its icon for presets, the coach and settings.")
                 InfoRow(icon: "slider.horizontal.3", text: "Make a preset your own in Settings › Presets: its rules, examples of how you write, and a hotkey of its own.")
                 InfoRow(icon: "mic", text: Self.dictationText(Dictation.permissionState))
-                if !Store.shared.settings.coach.enabled {
+                if !model.coachEnabled {
                     InfoRow(icon: "graduationcap", text: "English Coach is off. Takes offers it later, when it spots a mistake you repeat.")
                 }
                 if !model.flow.progress.skipped.isEmpty {

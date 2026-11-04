@@ -81,15 +81,16 @@ struct StatusPopoverView: View {
                     .accessibilityAddTraits(.isHeader)
             }
             VStack(alignment: .leading, spacing: 4) {
+                if !isWelcome { Text("No window needed.") }
                 HStack(spacing: 4) {
-                    Text(isWelcome ? "Press" : "No window needed. Press")
+                    Text("Press")
                     ForEach(Array(BigKeys.parts(hotKey.display).enumerated()), id: \.offset) { Kbd($0.element) }
                     Text("in any text box.")
                 }
                 .lineLimit(1)
                 .accessibilityElement(children: .ignore)
-                .accessibilityLabel("\(isWelcome ? "Press" : "No window needed. Press") \(hotKey.display) in any text box.")
-                Text(isWelcome ? "Click this icon for presets, the coach and settings." : "Or click this icon for presets and settings.")
+                .accessibilityLabel("Press \(hotKey.display) in any text box.")
+                Text(isWelcome ? "Click this icon for presets, the coach and settings." : "Or click this icon for presets, the coach and settings.")
                     .fixedSize(horizontal: false, vertical: true)
             }
             .font(.system(size: 13.5))
