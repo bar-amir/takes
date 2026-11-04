@@ -280,7 +280,7 @@ enum ChatGPTAuthError: LocalizedError, Equatable {
         case .timedOut: "The browser sign-in didn't finish within 5 minutes. Try again."
         case .denied: "Sign-in was cancelled in the browser. Try again when you're ready."
         case .failed(let message): message
-        case .signInAgain: "Sign in to ChatGPT again in Settings › Engine."
+        case .signInAgain: "Sign in to ChatGPT again in Settings › Model."
         }
     }
 
@@ -465,9 +465,9 @@ actor ChatGPTTokens {
 
     /// A token allowed to use the plan. `forceRefresh` after the API refused the current one.
     func accessToken(forceRefresh: Bool = false, now: Date = Date()) async throws -> String {
-        guard let credentials = store.load() else { throw EngineError.failed("Sign in to ChatGPT in Settings › Engine.") }
+        guard let credentials = store.load() else { throw EngineError.failed("Sign in to ChatGPT in Settings › Model.") }
         guard credentials.sharing else {
-            throw EngineError.failed("Signed in, but plan usage wasn't allowed. Sign in again in Settings › Engine and allow it.")
+            throw EngineError.failed("Signed in, but plan usage wasn't allowed. Sign in again in Settings › Model and allow it.")
         }
         guard forceRefresh || credentials.needsRefresh(now: now) else { return credentials.accessToken }
         return try await refresh(credentials).accessToken

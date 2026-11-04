@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Local engine screens for `--snapshot`, in light and dark: Settings › Engine with Ollama found, not running and
+/// Local engine screens for `--snapshot`, in light and dark: Settings › Model with Ollama found, not running and
 /// with no models, and the panel and preset picker running on a local model. Nothing is saved or fetched.
 extension Snapshot {
     static func runLocalModels(to url: URL) {

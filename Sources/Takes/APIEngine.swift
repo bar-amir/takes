@@ -5,7 +5,7 @@ import Security
 struct APIEngine: TakesEngine {
     func run(_ request: EngineRequest, onUpdate: @escaping @Sendable ([String]) -> Void) async throws -> EngineResult {
         guard let key = Keychain.apiKey, !key.isEmpty else {
-            throw EngineError.failed("Add your Anthropic API key in Settings › Engine.")
+            throw EngineError.failed("Add your Anthropic API key in Settings › Model.")
         }
 
         var urlRequest = URLRequest(url: URL(string: "https://api.anthropic.com/v1/messages")!)

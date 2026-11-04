@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// "Your ChatGPT plan" screens for `--snapshot`, in light and dark: the Settings › Engine card signed out, waiting for
+/// "Your ChatGPT plan" screens for `--snapshot`, in light and dark: the Settings › Model card signed out, waiting for
 /// the browser, signed in with the plan's models, and signed in without plan usage; and the panel on a ChatGPT model.
 /// The sign-in state and model list are set by hand; nothing is saved, fetched or opened.
 extension Snapshot {

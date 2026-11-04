@@ -199,7 +199,7 @@ struct ProviderEngineSettings: View {
 
     private func saveAddress() {
         guard let url = ProviderEndpoint.normalize(addressInput) else {
-            addressError = "Use an https address on the internet, such as https://llm.example.com/v1. Servers on this Mac go in the Local model card."
+            addressError = "Use an https address on the internet, such as https://llm.example.com/v1. Servers on this Mac go in the Local model row."
             return
         }
         addressError = nil
@@ -245,7 +245,7 @@ struct ProviderOnboardingDetail: View {
                 }
             }
             if models.state == .noAddress {
-                StepNote("Set your server's address in Settings › Engine.")
+                StepNote("Set your server's address in Settings › Model.")
             } else if !models.hasKey {
                 StyledTextField(placeholder: provider.keyPlaceholder, text: $keyInput, secure: true, height: 34, onSubmit: saveKey)
                     .accessibilityLabel("\(provider.name) API key")
@@ -264,12 +264,12 @@ struct ProviderOnboardingDetail: View {
     private var status: String {
         switch models.state {
         case .checking, .idle: return "Key saved. Looking up \(provider.name)'s models…"
-        case .refused(let message): return message + " Change it in Settings › Engine."
-        case .failed: return "Key saved, but the model list didn't load. Type a model ID in Settings › Engine."
+        case .refused(let message): return message + " Change it in Settings › Model."
+        case .failed: return "Key saved, but the model list didn't load. Type a model ID in Settings › Model."
         case .ready, .noKey, .noAddress:
             return store.settings.providerModel.isEmpty
-                ? "Key saved. Pick a model in Settings › Engine."
-                : "Key saved. Takes will write with \(store.settings.providerModel); change it any time in Settings › Engine."
+                ? "Key saved. Pick a model in Settings › Model."
+                : "Key saved. Takes will write with \(store.settings.providerModel); change it any time in Settings › Model."
         }
     }
 

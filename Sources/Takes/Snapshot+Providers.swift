@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Other-provider screens for `--snapshot`, in light and dark: the Settings › Engine card with no key, ready with the
+/// Other-provider screens for `--snapshot`, in light and dark: the Settings › Model card with no key, ready with the
 /// model menu and a passed test, with a refused key, and with a custom address; and the panel running on a provider
 /// model. Nothing is saved, fetched or read from the keychain.
 extension Snapshot {

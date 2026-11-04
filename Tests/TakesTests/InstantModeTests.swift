@@ -83,8 +83,8 @@ final class InstantModeTests: XCTestCase {
     }
 
     func testEngineErrorPastesNothing() async {
-        let outcome = await runner(FakeEngine(error: EngineError.failed("Add your Anthropic API key in Settings › Engine."))).run(request)
-        XCTAssertEqual(outcome, .failed(.engine("Add your Anthropic API key in Settings › Engine.")))
+        let outcome = await runner(FakeEngine(error: EngineError.failed("Add your Anthropic API key in Settings › Model."))).run(request)
+        XCTAssertEqual(outcome, .failed(.engine("Add your Anthropic API key in Settings › Model.")))
         XCTAssertTrue(pasted.isEmpty)
     }
 
