@@ -263,6 +263,7 @@ fill="currentColor" stroke="none">
         <nav aria-label="Main">
           <span class="label hide-sm">A Mac writing companion</span>
           <a class="hide-sm" href="#how">How it works</a>
+          <a class="hide-sm" href="#coach">English coach</a>
           <a class="hide-sm" href="#privacy">Privacy</a>
           <a href="https://github.com/bar-amir/takes">GitHub</a>
         </nav>
@@ -342,7 +343,7 @@ fill="currentColor" stroke="none">
 
   <section id="new" class="paper" style="padding-top: 0">
     <div class="wrap">
-      <h2 class="display">New in 0.3.</h2>
+      <h2 class="display">Also in the box.</h2>
       <p class="lead">Fix a typo without a round trip, write in your own languages, and keep everything on your Mac if you want.</p>
       <div class="split">
         <div>
@@ -365,15 +366,30 @@ fill="currentColor" stroke="none">
     </div>
   </section>
 
+  <section id="coach" class="paper" style="padding-top: 0">
+    <div class="wrap">
+      <div class="label eyebrow">English coach</div>
+      <h2 class="display">Write it better next time.</h2>
+      <p class="lead">For anyone who writes in English as a second language. Turn on the coach and it spots the mistakes your takes fix, notices the ones you repeat, and teaches them back with your own sentences.</p>
+      <div class="voice">
+        <div class="voice-row"><div class="label">01</div><h3>Notes</h3><p>A short list under your draft, each fix with a one-line reason.</p></div>
+        <div class="voice-row"><div class="label">02</div><h3>Nudges</h3><p>One line after you paste, only when a mistake repeats.</p></div>
+        <div class="voice-row"><div class="label">03</div><h3>Lessons</h3><p>A rule and your own sentences, once a pattern shows up 10 times.</p></div>
+        <div class="voice-row"><div class="label">04</div><h3>Progress</h3><p>Mistakes per 1,000 words, and the patterns you've mastered.</p></div>
+      </div>
+      <p class="voice-note">Off until you turn it on. Each English draft gets one extra check on your engine's quick model, about 1,000 tokens; lessons are made on your Mac at no cost. Only the phrase around each mistake is kept, on your Mac, for 30 days.</p>
+    </div>
+  </section>
+
   <section id="privacy" class="truth">
     <div class="wrap">
       <h2 class="display">Your Mac. Your model. Your choice.</h2>
       <div class="truth-rows">
-        <div class="truth-row"><div class="label">Local utility</div><p>Presets and optional history live on your Mac.</p></div>
+        <div class="truth-row"><div class="label">Local utility</div><p>Presets, optional history and English coach notes live on your Mac.</p></div>
         <div class="truth-row"><div class="label">Your connection</div><p>Drafts, instructions and voice examples go to Anthropic through your Claude connection, to OpenAI through your ChatGPT plan, to the provider whose key you added, or nowhere, with a model on your Mac.</p></div>
         <div class="truth-row"><div class="label">Your decision</div><p>Takes pastes the version you choose into the original field. You decide when to send.</p></div>
       </div>
-      <p class="small">Only the focused field or selection is read, and only when you press the shortcut. The app has no developer-run server and no analytics. This website counts visits with GoatCounter, without cookies. <a href="https://github.com/bar-amir/takes/blob/main/PRIVACY.md">Read the privacy notice</a>.</p>
+      <p class="small">Only the focused field or selection is read, and only when you press the shortcut. The app has no developer-run server and no analytics. This website counts visits with GoatCounter, without cookies, and loads its fonts from Google Fonts. <a href="https://github.com/bar-amir/takes/blob/main/PRIVACY.md">Read the privacy notice</a>.</p>
     </div>
   </section>
 
@@ -383,7 +399,7 @@ fill="currentColor" stroke="none">
       <details><summary>What do I need?</summary><p>macOS 14 or later, Accessibility access so Takes can read the field and paste, and a model to write with: Claude Code signed in to your account or an Anthropic API key, your ChatGPT plan, an API key from another provider, or a model on your Mac with Ollama or LM Studio.</p></details>
       <details><summary>Which models can it use?</summary><p>Claude, through Claude Code on your Mac or your Anthropic API key. Your ChatGPT Plus or Pro plan, through Sign in with ChatGPT. Your own API key for OpenAI, Google Gemini, OpenRouter, Groq, Mistral or another compatible https server. Or a model running on your Mac with Ollama or LM Studio, so nothing leaves it.</p></details>
       <details><summary>Does it work in my app?</summary><p>In apps whose text fields macOS can read, including Slack, Mail, Messages, Notes, browsers and Claude's desktop app. Where an app hides its field, Takes copies the text instead and puts your clipboard back.</p></details>
-      <details><summary>What does it cost?</summary><p>Takes is free and open source under the MIT license, and always will be for every engine. Generation uses your own Claude plan, ChatGPT plan or API account, or costs nothing with a model on your Mac.</p></details>
+      <details><summary>What does it cost?</summary><p>Takes is free and open source under the MIT license, with no ads or paid tier. Generation uses your own Claude plan, ChatGPT plan or API account, or costs nothing with a model on your Mac.</p></details>
       <details><summary>Is it made by Anthropic or OpenAI?</summary><p>No. Takes is an independent app. It runs Claude Code or calls the provider you chose with your own account.</p></details>
     </div>
   </section>
@@ -404,7 +420,7 @@ fill="currentColor" stroke="none">
 <footer>
   <div class="wrap">
     <div class="links"><a href="https://github.com/bar-amir/takes">GitHub</a><a href="https://github.com/bar-amir/takes/blob/main/PRIVACY.md">Privacy</a><a href="https://github.com/bar-amir/takes/blob/main/LICENSE">License</a><a href="https://github.com/sponsors/bar-amir" data-goatcounter-click="sponsor-footer" data-goatcounter-title="Support Takes (footer)">Support Takes</a></div>
-    <div>Takes isn't made or endorsed by Anthropic, OpenAI or any other model provider.</div>
+    <div>Takes isn't made or endorsed by Anthropic, OpenAI or any other model provider. Claude is a trademark of Anthropic, PBC. ChatGPT is a trademark of OpenAI. Mac is a trademark of Apple Inc.</div>
   </div>
 </footer>
 <script>
