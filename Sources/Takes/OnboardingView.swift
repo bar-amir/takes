@@ -27,14 +27,16 @@ struct OnboardingView: View {
             ZStack(alignment: .topLeading) {
                 stepBody
                     .id(model.step)
-                    .transition(reduceMotion ? .opacity : .asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity),
-                                                                      removal: .opacity))
+                    // A cross-fade with a 12 pt push in the direction of travel; a plain cross-fade under Reduce Motion.
+                    .transition(.asymmetric(insertion: .offset(x: reduceMotion ? 0 : (model.forward ? 12 : -12)).combined(with: .opacity),
+                                            removal: .opacity))
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .padding(.horizontal, 36)
             .padding(.top, 44)
+            .padding(.bottom, Spacing.section)
             .clipped()
-            .animation(reduceMotion ? nil : .easeOut(duration: 0.22), value: model.step)
+            .animation(Motion.animation(.easeOut(duration: Motion.slow)), value: model.step)
             footer
         }
         .accessibilityElement(children: .contain)
@@ -43,12 +45,9 @@ struct OnboardingView: View {
 
     @ViewBuilder private var stepBody: some View {
         switch model.step {
-        case .welcome: WelcomeStep(model: model)
         case .accessibility: AccessibilityStep(model: model)
         case .engine: EngineStep(model: model)
-        case .privacy: PrivacyStep(model: model)
-        case .hotkey: HotKeyStep(model: model)
-        case .presets: PresetsStep(model: model)
+        case .personalize: PersonalizeStep(model: model)
         case .practice: PracticeStep(model: model)
         case .done: DoneStep(model: model)
         }
@@ -156,6 +155,7 @@ struct OnboardingStepList: View {
         }
         return HStack(spacing: 10) {
             StepBadge(number: number, state: state, size: 22)
+                .animation(Motion.animation(.easeOut(duration: Motion.standard)), value: state)
             Text(step.title)
                 .font(.system(size: 13, weight: mark == .current ? .semibold : .regular))
                 .foregroundStyle(mark == .current ? Theme.text : mark == .todo ? Theme.tertiaryText : Theme.secondaryText)
@@ -203,6 +203,7 @@ private struct InfoRow: View {
 /// The hotkey drawn as large keycaps: ⌃ ⌥ Space.
 struct BigKeys: View {
     let combo: KeyCombo
+    var size: CGFloat = 44
 
     static func parts(_ display: String) -> [String] {
         let modifiers: Set<Character> = ["⌃", "⌥", "⇧", "⌘"]
@@ -220,10 +221,10 @@ struct BigKeys: View {
         HStack(spacing: 6) {
             ForEach(Array(Self.parts(combo.display).enumerated()), id: \.offset) { _, key in
                 Text(key)
-                    .font(.system(size: 20, weight: .semibold))
+                    .font(.system(size: size * 0.45, weight: .semibold))
                     .foregroundStyle(Theme.text)
-                    .frame(minWidth: 44, minHeight: 44)
-                    .padding(.horizontal, key.count > 1 ? 12 : 0)
+                    .frame(minWidth: size, minHeight: size)
+                    .padding(.horizontal, key.count > 1 ? size * 0.27 : 0)
                     .background(
                         ZStack(alignment: .bottom) {
                             RoundedRectangle(cornerRadius: 9).fill(Theme.controlBorder)
@@ -239,53 +240,7 @@ struct BigKeys: View {
 
 // MARK: - Steps
 
-private struct WelcomeStep: View {
-    @ObservedObject var model: OnboardingModel
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            StepHeader(title: "Rewrite anything, in any text box",
-                       subtitle: "Press a hotkey wherever you're typing, write what you mean, and pick from a few takes by Claude or a model of your choice. The one you pick is pasted back.")
-            HStack(alignment: .top, spacing: 6) {
-                tile(number: 1, title: "Press the hotkey") { BigKeysMini(combo: model.hotKey) }
-                arrow
-                tile(number: 2, title: "Write your draft") { icon("pencil.line") }
-                arrow
-                tile(number: 3, title: "Pick a take") { icon("square.stack.3d.up") }
-                arrow
-                tile(number: 4, title: "It's pasted back") { icon("arrow.down.doc") }
-            }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel("Press \(model.hotKey.display), write your draft, pick a take, and it's pasted back.")
-            Text("Setup takes about two minutes, and ends with a try in a practice box.")
-                .font(.system(size: 13))
-                .foregroundStyle(Theme.secondaryText)
-                .padding(.top, 26)
-        }
-    }
-
-    private var arrow: some View {
-        Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold)).foregroundStyle(Theme.tertiaryText)
-            .frame(height: 96)
-    }
-
-    private func icon(_ name: String) -> some View {
-        Image(systemName: name).font(.system(size: 22)).foregroundStyle(Theme.accent)
-    }
-
-    private func tile<V: View>(number: Int, title: String, @ViewBuilder art: () -> V) -> some View {
-        VStack(spacing: 10) {
-            art().frame(height: 40)
-            Text(title).font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.text).multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: 96)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Theme.strip))
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.border))
-    }
-}
-
-/// Small keycaps for the welcome tile.
+/// Small keycaps, inline with text.
 private struct BigKeysMini: View {
     let combo: KeyCombo
     var body: some View {
@@ -329,27 +284,111 @@ private struct AccessibilityStep: View {
     }
 }
 
+/// Connect a model: the option that already works on this Mac first, the others one click away, and where the
+/// text goes with the picked one. Its button says "Understood, …", so going on is the consent.
 private struct EngineStep: View {
     @ObservedObject var model: OnboardingModel
+    @ObservedObject var store = Store.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(title: "Connect a model", subtitle: "Takes writes with Claude under your own account, with your ChatGPT plan or another provider's key, or with a model on your Mac.")
-            // Five options don't fit the window; the header stays put and the options scroll.
-            ScrollView {
-                VStack(spacing: Spacing.inner) {
-                    option(.claudeCode, title: "Your Claude subscription", detail: "Through Claude Code on this Mac. Counts toward your plan's usage limits.") { claudeCodeDetail }
-                    option(.apiKey, title: "An Anthropic API key", detail: "Pay per use, billed by Anthropic. Usually a cent or two per run; Takes doesn't cap your spending.") { apiKeyDetail }
-                    option(.chatGPT, title: "Your ChatGPT plan", detail: "Sign in with ChatGPT. Plus or Pro, no extra cost; counts toward your plan's limits.") { ChatGPTOnboardingDetail(model: model) }
-                    option(.provider, title: "An OpenAI or other API key", detail: "Pay per use, billed by the provider; Takes doesn't cap your spending.") { ProviderOnboardingDetail(model: model) }
-                    option(.local, title: "A model on this Mac", detail: "Ollama or LM Studio. Free, and nothing leaves your Mac.") { localDetail }
-                }
-                .padding(2)
+            StepHeader(title: "Connect a model", subtitle: "Takes writes with a model under your own account, or with one on this Mac.")
+            // Collapsed, everything fits and the privacy lines sit right under the option; opened, the options
+            // scroll and the privacy lines stay in view at the bottom.
+            if expanded {
+                ScrollView { options.padding(2) }.frame(maxHeight: .infinity)
+                privacy.padding(.top, Spacing.inner)
+            } else {
+                options.padding(2)
+                privacy.padding(.top, Spacing.section)
+                Spacer(minLength: 0)
             }
         }
     }
 
-    private var ready: Bool { model.flow.isCurrentSatisfied }
+    private var expanded: Bool { model.showOtherEngines || model.engineKind != model.engineOrder[0] }
+
+    private var options: some View {
+                VStack(alignment: .leading, spacing: Spacing.inner) {
+                    let order = model.engineOrder
+                    option(order[0])
+                    Button {
+                        withAnimation(Motion.animation()) { model.showOtherEngines.toggle() }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text(model.showOtherEngines ? "Other ways to connect" : "Other ways to connect: \(otherSummary(order.dropFirst()))")
+                                .lineLimit(1)
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 10, weight: .semibold))
+                                .rotationEffect(.degrees(model.showOtherEngines ? 90 : 0))
+                        }
+                        .font(.system(size: 13))
+                        .foregroundStyle(Theme.secondaryText)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Other ways to connect")
+                    .accessibilityValue(model.showOtherEngines ? "shown" : "hidden")
+                    if expanded {
+                        ForEach(Array(order.dropFirst()), id: \.self) { option($0) }
+                    }
+                }
+    }
+
+    private func otherSummary(_ kinds: ArraySlice<EngineKind>) -> String {
+        kinds.map { kind -> String in
+            switch kind {
+            case .claudeCode: return "Claude subscription"
+            case .apiKey: return "API key"
+            case .chatGPT: return "ChatGPT plan"
+            case .provider: return "other provider"
+            case .local: return "local model"
+            }
+        }.joined(separator: ", ")
+    }
+
+    /// The settings with the engine picked here.
+    private var settings: AppSettings {
+        var settings = store.settings
+        settings.engine = model.engineKind
+        return settings
+    }
+
+    /// Where the text goes, naming who gets it for the picked engine.
+    private var privacy: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text("WHERE YOUR TEXT GOES").font(.mono(10.5, bold: true)).tracking(0.6).foregroundStyle(Theme.tertiaryText)
+            if let recipient = SetupMonitor.recipient(for: settings) {
+                line("arrow.up.right", Text("Your draft and preset go from this Mac to ") + Text(recipient).bold() + Text(", under your account."))
+            } else {
+                line("lock", Text("Nothing leaves this Mac.").bold() + Text(" Your draft goes to the model server running on it."))
+            }
+            line("minus", Text("Nothing goes to the developer. No server, no tracking."))
+            HStack(spacing: 4) {
+                Text(model.engineKind.isClaude ? "Claude can get things wrong: read each take before you send it." : "Models can get things wrong: read each take before you send it.")
+                Button("Privacy notice") { NSWorkspace.shared.open(SetupMonitor.privacyURL) }
+                    .buttonStyle(.plain).underline().foregroundStyle(Theme.text)
+            }
+            .font(.system(size: 12))
+            .foregroundStyle(Theme.secondaryText)
+            .lineLimit(1)
+        }
+        .padding(.top, Spacing.inner)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .overlay(alignment: .top) { Rectangle().fill(Theme.border).frame(height: 1) }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Where your text goes")
+    }
+
+    private func line(_ icon: String, _ text: Text) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: Spacing.item) {
+            Image(systemName: icon).font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.secondaryText).frame(width: 14)
+                .accessibilityHidden(true)
+            text.font(.system(size: 12.5)).foregroundStyle(Theme.text).fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var ready: Bool { model.flow.conditions.engineReady }
 
     private var statusText: String {
         switch model.engineStatus {
@@ -358,7 +397,34 @@ private struct EngineStep: View {
         }
     }
 
-    private func option<Detail: View>(_ kind: EngineKind, title: String, detail: String, @ViewBuilder more: () -> Detail) -> some View {
+    private func title(_ kind: EngineKind) -> String {
+        switch kind {
+        case .claudeCode: return "Your Claude subscription"
+        case .apiKey: return "An Anthropic API key"
+        case .chatGPT: return "Your ChatGPT plan"
+        case .provider: return "An OpenAI or other API key"
+        case .local: return "A model on this Mac"
+        }
+    }
+
+    private func detail(_ kind: EngineKind) -> String {
+        switch kind {
+        case .claudeCode: return model.claudeInstalled
+            ? "Claude Code is installed. Sign in once in Terminal, and Takes notices on its own. Counts toward your plan's limits."
+            : "Through Claude Code on this Mac. Counts toward your plan's usage limits."
+        case .apiKey: return "Pay per use, billed by Anthropic. Usually a cent or two per run; Takes doesn't cap your spending."
+        case .chatGPT: return "Sign in with ChatGPT. Plus or Pro, no extra cost; counts toward your plan's limits."
+        case .provider: return "Pay per use, billed by the provider; Takes doesn't cap your spending."
+        case .local: return "Ollama or LM Studio. Free, and nothing leaves your Mac."
+        }
+    }
+
+    /// "Found on this Mac" for an option that's already there.
+    private func found(_ kind: EngineKind) -> Bool {
+        (kind == .claudeCode && model.claudeInstalled) || (kind == .local && model.localRunning)
+    }
+
+    private func option(_ kind: EngineKind) -> some View {
         let selected = model.engineKind == kind
         return Button { model.engineKind = kind } label: {
             HStack(alignment: .top, spacing: Spacing.inner) {
@@ -368,23 +434,38 @@ private struct EngineStep: View {
                     .padding(.top, 2)
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: Spacing.item) {
-                        Text(title).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.text)
+                        Text(title(kind)).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.text).lineLimit(1)
                         if selected {
                             StatusPill(text: statusText, good: model.engineStatus.isReady, waiting: model.engineStatus == .checking)
+                        } else if found(kind) {
+                            StatusPill(text: "Found on this Mac", good: true)
                         }
                     }
-                    Text(detail).font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
-                    if selected { more() }
+                    if selected || kind == model.engineOrder.first {
+                        Text(detail(kind)).font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    if selected { more(kind) }
                 }
                 Spacer(minLength: 0)
             }
-            .padding(Spacing.section)
+            .padding(selected ? Spacing.section : Spacing.inner)
             .background(RoundedRectangle(cornerRadius: 12).fill(selected ? Theme.accentSoft.opacity(0.5) : Theme.surface))
             .overlay(RoundedRectangle(cornerRadius: 12).stroke(selected ? Theme.accent : Theme.border, lineWidth: selected ? 1.5 : 1))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+
+    @ViewBuilder private func more(_ kind: EngineKind) -> some View {
+        switch kind {
+        case .claudeCode: claudeCodeDetail
+        case .apiKey: apiKeyDetail
+        case .chatGPT: ChatGPTOnboardingDetail(model: model)
+        case .provider: ProviderOnboardingDetail(model: model)
+        case .local: localDetail
+        }
     }
 
     @ViewBuilder private var claudeCodeDetail: some View {
@@ -394,10 +475,19 @@ private struct EngineStep: View {
                     StepNote("Install Claude Code first, then come back. This page checks again every few seconds.")
                     Button("How to install Claude Code") { NSWorkspace.shared.open(URL(string: "https://claude.com/claude-code")!) }
                         .buttonStyle(SecondaryButtonStyle(height: 28))
+                } else if model.copiedSignIn {
+                    StepNote("Copied. Paste it in Terminal, sign in in the browser, then paste the code it shows back into Terminal. This page moves on by itself.")
                 } else {
-                    StepNote(model.copiedSignIn
-                             ? "Copied. Paste it in Terminal, sign in in the browser, then paste the code it shows back into Terminal. This page moves on by itself."
-                             : "Sign in once with “claude auth login” in Terminal. The button below copies it and opens Terminal.")
+                    HStack(spacing: Spacing.item) {
+                        Text("claude auth login")
+                            .font(.system(size: 12, design: .monospaced))
+                            .foregroundStyle(Theme.text)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(RoundedRectangle(cornerRadius: 6).fill(Theme.surface))
+                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Theme.border))
+                        Text("copied when you continue").font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
+                    }
                 }
             }
             .padding(.top, 4)
@@ -412,7 +502,7 @@ private struct EngineStep: View {
                     Button("Get Ollama") { NSWorkspace.shared.open(URL(string: "https://ollama.com")!) }
                         .buttonStyle(SecondaryButtonStyle(height: 28))
                 } else {
-                    StepNote("Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings › Engine.")
+                    StepNote("Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings.")
                 }
             }
             .padding(.top, 4)
@@ -422,7 +512,7 @@ private struct EngineStep: View {
     @ViewBuilder private var apiKeyDetail: some View {
         if !ready {
             StyledTextField(placeholder: "Paste your key (sk-ant-…)", text: $model.apiKeyInput, secure: true, height: 34,
-                            onSubmit: model.saveAPIKey)
+                            onSubmit: model.primary)
                 .padding(.top, 4)
                 .accessibilityLabel("Anthropic API key")
             StepNote("Saved in your keychain. Create one at console.anthropic.com.")
@@ -430,98 +520,45 @@ private struct EngineStep: View {
     }
 }
 
-private struct PrivacyStep: View {
-    @ObservedObject var model: OnboardingModel
-    @ObservedObject var store = Store.shared
-
-    /// The settings with the engine picked a step earlier.
-    private var settings: AppSettings {
-        var settings = store.settings
-        settings.engine = model.engineKind
-        return settings
-    }
-
-    private var recipients: String {
-        switch settings.engine {
-        case .claudeCode, .apiKey: return "your Mac and Anthropic"
-        case .chatGPT: return "your Mac and OpenAI"
-        case .provider:
-            let provider = Provider.current(settings)
-            return provider.id == "custom" ? "your Mac and the server you added" : "your Mac and \(provider.name)"
-        case .local: return "your Mac"
-        }
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            StepHeader(title: "Your text and the model", subtitle: "What Takes reads, and where it goes. In short: \(recipients), nobody else.")
-            StepCard {
-                VStack(alignment: .leading, spacing: Spacing.inner) {
-                    InfoRow(icon: "text.cursor", text: "When you press the hotkey, Takes reads the text box you're typing in.")
-                    InfoRow(icon: "arrow.up.right", text: SetupMonitor.privacySummary(for: settings))
-                    InfoRow(icon: "lock", text: "Nothing goes to the developer: there's no server and no tracking. History stays on this Mac.")
-                    InfoRow(icon: "eye", text: SetupMonitor.mistakesNote(for: settings))
-                }
-            }
-            StepNote("Don't use Takes on text you're not allowed to share with an AI provider, such as confidential work material.")
-                .padding(.top, Spacing.section)
-            HStack(spacing: Spacing.item) {
-                Button("Read the privacy notice") { NSWorkspace.shared.open(SetupMonitor.privacyURL) }
-                    .buttonStyle(SecondaryButtonStyle())
-                if model.flow.isCurrentSatisfied { StatusPill(text: "Understood", good: true) }
-            }
-            .padding(.top, Spacing.inner)
-        }
-    }
-}
-
-private struct HotKeyStep: View {
+/// Make it yours: the hotkey on top, then the languages and the presets to start with.
+private struct PersonalizeStep: View {
     @ObservedObject var model: OnboardingModel
 
     var body: some View {
         let free = model.hotKeyOwner == nil
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(title: "Your hotkey", subtitle: "Press it in any text box to open Takes. It works in every app.")
-            StepCard(highlighted: !free) {
-                HStack(spacing: Spacing.section) {
-                    BigKeys(combo: model.hotKey)
-                    VStack(alignment: .leading, spacing: 6) {
-                        StatusPill(text: free ? "Ready to use" : "Taken", good: free)
-                        Text(free ? "Nothing else on this Mac uses it." : "Already used by \(model.hotKeyOwner ?? "another app"), so pressing it would open that too.")
-                            .font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
+            StepHeader(title: "Make it yours", subtitle: "Your hotkey, and the presets you start with. All of it can change later in Settings.")
+            HStack(spacing: Spacing.section) {
+                BigKeys(combo: model.hotKey, size: 34)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: Spacing.item) {
+                        StatusPill(text: free ? "Free to use" : "Taken", good: free)
+                        Text(free ? "Nothing else on this Mac uses it." : "Also used by \(model.hotKeyOwner ?? "another app").")
+                            .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).lineLimit(1)
                     }
-                    Spacer(minLength: 0)
+                    if !free {
+                        Text("Pick another, or turn the other one off in System Settings › Keyboard.")
+                            .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
+                    }
                 }
-            }
-            HStack(spacing: Spacing.inner) {
-                Text(free ? "Prefer another one?" : "Pick another shortcut:").font(.system(size: 13)).foregroundStyle(Theme.text)
+                Spacer(minLength: 0)
                 HotKeyRecorder(combo: Binding(get: { model.hotKey }, set: { combo in
                     guard let combo else { return }
                     Store.shared.settings.summonHotKey = combo
                 }), allowClear: false)
+                .fixedSize()
                 .accessibilityLabel("Change hotkey")
             }
-            .padding(.top, Spacing.section)
-            if !free {
-                StepNote("Or keep it and turn the other shortcut off in System Settings › Keyboard › Keyboard Shortcuts.")
-                    .padding(.top, Spacing.inner)
-            }
-        }
-    }
-}
+            .padding(Spacing.inner)
+            .background(RoundedRectangle(cornerRadius: 12).fill(Theme.surface))
+            .overlay(RoundedRectangle(cornerRadius: 12).stroke(free ? Theme.border : Theme.accent.opacity(0.5)))
 
-private struct PresetsStep: View {
-    @ObservedObject var model: OnboardingModel
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            StepHeader(title: "Pick your presets",
-                       subtitle: "A preset says how to rewrite a draft. Keep the ones you'll use; each language you write in gets a translate preset.")
             HStack(alignment: .firstTextBaseline, spacing: Spacing.inner) {
                 Text("You write in").font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.secondaryText).fixedSize()
                 LanguageChips(languages: $model.languages)
             }
-            .padding(.bottom, Spacing.section)
+            .padding(.top, Spacing.section)
+            .padding(.bottom, Spacing.inner)
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Languages you write in")
             ScrollView {
@@ -530,9 +567,14 @@ private struct PresetsStep: View {
                 }
                 .padding(1)
             }
-            if model.chosenPresets.isEmpty {
-                StepNote("Keep at least one to continue.").padding(.top, Spacing.item)
+            HStack {
+                if model.chosenPresets.isEmpty { StepNote("Keep at least one to continue.") }
+                Spacer()
+                Button("Browse the preset gallery…") { SettingsWindowController.shared.show(tab: .presets, gallery: true) }
+                    .buttonStyle(.link)
+                    .font(.system(size: 12))
             }
+            .padding(.top, Spacing.item)
         }
     }
 
@@ -671,9 +713,12 @@ private struct DoneStep: View {
             StepHeader(title: "You're set", subtitle: "Press \(model.hotKey.display) in any text box to start.")
             MenuBarHint()
             VStack(alignment: .leading, spacing: Spacing.inner) {
-                InfoRow(icon: "menubar.arrow.up.rectangle", text: "Takes lives in the menu bar. Click its icon for presets, settings and setup.")
+                InfoRow(icon: "menubar.arrow.up.rectangle", text: "Takes lives in the menu bar. Click its icon for presets, the coach and settings.")
                 InfoRow(icon: "slider.horizontal.3", text: "Make a preset your own in Settings › Presets: its rules, examples of how you write, and a hotkey of its own.")
                 InfoRow(icon: "mic", text: Self.dictationText(Dictation.permissionState))
+                if !Store.shared.settings.coach.enabled {
+                    InfoRow(icon: "graduationcap", text: "English Coach is off. Takes offers it later, when it spots a mistake you repeat.")
+                }
                 if !model.flow.progress.skipped.isEmpty {
                     InfoRow(icon: "arrow.uturn.backward", text: "Skipped something? It's all in Settings, any time.")
                 }
@@ -703,7 +748,7 @@ private struct MenuBarHint: View {
                 ZStack {
                     Circle().fill(Theme.accentSoft).frame(width: 30, height: 30)
                     Circle().stroke(Theme.accent, lineWidth: 1.5).frame(width: 30, height: 30)
-                    Image(systemName: "text.bubble").font(.system(size: 14, weight: .medium)).foregroundStyle(Theme.accent)
+                    BrandMarkShape(small: true).fill(Theme.accent).frame(width: 16, height: 16)
                 }
                 .alignmentGuide(.takesIcon) { $0[HorizontalAlignment.center] }
                 Image(systemName: "wifi")
@@ -726,7 +771,7 @@ private struct MenuBarHint: View {
             .alignmentGuide(.takesIcon) { $0[HorizontalAlignment.center] }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Takes is in the menu bar at the top of your screen, as a speech bubble icon.")
+        .accessibilityLabel("Takes is in the menu bar at the top right of your screen. Its icon is the Takes mark, a t inside a speech bubble.")
     }
 }
 

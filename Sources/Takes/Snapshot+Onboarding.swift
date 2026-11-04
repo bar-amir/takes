@@ -1,7 +1,8 @@
 import AppKit
 import SwiftUI
 
-/// Onboarding's screens for `--snapshot`: every step and state, light and dark, in `<folder>/onboarding`.
+/// Onboarding's screens for `--snapshot`: the opening screen, every step and state, and the menu-bar popover,
+/// light and dark, in `<folder>/onboarding`.
 extension Snapshot {
     static func renderOnboarding(to folder: URL) {
         let url = folder.appendingPathComponent("onboarding", isDirectory: true)
@@ -15,59 +16,67 @@ extension Snapshot {
                    auto: Set<OnboardingStep> = [], skipped: Set<OnboardingStep> = []) -> OnboardingModel {
             let steps = OnboardingStep.allCases
             let before = history ?? Array(steps.prefix(while: { $0 != step }))
-            let model = OnboardingModel(progress: OnboardingProgress(step: step, history: before, autoPassed: auto, skipped: skipped), conditions: conditions)
+            let model = OnboardingModel(progress: OnboardingProgress(step: step, history: before, autoPassed: auto, skipped: skipped,
+                                                                     openingSeen: true), conditions: conditions)
             model.engineStatus = conditions.engineReady ? .ready("Claude Code signed in · Max plan") : .problem("Claude Code isn't signed in")
+            model.claudeInstalled = true
             return model
         }
 
         var screens: [(String, OnboardingModel)] = []
-        screens.append(("1-welcome", model(.welcome, none)))
-        screens.append(("2-accessibility-waiting", model(.accessibility, none)))
+        screens.append(("1-accessibility-waiting", model(.accessibility, none)))
         let justGranted = model(.accessibility, granted)
         justGranted.justPassed = .accessibility
-        screens.append(("2-accessibility-allowed", justGranted))
+        screens.append(("1-accessibility-allowed", justGranted))
 
         let checking = model(.engine, granted)
         checking.engineStatus = .checking
-        screens.append(("3-engine-checking", checking))
-        screens.append(("3-engine-sign-in", model(.engine, granted)))
+        screens.append(("2-engine-checking", checking))
+        screens.append(("2-engine-sign-in", model(.engine, granted)))
+        let others = model(.engine, granted)
+        others.showOtherEngines = true
+        screens.append(("2-engine-other-ways", others))
         let copied = model(.engine, granted)
         copied.copiedSignIn = true
-        screens.append(("3-engine-copied", copied))
+        screens.append(("2-engine-copied", copied))
         let missing = model(.engine, granted)
+        missing.claudeInstalled = false
         missing.engineStatus = .problem("Claude Code isn't installed")
-        screens.append(("3-engine-not-installed", missing))
+        screens.append(("2-engine-not-installed", missing))
         let apiKey = model(.engine, granted)
         apiKey.engineKind = .apiKey
         apiKey.engineStatus = .problem("No API key saved yet")
-        screens.append(("3-engine-api-key", apiKey))
-        screens.append(("3-engine-ready", model(.engine, ready)))
+        screens.append(("2-engine-api-key", apiKey))
+        let local = model(.engine, granted)
+        local.engineKind = .local
+        local.recommendedEngine = .local
+        local.localRunning = true
+        local.engineStatus = .ready("Ollama · llama3.2")
+        screens.append(("2-engine-local", local))
+        screens.append(("2-engine-ready", model(.engine, ready)))
 
-        screens.append(("4-privacy", model(.privacy, ready)))
-        screens.append(("5-hotkey-free", model(.hotkey, all)))
+        screens.append(("3-make-it-yours", model(.personalize, all)))
         var takenConditions = all
         takenConditions.hotKeyFree = false
-        let taken = model(.hotkey, takenConditions)
+        let taken = model(.personalize, takenConditions)
         taken.hotKeyOwner = "macOS: Show Finder search window"
-        screens.append(("5-hotkey-taken", taken))
-
-        screens.append(("6-presets", model(.presets, all)))
-        let noPresets = model(.presets, all)
+        screens.append(("3-make-it-yours-hotkey-taken", taken))
+        let noPresets = model(.personalize, all)
         noPresets.chosenPresets = []
-        screens.append(("6-presets-none", noPresets))
+        screens.append(("3-make-it-yours-none", noPresets))
 
-        screens.append(("7-practice-write", model(.practice, all)))
+        screens.append(("4-practice-write", model(.practice, all)))
         let open = model(.practice, all)
         open.practiceStage = .panelOpen
-        screens.append(("7-practice-panel-open", open))
+        screens.append(("4-practice-panel-open", open))
         let pasted = model(.practice, all)
         pasted.practicePasted("Hi, could you send me the deck before Friday? I need to go over it with legal first, and they take a while.")
-        screens.append(("7-practice-pasted", pasted))
+        screens.append(("4-practice-pasted", pasted))
 
-        // Someone who had access and Claude already: those steps passed by themselves, one skipped step.
-        let done = model(.done, all, history: [.welcome, .accessibility, .engine, .privacy, .hotkey, .presets, .practice],
-                         auto: [.accessibility, .engine, .hotkey], skipped: [.presets])
-        screens.append(("8-done", done))
+        // Someone who had access already: that step passed by itself; Make it yours was skipped.
+        let done = model(.done, all, history: [.accessibility, .engine, .personalize, .practice],
+                         auto: [.accessibility], skipped: [.personalize])
+        screens.append(("5-done", done))
 
         for (name, model) in screens {
             for scheme in [ColorScheme.light, .dark] {
@@ -77,9 +86,26 @@ extension Snapshot {
             }
         }
         for scheme in [ColorScheme.light, .dark] {
-            let file = url.appendingPathComponent("9-setup-window-\(scheme == .light ? "light" : "dark").png")
+            let suffix = scheme == .light ? "light" : "dark"
             try? bitmap(of: SetupView(monitor: SetupMonitor.shared, onDone: {}), size: CGSize(width: 640, height: 820), scheme: scheme)?
-                .representation(using: .png, properties: [:])?.write(to: file)
+                .representation(using: .png, properties: [:])?.write(to: url.appendingPathComponent("9-setup-window-\(suffix).png"))
+            // The opening screen sits on a photo, so it looks the same in both; rendered in both to check that.
+            try? bitmap(of: OpeningView(state: OpeningState(), onStart: {}), size: OpeningWindowController.size, scheme: scheme)?
+                .representation(using: .png, properties: [:])?.write(to: url.appendingPathComponent("0-opening-\(suffix).png"))
+            let hotKey = Store.shared.settings.summonHotKey
+            let popovers: [(String, StatusPopoverController.Kind)] = [
+                ("welcome", .welcome),
+                ("reopen", .reopen(missing: nil)),
+                ("reopen-setup", .reopen(missing: SetupMonitor.missingSummary(accessibility: false, engine: .ready(""), privacyAccepted: true, hotKeyFree: true))),
+                ("reopen-setup-several", .reopen(missing: SetupMonitor.missingSummary(accessibility: false, engine: .problem(""), privacyAccepted: true, hotKeyFree: true))),
+            ]
+            for (name, kind) in popovers {
+                let view = StatusPopoverView(kind: kind, hotKey: hotKey)
+                    .background(Theme.chrome)
+                    .fixedSize(horizontal: false, vertical: true)
+                try? bitmap(of: view, size: CGSize(width: StatusPopoverView.width, height: 200), scheme: scheme)?
+                    .representation(using: .png, properties: [:])?.write(to: url.appendingPathComponent("6-popover-\(name)-\(suffix).png"))
+            }
         }
     }
 
