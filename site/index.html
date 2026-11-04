@@ -466,9 +466,6 @@ fill="currentColor" stroke="none">
   // The product shot becomes live once it's near the screen: the same rendered parts, layered in WebGL. The still stays as the fallback.
   const el = document.querySelector(".layers[data-scene]");
   if (el && "IntersectionObserver" in window) {
-    // A link to a slide (#coach from the nav) scrolls the track to it.
-    const fromHash = () => { const i = slides.findIndex((s) => "#" + s.id === location.hash); if (i >= 0) go(i); };
-    addEventListener("hashchange", fromHash); fromHash();
     const io = new IntersectionObserver(async ([e]) => {
       if (!e.isIntersecting) return; io.disconnect();
       try { const { mount } = await import("./js/layers.js?v=3"); mount(el, el.dataset.scene, { interactive: true, sprites: el.dataset.sprites }); el.classList.add("live"); }
