@@ -10,6 +10,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     /// Old names, kept so existing callers still compile: Voice became Writing, Engine became Model.
     static let voice = SettingsTab.writing
     static let engine = SettingsTab.model
+    static let englishCoach = SettingsTab.coach
 
     var id: String { rawValue }
     var title: String { rawValue }
