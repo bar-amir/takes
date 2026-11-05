@@ -331,6 +331,12 @@ export function mount(el, name, { interactive = false, exportMode = false, part 
   sun.shadow.mapSize.set(2048, 2048); sun.shadow.radius = 9; sun.shadow.blurSamples = 20; sun.shadow.bias = -0.0004;
   Object.assign(sun.shadow.camera, { left: -9, right: 9, top: 7, bottom: -7, near: 1, far: 40 }); scene.add(sun);
   let { bounds, takes, zoom = 1, offsetY = 0 } = SCENES[name](renderer, root);
+  // Stacked on a phone card, the coach's draft strip floats too far above its tray; bring it down to just over the
+  // tray's top edge and tighten the frame to match.
+  if (card && name === "coach" && !exportMode && matchMedia("(max-width: 720px)").matches) {
+    root.getObjectByName("draft")?.position.set(0.2, 3.05, 0.2); bounds = [10.4, 6.0];
+    ["fix1", "fix2", "fix3"].forEach((n) => { const o = root.getObjectByName(n); if (o) o.position.y -= 0.42; }); // so the tray header reads in full
+  }
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 30), new THREE.ShadowMaterial({ opacity: 0.15 }));
   floor.position.z = -0.02; floor.receiveShadow = true; floor.visible = !part && !sprites; scene.add(floor);
   // Centre the scene on its pieces and fit to them, so every stage frames its graphic the same way.
