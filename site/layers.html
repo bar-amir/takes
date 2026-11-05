@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Takes layers</title>
+<style>
+  /* Preview and export page for site/js/layers.js. ?scene=<name>
+     &export=1 renders once on a transparent background at ?w= x ?h= (default 1600 x 1000) for a screenshot;
+     &part=<name> exports one part of the takes scene alone; &shot=1 uses the carousel framing; &sprites=img/layers/parts
+     shows the rendered part images. */
+  html, body { margin: 0; background: #F3EBDD; font: 15px Arial, sans-serif; }
+  html.export, html.export body { background: transparent; }
+  #stage { width: 100vw; height: 100vh; }
+  nav { position: fixed; top: 12px; left: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+  nav a { color: #171714; background: #fff; padding: 4px 10px; border-radius: 99px; text-decoration: none; }
+  body.export nav { display: none; }
+</style>
+</head>
+<body>
+<div id="stage" tabindex="0"></div>
+<nav></nav>
+<script type="module">
+  import { mount } from "./js/layers.js";
+  const q = new URLSearchParams(location.search), scene = q.get("scene") || "takes", exp = q.has("export");
+  const stage = document.getElementById("stage");
+  if (exp || q.has("bare")) { document.documentElement.classList.add("export"); document.body.classList.add("export"); }
+  if (exp) { stage.style.width = (q.get("w") || 1600) + "px"; stage.style.height = (q.get("h") || 1000) + "px"; }
+  for (const s of ["takes", "shortcut", "presets", "proofread", "coach", "local", "instant", "dictation", "tone", "languages", "compose"])
+    document.querySelector("nav").insertAdjacentHTML("beforeend", `<a href="?scene=${s}">${s}</a>`);
+  const part = q.get("part"), shot = q.has("shot"), sprites = q.get("sprites"), card = q.has("card");
+  mount(stage, scene, { interactive: !exp, exportMode: exp, part, shot, sprites, card });
+  document.title = "ready";
+</script>
+</body>
+</html>

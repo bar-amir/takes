@@ -62,6 +62,7 @@
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
+html { scroll-padding-top: 120px; } /* anchors land below the sticky header */
 body { margin: 0; background: var(--paper); color: var(--ink); font: 18px/1.5 var(--text); }
 a { color: inherit; }
 img, video { max-width: 100%; height: auto; display: block; }
@@ -89,12 +90,19 @@ img, video { max-width: 100%; height: auto; display: block; }
 .mast nav { display: flex; align-items: center; gap: 28px; }
 .mast nav a { text-decoration: none; }
 .mast nav a:hover { text-decoration: underline; }
+.mast nav .ext svg { margin-left: 5px; vertical-align: 0.1em; transition: transform .2s ease; }
+.mast nav .ext:hover svg { transform: translate(1px, -1px); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* Hero: one headline, one object, one idea. The photo fills the whole hero, masthead included;
    its composition leaves the left half empty for the words, so the hero keeps close to the photo's 16:9. */
-.hero { position: relative; display: flex; flex-direction: column; height: clamp(600px, min(56.25vw, 100vh), 1000px); background: #F1DEC9; overflow: hidden; }
+.hero { position: relative; display: flex; flex-direction: column; box-sizing: border-box; padding-top: 109px; height: clamp(600px, min(56.25vw, 100vh), 1000px); background: #F1DEC9; overflow: hidden; }
 .hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: 0 50%; }
-.hero > header, .hero-body { position: relative; z-index: 1; }
+header { position: sticky; top: 0; z-index: 30; margin-bottom: -109px; transition: background-color .25s ease, backdrop-filter .25s ease; }
+header .wrap { max-width: none; padding: 0 clamp(24px, 6vw, 96px); }
+header.scrolled { background: rgba(243, 235, 221, .88); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+header.scrolled .rule { opacity: .6; }
+.hero-body { position: relative; z-index: 1; }
 .hero .wrap { max-width: none; padding: 0 clamp(24px, 6vw, 96px); }
 .hero-copy { max-width: min(520px, 40vw); padding-top: clamp(28px, 5vw, 88px); }
 .hero h1 { font-size: clamp(52px, 5.8vw, 96px); }
@@ -126,11 +134,67 @@ section h2 { font-size: clamp(52px, 6.4vw, 84px); }
 .voice-row .label { color: var(--muted); padding-top: 8px; }
 .voice-row h3 { font: 700 38px/1 var(--display); margin: 0; }
 .voice-row p { font-size: 28px; line-height: 1.35; margin: 0; }
+.voice-row .from { display: block; font-size: 20px; line-height: 1.4; color: var(--muted); margin-bottom: 10px; }
 .voice-note { color: var(--muted); max-width: 40em; }
 
 /* Product */
+.concept { display: block; width: 100%; height: auto; }
+.layers { position: relative; aspect-ratio: 3 / 2; margin: 0 -2%; outline-offset: -3px; }
+.layers > img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.layers.live > img { visibility: hidden; }
+.layers canvas { position: absolute; inset: 0; touch-action: pan-y; }
 .shot { background: #fff; box-shadow: 0 1px 0 rgba(23,23,20,.08), 0 24px 60px rgba(23,23,20,.12); }
 .caption { margin: 22px 0 0; font-size: 21px; max-width: 34em; }
+.product { position: relative; padding: 88px 0 80px; background: var(--ink); color: var(--paper); }
+.product::before { content: ""; position: absolute; inset: 0; background: radial-gradient(90% 70% at 50% 45%, rgba(243,235,221,.1), rgba(243,235,221,0) 70%); pointer-events: none; }
+.product .caption { color: #CFC7B8; }
+.product .wrap { position: relative; }
+.product h2 { margin-bottom: 20px; }
+.product .caption { margin-top: 10px; }
+.features { padding-top: 112px; }
+.practice { position: relative; padding: 112px 0; background: #E6D8C2 url(img/product-bg.webp) center / cover no-repeat; }
+.practice::before { content: ""; position: absolute; inset: 0; background: linear-gradient(112deg, rgba(255,250,240,.28), rgba(255,250,240,0) 40%, rgba(60,40,15,.1)); pointer-events: none; }
+.practice .wrap { position: relative; }
+.carousel-head { position: relative; z-index: 3; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 36px; }
+.carousel-nav { display: flex; gap: 10px; }
+.cnav { width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--ink); background: transparent; color: var(--ink); font: 22px var(--text); cursor: pointer; }
+.cnav:hover { background: var(--ink); color: var(--paper); }
+.cnav:disabled { opacity: .3; cursor: default; background: transparent; color: var(--ink); }
+.track { --gutter: max(24px, calc((100vw - 1368px) / 2 + 24px)); list-style: none; margin: -72px 0 -56px; padding: 72px var(--gutter) 56px; scroll-behavior: auto;
+  display: grid; grid-auto-flow: column; grid-auto-columns: min(1320px, calc(100vw - 48px)); gap: 24px;
+  overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); scrollbar-width: none; }
+.track::-webkit-scrollbar { display: none; }
+.track:focus-visible { outline-offset: -3px; }
+.slide { position: relative; aspect-ratio: 2.3 / 1; border-radius: 24px; background: #ECE2D1 center / cover no-repeat; scroll-snap-align: start; }
+.slide::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(118deg, rgba(255,250,240,.22), rgba(255,250,240,0) 45%, rgba(60,40,15,.07)); pointer-events: none; }
+#slide-shortcut { background-image: url(img/slides/bg/1.webp); }
+#slide-presets { background-image: url(img/slides/bg/2.webp); }
+#slide-proofread { background-image: url(img/slides/bg/3.webp); }
+#coach { background-image: url(img/slides/bg/4.webp); }
+#slide-local { background-image: url(img/slides/bg/5.webp); }
+#slide-instant { background-image: url(img/slides/bg/6.webp); }
+#slide-dictation { background-image: url(img/slides/bg/7.webp); }
+#slide-tone { background-image: url(img/slides/bg/8.webp); }
+#slide-languages { background-image: url(img/slides/bg/9.webp); }
+
+.slide-stage { position: absolute; z-index: 2; top: -13%; right: -6%; bottom: -13%; width: 66%; } /* taller than the card, so pieces can float past its edges */
+.slide-stage > img { display: block; width: 100%; height: 100%; object-fit: contain; transition: opacity .5s ease; }
+.slide-stage canvas { position: absolute; inset: 0; }
+.slide-stage.live > img { opacity: 0; }
+.slide-copy { position: absolute; left: 5.5%; top: 50%; transform: translateY(-50%); width: 32%; }
+.slide-copy .label { color: var(--ink); margin-bottom: 14px; }
+.slide-copy h3 { font: 700 clamp(30px, 3.6vw, 50px)/1 var(--display); margin: 0 0 16px; }
+.slide-copy p { font-size: clamp(16px, 1.6vw, 21px); line-height: 1.45; margin: 0; }
+.dots { position: relative; z-index: 3; display: flex; gap: 8px; margin-top: 22px; }
+.dots button { width: 9px; height: 9px; padding: 0; border-radius: 50%; border: 0; background: var(--ink); opacity: .22; cursor: pointer; }
+.dots button[aria-current="true"] { opacity: 1; }
+@media (max-width: 720px) {
+  .slide { aspect-ratio: auto; display: grid; grid-template-columns: minmax(0, 1fr); }
+  .slide-stage { position: relative; top: auto; right: auto; bottom: auto; width: 100%; aspect-ratio: 4 / 3; }
+  .slide-copy { position: static; transform: none; width: auto; padding: 4px 22px 26px; }
+  .carousel-nav { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .track { scroll-behavior: auto; } }
 .split { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
 .split h3 { font: 700 32px/1 var(--display); margin: 28px 0 10px; }
 .split p { margin: 0; }
@@ -156,8 +220,14 @@ details p { margin: 14px 0 0; max-width: 44em; }
 .final { background: var(--acid); padding: 104px 0; }
 .final .wrap { display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start; justify-content: space-between; }
 .final h2 { font-size: clamp(72px, 10vw, 150px); }
-.final .label { margin: 30px 0; }
+.final .btn { margin-top: 44px; }
 .final .mark { width: 200px; color: var(--ink); }
+/* The mark loops a keyed Higgsfield clip (brand/logo-anim/t-*.mp4); the SVG stays until the clip can play, and if it never can. */
+.mark-loop { position: relative; display: block; width: 200px; aspect-ratio: 1993 / 2002; }
+.mark-loop .mark { position: absolute; inset: 0; width: 100%; height: 100%; }
+.mark-loop video { position: absolute; left: 50%; top: 50%; width: 214.3%; max-width: none; aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none; visibility: hidden; }
+.mark-loop.playing video { visibility: visible; }
+.mark-loop.playing .mark { visibility: hidden; }
 footer { background: var(--ink); color: var(--paper); padding: 32px 0 44px; font-size: 15px; }
 footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 28px; justify-content: space-between; align-items: center; }
 footer .links a { margin-right: 22px; }
@@ -173,7 +243,7 @@ footer .links a { margin-right: 22px; }
   .split { grid-template-columns: 1fr; }
   /* On a phone the words come first and the photo follows, full width. */
   .hero { height: auto; background: var(--paper); }
-  .hero-bg { position: static; order: 1; height: auto; aspect-ratio: 4 / 3; object-position: 82% 50%; }
+  .hero-bg { position: static; order: 1; height: auto; aspect-ratio: 4 / 3; object-position: 100% 50%; }
   .hero-copy { max-width: none; padding: 40px 0 48px; }
   .hero .keys { margin-top: 28px; }
   .steps { grid-template-columns: 1fr; gap: 28px; }
@@ -184,7 +254,7 @@ footer .links a { margin-right: 22px; }
   .truth-row p { font-size: 21px; }
   section.paper, .idea, .truth, .final { padding: 72px 0; }
   .final .wrap { flex-direction: column; }
-  .final .mark { width: 140px; order: -1; }
+  .final .mark-loop { width: 140px; order: -1; }
 }
 </style>
 <!-- Cookieless visit counts (goatcounter.com): page, referrer, country, screen size. No personal data. -->
@@ -287,27 +357,26 @@ fill="currentColor" stroke="none">
 </symbol>
 </svg>
 
+  <header>
+    <div class="wrap">
+      <div class="mast">
+        <a class="logo-anim" href="#" aria-label="Takes home"><svg class="wordmark" viewBox="0 0 1260 840" role="img" aria-label="takes"><use href="#wordmark"/></svg><video muted playsinline preload="none" aria-hidden="true"></video></a>
+        <nav aria-label="Main">
+          <a class="hide-sm" href="#how">How it works</a>
+          <a class="hide-sm" href="#coach">English coach</a>
+          <a class="hide-sm" href="#privacy">Privacy</a>
+          <a class="ext" href="https://github.com/bar-amir/takes">GitHub<svg aria-hidden="true" viewBox="0 0 12 12" width="11" height="11"><path d="M3 1.5h7.5V9M10.5 1.5 1.5 10.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">(opens GitHub)</span></a>
+        </nav>
+      </div>
+      <hr class="rule">
+    </div>
+  </header>
 <div class="hero">
   <!-- Plays once and holds on the three printed takes. Source frames: brand/hero/. -->
   <video class="hero-bg" poster="img/hero.jpg" width="1920" height="1080" muted autoplay playsinline preload="auto"
          aria-label="The Takes device with a draft card reading “Please review the deck by 3.” A hand rolls the mode from Short to Soft, turns the dial to 3 takes and presses Return; three warmer versions print out one after another.">
     <source src="img/hero.mp4" type="video/mp4">
   </video>
-  <header>
-    <div class="wrap">
-      <div class="mast">
-        <a class="logo-anim" href="#" aria-label="Takes home"><svg class="wordmark" viewBox="0 0 1260 840" role="img" aria-label="takes"><use href="#wordmark"/></svg><video muted playsinline preload="none" aria-hidden="true"></video></a>
-        <nav aria-label="Main">
-          <span class="label hide-sm">A Mac writing companion</span>
-          <a class="hide-sm" href="#how">How it works</a>
-          <a class="hide-sm" href="#coach">English coach</a>
-          <a class="hide-sm" href="#privacy">Privacy</a>
-          <a href="https://github.com/bar-amir/takes">GitHub</a>
-        </nav>
-      </div>
-      <hr class="rule">
-    </div>
-  </header>
   <section class="hero-body">
     <div class="wrap">
       <div class="hero-copy">
@@ -315,16 +384,22 @@ fill="currentColor" stroke="none">
         <p class="sub">Press a shortcut in any Mac app.<br>Takes rewrites your draft a few ways.<br>Pick one and it's pasted back.</p>
         <div class="ctas">
           <a class="btn btn-ink" href="https://github.com/bar-amir/takes/releases/latest/download/Takes.dmg" data-goatcounter-click="download-hero" data-goatcounter-title="Download for Mac (hero)">Download for Mac</a>
-          <a class="text-link" href="https://github.com/bar-amir/takes" data-goatcounter-click="github-hero" data-goatcounter-title="GitHub (hero)">Free and open source</a>
         </div>
-        <div class="label keys">Control + Option + Space</div>
-        <p class="small">Free. No account needed to download. macOS 14 or later.</p>
+        <p class="small">Free and open source.<br>No account needed to download.<br>macOS 14 or later.</p>
       </div>
     </div>
   </section>
 </div>
 
 <main>
+  <section class="product">
+    <div class="wrap">
+      <h2 class="display">Choice is the product.</h2>
+      <div class="layers" data-scene="takes" data-sprites="img/layers/parts" tabindex="0" aria-label="The Takes panel as floating layers: the draft above three takes of a Slack message. Point at a take, or use the arrow keys, to bring it to the front."><img src="img/layers/takes-front.webp?v=5" width="1500" height="1000" alt="The Takes panel as floating layers: the draft above three takes of a Slack message, the middle take lifted to the front"></div>
+      <p class="caption">Compare complete alternatives, inspect changes, refine a selected take, then paste it back.</p>
+    </div>
+  </section>
+
   <section id="how" class="idea">
     <div class="wrap">
       <h2 class="display caps">Your thought.<br>A few takes.</h2>
@@ -337,70 +412,63 @@ fill="currentColor" stroke="none">
     </div>
   </section>
 
-  <section class="paper">
+  <section class="practice">
     <div class="wrap">
-      <div class="label eyebrow">Voice</div>
-      <h2 class="display">A little warmer. Still useful.</h2>
-      <p class="lead">Plain language. A practical request. A small amount of personality. Pick a preset, and Takes writes the same message a few ways.</p>
+      <h2 class="display">Rough in. Right out.</h2>
+      <p class="lead">Four everyday drafts, one preset each. Takes keeps what you meant and fixes how it lands.</p>
       <div class="voice">
-        <div class="voice-row"><div class="label">01</div><h3>Shorter</h3><p>Please review the deck by 3.</p></div>
-        <div class="voice-row"><div class="label">02</div><h3>Warmer</h3><p>Could you give the deck a quick look by 3? Fresh eyes to the rescue!</p></div>
-        <div class="voice-row"><div class="label">03</div><h3>More formal</h3><p>Could you please review the deck by 3? Thank you.</p></div>
+        <div class="voice-row"><div class="label">01</div><h3>Proofread</h3><p><span class="from">thanks for the quick reveiw, ill send the deck tommorow</span>Thanks for the quick review. I'll send the deck tomorrow.</p></div>
+        <div class="voice-row"><div class="label">02</div><h3>Shorter</h3><p><span class="from">hey so I was thinking that maybe, if it works for everyone, we could possibly move the sync to thursday, let me know what you all think</span>Could we move the sync to Thursday? Let me know.</p></div>
+        <div class="voice-row"><div class="label">03</div><h3>Polish email</h3><p><span class="from">can u resend the invoice its missing the PO number</span>Could you resend the invoice? The PO number is missing.</p></div>
+        <div class="voice-row"><div class="label">04</div><h3>Translate</h3><p><span class="from">Running ten minutes late, start without me.</span>Ich komme zehn Minuten später, fangt ohne mich an.</p></div>
       </div>
     </div>
   </section>
 
-  <section class="paper" style="padding-top: 0">
-    <div class="wrap">
-      <div class="label eyebrow">The product</div>
-      <h2 class="display" style="margin-bottom: 48px">Choice is the product.</h2>
-      <img class="shot" src="img/takes.png" width="1060" height="520" alt="The Takes panel: three takes of a Slack message side by side, one showing its changes against the draft">
-      <p class="caption">Compare complete alternatives, inspect changes, refine a selected take, then paste it back.</p>
+  <section id="features" class="paper features" aria-roledescription="carousel" aria-label="Features">
+    <div class="wrap carousel-head">
+      <h2 class="display">Also in the box.</h2>
+      <div class="carousel-nav"><button type="button" class="cnav" data-dir="-1" aria-label="Previous feature">←</button><button type="button" class="cnav" data-dir="1" aria-label="Next feature">→</button></div>
     </div>
-  </section>
-
-  <section class="paper" style="padding-top: 0">
-    <div class="wrap">
-      <h2 class="display">Your voice has controls.</h2>
-      <p class="lead">Presets guide the rewrite. Rules and examples make the instruction personal.</p>
-      <div class="split">
-        <div>
-          <img class="shot" src="img/compose.png" width="720" height="362" alt="The draft panel over Slack, prefilled from the field, with the Slack preset selected">
-          <h3>A shortcut in the app you're using</h3>
-          <p>The draft starts with your selection or the text in the field. Each app can have its own preset, picked automatically.</p>
-        </div>
-        <div>
-          <img class="shot" src="img/presets.png" width="800" height="560" alt="The preset list, with the Slack preset's instruction and its Do and Avoid rules">
-          <h3>Configured, personal style</h3>
-          <p>Set Do and Avoid rules, voice rules for every preset, and up to five examples of how you write.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="new" class="paper" style="padding-top: 0">
-    <div class="wrap">
-      <h2 class="display">New in 0.3.</h2>
-      <p class="lead">Fix a typo without a round trip, write in your own languages, and keep everything on your Mac if you want.</p>
-      <div class="split">
-        <div>
-          <img class="shot" src="img/proofread.png" width="720" height="473" alt="A proofread take with each fix struck through and underlined, and 7 fixes in its footer">
-          <h3>Proofread, marked</h3>
-          <p>Fixes spelling, grammar and punctuation, and keeps your words. Each fix is marked; when nothing needs fixing, Takes says so.</p>
-        </div>
-        <div>
-          <img class="shot" src="img/local-model.png" width="720" height="600" alt="Settings, Engine, with Local model selected, Ollama found and a model picked">
-          <h3>A model on your Mac</h3>
-          <p>Use Ollama or LM Studio instead of Claude, and your drafts never leave the Mac.</p>
-        </div>
-      </div>
-      <div class="voice">
-        <div class="voice-row"><div class="label">01</div><h3>Right away</h3><p>Give a preset its own shortcut and it writes and pastes, no panel.</p></div>
-        <div class="voice-row"><div class="label">02</div><h3>Your languages</h3><p>Reply in any language, with a translate preset for each one you write in.</p></div>
-        <div class="voice-row"><div class="label">03</div><h3>Context and tone</h3><p>Add the message you're answering. See how each take may land.</p></div>
-        <div class="voice-row"><div class="label">04</div><h3>Say it</h3><p>Dictate a draft. Speech stays on your Mac.</p></div>
-      </div>
-    </div>
+    <ol class="track" tabindex="0" aria-label="Features, scroll sideways or use the arrow keys">
+        <li class="slide" id="slide-shortcut" aria-label="1 of 9: Everything has a shortcut.">
+          <div class="slide-stage" data-scene="shortcut" data-sprites="img/slides/parts/shortcut"><img src="img/slides/stills/shortcut.webp?v=5" width="1200" height="956" alt="A message field with a rough Slack draft, the Control, Option and Space keys in front of it like a keyboard, and the Slack message preset picked"></div>
+          <div class="slide-copy"><div class="label">Shortcuts</div><h3>Everything has a shortcut.</h3><p>Control + Option + Space opens Takes with your draft, in any app. Every move after that has a shortcut too, so each kind of use stays fast: pick a preset, jump to a take, paste.</p></div>
+        </li>
+        <li class="slide" id="slide-presets" aria-label="2 of 9: Configured, personal style">
+          <div class="slide-stage" data-scene="presets" data-sprites="img/slides/parts/presets"><img src="img/slides/stills/presets.webp?v=5" width="1200" height="956" alt="The Polish email preset selected in the preset list, with its instruction, its Do rules and its Avoid rules on separate tiles" loading="lazy"></div>
+          <div class="slide-copy"><div class="label">Presets</div><h3>Configured, personal style</h3><p>Set Do and Avoid rules, voice rules for every preset, and up to five examples of how you write.</p></div>
+        </li>
+        <li class="slide" id="slide-proofread" aria-label="3 of 9: Proofread, marked">
+          <div class="slide-stage" data-scene="proofread" data-sprites="img/slides/parts/proofread"><img src="img/slides/stills/proofread.webp?v=5" width="1200" height="956" alt="A proofread take with three fixes marked, reveiw to review, tommorow to tomorrow and its to it's, and the fixes floating beside it" loading="lazy"></div>
+          <div class="slide-copy"><div class="label">Proofread</div><h3>Proofread, marked</h3><p>Fixes spelling, grammar and punctuation, and keeps your words. Each fix is marked; when nothing needs fixing, Takes says so.</p></div>
+        </li>
+        <li class="slide" id="coach" aria-label="4 of 9: Write it better next time.">
+          <div class="slide-stage" data-scene="coach" data-sprites="img/slides/parts/coach"><img src="img/slides/stills/coach.webp?v=5" width="1200" height="956" alt="A draft with three flagged phrases and the English coach below it, its fixes lifted out: If you will send to If you send, until tomorrow to by tomorrow, make you a feedback to give you feedback" loading="lazy"></div>
+          <div class="slide-copy"><div class="label">English Coach</div><h3>Write it better next time.</h3><p>Turn on the English coach and it spots the mistakes your takes fix, notices the ones you repeat, and teaches them back with your own sentences.</p></div>
+        </li>
+        <li class="slide" id="slide-local" aria-label="5 of 9: A model on your Mac">
+          <div class="slide-stage" data-scene="local" data-sprites="img/slides/parts/local"><img src="img/slides/stills/local.webp?v=5" width="1200" height="956" alt="A dark Engine card reading Local model, Ollama found on this Mac, with the model menu over it and an On this Mac badge" loading="lazy"></div>
+          <div class="slide-copy"><div class="label">Local model</div><h3>A model on your Mac</h3><p>Use Ollama or LM Studio instead of Claude, and your drafts never leave the Mac.</p></div>
+        </li>
+        <li class="slide" id="slide-instant" aria-label="6 of 9: Right away">
+          <div class="slide-stage" data-scene="instant" data-sprites="img/slides/parts/instant"><img src="img/slides/stills/instant.webp?v=5" width="1200" height="956" alt="A pasted message in a field, a Pasted toast with Command Z to undo, and a yellow Return key" loading="lazy"></div>
+          <div class="slide-copy"><div class="label">Instant paste</div><h3>Right away</h3><p>Give a preset its own shortcut and it writes and pastes, no panel.</p></div>
+        </li>
+        <li class="slide" id="slide-dictation" aria-label="7 of 9: Say it">
+          <div class="slide-stage" data-scene="dictation" data-sprites="img/slides/parts/dictation"><img src="img/slides/stills/dictation.webp?v=5" width="1200" height="956" alt="A draft being dictated, with a blue waveform and a Dictating label" loading="lazy"></div>
+          <div class="slide-copy"><div class="label">Dictation</div><h3>Say it</h3><p>Dictate a draft. Speech stays on your Mac.</p></div>
+        </li>
+        <li class="slide" id="slide-tone" aria-label="8 of 9: Context and tone">
+          <div class="slide-stage" data-scene="tone" data-sprites="img/slides/parts/tone"><img src="img/slides/stills/tone.webp?v=5" width="1200" height="956" alt="A take replying to Any update on the launch, with a note that it may read as warm and polite" loading="lazy"></div>
+          <div class="slide-copy"><div class="label">Context and tone</div><h3>Context and tone</h3><p>Add the message you're answering. See how each take may land.</p></div>
+        </li>
+        <li class="slide" id="slide-languages" aria-label="9 of 9: Your languages">
+          <div class="slide-stage" data-scene="languages" data-sprites="img/slides/parts/languages"><img src="img/slides/stills/languages.webp?v=5" width="1200" height="956" alt="The same take in German, Spanish and English, stacked" loading="lazy"></div>
+          <div class="slide-copy"><div class="label">Languages</div><h3>Your languages</h3><p>Reply in any language, with a translate preset for each one you write in.</p></div>
+        </li>
+    </ol>
+    <div class="wrap"><div class="dots"><button type="button" aria-label="Show A shortcut in the app you're using" data-i="0"></button><button type="button" aria-label="Show Configured, personal style" data-i="1"></button><button type="button" aria-label="Show Proofread, marked" data-i="2"></button><button type="button" aria-label="Show Write it better next time." data-i="3"></button><button type="button" aria-label="Show A model on your Mac" data-i="4"></button><button type="button" aria-label="Show Right away" data-i="5"></button><button type="button" aria-label="Show Say it" data-i="6"></button><button type="button" aria-label="Show Context and tone" data-i="7"></button><button type="button" aria-label="Show Your languages" data-i="8"></button></div></div>
   </section>
 
 
@@ -412,7 +480,7 @@ fill="currentColor" stroke="none">
         <div class="truth-row"><div class="label">Your connection</div><p>Drafts, instructions and voice examples go to Anthropic through your Claude connection, to OpenAI through your ChatGPT plan, to the provider whose key you added, or nowhere, with a model on your Mac.</p></div>
         <div class="truth-row"><div class="label">Your decision</div><p>Takes pastes the version you choose into the original field. You decide when to send.</p></div>
       </div>
-      <p class="small">Only the focused field or selection is read, and only when you press the shortcut. The app has no developer-run server and no analytics. This website counts visits with GoatCounter, without cookies. <a href="https://github.com/bar-amir/takes/blob/main/PRIVACY.md">Read the privacy notice</a>.</p>
+      <p class="small">Takes collects no data. Your drafts go only to the model you chose, and nowhere at all with a model on your Mac. <a href="https://github.com/bar-amir/takes/blob/main/PRIVACY.md">Privacy notice</a>.</p>
     </div>
   </section>
 
@@ -431,11 +499,12 @@ fill="currentColor" stroke="none">
     <div class="wrap">
       <div>
         <h2 class="display caps">Write it rough.<br>Pick your take.</h2>
-        <div class="label">Write. Choose. Paste.</div>
         <a class="btn btn-ink" href="https://github.com/bar-amir/takes/releases/latest/download/Takes.dmg" data-goatcounter-click="download-footer" data-goatcounter-title="Download for Mac (footer)">Download for Mac</a>
-        <p class="small">A disk image, about 6 MB. No account needed.</p>
       </div>
-      <svg class="mark" viewBox="0 0 1993 2002" role="img" aria-label="Takes mark"><use href="#t"/></svg>
+      <div class="mark-loop">
+        <svg class="mark" viewBox="0 0 1993 2002" role="img" aria-label="Takes mark"><use href="#t"/></svg>
+        <video muted playsinline loop preload="metadata" aria-hidden="true"></video>
+      </div>
     </div>
   </section>
 </main>
@@ -446,6 +515,64 @@ fill="currentColor" stroke="none">
     <div>Takes isn't made or endorsed by Anthropic, OpenAI or any other model provider. Claude is a trademark of Anthropic, PBC. ChatGPT is a trademark of OpenAI. Mac is a trademark of Apple Inc.</div>
   </div>
 </footer>
+<script>
+  // Features carousel: buttons and dots scroll one slide; arrow keys work on the focused track.
+  (() => {
+    const track = document.querySelector(".track"); if (!track) return;
+    const slides = [...track.children], dots = [...document.querySelectorAll(".dots button")], nav = document.querySelectorAll(".cnav");
+    const n = slides.length, smooth = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+    // Endless: the last two slides are cloned before the first and the first two after the last. Scrolling onto a
+    // clone jumps silently to the real slide, so the track wraps in both directions.
+    const clone = (s) => { const c = s.cloneNode(true); c.removeAttribute("id"); c.dataset.clone = "1"; c.setAttribute("aria-hidden", "true"); return c; };
+    slides.slice(-2).forEach((s) => track.insertBefore(clone(s), slides[0])); slides.slice(0, 2).forEach((s) => track.appendChild(clone(s)));
+    const all = [...track.children], real = (k) => (k - 2 + n) % n;
+    const left = (k) => all[k].offsetLeft - all[0].offsetLeft;
+    let current = 0, settling = null;
+    const go = (i, behavior = smooth) => track.scrollTo({ left: left(i + 2), behavior }); // i may be -1 or n: that lands on a clone
+    const mark = (i) => { current = i; dots.forEach((d, j) => d.setAttribute("aria-current", j === i ? "true" : "false")); };
+    const settle = () => { const k = Math.round(track.scrollLeft / (all[1].offsetLeft - all[0].offsetLeft));
+      if (k < 2 || k >= n + 2) go(real(k), "auto"); };
+    track.addEventListener("scroll", () => { clearTimeout(settling); settling = setTimeout(settle, 120); }, { passive: true });
+    track.addEventListener("scrollend", settle);
+    nav.forEach((b) => b.addEventListener("click", () => go(current + +b.dataset.dir)));
+    dots.forEach((d) => d.addEventListener("click", () => go(+d.dataset.i)));
+    track.addEventListener("keydown", (e) => { if (e.key === "ArrowRight") { e.preventDefault(); go(current + 1); } if (e.key === "ArrowLeft") { e.preventDefault(); go(current - 1); } });
+    // A link to a slide (#coach from the nav) scrolls the track to it.
+    const fromHash = () => { const i = slides.findIndex((s) => "#" + s.id === location.hash); if (i >= 0) go(i); };
+    addEventListener("hashchange", fromHash);
+    const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) mark(real(all.indexOf(e.target))); }), { root: track, threshold: 0.6 });
+    all.forEach((s) => io.observe(s)); go(0, "auto"); mark(0); fromHash();
+    // Each slide's graphic is a live WebGL scene of separately rendered pieces; only the slides on screen keep one.
+    const live = new Map(); let lib;
+    const twin = (slide) => { const sc = slide.querySelector(".slide-stage")?.dataset.scene; return all.filter((s) => s !== slide && s.querySelector(".slide-stage")?.dataset.scene === sc); };
+    const wake = async (slide) => { const st = slide.querySelector(".slide-stage"); if (!st || live.has(st)) return; live.set(st, null);
+      if (slide.dataset.clone) twin(slide).forEach((t) => { wake(t); const k = all.indexOf(t); if (live.size < 8) [all[k - 1], all[k + 1]].forEach((nb) => nb && wake(nb)); }); // a few contexts at most
+      try { lib = lib || await import("./js/layers.js?v=13");
+        if (!live.has(st)) return;
+        live.set(st, lib.mount(st, st.dataset.scene, { interactive: true, sprites: st.dataset.sprites, card: true, onReady: () => st.classList.add("live") }));
+      } catch (err) { console.warn("layers: slide failed", st.dataset.scene, err); live.delete(st); } };
+    const sleep = (slide) => { const st = slide.querySelector(".slide-stage"); const m = live.get(st); live.delete(st); m?.destroy(); st?.classList.remove("live"); };
+    const near = new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? wake : sleep)(e.target)), { root: track, rootMargin: "0px 60% 0px 60%", threshold: 0 });
+    const section = new IntersectionObserver(([e]) => { if (e.isIntersecting) { all.forEach((s) => near.observe(s)); section.disconnect(); } }, { rootMargin: "200px" });
+    if ("IntersectionObserver" in window) section.observe(track);
+  })();
+</script>
+<script>
+  // The header floats over the hero, then gets a paper backdrop once the page scrolls.
+  (() => { const h = document.querySelector("header"); const on = () => h.classList.toggle("scrolled", scrollY > 24); addEventListener("scroll", on, { passive: true }); on(); })();
+</script>
+<script type="module">
+  // The product shot becomes live once it's near the screen: the same rendered parts, layered in WebGL. The still stays as the fallback.
+  const el = document.querySelector(".layers[data-scene]");
+  if (el && "IntersectionObserver" in window) {
+    const io = new IntersectionObserver(async ([e]) => {
+      if (!e.isIntersecting) return; io.disconnect();
+      try { const { mount } = await import("./js/layers.js?v=13"); mount(el, el.dataset.scene, { interactive: true, sprites: el.dataset.sprites }); el.classList.add("live"); }
+      catch { /* no WebGL or offline: keep the still */ }
+    }, { rootMargin: "300px" });
+    io.observe(el);
+  }
+</script>
 <script>
   // The hero video plays once and holds on the printed takes. With reduced motion it shows that end state still.
   const hero = document.querySelector(".hero-bg");
@@ -464,6 +591,16 @@ fill="currentColor" stroke="none">
   const clips = ["melt", "shuffle", "chatter", "zipper", "kaleido", "split", "bubblegum", "tv", "spiral"];
   let next = Math.floor(Math.random() * clips.length);
   const ext = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) ? "mov" : "webm"; // Safari plays alpha only in HEVC
+  // The mark in the last section loops its own clip, without hover, unless motion is reduced.
+  const mark = document.querySelector(".mark-loop");
+  if (mark && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const v = mark.querySelector("video");
+    v.addEventListener("playing", () => mark.classList.add("playing"));
+    v.addEventListener("error", () => mark.classList.remove("playing"));
+    new IntersectionObserver((es) => {
+      es.forEach((e) => { if (e.isIntersecting) { if (!v.src) v.src = `img/logo/tmark.${ext}?v=2`; v.play().catch(() => {}); } else v.pause(); });
+    }, { rootMargin: "200px" }).observe(mark);
+  }
   if (logo) {
     const v = logo.querySelector("video");
     const stop = () => logo.classList.remove("playing");
