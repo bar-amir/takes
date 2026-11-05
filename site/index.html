@@ -195,11 +195,12 @@ section h2 { font-size: clamp(52px, 6.4vw, 84px); }
 .dots button[aria-current="true"] { opacity: 1; }
 @media (max-width: 720px) {
   .slide { aspect-ratio: auto; display: grid; grid-template-columns: minmax(0, 1fr); }
-  .slide-stage { position: relative; top: auto; right: auto; bottom: auto; width: 100%; aspect-ratio: 3 / 2; margin-top: -4%; }
+  /* The stage is wider than the card and starts above it, so the pieces float over the card's top and side edges. */
+  .slide-stage { position: relative; top: auto; right: auto; bottom: auto; width: 112%; aspect-ratio: 3 / 2; margin: -16% -6% -2%; }
   .slide-copy { position: static; transform: none; width: auto; padding: 4px 22px 26px; }
   .carousel-nav { display: none; }
   /* The product shot bleeds to the screen edges on phones, so the panel reads at a useful size. */
-  .layers { margin: 0 -24px; aspect-ratio: 5 / 4; }
+  .layers { margin: -12px -24px -16px; aspect-ratio: 3 / 2; }
 }
 @media (prefers-reduced-motion: reduce) { .track { scroll-behavior: auto; } }
 .split { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
@@ -574,7 +575,7 @@ fill="currentColor" stroke="none">
   if (el && "IntersectionObserver" in window) {
     const io = new IntersectionObserver(async ([e]) => {
       if (!e.isIntersecting) return; io.disconnect();
-      try { const { mount } = await import("./js/layers.js?v=14"); mount(el, el.dataset.scene, { interactive: true, sprites: el.dataset.sprites }); el.classList.add("live"); }
+      try { const { mount } = await import("./js/layers.js?v=14"); mount(el, el.dataset.scene, { interactive: true, sprites: el.dataset.sprites, onReady: () => el.classList.add("live") }); }
       catch { /* no WebGL or offline: keep the still */ }
     }, { rootMargin: "300px" });
     io.observe(el);
