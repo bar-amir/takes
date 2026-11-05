@@ -125,12 +125,12 @@ section h2 { font-size: clamp(52px, 6.4vw, 84px); }
 .cnav { width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--ink); background: transparent; color: var(--ink); font: 22px var(--text); cursor: pointer; }
 .cnav:hover { background: var(--ink); color: var(--paper); }
 .cnav:disabled { opacity: .3; cursor: default; background: transparent; color: var(--ink); }
-.track { --gutter: max(24px, calc((100vw - 1180px) / 2 + 24px)); list-style: none; margin: -72px 0 -56px; padding: 72px var(--gutter) 56px; scroll-behavior: auto;
-  display: grid; grid-auto-flow: column; grid-auto-columns: min(1132px, calc(100vw - 48px)); gap: 20px;
+.track { --gutter: max(24px, calc((100vw - 1368px) / 2 + 24px)); list-style: none; margin: -72px 0 -56px; padding: 72px var(--gutter) 56px; scroll-behavior: auto;
+  display: grid; grid-auto-flow: column; grid-auto-columns: min(1320px, calc(100vw - 48px)); gap: 24px;
   overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); scrollbar-width: none; }
 .track::-webkit-scrollbar { display: none; }
 .track:focus-visible { outline-offset: -3px; }
-.slide { position: relative; aspect-ratio: 2.4 / 1; border-radius: 24px; background: #ECE2D1 center / cover no-repeat; scroll-snap-align: start; }
+.slide { position: relative; aspect-ratio: 2.3 / 1; border-radius: 24px; background: #ECE2D1 center / cover no-repeat; scroll-snap-align: start; }
 .slide::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(118deg, rgba(255,250,240,.22), rgba(255,250,240,0) 45%, rgba(60,40,15,.07)); pointer-events: none; }
 #slide-shortcut { background-image: url(img/slides/bg/1.webp); }
 #slide-presets { background-image: url(img/slides/bg/2.webp); }
@@ -148,8 +148,8 @@ section h2 { font-size: clamp(52px, 6.4vw, 84px); }
 .slide-stage.live > img { opacity: 0; }
 .slide-copy { position: absolute; left: 5.5%; top: 50%; transform: translateY(-50%); width: 32%; }
 .slide-copy .label { color: var(--ink); margin-bottom: 14px; }
-.slide-copy h3 { font: 700 clamp(30px, 3.4vw, 44px)/1 var(--display); margin: 0 0 14px; }
-.slide-copy p { font-size: clamp(16px, 1.5vw, 19px); line-height: 1.45; margin: 0; }
+.slide-copy h3 { font: 700 clamp(30px, 3.6vw, 50px)/1 var(--display); margin: 0 0 16px; }
+.slide-copy p { font-size: clamp(16px, 1.6vw, 21px); line-height: 1.45; margin: 0; }
 .dots { position: relative; z-index: 3; display: flex; gap: 8px; margin-top: 22px; }
 .dots button { width: 9px; height: 9px; padding: 0; border-radius: 50%; border: 0; background: var(--ink); opacity: .22; cursor: pointer; }
 .dots button[aria-current="true"] { opacity: 1; }
@@ -186,7 +186,9 @@ details p { margin: 14px 0 0; max-width: 44em; }
 .final .wrap { display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start; justify-content: space-between; }
 .final h2 { font-size: clamp(72px, 10vw, 150px); }
 .final .btn { margin-top: 44px; }
-.final .mark { width: 200px; color: var(--ink); }
+.final .mark { width: 200px; color: var(--ink); animation: bob 7s ease-in-out infinite; transform-origin: 55% 60%; }
+@keyframes bob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 35% { transform: translateY(-10px) rotate(2.5deg); } 70% { transform: translateY(4px) rotate(-1deg); } }
+@media (prefers-reduced-motion: reduce) { .final .mark { animation: none; } }
 footer { background: var(--ink); color: var(--paper); padding: 32px 0 44px; font-size: 15px; }
 footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 28px; justify-content: space-between; align-items: center; }
 footer .links a { margin-right: 22px; }
@@ -319,7 +321,6 @@ fill="currentColor" stroke="none">
       <div class="mast">
         <a class="logo-anim" href="#" aria-label="Takes home"><svg class="wordmark" viewBox="0 0 1260 840" role="img" aria-label="takes"><use href="#wordmark"/></svg><video muted playsinline preload="none" aria-hidden="true"></video></a>
         <nav aria-label="Main">
-          <span class="label hide-sm">A Mac writing companion</span>
           <a class="hide-sm" href="#how">How it works</a>
           <a class="hide-sm" href="#privacy">Privacy</a>
           <a class="ext" href="https://github.com/bar-amir/takes">GitHub<svg aria-hidden="true" viewBox="0 0 12 12" width="11" height="11"><path d="M3 1.5h7.5V9M10.5 1.5 1.5 10.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">(opens GitHub)</span></a>
@@ -497,13 +498,15 @@ fill="currentColor" stroke="none">
     all.forEach((s) => io.observe(s)); go(0, "auto"); mark(0); fromHash();
     // Each slide's graphic is a live WebGL scene of separately rendered pieces; only the slides on screen keep one.
     const live = new Map(); let lib;
+    const twin = (slide) => { const sc = slide.querySelector(".slide-stage")?.dataset.scene; return all.filter((s) => s !== slide && s.querySelector(".slide-stage")?.dataset.scene === sc); };
     const wake = async (slide) => { const st = slide.querySelector(".slide-stage"); if (!st || live.has(st)) return; live.set(st, null);
+      if (slide.dataset.clone) twin(slide).forEach((t) => { wake(t); const k = all.indexOf(t); if (live.size < 8) [all[k - 1], all[k + 1]].forEach((nb) => nb && wake(nb)); }); // a few contexts at most
       try { lib = lib || await import("./js/layers.js?v=13");
         if (!live.has(st)) return;
         live.set(st, lib.mount(st, st.dataset.scene, { interactive: true, sprites: st.dataset.sprites, card: true, onReady: () => st.classList.add("live") }));
       } catch (err) { console.warn("layers: slide failed", st.dataset.scene, err); live.delete(st); } };
     const sleep = (slide) => { const st = slide.querySelector(".slide-stage"); const m = live.get(st); live.delete(st); m?.destroy(); st?.classList.remove("live"); };
-    const near = new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? wake : sleep)(e.target)), { root: track, threshold: 0.15 });
+    const near = new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? wake : sleep)(e.target)), { root: track, rootMargin: "0px 60% 0px 60%", threshold: 0 });
     const section = new IntersectionObserver(([e]) => { if (e.isIntersecting) { all.forEach((s) => near.observe(s)); section.disconnect(); } }, { rootMargin: "200px" });
     if ("IntersectionObserver" in window) section.observe(track);
   })();
