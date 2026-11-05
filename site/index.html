@@ -186,9 +186,13 @@ details p { margin: 14px 0 0; max-width: 44em; }
 .final .wrap { display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start; justify-content: space-between; }
 .final h2 { font-size: clamp(72px, 10vw, 150px); }
 .final .btn { margin-top: 44px; }
-.final .mark { width: 200px; color: var(--ink); animation: bob 7s ease-in-out infinite; transform-origin: 55% 60%; }
-@keyframes bob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 35% { transform: translateY(-10px) rotate(2.5deg); } 70% { transform: translateY(4px) rotate(-1deg); } }
-@media (prefers-reduced-motion: reduce) { .final .mark { animation: none; } }
+.final .mark { width: 200px; color: var(--ink); }
+/* The mark loops a keyed Higgsfield clip (brand/logo-anim/t-*.mp4); the SVG stays until the clip can play, and if it never can. */
+.mark-loop { position: relative; display: block; width: 200px; aspect-ratio: 1993 / 2002; }
+.mark-loop .mark { position: absolute; inset: 0; width: 100%; height: 100%; }
+.mark-loop video { position: absolute; left: 50%; top: 50%; width: 214.3%; max-width: none; aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none; visibility: hidden; }
+.mark-loop.playing video { visibility: visible; }
+.mark-loop.playing .mark { visibility: hidden; }
 footer { background: var(--ink); color: var(--paper); padding: 32px 0 44px; font-size: 15px; }
 footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 28px; justify-content: space-between; align-items: center; }
 footer .links a { margin-right: 22px; }
@@ -215,7 +219,7 @@ footer .links a { margin-right: 22px; }
   .truth-row p { font-size: 21px; }
   section.paper, .idea, .truth, .final { padding: 72px 0; }
   .final .wrap { flex-direction: column; }
-  .final .mark { width: 140px; order: -1; }
+  .final .mark-loop { width: 140px; order: -1; }
 }
 </style>
 <!-- Cookieless visit counts (goatcounter.com): page, referrer, country, screen size. No personal data. -->
@@ -458,7 +462,10 @@ fill="currentColor" stroke="none">
         <h2 class="display caps">Write it rough.<br>Pick your take.</h2>
         <a class="btn btn-ink" href="https://github.com/bar-amir/takes/releases/latest/download/Takes.dmg" data-goatcounter-click="download-footer" data-goatcounter-title="Download for Mac (footer)">Download for Mac</a>
       </div>
-      <svg class="mark" viewBox="0 0 1993 2002" role="img" aria-label="Takes mark"><use href="#t"/></svg>
+      <div class="mark-loop">
+        <svg class="mark" viewBox="0 0 1993 2002" role="img" aria-label="Takes mark"><use href="#t"/></svg>
+        <video muted playsinline loop preload="metadata" aria-hidden="true"></video>
+      </div>
     </div>
   </section>
 </main>
@@ -545,6 +552,16 @@ fill="currentColor" stroke="none">
   const clips = ["melt", "shuffle", "chatter", "zipper", "kaleido", "split", "bubblegum", "tv", "spiral"];
   let next = Math.floor(Math.random() * clips.length);
   const ext = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) ? "mov" : "webm"; // Safari plays alpha only in HEVC
+  // The mark in the last section loops its own clip, without hover, unless motion is reduced.
+  const mark = document.querySelector(".mark-loop");
+  if (mark && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const v = mark.querySelector("video");
+    v.addEventListener("playing", () => mark.classList.add("playing"));
+    v.addEventListener("error", () => mark.classList.remove("playing"));
+    new IntersectionObserver((es) => {
+      es.forEach((e) => { if (e.isIntersecting) { if (!v.src) v.src = `img/logo/tmark.${ext}`; v.play().catch(() => {}); } else v.pause(); });
+    }, { rootMargin: "200px" }).observe(mark);
+  }
   if (logo) {
     const v = logo.querySelector("video");
     const stop = () => logo.classList.remove("playing");
