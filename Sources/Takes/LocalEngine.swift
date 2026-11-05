@@ -6,7 +6,7 @@ import Foundation
 // that isn't loopback, ignores system proxies and won't follow redirects off the Mac.
 //
 // Per-preset model: presets keep their Claude model (used again when you switch back to Claude). While the
-// engine is a local model, every preset runs on the one local model picked in Settings › Engine; the panel's
+// engine is a local model, every preset runs on the one local model picked in Settings › Model; the panel's
 // Model menu lists the installed local models to switch for one run. Effort is a Claude setting and is hidden.
 
 /// The local servers Takes knows how to find.
@@ -325,9 +325,9 @@ struct LocalEngine: TakesEngine {
     func run(_ request: EngineRequest, onUpdate: @escaping @Sendable ([String]) -> Void) async throws -> EngineResult {
         let server = LocalServerKind.displayName(baseURL)
         guard let url = LocalEndpoint.url(baseURL, "chat/completions") else {
-            throw EngineError.failed("Takes only talks to model servers on this Mac (localhost). Change the address in Settings › Engine.")
+            throw EngineError.failed("Takes only talks to model servers on this Mac (localhost). Change the address in Settings › Model.")
         }
-        guard !request.model.isEmpty else { throw EngineError.failed("Pick a local model in Settings › Engine.") }
+        guard !request.model.isEmpty else { throw EngineError.failed("Pick a local model in Settings › Model.") }
 
         let urlRequest = try Self.chatRequest(url: url, model: request.model,
                                               system: request.system + "\n" + LocalPrompt.formatRules(takes: request.takes),
@@ -404,7 +404,7 @@ struct LocalEngine: TakesEngine {
         let json = (try? JSONSerialization.jsonObject(with: body)) as? [String: Any]
         let message = json.flatMap(LocalChunk.errorMessage) ?? String(decoding: body.prefix(300), as: UTF8.self)
         if status == 404, message.lowercased().contains("model") || message.isEmpty {
-            return .failed("\(server) doesn't have the model “\(LocalModelList.label(model))”. Pick an installed model in Settings › Engine.")
+            return .failed("\(server) doesn't have the model “\(LocalModelList.label(model))”. Pick an installed model in Settings › Model.")
         }
         if (300..<400).contains(status) {
             return .failed("\(server) tried to send Takes to another address. Takes only talks to servers on this Mac.")
@@ -417,7 +417,7 @@ struct LocalEngine: TakesEngine {
         let place = URL(string: baseURL).map { "\($0.host ?? "localhost"):\($0.port.map(String.init) ?? "")" } ?? baseURL
         switch urlError.code {
         case .cannotConnectToHost, .cannotFindHost, .networkConnectionLost, .notConnectedToInternet:
-            return EngineError.failed("\(server) isn't running at \(place). Open it and try again, or pick another engine in Settings › Engine.")
+            return EngineError.failed("\(server) isn't running at \(place). Open it and try again, or pick another engine in Settings › Model.")
         case .timedOut:
             return EngineError.failed("The local model took too long to answer. Big models are slow the first time while they load; try again or pick a smaller one.")
         case .cancelled:
@@ -462,7 +462,7 @@ struct LocalEngine: TakesEngine {
 
 // MARK: - Detection
 
-/// What's running on this Mac, for Settings › Engine, the panel's Model menu and setup.
+/// What's running on this Mac, for Settings › Model, the panel's Model menu and setup.
 @MainActor
 final class LocalModels: ObservableObject {
     static let shared = LocalModels()

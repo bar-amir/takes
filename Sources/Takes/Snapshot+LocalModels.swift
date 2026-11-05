@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Local engine screens for `--snapshot`, in light and dark: Settings › Engine with Ollama found, not running and
+/// Local engine screens for `--snapshot`, in light and dark: Settings › Model with Ollama found, not running and
 /// with no models, and the panel and preset picker running on a local model. Nothing is saved or fetched.
 extension Snapshot {
     static func runLocalModels(to url: URL) {
@@ -27,7 +27,7 @@ extension Snapshot {
                 Store.shared.settings.localModel = state.model
                 let settings = SettingsState()
                 settings.tab = .engine
-                render(SettingsView(state: settings), size: CGSize(width: 1200, height: 1000), dark: dark,
+                render(SettingsView(state: settings), size: CGSize(width: 780, height: 760), dark: dark,
                        to: url.appendingPathComponent("7-local-engine-\(state.name)-\(suffix).png"))
             }
 
@@ -37,7 +37,7 @@ extension Snapshot {
             compose.reset(focus: FocusSnapshot(app: nil, text: "ya thursday works but i need the specs by wed eod otherwise qa slips again",
                                                source: .field, caretRect: nil), presetID: Store.shared.presets.first?.id)
             compose.previewAppName = "Slack"
-            render(PanelRootView(model: compose), size: CGSize(width: 720, height: 400), dark: dark,
+            render(PanelRootView(model: compose), size: CGSize(width: 720, height: ComposeView.height), dark: dark,
                    to: url.appendingPathComponent("7-local-panel-compose-\(suffix).png"))
             compose.openPicker()
             compose.highlighted = 0

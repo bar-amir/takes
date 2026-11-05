@@ -1,10 +1,5 @@
 import SwiftUI
 
-enum SettingsTab: String, CaseIterable, Identifiable {
-    case presets = "Presets", voice = "Voice", coach = "English coach", engine = "Engine", history = "History"
-    var id: String { rawValue }
-}
-
 /// State behind the floating panel: compose a draft, pick a preset, choose a take.
 @MainActor
 final class PanelModel: ObservableObject {
@@ -31,6 +26,16 @@ final class PanelModel: ObservableObject {
     @Published var error: String?
     @Published var selected = 0
     @Published var changesShown: Set<Int> = []
+    /// ⌥ held on the takes screen: every card shows its changes.
+    @Published var optionHeld = false
+    /// The run-options popover on compose (the chip, or ⌘K).
+    @Published var optionsOpen = false
+    /// The coach's notes under the takes: one line until ⌘; or a click.
+    @Published var coachExpanded = false
+    /// The coach's invitation under the takes, while the coach is off (CoachInvitation.swift).
+    @Published var invitation: CoachInvitation.Offer?
+    /// The last draft whose fixes were recorded for the invitation, so regenerating doesn't count it twice.
+    private var invitationDraft = ""
     @Published var refineText = ""
     @Published var timing = ""
     @Published var startedAt = Date()
@@ -68,6 +73,8 @@ final class PanelModel: ObservableObject {
     var onOpenSettings: (SettingsTab, Bool) -> Void = { _, _ in }
     var onMore: () -> Void = {}
     var onOpenGallery: () -> Void = {}
+    /// "Turn on coach" in the invitation: Settings › English coach's setup, pre-filled with these patterns.
+    var onSetUpCoach: ([String]) -> Void = { _ in }
     var onScreenChange: () -> Void = {}
     /// The takes screen reports the height it needs; the panel grows or shrinks to it.
     var onContentHeight: (CGFloat) -> Void = { _ in }
@@ -91,7 +98,7 @@ final class PanelModel: ObservableObject {
     var sourceLabel: String {
         switch focus?.source {
         case .selection: return "From your selection"
-        case .field: return draft.isEmpty ? "The field was empty" : "Prefilled from the field"
+        case .field: return draft.isEmpty ? "The field was empty" : "From the field"
         default: return focus?.app == nil ? "" : "Couldn't read the field"
         }
     }
@@ -140,6 +147,10 @@ final class PanelModel: ObservableObject {
         takeTones.reset()
         toneRead.dismiss()
         coach.reset()
+        invitation = nil
+        coachExpanded = false
+        optionsOpen = false
+        optionHeld = false
         running = false
         error = nil
         refineText = ""
@@ -158,14 +169,15 @@ final class PanelModel: ObservableObject {
             running = false
             show(.compose)
         case .compose:
-            // One step back at a time: dictation first, then the tone read, then close.
+            // One step back at a time: the options popover, dictation, then the tone read, then close.
+            if optionsOpen { optionsOpen = false; return }
             if dictation.handleEscape() { return }
             if toneRead.isShown { toneRead.dismiss() } else { onClose() }
         }
     }
 
     func show(_ next: Screen) {
-        if next != .compose { dictation.dismiss() }
+        if next != .compose { dictation.dismiss(); optionsOpen = false }
         screen = next
         focusToken += 1
         onScreenChange()
@@ -237,10 +249,33 @@ final class PanelModel: ObservableObject {
         show(.compose)
     }
 
+    /// The compose row: the chosen preset, then the ones used most in this app, by name; the rest fold into "+N".
+    func presetRow(limit: Int = PresetRow.named) -> PresetRow.Layout {
+        PresetRow.layout(presets: store.presets, current: presetID, usage: presetUsage,
+                         pickedForApp: pickedForApp.map(\.id), limit: limit)
+    }
+
+    /// How often each preset was used in the focused app, from history.
+    var presetUsage: [String: Int] {
+        var byName: [String: Int] = [:]
+        for entry in store.history where entry.appName == appName { byName[entry.presetName, default: 0] += 1 }
+        var usage: [String: Int] = [:]
+        for preset in store.presets { if let n = byName[preset.name] { usage[preset.id] = n } }
+        return usage
+    }
+
+    /// "3 · Sonnet 5.5 · Low": the run options on the compose chip.
+    var runOptionsLabel: String {
+        usesOneModel ? "\(takeCount) · \(Models.displayLabel(modelID))" : "\(takeCount) · \(Models.label(modelID)) · \(effort.capitalized)"
+    }
+
     func choose(number: Int) {
         guard number >= 1, number <= store.presets.count else { return }
         choose(store.presets[number - 1].id)
     }
+
+    /// Back to the preset's takes, model and effort.
+    func resetRunOptions() { applyPresetSettings() }
 
     private func applyPresetSettings() {
         let preset = self.preset
@@ -284,6 +319,9 @@ final class PanelModel: ObservableObject {
         toneRead.dismiss()
         // Refining keeps the same draft, so its check stands.
         if case .fresh = mode { coach.start(draft: draft, preset: preset, appName: appName, settings: store.settings) }
+        invitation = nil
+        coachExpanded = false
+        optionsOpen = false
         selected = 0
         changesShown = showsFixes ? Set(0..<takeCount) : []
         timing = ""
@@ -300,7 +338,7 @@ final class PanelModel: ObservableObject {
                     }
                 }
                 guard runToken == token else { return }
-                finish(result, request: request)
+                finish(result, request: request, mode: mode)
             } catch {
                 guard runToken == token else { return }
                 running = false
@@ -310,7 +348,7 @@ final class PanelModel: ObservableObject {
         }
     }
 
-    private func finish(_ result: EngineResult, request: EngineRequest) {
+    private func finish(_ result: EngineResult, request: EngineRequest, mode: PromptBuilder.Mode) {
         running = false
         takes = result.takes
         selected = min(selected, max(takes.count - 1, 0))
@@ -326,7 +364,40 @@ final class PanelModel: ObservableObject {
                        "engine": store.settings.engine.rawValue, "wallMs": result.wallMs,
                        "firstTextMs": result.firstTextMs ?? -1, "app": appBundleID ?? ""])
         takeTones.fetch(takes: takes, showTone: preset.showTone, settings: store.settings)
+        if case .fresh = mode { considerInvitation() }
         onScreenChange()
+    }
+
+    // MARK: Coach invitation
+
+    /// Files the takes' fixes and, when the same kind keeps coming back while the coach is off, offers it.
+    func considerInvitation(store invites: CoachInviteStore? = nil, now: Date = Date()) {
+        let settings = store.settings
+        let context = CoachInvitation.Context(coachOn: settings.coach.enabled, english: CoachCheck.isEnglish(sourceDraft),
+                                              presetCounts: settings.coach.counts(preset), localEngine: settings.engine == .local)
+        guard !context.coachOn, context.english, context.presetCounts, sourceDraft != invitationDraft else { return }
+        invitationDraft = sourceDraft
+        let found = FixHeuristic.analyse(draft: sourceDraft, takes: takes)
+        invitation = (invites ?? .shared).consider(context: context, found: found, now: now)
+    }
+
+    /// ✕: not now; asks again in a month at the earliest.
+    func dismissInvitation() {
+        CoachInviteStore.shared.dismiss()
+        invitation = nil
+        focusToken += 1
+    }
+
+    func neverInvite() {
+        CoachInviteStore.shared.neverAgain()
+        invitation = nil
+        focusToken += 1
+    }
+
+    func acceptInvitation() {
+        let patterns = invitation?.repeating ?? []
+        invitation = nil
+        onSetUpCoach(patterns)
     }
 
     // MARK: Dictation
@@ -379,6 +450,32 @@ final class PanelModel: ObservableObject {
     func copySelected() {
         guard isFinished(selected) else { return }
         onCopy(selected, takes[selected])
+    }
+}
+
+/// Which presets the compose row names, and how many fold into "+N".
+enum PresetRow {
+    /// Names shown at most, the chosen preset included.
+    static let named = 3
+
+    struct Layout: Equatable {
+        var shown: [String]
+        var overflow: Int
+    }
+
+    /// The chosen preset first, then the rest by use in this app, then those picked for the app, then Settings order.
+    static func layout(presets: [Preset], current: String, usage: [String: Int], pickedForApp: [String], limit: Int) -> Layout {
+        let ids = presets.map(\.id)
+        let first = ids.contains(current) ? [current] : Array(ids.prefix(1))
+        let rest = ids.enumerated().filter { !first.contains($0.element) }.sorted { a, b in
+            let ua = usage[a.element] ?? 0, ub = usage[b.element] ?? 0
+            if ua != ub { return ua > ub }
+            let pa = pickedForApp.contains(a.element), pb = pickedForApp.contains(b.element)
+            if pa != pb { return pa }
+            return a.offset < b.offset
+        }.map(\.element)
+        let shown = Array((first + rest).prefix(max(1, limit)))
+        return Layout(shown: shown, overflow: ids.count - shown.count)
     }
 }
 

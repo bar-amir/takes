@@ -16,7 +16,7 @@ struct ClaudeCodeEngine: TakesEngine {
 
     func run(_ request: EngineRequest, onUpdate: @escaping @Sendable ([String]) -> Void) async throws -> EngineResult {
         guard let claudePath = Self.claudePath else {
-            throw EngineError.failed("Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Engine.")
+            throw EngineError.failed("Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model.")
         }
 
         // The user message goes in on stdin, never as an argument: as a positional argument, text starting with "-"
@@ -122,7 +122,7 @@ struct ClaudeCodeEngine: TakesEngine {
         }
     }
 
-    /// Whether the CLI is installed and signed in, for Settings › Engine.
+    /// Whether the CLI is installed and signed in, for Settings › Model.
     static func status() async -> (found: Bool, signedIn: Bool, plan: String?) {
         guard let claudePath else { return (false, false, nil) }
         return await withCheckedContinuation { continuation in

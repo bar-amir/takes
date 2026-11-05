@@ -5,7 +5,7 @@ import Security
 struct APIEngine: TakesEngine {
     func run(_ request: EngineRequest, onUpdate: @escaping @Sendable ([String]) -> Void) async throws -> EngineResult {
         guard let key = Keychain.apiKey, !key.isEmpty else {
-            throw EngineError.failed("Add your Anthropic API key in Settings › Engine.")
+            throw EngineError.failed("Add your Anthropic API key in Settings › Model.")
         }
 
         var urlRequest = URLRequest(url: URL(string: "https://api.anthropic.com/v1/messages")!)
@@ -87,6 +87,8 @@ enum Keychain {
     static func setAPIKey(_ key: String?) { set(key, account: anthropicAccount) }
 
     static func string(account: String) -> String? {
+        // Snapshots never read the keychain: a rebuilt app would stop at macOS's access prompt.
+        guard !Store.readOnly else { return nil }
         var item: CFTypeRef?
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
                                     kSecAttrAccount as String: account, kSecReturnData as String: true]

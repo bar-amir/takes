@@ -29,7 +29,7 @@ Copies you build yourself never check for updates.
 | Presets, gallery and options | `Store.swift`, `PresetsTab.swift`, `PresetGallery*.swift`, `PresetOptions.swift` |
 | Features | `Proofread.swift`, `Diff.swift`, `InstantMode*.swift`, `ReplyContext*.swift`, `ToneCheck*.swift`, `Dictation*.swift` |
 | Setup and onboarding | `Setup.swift`, `Onboarding*.swift`, `SystemShortcuts.swift` |
-| Settings | `SettingsWindow.swift`, `EngineTab.swift`, `LocalEngineViews.swift`, `ProviderEngineViews.swift`, `ChatGPTEngineViews.swift` |
+| Settings | `SettingsWindow.swift` (window, toolbar tabs), `SettingsForm.swift` (grouped form parts), `GeneralTab.swift`, `PresetsTab.swift`, `WritingTab.swift`, `EngineTab.swift` (Model), `HistoryTab.swift`, `LocalEngineViews.swift`, `ProviderEngineViews.swift`, `ChatGPTEngineViews.swift` |
 | Screenshots | `Snapshot*.swift` |
 | Speed tests | `Bench.swift`, `ToneBench.swift`, `RunLog.swift` |
 

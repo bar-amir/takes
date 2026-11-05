@@ -150,6 +150,10 @@ The website (`site/`, not the app) serves two fonts from Google Fonts' open-sour
 - **Barlow Condensed** Bold. Copyright 2017 The Barlow Project Authors (https://github.com/jpt/barlow).
 - **JetBrains Mono** Medium. Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono).
 
+## App font
+
+The app bundles **JetBrains Mono** 2.304 (Medium and Bold, unmodified) for its mono labels, under the SIL Open Font License 1.1. Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono). The license ships next to the fonts as `Resources/Fonts/JetBrainsMono-OFL.txt` (in the app: `Contents/Resources/Fonts/`).
+
 ## Trademarks
 
 Claude and Claude Code are trademarks of Anthropic, PBC. ChatGPT and OpenAI are trademarks of OpenAI. Gemini is a trademark of Google LLC. Mac and macOS are trademarks of Apple Inc., registered in the U.S. and other countries. Ollama, LM Studio, OpenRouter, Groq, Mistral, Slack and other product names belong to their owners. Takes is an independent project; naming these products describes what Takes works with and doesn't mean any of their owners make, endorse or support it.
