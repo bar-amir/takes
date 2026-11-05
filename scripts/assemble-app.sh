@@ -25,8 +25,13 @@ rm -rf "$APP/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices" "$APP
 
 SPARKLE_KEYS=""
 if [[ "${RELEASE:-0}" == "1" ]]; then
+  # SURequireSignedFeed: the appcast itself must carry a valid EdDSA signature, so a tampered feed (release notes,
+  # versions) is refused, not only a tampered download. generate_appcast signs it because of this key.
+  # SUVerifyUpdateBeforeExtraction: the download's signature is checked before the disk image is opened.
   SPARKLE_KEYS="  <key>SUFeedURL</key><string>https://github.com/bar-amir/takes/releases/latest/download/appcast.xml</string>
-  <key>SUPublicEDKey</key><string>$(cat Resources/SUPublicEDKey)</string>"
+  <key>SUPublicEDKey</key><string>$(cat Resources/SUPublicEDKey)</string>
+  <key>SURequireSignedFeed</key><true/>
+  <key>SUVerifyUpdateBeforeExtraction</key><true/>"
 fi
 [[ -f Resources/AppIcon.icns ]] && cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 

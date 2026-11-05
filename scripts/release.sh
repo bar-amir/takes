@@ -100,7 +100,9 @@ else
     --link "$REPO_URL" --embed-release-notes \
     -o "$DIST/appcast.xml" "$FEED"
   rm -rf "$FEED"
-  grep -q 'sparkle:edSignature' "$DIST/appcast.xml" || { print "The update feed isn't signed."; exit 1 }
+  grep -q 'sparkle:edSignature' "$DIST/appcast.xml" || { print "The update in the feed isn't signed."; exit 1 }
+  # The app requires a signed feed (SURequireSignedFeed); an unsigned one would stop every update.
+  grep -q 'sparkle-signatures:' "$DIST/appcast.xml" || { print "The update feed itself isn't signed."; exit 1 }
 fi
 
 step "Check what macOS will think of it"

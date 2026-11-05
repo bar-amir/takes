@@ -16,11 +16,7 @@ on:
   issue_comment:
     types: [created]
 
-permissions:
-  contents: write
-  pull-requests: write
-  issues: write
-  statuses: write
+permissions: {}
 
 concurrency:
   group: cla-${{ github.event.pull_request.number || github.event.issue.number }}
@@ -29,8 +25,14 @@ jobs:
   cla:
     if: github.event_name == 'pull_request_target' || github.event.issue.pull_request
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write        # signatures.json on the cla-signatures branch
+      pull-requests: write   # comment on pull requests (the issues API needs it for PRs)
+      issues: write          # the bot comment
+      statuses: write        # the CLA status
     steps:
-      - uses: actions/github-script@v9
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           # Comma-separated GitHub usernames that never need to sign (the maintainer). Overridable with a repo variable.
           ALLOWLIST: ${{ vars.CLA_ALLOWLIST || 'bar-amir' }}

@@ -60,8 +60,10 @@ enum AXProbe {
         let selected: String? = copy(element, kAXSelectedTextAttribute)
         let editable: Bool? = copy(element, "AXEditableAncestor").map { (_: AXUIElement) in true }
         let chars: Int? = copy(element, kAXNumberOfCharactersAttribute)
-        return "role=\(role) subrole=\(subrole) value=\(value.map { "\"\($0.prefix(60))\"" } ?? "nil") "
-            + "selected=\(selected.map { "\"\($0.prefix(40))\"" } ?? "nil") chars=\(chars.map(String.init) ?? "nil") editableAncestor=\(editable ?? false)"
+        // Lengths only, never the text: any program can launch Takes with --ax-probe, and it runs with Takes'
+        // Accessibility access, so writing field contents to a file would hand them to that program.
+        return "role=\(role) subrole=\(subrole) value=\(value.map { "\($0.count) chars" } ?? "nil") "
+            + "selected=\(selected.map { "\($0.count) chars" } ?? "nil") chars=\(chars.map(String.init) ?? "nil") editableAncestor=\(editable ?? false)"
     }
 
     private static func write(_ lines: [String]) {
