@@ -122,7 +122,7 @@ const SCENES = {
       const note = tile(renderer, { w: 0.8 + measure(tone, 24), h: 0.54, r: 0.27, depth: 0.12, bg: C.ink,
         draw: (c, cw, ch) => { dot(c, 30, ch / 2, 8, dotColor); text(c, tone, 50, ch / 2 + 9, { size: 24, weight: 700, color: C.paper }); } });
       note.userData.face.material.alphaTest = 0.5; // its clear corners mustn't hide the card render behind them
-      note.userData.keep = note.userData.tone = true; card.add(place(note, -1.5 + 0.26 + note.userData.w / 2, -1.42, card.userData.top + 0.26, "tone" + (i + 1)));
+      note.userData.keep = note.userData.tone = true; card.add(place(note, -1.5 + 0.26 + note.userData.w / 2, -1.30, card.userData.top + 0.26, "tone" + (i + 1)));
       card.userData.home = new THREE.Vector3(-3.15 + i * 3.15, -0.45, 0.95);
       root.add(place(card, ...card.userData.home.toArray(), "take" + (i + 1))); return card;
     });
