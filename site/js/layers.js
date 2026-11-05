@@ -355,14 +355,26 @@ export function mount(el, name, { interactive = false, exportMode = false, part 
   const base = part ? { x: -0.12, y: 0 } : sprites ? { x: name === "takes" ? -0.05 : (VIEWS[name]?.x ?? -0.2), y: turn } : shot && SHOTS[name] ? { x: SHOTS[name][0], y: SHOTS[name][1] } : { x: -0.2, y: 0.24 };
   const camera = new THREE.PerspectiveCamera(26, 1, 0.1, 100);
   root.rotation.set(base.x, base.y, 0); floor.rotation.copy(root.rotation);
+  // Phone cards stack the stage above the caption. The stage is wider than the card (BX) and taller than the art (BY),
+  // so pieces that float out of the scene stay on the canvas instead of being cut at its edge; its height follows each
+  // scene's own shape, so a wide, short scene doesn't leave empty card below it.
+  const BX = 1.3, BY = 1.7;
+  function sizePhoneStage(narrow) {
+    if (!(card && narrow)) { el.style.height = el.style.aspectRatio = el.style.marginTop = el.style.marginBottom = ""; return; }
+    const wa = (el.clientWidth || 400) / BX, ha = Math.min(wa / (bounds[0] / bounds[1]), wa * 0.95), h = Math.round(ha * BY);
+    el.style.aspectRatio = "auto"; el.style.height = h + "px";
+    el.style.marginTop = -Math.round((h - ha) / 2 + wa * 0.06) + "px"; // the art's top rises a little above the card
+    el.style.marginBottom = -Math.round((h - ha) / 2 - 10) + "px";
+  }
   function fit() {
+    const narrow = !exportMode && matchMedia("(max-width: 720px)").matches;
+    sizePhoneStage(narrow);
     const w = el.clientWidth || 800, h = el.clientHeight || 520; renderer.setSize(w, h, false);
     canvas.style.width = "100%"; canvas.style.height = "100%";
     camera.aspect = w / h; const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-    // On phones the card stacks the stage above its caption with no bleed, so the scene fills the whole stage.
-    const narrow = !exportMode && matchMedia("(max-width: 720px)").matches;
-    const fw = card && !narrow ? 60 / 66 : 1, fh = card && !narrow ? 1 / 1.26 : 1;
-    const air = narrow ? (name === "takes" ? 1.0 : 1.08 / zoom) : name === "takes" ? 1.12 : 1.1 / zoom;
+    const phone = card && narrow;
+    const fw = card ? (phone ? 1 / BX : 60 / 66) : 1, fh = card ? (phone ? 1 / BY : 1 / 1.26) : 1;
+    const air = narrow ? (name === "takes" ? 1.0 : 1.04 / zoom) : name === "takes" ? 1.12 : 1.1 / zoom;
     const d = Math.max(bounds[1] / 2 / (t * fh), bounds[0] / 2 / (t * camera.aspect * fw)) * (exportMode && !sprites ? (part ? 1.04 : 1.22) : air);
     camera.position.set(0, 0, d + 1); camera.lookAt(0, 0, 0); camera.clearViewOffset(); camera.zoom = 1;
     camera.updateProjectionMatrix();
