@@ -559,7 +559,7 @@ fill="currentColor" stroke="none">
     v.addEventListener("playing", () => mark.classList.add("playing"));
     v.addEventListener("error", () => mark.classList.remove("playing"));
     new IntersectionObserver((es) => {
-      es.forEach((e) => { if (e.isIntersecting) { if (!v.src) v.src = `img/logo/tmark.${ext}`; v.play().catch(() => {}); } else v.pause(); });
+      es.forEach((e) => { if (e.isIntersecting) { if (!v.src) v.src = `img/logo/tmark.${ext}?v=2`; v.play().catch(() => {}); } else v.pause(); });
     }, { rootMargin: "200px" }).observe(mark);
   }
   if (logo) {
