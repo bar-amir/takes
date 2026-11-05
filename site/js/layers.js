@@ -117,12 +117,12 @@ const SCENES = {
       const card = tile(renderer, { w: 3.0, h: 2.9, r: 0.22, depth: 0.22, bg: C.card,
         outline: { width: 2, color: "#E3DED4" }, selectedOutline: { width: 5, color: C.ink },
         draw: (c) => { label(c, t); wrap(c, body, 26, 92, 248, { size: 22, lead: 1.42 }); } });
-      // How the take may read, as in the app's tone note: a chip sitting on the card's free bottom area, lifted off
-      // its face, so it moves with its take. It stays a drawn tile when the card itself is shown as a render.
+      // How the take may read, as in the app's tone note: a pill hung over the card's bottom edge and lifted well off
+      // it, a piece of its own that moves with its take. It stays a drawn tile when the card itself is shown as a render.
       const note = tile(renderer, { w: 0.8 + measure(tone, 24), h: 0.54, r: 0.27, depth: 0.12, bg: C.ink,
         draw: (c, cw, ch) => { dot(c, 30, ch / 2, 8, dotColor); text(c, tone, 50, ch / 2 + 9, { size: 24, weight: 700, color: C.paper }); } });
       note.userData.face.material.alphaTest = 0.5; // its clear corners mustn't hide the card render behind them
-      note.userData.keep = note.userData.tone = true; card.add(place(note, -1.5 + 0.26 + note.userData.w / 2, -1.12, card.userData.top + 0.1, "tone" + (i + 1)));
+      note.userData.keep = note.userData.tone = true; card.add(place(note, -1.5 + 0.26 + note.userData.w / 2, -1.42, card.userData.top + 0.26, "tone" + (i + 1)));
       card.userData.home = new THREE.Vector3(-3.15 + i * 3.15, -0.45, 0.95);
       root.add(place(card, ...card.userData.home.toArray(), "take" + (i + 1))); return card;
     });
@@ -449,9 +449,9 @@ export function mount(el, name, { interactive = false, exportMode = false, part 
         if (obj.userData.tone) { plane.renderOrder = 95; // drawn over its take's render and over the ring, which it sits above
           if (clips && !exportMode && !reduce) liveTone(plane, tex, `${sprites}/${n}.mp4?v=${ASSET_V}`); continue; }
         const tone = obj.children.find((c) => c.userData.tone); // a take's tone chip casts a soft shadow onto the card render it sits on
-        if (tone) { const sh = new THREE.Mesh(new THREE.PlaneGeometry(tone.userData.w * 1.1, tone.userData.h * 1.3),
-          new THREE.MeshBasicMaterial({ map: shadowTexture(), transparent: true, depthWrite: false, opacity: 0.5 }));
-          sh.position.set(tone.position.x + 0.08, tone.position.y - 0.12, tone.position.z - 0.05); sh.renderOrder = 81; obj.add(sh); }
+        if (tone) { const sh = new THREE.Mesh(new THREE.PlaneGeometry(tone.userData.w * 1.16, tone.userData.h * 1.5),
+          new THREE.MeshBasicMaterial({ map: shadowTexture(), transparent: true, depthWrite: false, opacity: 0.46 }));
+          sh.position.set(tone.position.x + 0.14, tone.position.y - 0.2, tone.position.z - 0.05); sh.renderOrder = 81; obj.add(sh); }
         if (n === "ring") { ring = obj; continue; }
         const sh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: shadowTexture(), transparent: true, depthWrite: false }));
         root.add(sh); obj.userData.shadow = sh;
