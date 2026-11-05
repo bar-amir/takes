@@ -107,8 +107,9 @@ section h2 { font-size: clamp(52px, 6.4vw, 84px); }
 .layers canvas { position: absolute; inset: 0; touch-action: pan-y; }
 .shot { background: #fff; box-shadow: 0 1px 0 rgba(23,23,20,.08), 0 24px 60px rgba(23,23,20,.12); }
 .caption { margin: 22px 0 0; font-size: 21px; max-width: 34em; }
-.product { position: relative; padding: 56px 0 72px; background: #E6D8C2 url(img/product-bg.webp) center / cover no-repeat; }
-.product::before { content: ""; position: absolute; inset: 0; background: linear-gradient(112deg, rgba(255,250,240,.28), rgba(255,250,240,0) 40%, rgba(60,40,15,.1)); pointer-events: none; }
+.product { position: relative; padding: 88px 0 80px; background: var(--ink); color: var(--paper); }
+.product::before { content: ""; position: absolute; inset: 0; background: radial-gradient(90% 70% at 50% 45%, rgba(243,235,221,.1), rgba(243,235,221,0) 70%); pointer-events: none; }
+.product .caption { color: #CFC7B8; }
 .product .wrap { position: relative; }
 .product h2 { margin-bottom: 20px; }
 .product .caption { margin-top: 10px; }
@@ -118,7 +119,7 @@ section h2 { font-size: clamp(52px, 6.4vw, 84px); }
 .cnav { width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--ink); background: transparent; color: var(--ink); font: 22px var(--text); cursor: pointer; }
 .cnav:hover { background: var(--ink); color: var(--paper); }
 .cnav:disabled { opacity: .3; cursor: default; background: transparent; color: var(--ink); }
-.track { --gutter: max(24px, calc((100vw - 1180px) / 2 + 24px)); list-style: none; margin: -72px 0 -56px; padding: 72px var(--gutter) 56px;
+.track { --gutter: max(24px, calc((100vw - 1180px) / 2 + 24px)); list-style: none; margin: -72px 0 -56px; padding: 72px var(--gutter) 56px; scroll-behavior: auto;
   display: grid; grid-auto-flow: column; grid-auto-columns: min(1132px, calc(100vw - 48px)); gap: 20px;
   overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); scrollbar-width: none; }
 .track::-webkit-scrollbar { display: none; }
@@ -178,7 +179,7 @@ details p { margin: 14px 0 0; max-width: 44em; }
 .final { background: var(--acid); padding: 104px 0; }
 .final .wrap { display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start; justify-content: space-between; }
 .final h2 { font-size: clamp(72px, 10vw, 150px); }
-.final .label { margin: 30px 0; }
+.final .btn { margin-top: 44px; }
 .final .mark { width: 200px; color: var(--ink); }
 footer { background: var(--ink); color: var(--paper); padding: 32px 0 44px; font-size: 15px; }
 footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 28px; justify-content: space-between; align-items: center; }
@@ -344,7 +345,6 @@ fill="currentColor" stroke="none">
 <main>
   <section class="product">
     <div class="wrap">
-      <div class="label eyebrow">The product</div>
       <h2 class="display">Choice is the product.</h2>
       <div class="layers" data-scene="takes" data-sprites="img/layers/parts" tabindex="0" aria-label="The Takes panel as floating layers: the draft above three takes of a Slack message. Point at a take, or use the arrow keys, to bring it to the front."><img src="img/layers/takes-front.webp?v=5" width="1500" height="1000" alt="The Takes panel as floating layers: the draft above three takes of a Slack message, the middle take lifted to the front"></div>
       <p class="caption">Compare complete alternatives, inspect changes, refine a selected take, then paste it back.</p>
@@ -365,7 +365,6 @@ fill="currentColor" stroke="none">
 
   <section class="paper">
     <div class="wrap">
-      <div class="label eyebrow">In practice</div>
       <h2 class="display">Rough in. Right out.</h2>
       <p class="lead">Four everyday drafts, one preset each. Takes keeps what you meant and fixes how it lands.</p>
       <div class="voice">
@@ -468,20 +467,28 @@ fill="currentColor" stroke="none">
   (() => {
     const track = document.querySelector(".track"); if (!track) return;
     const slides = [...track.children], dots = [...document.querySelectorAll(".dots button")], nav = document.querySelectorAll(".cnav");
-    const smooth = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
-    let current = 0;
-    const go = (i) => { i = Math.max(0, Math.min(slides.length - 1, i));
-      track.scrollTo({ left: slides[i].offsetLeft - slides[0].offsetLeft, behavior: smooth }); };
-    const mark = (i) => { current = i; dots.forEach((d, j) => d.setAttribute("aria-current", j === i ? "true" : "false"));
-      nav[0].disabled = i === 0; nav[1].disabled = i === slides.length - 1; };
+    const n = slides.length, smooth = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+    // Endless: the last two slides are cloned before the first and the first two after the last. Scrolling onto a
+    // clone jumps silently to the real slide, so the track wraps in both directions.
+    const clone = (s) => { const c = s.cloneNode(true); c.removeAttribute("id"); c.dataset.clone = "1"; c.setAttribute("aria-hidden", "true"); return c; };
+    slides.slice(-2).forEach((s) => track.insertBefore(clone(s), slides[0])); slides.slice(0, 2).forEach((s) => track.appendChild(clone(s)));
+    const all = [...track.children], real = (k) => (k - 2 + n) % n;
+    const left = (k) => all[k].offsetLeft - all[0].offsetLeft;
+    let current = 0, settling = null;
+    const go = (i, behavior = smooth) => track.scrollTo({ left: left(i + 2), behavior }); // i may be -1 or n: that lands on a clone
+    const mark = (i) => { current = i; dots.forEach((d, j) => d.setAttribute("aria-current", j === i ? "true" : "false")); };
+    const settle = () => { const k = Math.round(track.scrollLeft / (all[1].offsetLeft - all[0].offsetLeft));
+      if (k < 2 || k >= n + 2) go(real(k), "auto"); };
+    track.addEventListener("scroll", () => { clearTimeout(settling); settling = setTimeout(settle, 120); }, { passive: true });
+    track.addEventListener("scrollend", settle);
     nav.forEach((b) => b.addEventListener("click", () => go(current + +b.dataset.dir)));
     dots.forEach((d) => d.addEventListener("click", () => go(+d.dataset.i)));
     track.addEventListener("keydown", (e) => { if (e.key === "ArrowRight") { e.preventDefault(); go(current + 1); } if (e.key === "ArrowLeft") { e.preventDefault(); go(current - 1); } });
     // A link to a slide (#coach from the nav) scrolls the track to it.
     const fromHash = () => { const i = slides.findIndex((s) => "#" + s.id === location.hash); if (i >= 0) go(i); };
-    addEventListener("hashchange", fromHash); fromHash();
-    const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) mark(slides.indexOf(e.target)); }), { root: track, threshold: 0.6 });
-    slides.forEach((s) => io.observe(s)); mark(0);
+    addEventListener("hashchange", fromHash);
+    const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) mark(real(all.indexOf(e.target))); }), { root: track, threshold: 0.6 });
+    all.forEach((s) => io.observe(s)); go(0, "auto"); mark(0); fromHash();
     // Each slide's graphic is a live WebGL scene of separately rendered pieces; only the slides on screen keep one.
     const live = new Map(); let lib;
     const wake = async (slide) => { const st = slide.querySelector(".slide-stage"); if (!st || live.has(st)) return; live.set(st, null);
@@ -491,7 +498,7 @@ fill="currentColor" stroke="none">
       } catch (err) { console.warn("layers: slide failed", st.dataset.scene, err); live.delete(st); } };
     const sleep = (slide) => { const st = slide.querySelector(".slide-stage"); const m = live.get(st); live.delete(st); m?.destroy(); st?.classList.remove("live"); };
     const near = new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? wake : sleep)(e.target)), { root: track, threshold: 0.15 });
-    const section = new IntersectionObserver(([e]) => { if (e.isIntersecting) { slides.forEach((s) => near.observe(s)); section.disconnect(); } }, { rootMargin: "200px" });
+    const section = new IntersectionObserver(([e]) => { if (e.isIntersecting) { all.forEach((s) => near.observe(s)); section.disconnect(); } }, { rootMargin: "200px" });
     if ("IntersectionObserver" in window) section.observe(track);
   })();
 </script>
