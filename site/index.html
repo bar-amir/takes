@@ -194,9 +194,10 @@ section h2 { font-size: clamp(52px, 6.4vw, 84px); }
 .dots button { width: 9px; height: 9px; padding: 0; border-radius: 50%; border: 0; background: var(--ink); opacity: .22; cursor: pointer; }
 .dots button[aria-current="true"] { opacity: 1; }
 @media (max-width: 720px) {
-  .slide { aspect-ratio: auto; display: grid; grid-template-columns: minmax(0, 1fr); }
+  /* Every card is as tall as the tallest, so the caption sits at the bottom and the art is centred in the space above. */
+  .slide { aspect-ratio: auto; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr auto; }
   /* The stage is wider than the card and starts above it, so the pieces float over the card's top and side edges. */
-  .slide-stage { position: relative; top: auto; right: auto; bottom: auto; width: 108%; aspect-ratio: 3 / 2; margin: -12% -4% -4%; }
+  .slide-stage { position: relative; top: auto; right: auto; bottom: auto; width: 130%; aspect-ratio: 3 / 2; margin: -12% -15% -4%; align-self: center; } /* height and vertical margins are set per scene by layers.js */
   .slide-copy { position: static; transform: none; width: auto; padding: 4px 22px 26px; }
   .carousel-nav { display: none; }
   /* The product shot bleeds to the screen edges on phones, so the panel reads at a useful size. */
@@ -233,9 +234,12 @@ details p { margin: 14px 0 0; max-width: 44em; }
 /* The mark loops a keyed Higgsfield clip (brand/logo-anim/t-*.mp4); the SVG stays until the clip can play, and if it never can. */
 .mark-loop { position: relative; display: block; width: 200px; aspect-ratio: 1993 / 2002; }
 .mark-loop .mark { position: absolute; inset: 0; width: 100%; height: 100%; }
-.mark-loop video { position: absolute; left: 50%; top: 50%; width: 214.3%; max-width: none; aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none; visibility: hidden; }
+.mark-loop video, .mark-loop .still { position: absolute; left: 50%; top: 50%; width: 214.3%; max-width: none; aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none; }
+.mark-loop video { visibility: hidden; }
+/* The clip's first frame stands in until it plays (and stays with reduced motion), so the mark is never the flat black one. */
+.mark-loop .mark { visibility: hidden; }
 .mark-loop.playing video { visibility: visible; }
-.mark-loop.playing .mark { visibility: hidden; }
+.mark-loop.playing .still { visibility: hidden; }
 footer { background: var(--ink); color: var(--paper); padding: 32px 0 44px; font-size: 15px; }
 footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 28px; justify-content: space-between; align-items: center; }
 footer .links a { margin-right: 22px; }
@@ -511,6 +515,7 @@ fill="currentColor" stroke="none">
       </div>
       <div class="mark-loop">
         <svg class="mark" viewBox="0 0 1993 2002" role="img" aria-label="Takes mark"><use href="#t"/></svg>
+        <img class="still" src="img/logo/tmark-still.webp" alt="" aria-hidden="true" decoding="async">
         <video muted playsinline loop preload="metadata" aria-hidden="true"></video>
       </div>
     </div>
@@ -555,7 +560,7 @@ fill="currentColor" stroke="none">
     const twin = (slide) => { const sc = slide.querySelector(".slide-stage")?.dataset.scene; return all.filter((s) => s !== slide && s.querySelector(".slide-stage")?.dataset.scene === sc); };
     const wake = async (slide) => { const st = slide.querySelector(".slide-stage"); if (!st || live.has(st)) return; live.set(st, null);
       if (slide.dataset.clone) twin(slide).forEach((t) => { wake(t); const k = all.indexOf(t); if (live.size < 8) [all[k - 1], all[k + 1]].forEach((nb) => nb && wake(nb)); }); // a few contexts at most
-      try { lib = lib || await import("./js/layers.js?v=16");
+      try { lib = lib || await import("./js/layers.js?v=17");
         if (!live.has(st)) return;
         live.set(st, lib.mount(st, st.dataset.scene, { interactive: true, sprites: st.dataset.sprites, card: true, onReady: () => st.classList.add("live") }));
       } catch (err) { console.warn("layers: slide failed", st.dataset.scene, err); live.delete(st); } };
@@ -575,7 +580,7 @@ fill="currentColor" stroke="none">
   if (el && "IntersectionObserver" in window) {
     const io = new IntersectionObserver(async ([e]) => {
       if (!e.isIntersecting) return; io.disconnect();
-      try { const { mount } = await import("./js/layers.js?v=16"); mount(el, el.dataset.scene, { interactive: true, sprites: el.dataset.sprites, onReady: () => el.classList.add("live") }); }
+      try { const { mount } = await import("./js/layers.js?v=17"); mount(el, el.dataset.scene, { interactive: true, sprites: el.dataset.sprites, onReady: () => el.classList.add("live") }); }
       catch { /* no WebGL or offline: keep the still */ }
     }, { rootMargin: "300px" });
     io.observe(el);
