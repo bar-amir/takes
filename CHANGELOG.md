@@ -2,6 +2,10 @@
 
 All notable changes to Takes. Versions follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+- In the preset picker (Tab), moving with the arrow keys scrolls the list to keep the highlighted preset in view.
+
 ## 0.6.0 · 2026-11-05
 
 - **A new first run.** Takes opens on a full-window photo, then five steps: Allow access, Connect a model (it starts on what already works on your Mac and names exactly where your text goes), Make it yours, Try it, Done.

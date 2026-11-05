@@ -405,6 +405,7 @@ struct PresetPickerView: View {
 
     private var list: some View {
         VStack(alignment: .leading, spacing: 0) {
+            ScrollViewReader { scroller in
             ScrollView {
                 VStack(alignment: .leading, spacing: 2) {
                     let rows = Array(model.filteredPresets.enumerated())
@@ -419,13 +420,21 @@ struct PresetPickerView: View {
                         sectionTitle("All presets")
                         ForEach(others, id: \.element.id) { row($0.element, index: $0.offset) }
                     }
-                    if model.showsBrowseRow { BrowsePresetsRow(model: model) }
+                    if model.showsBrowseRow { BrowsePresetsRow(model: model).id(PresetListRow.browse) }
                     if rows.isEmpty && !model.showsBrowseRow {
                         Text("No preset matches “\(model.filter)”.")
                             .font(.system(size: 14)).foregroundStyle(Theme.secondaryText).padding(12)
                     }
                 }
                 .padding(Spacing.gutter / 2)
+            }
+            // Arrow keys can move the highlight past the visible rows; bring it into view (no-op when it already is,
+            // so hovering never scrolls).
+            .onChange(of: model.highlighted) {
+                let target = model.browseRowHighlighted ? PresetListRow.browse : model.highlightedPreset.map { PresetListRow.preset($0.id) }
+                guard let target else { return }
+                withAnimation(Motion.animation(.easeOut(duration: Motion.standard))) { scroller.scrollTo(target) }
+            }
             }
             Rule()
             HStack(spacing: Spacing.item) {
@@ -480,6 +489,7 @@ struct PresetPickerView: View {
         }
         .buttonStyle(.plain)
         .onHover { if $0 { model.highlighted = index } }
+        .id(PresetListRow.preset(preset.id))
     }
 
     @ViewBuilder private var preview: some View {
@@ -869,4 +879,10 @@ private struct TakeCard: View {
         let fixes = model.showsFixes ? Proofread.fixLabel(model.fixCount(index)) + " · " : ""
         return "\(fixes)\(words) · ⌥ shows changes · ⌘C copies"
     }
+}
+
+/// Scroll targets in the preset picker's list.
+private enum PresetListRow: Hashable {
+    case preset(String)
+    case browse
 }
