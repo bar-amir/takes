@@ -112,13 +112,14 @@ final class SettingsWindowController: NSObject, NSWindowDelegate, NSToolbarDeleg
         }
     }
 
-    /// Resizes the window around `size`, keeping its top edge where it is.
+    /// Resizes the window around `size`, keeping its horizontal centre and its top edge where they are, so a tab change
+    /// grows or shrinks the window evenly on both sides instead of from the left.
     private func resize(to size: CGSize) {
         guard let window, size.width > 0, size.height > 0 else { return }
         let current = window.frame
         var frame = window.frameRect(forContentRect: NSRect(origin: .zero, size: size))
         guard abs(frame.width - current.width) > 0.5 || abs(frame.height - current.height) > 0.5 else { return }
-        frame.origin = NSPoint(x: current.minX, y: current.maxY - frame.height)
+        frame.origin = NSPoint(x: (current.midX - frame.width / 2).rounded(), y: current.maxY - frame.height)
         if let screen = window.screen?.visibleFrame {
             frame.origin.x = min(max(frame.minX, screen.minX), screen.maxX - frame.width)
             frame.origin.y = max(frame.minY, screen.minY)

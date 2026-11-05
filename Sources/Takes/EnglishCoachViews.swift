@@ -396,7 +396,7 @@ struct EnglishCoachTab: View {
             case .home: overviewOrIntro
             }
         }
-        .background(Theme.surface)
+        .background(Theme.formBackground) // The same ground as the other Settings tabs.
         .onAppear(perform: takeRequest)
         .onChange(of: request.pending) { takeRequest() }
     }

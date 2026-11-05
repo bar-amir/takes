@@ -2,6 +2,13 @@
 
 All notable changes to Takes. Versions follow [semantic versioning](https://semver.org).
 
+## Unreleased
+
+- **A new About window.** The marbled takes logo loops on its own (a still frame with Reduce Motion), above the version and copyright. The open-source notices still ship inside the app.
+- "Finish setting up Takes…" leaves the menu once setup is done. If something stops working later, the menu bar icon shows its dot and the hotkey opens setup.
+- Settings grows and shrinks around its centre when you switch tabs, and the Coach tab has the same background as the others.
+- Update notes in the updater show bold text and links instead of Markdown symbols.
+
 ## 0.6.0 · 2026-11-05
 
 - **A new first run.** Takes opens on a full-window photo, then five steps: Allow access, Connect a model (it starts on what already works on your Mac and names exactly where your text goes), Make it yours, Try it, Done.
