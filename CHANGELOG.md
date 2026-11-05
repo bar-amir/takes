@@ -2,7 +2,7 @@
 
 All notable changes to Takes. Versions follow [semantic versioning](https://semver.org).
 
-## Unreleased
+## 0.6.0 · 2026-11-05
 
 - **A new first run.** Takes opens on a full-window photo, then five steps: Allow access, Connect a model (it starts on what already works on your Mac and names exactly where your text goes), Make it yours, Try it, Done.
 - **Never lose Takes.** When setup ends, a popover points at the menu bar icon. Opening Takes again from Finder, Spotlight or Launchpad shows the same popover. The menu is shorter, shows the hotkey like a real shortcut, runs presets directly and shows whether the English coach is on and which model you use.
@@ -10,6 +10,11 @@ All notable changes to Takes. Versions follow [semantic versioning](https://semv
 - **The English coach offers itself.** When your takes keep fixing the same kind of English mistake and the coach is off, a short note under the takes shows your own fixes and offers to turn it on. At most once a week, and "Don't ask again" means never. Setup is three short steps with sensible defaults.
 - **Settings, reorganised.** Six tabs in a smaller native window: General, Presets, Writing, Coach, Model and History.
 - Short, consistent motion everywhere (all of it follows Reduce Motion), and labels set in JetBrains Mono, like the website.
+- **Signed out of Claude?** Any Claude Code sign-in failure now says so plainly, explains that this sign-in is separate from the Claude app, and offers a "Sign in to Claude" button that opens the sign-in for you.
+- **Out of credit or at a limit.** When your engine runs out of credit or hits its usage limit, Takes says so plainly and links to the page that fixes it.
+- **Safer updates.** The update feed itself is now signed and checked, and each update is verified before it's opened. Sparkle 2.10.1.
+- **Privacy and security fixes.** Takes put back on the clipboard are hidden from clipboard-history apps; an imported preset never arrives with "Write and paste right away" turned on; ChatGPT sign-in can't be ended by a stray web page; the Claude Code engine receives your text on standard input, never as a command-line option; debug options no longer print any of your text.
+- About lists the open-source notices that ship with Takes.
 
 ## 0.5.1 · 2026-11-04
 
