@@ -446,7 +446,7 @@ export function mount(el, name, { interactive = false, exportMode = false, part 
         const ph = n === "base" ? obj.userData.h : w / aspect;
         const plane = new THREE.Mesh(new THREE.PlaneGeometry(w, ph), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }));
         obj.children.forEach((c) => { c.visible = !!c.userData.keep; }); obj.add(plane); obj.visible = true; obj.userData.sprite = plane; obj.userData.h = ph;
-        if (obj.userData.tone) { plane.renderOrder = 84; // drawn over its take's render, under the ring
+        if (obj.userData.tone) { plane.renderOrder = 95; // drawn over its take's render and over the ring, which it sits above
           if (clips && !exportMode && !reduce) liveTone(plane, tex, `${sprites}/${n}.mp4?v=${ASSET_V}`); continue; }
         const tone = obj.children.find((c) => c.userData.tone); // a take's tone chip casts a soft shadow onto the card render it sits on
         if (tone) { const sh = new THREE.Mesh(new THREE.PlaneGeometry(tone.userData.w * 1.1, tone.userData.h * 1.3),
