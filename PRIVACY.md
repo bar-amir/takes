@@ -1,8 +1,8 @@
 # Privacy
 
-Last updated: 2026-11-02
+Last updated: 2026-11-04
 
-Takes runs entirely on your Mac. The developer runs no server and never receives your text, your settings or anything about how you use the app. Takes has no analytics, crash reporting or tracking. The only other connection it makes is the optional update check described below.
+Takes runs entirely on your Mac. The developer runs no server and never receives your text, your settings or anything about how you use the app. Takes has no analytics, crash reporting or tracking. Apart from the engine you choose, the only connection it makes is the optional update check described below.
 
 ## What Takes reads
 
@@ -72,6 +72,12 @@ If you choose **Local model**, Takes sends the same draft, preset and voice rule
 
 **Tone notes** go the same way, to the model your engine uses (Claude Haiku with Claude; your picked model otherwise). When a preset has "Show tone" on (the default), Takes sends the finished takes once more, in one short request, to get a few words on how each may come across. ⌘T in compose sends your current draft the same way, only when you press it. Nothing else is added, and the notes aren't saved. Turn "Show tone" off in a preset and neither request is made.
 
+### English coach
+
+The English coach is **off until you turn it on** in Settings › English coach. While it's on, each draft you send for takes that is mostly English (and from a preset you chose to count) goes once more, in one short request, to your engine's quick model, alongside the takes. That request carries only the draft and the list of patterns you chose to watch; it never includes what you're replying to. The answer is checked against the draft on your Mac, and lessons are put together on your Mac from a built-in guide, so they send nothing.
+
+When you paste a take, Takes keeps on your Mac, in `coach.json`: the short phrase around each mistake, its correction and reason, the app you were in, the date and the draft's word count. It never keeps your whole draft. Entries older than 30 days are deleted, phrases you mark "Not a mistake" are kept so they aren't flagged again, and monthly token estimates are kept for a year. Turning the coach off deletes `coach.json`.
+
 What a provider does with your text is covered by its own privacy policy and the terms of your account with it, not by Takes.
 
 **Don't use Takes on text you're not allowed to share with an AI provider,** for example confidential work material, other people's personal data, or anything your employer's policies forbid sending to third parties.
@@ -94,6 +100,7 @@ The words you dictate become part of your draft, and like any draft they're sent
 |---|---|---|
 | Presets, voice rules, settings | `~/Library/Application Support/Takes/` | Delete the folder |
 | History of drafts and takes (last 30 days; never the context you replied to) | `~/Library/Application Support/Takes/history.json` | Settings › History › Clear history, or turn history off in Settings › Engine |
+| English coach notes, if you turn it on (phrases around mistakes, never whole drafts; 30 days) | `~/Library/Application Support/Takes/coach.json` | Settings › English coach › Clear coach data, or turn the coach off |
 | Run timings (model, timing, the app you were in; no text) | `~/Library/Logs/Takes/runs.jsonl` | Delete the file |
 | Field-reading log (app, kind of text box, how it was read, character count; no text) | `~/Library/Logs/Takes/focus.log` | Delete the file |
 | API keys and ChatGPT sign-in tokens, if you add them | macOS keychain, service "com.baramir.takes" | Settings › Engine › Remove or Sign out |
@@ -116,12 +123,16 @@ Downloaded copies of Takes can check for new versions with [Sparkle](https://spa
 
 ## The website
 
-This notice is about the app. The Takes website (the landing page on GitHub Pages) counts visits with [GoatCounter](https://www.goatcounter.com), which uses no cookies and stores no IP addresses or personal data: only the page, the site you came from, your country, screen size and browser, and clicks on the download buttons. The app never loads it. The developer also keeps GitHub's own counts of release downloads, update-feed downloads and repository visits, which say nothing about who you are.
+This notice is about the app. The Takes website (the landing page on GitHub Pages) counts visits with [GoatCounter](https://www.goatcounter.com), which uses no cookies and stores no IP addresses or personal data: only the page, the site you came from, your country, screen size and browser, and clicks on the download buttons. The app never loads it. Its fonts and images are served from the site itself, not from Google Fonts or another third party. The developer also keeps GitHub's own counts of release downloads, update-feed downloads and repository visits, which say nothing about who you are.
 
 ## Changes
 
 If Takes ever starts sending anything anywhere else, this page will say so first and the app will ask you.
 
+## Who's responsible
+
+Takes and its website are made by Bar Amir, an individual developer, who is responsible for this notice. For the website's visit counts, that makes Bar Amir the controller under data protection laws such as the GDPR.
+
 ## Contact
 
-Questions: open an issue at [github.com/bar-amir/takes](https://github.com/bar-amir/takes/issues).
+Questions, or a request about your data: email [baramir93@gmail.com](mailto:baramir93@gmail.com). For anything that doesn't need to be private, you can also open an issue at [github.com/bar-amir/takes](https://github.com/bar-amir/takes/issues).

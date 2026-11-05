@@ -1,0 +1,27 @@
+title: "[Q] "
+body:
+  - type: markdown
+    attributes:
+      value: Please don't paste private drafts, messages or API keys; describe them instead. [Using Takes](https://github.com/bar-amir/takes/blob/main/docs/usage.md) may already answer your question.
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+    validations:
+      required: true
+  - type: dropdown
+    id: engine
+    attributes:
+      label: Engine
+      options:
+        - Claude Code on this Mac
+        - Anthropic API key
+        - ChatGPT plan
+        - Other provider (own API key)
+        - Local model
+        - Not set up yet
+  - type: input
+    id: versions
+    attributes:
+      label: Takes and macOS versions
+      placeholder: e.g. Takes 0.5.1, macOS 26.1

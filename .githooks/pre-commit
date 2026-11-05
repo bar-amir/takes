@@ -1,0 +1,14 @@
+#!/bin/sh
+# Stops a commit that contains an API key, token or private key.
+#
+# Turn it on once per clone:   git config core.hooksPath .githooks
+# Needs gitleaks:              brew install gitleaks
+# CI runs the same check on every pull request (.github/workflows/security.yml), so this only catches it sooner.
+# A false positive: add `gitleaks:allow` in a comment on that line, or skip once with `git commit --no-verify`.
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "pre-commit: gitleaks isn't installed (brew install gitleaks); skipping the secrets check." >&2
+  exit 0
+fi
+
+exec gitleaks git --pre-commit --staged --redact --no-banner --exit-code 1

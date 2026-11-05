@@ -581,18 +581,25 @@ final class ChatGPTServerTests: XCTestCase {
         XCTAssertFalse(form.contains("client_secret"))
     }
 
-    func testSignInRejectsAForgedCallback() async throws {
+    /// A callback with the wrong state (from any web page or local program) is refused and doesn't end the sign-in:
+    /// it keeps waiting for the real one, here until it times out.
+    func testSignInIgnoresAForgedCallback() async throws {
         let store = ChatGPTMemoryStore()
         let client = ChatGPTAuthClient(tokenURL: URL(string: "http://127.0.0.1:9/never")!, discoveryURL: nil)
+        let forged = ChatGPTUpdateLog()
         do {
-            _ = try await ChatGPTSignIn.signIn(store: store, client: client, hostID: "urn:uuid:test", timeout: 10) { url in
+            _ = try await ChatGPTSignIn.signIn(store: store, client: client, hostID: "urn:uuid:test", timeout: 2) { url in
                 let redirect = URLComponents(url: url, resolvingAgainstBaseURL: false)!.queryItems!.first { $0.name == "redirect_uri" }!.value!
-                Task { _ = try? await URLSession.shared.data(from: URL(string: redirect + "?code=evil&state=wrong&client_id=oaiapp_evil")!) }
+                Task {
+                    let response = try? await URLSession.shared.data(from: URL(string: redirect + "?code=evil&state=wrong&client_id=oaiapp_evil")!).1
+                    forged.add(["\((response as? HTTPURLResponse)?.statusCode ?? 0)"])
+                }
             }
             XCTFail("should refuse")
         } catch {
-            XCTAssertTrue(error.localizedDescription.contains("different sign-in"), error.localizedDescription)
+            XCTAssertEqual(error as? ChatGPTAuthError, .timedOut)
         }
+        XCTAssertEqual(forged.all, [["400"]])
         XCTAssertNil(store.load())
         XCTAssertNil(store.loadRegistration())
     }

@@ -12,10 +12,45 @@
 <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
+/* Fonts are served from this site, not Google Fonts (SIL Open Font License 1.1; licenses in fonts/). */
+/* Barlow Condensed, latin-ext */
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(fonts/barlow-condensed-700-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* Barlow Condensed, latin */
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(fonts/barlow-condensed-700-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* JetBrains Mono, latin-ext */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(fonts/jetbrains-mono-500-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* JetBrains Mono, latin */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(fonts/jetbrains-mono-500-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 /* Brand book, November 2026: Ink + Paper carry the identity, Cobalt + Acid add energy, Tomato only for print. */
 :root {
   --ink: #171714; --paper: #F3EBDD; --acid: #E8F449; --cobalt: #3045FF; --tomato: #F0543D;
@@ -223,7 +258,9 @@ footer .links a { margin-right: 22px; }
 }
 </style>
 <!-- Cookieless visit counts (goatcounter.com): page, referrer, country, screen size. No personal data. -->
-<script data-goatcounter="https://takes.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<!-- A fixed version with its hash (Subresource Integrity), so a change on gc.zgo.at can't run new code on this page. -->
+<script data-goatcounter="https://takes.goatcounter.com/count" async src="https://gc.zgo.at/count.v5.js"
+        crossorigin="anonymous" integrity="sha384-atnOLvQb9t+jTSipvd75X2yginT4PjVbqDdlJAmxMm+wYElFmeR6EmLP5bYeoRVQ"></script>
 </head>
 <body>
 <svg width="0" height="0" style="position: absolute" aria-hidden="true">
@@ -326,6 +363,7 @@ fill="currentColor" stroke="none">
         <a class="logo-anim" href="#" aria-label="Takes home"><svg class="wordmark" viewBox="0 0 1260 840" role="img" aria-label="takes"><use href="#wordmark"/></svg><video muted playsinline preload="none" aria-hidden="true"></video></a>
         <nav aria-label="Main">
           <a class="hide-sm" href="#how">How it works</a>
+          <a class="hide-sm" href="#coach">English coach</a>
           <a class="hide-sm" href="#privacy">Privacy</a>
           <a class="ext" href="https://github.com/bar-amir/takes">GitHub<svg aria-hidden="true" viewBox="0 0 12 12" width="11" height="11"><path d="M3 1.5h7.5V9M10.5 1.5 1.5 10.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">(opens GitHub)</span></a>
         </nav>
@@ -433,11 +471,12 @@ fill="currentColor" stroke="none">
     <div class="wrap"><div class="dots"><button type="button" aria-label="Show A shortcut in the app you're using" data-i="0"></button><button type="button" aria-label="Show Configured, personal style" data-i="1"></button><button type="button" aria-label="Show Proofread, marked" data-i="2"></button><button type="button" aria-label="Show Write it better next time." data-i="3"></button><button type="button" aria-label="Show A model on your Mac" data-i="4"></button><button type="button" aria-label="Show Right away" data-i="5"></button><button type="button" aria-label="Show Say it" data-i="6"></button><button type="button" aria-label="Show Context and tone" data-i="7"></button><button type="button" aria-label="Show Your languages" data-i="8"></button></div></div>
   </section>
 
+
   <section id="privacy" class="truth">
     <div class="wrap">
       <h2 class="display">Your Mac. Your model. Your choice.</h2>
       <div class="truth-rows">
-        <div class="truth-row"><div class="label">Local utility</div><p>Presets and optional history live on your Mac.</p></div>
+        <div class="truth-row"><div class="label">Local utility</div><p>Presets, optional history and English coach notes live on your Mac.</p></div>
         <div class="truth-row"><div class="label">Your connection</div><p>Drafts, instructions and voice examples go to Anthropic through your Claude connection, to OpenAI through your ChatGPT plan, to the provider whose key you added, or nowhere, with a model on your Mac.</p></div>
         <div class="truth-row"><div class="label">Your decision</div><p>Takes pastes the version you choose into the original field. You decide when to send.</p></div>
       </div>
@@ -451,7 +490,7 @@ fill="currentColor" stroke="none">
       <details><summary>What do I need?</summary><p>macOS 14 or later, Accessibility access so Takes can read the field and paste, and a model to write with: Claude Code signed in to your account or an Anthropic API key, your ChatGPT plan, an API key from another provider, or a model on your Mac with Ollama or LM Studio.</p></details>
       <details><summary>Which models can it use?</summary><p>Claude, through Claude Code on your Mac or your Anthropic API key. Your ChatGPT Plus or Pro plan, through Sign in with ChatGPT. Your own API key for OpenAI, Google Gemini, OpenRouter, Groq, Mistral or another compatible https server. Or a model running on your Mac with Ollama or LM Studio, so nothing leaves it.</p></details>
       <details><summary>Does it work in my app?</summary><p>In apps whose text fields macOS can read, including Slack, Mail, Messages, Notes, browsers and Claude's desktop app. Where an app hides its field, Takes copies the text instead and puts your clipboard back.</p></details>
-      <details><summary>What does it cost?</summary><p>Takes is free and open source under the MIT license, and always will be for every engine. Generation uses your own Claude plan, ChatGPT plan or API account, or costs nothing with a model on your Mac.</p></details>
+      <details><summary>What does it cost?</summary><p>Takes is free and open source, with no ads or paid tier, and every released version stays under the MIT license. Generation uses your own Claude plan, ChatGPT plan or API account, or costs nothing with a model on your Mac.</p></details>
       <details><summary>Is it made by Anthropic or OpenAI?</summary><p>No. Takes is an independent app. It runs Claude Code or calls the provider you chose with your own account.</p></details>
     </div>
   </section>
@@ -473,7 +512,7 @@ fill="currentColor" stroke="none">
 <footer>
   <div class="wrap">
     <div class="links"><a href="https://github.com/bar-amir/takes">GitHub</a><a href="https://github.com/bar-amir/takes/blob/main/PRIVACY.md">Privacy</a><a href="https://github.com/bar-amir/takes/blob/main/LICENSE">License</a><a href="https://github.com/sponsors/bar-amir" data-goatcounter-click="sponsor-footer" data-goatcounter-title="Support Takes (footer)">Support Takes</a></div>
-    <div>Takes isn't made or endorsed by Anthropic, OpenAI or any other model provider.</div>
+    <div>Takes isn't made or endorsed by Anthropic, OpenAI or any other model provider. Claude is a trademark of Anthropic, PBC. ChatGPT is a trademark of OpenAI. Mac is a trademark of Apple Inc.</div>
   </div>
 </footer>
 <script>
