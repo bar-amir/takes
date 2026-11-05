@@ -1,0 +1,56 @@
+name: App compatibility
+description: Takes can't read your draft, or can't paste the take, in a particular app.
+labels: [app compatibility, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks. These reports help the most. Please don't paste your draft; the log below holds only the app, the kind of text box and character counts.
+  - type: input
+    id: app
+    attributes:
+      label: App and where in it
+      description: For a browser, include the site.
+      placeholder: e.g. Chrome on gmail.com, compose window
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      placeholder: e.g. Slack 4.45, Chrome 142
+  - type: dropdown
+    id: problem
+    attributes:
+      label: What goes wrong?
+      multiple: true
+      options:
+        - The draft isn't read (the panel opens empty)
+        - Only part of the draft is read
+        - The take isn't pasted
+        - The take is pasted in the wrong place, or twice
+        - My clipboard isn't restored
+        - Something else
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Takes and macOS versions
+      description: Takes version is in the menu-bar icon's About Takes item; macOS version is in  › About This Mac.
+      placeholder: e.g. Takes 0.5.1, macOS 26.1
+    validations:
+      required: true
+  - type: textarea
+    id: focus-log
+    attributes:
+      label: Field-reading log
+      description: The last few lines of ~/Library/Logs/Takes/focus.log, right after it failed.
+      render: text
+  - type: textarea
+    id: probe
+    attributes:
+      label: Accessibility probe (optional, very helpful)
+      description: |
+        In Terminal, run `open -n /Applications/Takes.app --args --ax-probe 3`, switch to the app and click in the text box within 3 seconds. Paste ~/Library/Logs/Takes/ax-probe.txt here, after checking it has nothing private in it.
+      render: text

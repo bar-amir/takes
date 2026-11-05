@@ -29,7 +29,7 @@ enum Snapshot {
         }
 
         let compose = model()
-        render(PanelRootView(model: compose), size: CGSize(width: 720, height: 400), to: url.appendingPathComponent("1-compose.png"))
+        render(PanelRootView(model: compose), size: CGSize(width: 720, height: ComposeView.height), to: url.appendingPathComponent("1-compose.png"))
 
         let picker = model()
         picker.openPicker()
@@ -58,12 +58,7 @@ enum Snapshot {
         signedOut.error = ClaudeCodeEngine.signedOutMessage
         render(PanelRootView(model: signedOut), size: CGSize(width: 1060, height: fittedHeight(signedOut)), to: url.appendingPathComponent("4-takes-signed-out.png"))
 
-        for tab in SettingsTab.allCases {
-            let state = SettingsState()
-            state.tab = tab
-            state.selectedPresetID = Store.shared.presets.first?.id
-            render(SettingsView(state: state), size: CGSize(width: 1200, height: 860), to: url.appendingPathComponent("5-settings-\(tab.rawValue.lowercased()).png"))
-        }
+        renderSettings(to: url)
         render(SetupView(monitor: SetupMonitor.shared, onDone: {}), size: CGSize(width: 640, height: 820),
                to: url.appendingPathComponent("6-setup.png"))
         runLocalModels(to: url)
@@ -75,6 +70,7 @@ enum Snapshot {
         renderReplyContext(to: url)
         renderToneCheck(to: url)
         renderCoach(to: url)
+        renderPanel(to: url)
         dictation(to: url)
         renderOnboarding(to: url)
         renderPresetOptions(to: url)

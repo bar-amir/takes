@@ -25,13 +25,13 @@ extension Snapshot {
         ]
         for (dark, suffix) in [(false, "light"), (true, "dark")] {
             for (name, model) in states {
-                let size = CGSize(width: 720, height: 400 + ReplyContextBar.extraHeight(model))
+                let size = CGSize(width: 720, height: ComposeView.height + ReplyContextBar.extraHeight(model))
                 write(PanelRootView(model: model), size: size, dark: dark, to: folder.appendingPathComponent("rc-compose-\(name)-\(suffix).png"))
             }
             let settings = SettingsState()
-            settings.tab = .engine
-            write(SettingsView(state: settings), size: CGSize(width: 1200, height: 1100), dark: dark,
-                  to: folder.appendingPathComponent("rc-settings-engine-\(suffix).png"))
+            settings.tab = .general
+            write(SettingsView(state: settings), size: CGSize(width: 780, height: 760), dark: dark,
+                  to: folder.appendingPathComponent("rc-settings-general-\(suffix).png"))
         }
     }
 

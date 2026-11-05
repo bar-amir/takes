@@ -1,21 +1,54 @@
 import AppKit
+import Combine
 import SwiftUI
 
-@MainActor
-final class SettingsState: ObservableObject {
-    @Published var tab = SettingsTab.presets
-    @Published var selectedPresetID: String?
-    @Published var showGallery = false
-    /// Where Settings › English coach is: its overview, setup or a lesson.
-    @Published var coachScreen = CoachScreen.home
+/// The Settings window's tabs, in toolbar order. The raw value is the title shown in the toolbar, the window title
+/// and the status menu.
+enum SettingsTab: String, CaseIterable, Identifiable {
+    case general = "General", presets = "Presets", writing = "Writing", coach = "Coach", model = "Model", history = "History"
+
+    /// Old names, kept so existing callers still compile: Voice became Writing, Engine became Model.
+    static let voice = SettingsTab.writing
+    static let engine = SettingsTab.model
+    static let englishCoach = SettingsTab.coach
+
+    var id: String { rawValue }
+    var title: String { rawValue }
+
+    /// The SF Symbol on the tab's toolbar button.
+    var symbol: String {
+        switch self {
+        case .general: return "gearshape"
+        case .presets: return "list.bullet"
+        case .writing: return "pencil.line"
+        case .coach: return "graduationcap"
+        case .model: return "cpu"
+        case .history: return "clock"
+        }
+    }
 }
 
 @MainActor
-final class SettingsWindowController: NSObject, NSWindowDelegate {
+final class SettingsState: ObservableObject {
+    @Published var tab = SettingsTab.general
+    @Published var selectedPresetID: String?
+    @Published var showGallery = false
+    /// Where Settings › Coach is: its overview, setup or a lesson.
+    @Published var coachScreen = CoachScreen.home
+}
+
+/// A native Settings window: toolbar tabs with SF Symbols, the title follows the tab, there's no OK button and every
+/// change applies at once. The window takes each tab's size, with a short resize when the tab changes.
+@MainActor
+final class SettingsWindowController: NSObject, NSWindowDelegate, NSToolbarDelegate {
     static let shared = SettingsWindowController()
 
     private var window: NSWindow?
     private let state = SettingsState()
+    private var tabSubscription: AnyCancellable?
+    /// The size the current tab asked for, applied on the next turn of the run loop so a tab's two layout passes
+    /// become one resize.
+    private var pendingSize: CGSize?
 
     func show(tab: SettingsTab, newPreset: Bool = false, gallery: Bool = false) {
         let store = Store.shared
@@ -29,57 +62,144 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         }
         if gallery { state.showGallery = true }
 
+        let firstShow = window == nil
         let window = self.window ?? makeWindow()
         self.window = window
+        if firstShow { window.center() }
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
     }
 
     private func makeWindow() -> NSWindow {
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1200, height: 860),
-                              styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: SettingsMetrics.width, height: 480),
+                              styleMask: [.titled, .closable, .miniaturizable],
                               backing: .buffered, defer: false)
-        window.title = "Takes"
-        window.titleVisibility = .hidden
-        window.titlebarAppearsTransparent = true
         window.isReleasedWhenClosed = false
-        window.minSize = NSSize(width: 1000, height: 660)
-        window.backgroundColor = NSColor(Theme.surface)
+        window.backgroundColor = NSColor(Theme.formBackground)
         window.delegate = self
-        window.contentView = NSHostingView(rootView: SettingsView(state: state))
-        window.center()
+        window.toolbarStyle = .preference
+
+        let toolbar = NSToolbar(identifier: "TakesSettings")
+        toolbar.delegate = self
+        toolbar.displayMode = .iconAndLabel
+        toolbar.allowsUserCustomization = false
+        window.toolbar = toolbar
+
+        let hosting = NSHostingView(rootView: SettingsView(state: state, onSize: { [weak self] size in
+            self?.contentWantsSize(size)
+        }))
+        hosting.sizingOptions = []
+        window.contentView = hosting
+
+        tabSubscription = state.$tab.removeDuplicates().sink { [weak self] tab in self?.tabChanged(to: tab) }
+        tabChanged(to: state.tab)
         return window
+    }
+
+    private func tabChanged(to tab: SettingsTab) {
+        window?.title = tab.title
+        window?.toolbar?.selectedItemIdentifier = NSToolbarItem.Identifier(tab.rawValue)
+    }
+
+    private func contentWantsSize(_ size: CGSize) {
+        let coalesce = pendingSize == nil
+        pendingSize = size
+        guard coalesce else { return }
+        DispatchQueue.main.async { [weak self] in
+            guard let self, let size = self.pendingSize else { return }
+            self.pendingSize = nil
+            self.resize(to: size)
+        }
+    }
+
+    /// Resizes the window around `size`, keeping its top edge where it is.
+    private func resize(to size: CGSize) {
+        guard let window, size.width > 0, size.height > 0 else { return }
+        let current = window.frame
+        var frame = window.frameRect(forContentRect: NSRect(origin: .zero, size: size))
+        guard abs(frame.width - current.width) > 0.5 || abs(frame.height - current.height) > 0.5 else { return }
+        frame.origin = NSPoint(x: current.minX, y: current.maxY - frame.height)
+        if let screen = window.screen?.visibleFrame {
+            frame.origin.x = min(max(frame.minX, screen.minX), screen.maxX - frame.width)
+            frame.origin.y = max(frame.minY, screen.minY)
+        }
+        guard window.isVisible, !Motion.reduceMotion else {
+            window.setFrame(frame, display: true)
+            return
+        }
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = Motion.slow
+            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            window.animator().setFrame(frame, display: true)
+        }
+    }
+
+    // MARK: Toolbar
+
+    @objc private func selectTab(_ sender: NSToolbarItem) {
+        if let tab = SettingsTab(rawValue: sender.itemIdentifier.rawValue) { state.tab = tab }
+    }
+
+    func toolbar(_ toolbar: NSToolbar, itemForItemIdentifier itemIdentifier: NSToolbarItem.Identifier,
+                 willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
+        guard let tab = SettingsTab(rawValue: itemIdentifier.rawValue) else { return nil }
+        let item = NSToolbarItem(itemIdentifier: itemIdentifier)
+        item.label = tab.title
+        item.paletteLabel = tab.title
+        item.toolTip = tab.title
+        item.image = NSImage(systemSymbolName: tab.symbol, accessibilityDescription: tab.title)
+        item.target = self
+        item.action = #selector(selectTab(_:))
+        return item
+    }
+
+    func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+        SettingsTab.allCases.map { NSToolbarItem.Identifier($0.rawValue) }
+    }
+
+    func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+        toolbarDefaultItemIdentifiers(toolbar)
+    }
+
+    func toolbarSelectableItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+        toolbarDefaultItemIdentifiers(toolbar)
     }
 }
 
+/// The selected tab's page. The window's toolbar picks the tab; `onSize` reports the size the page wants.
 struct SettingsView: View {
     @ObservedObject var state: SettingsState
+    var onSize: (CGSize) -> Void = { _ in }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // The title bar: traffic lights on the left, section tabs centered.
-            TabPills(options: SettingsTab.allCases.map { (value: $0, title: $0.rawValue) }, selection: $state.tab)
-                .frame(maxWidth: .infinity)
-                .frame(height: 52)
-                .background(Theme.chrome)
-            RowDivider()
+        page
+            .background(GeometryReader { proxy in
+                Color.clear.preference(key: SettingsSizeKey.self, value: proxy.size)
+            })
+            .onPreferenceChange(SettingsSizeKey.self) { onSize($0) }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .foregroundStyle(Theme.text)
+            .background(Theme.formBackground)
+            .tint(Theme.accent)
+    }
 
-            Group {
-                switch state.tab {
-                case .presets: PresetsTab(state: state)
-                case .voice: VoiceTab()
-                case .coach: EnglishCoachTab(state: state)
-                case .engine: EngineTab()
-                case .history: HistoryTab()
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+    @ViewBuilder private var page: some View {
+        switch state.tab {
+        case .general: GeneralTab()
+        case .presets: PresetsTab(state: state).frame(width: SettingsMetrics.presetsWidth, height: SettingsMetrics.presetsHeight)
+        case .writing: WritingTab()
+        case .coach: EnglishCoachTab(state: state).frame(width: SettingsMetrics.width, height: SettingsMetrics.coachHeight)
+        case .model: ModelTab()
+        case .history: HistoryTab()
         }
-        .foregroundStyle(Theme.text)
-        .background(Theme.surface)
-        .tint(Theme.accent)
-        .ignoresSafeArea(.container, edges: .top)
-        .frame(minWidth: 1000, minHeight: 660)
+    }
+}
+
+private struct SettingsSizeKey: PreferenceKey {
+    static let defaultValue = CGSize.zero
+    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
+        let next = nextValue()
+        value = CGSize(width: max(value.width, next.width), height: max(value.height, next.height))
     }
 }
 
@@ -110,7 +230,7 @@ struct ChipsEditor: View {
             }
             if adding {
                 StyledTextField(placeholder: "Type and press ↵", text: $newText, height: 28, onSubmit: commit)
-                    .frame(width: 220)
+                    .frame(width: 200)
                     .onExitCommand { adding = false; newText = "" }
             } else {
                 Button("+ Add") { adding = true }.buttonStyle(DashedButtonStyle())
@@ -130,17 +250,20 @@ struct ChipsEditor: View {
 struct HotKeyRecorder: View {
     @Binding var combo: KeyCombo?
     var allowClear = true
+    var height: CGFloat = 36
     @State private var recording = false
     @State private var monitor: Any?
 
     var body: some View {
         Button(action: toggle) {
             Text(recording ? "Press a shortcut…" : (combo?.display ?? "Record shortcut"))
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: height < 32 ? 13 : 14, weight: .semibold))
                 .foregroundStyle(recording ? Theme.accent : Theme.text)
-                .frame(minWidth: 110)
+                .lineLimit(1)
+                .frame(minWidth: height < 32 ? 96 : 110)
         }
-        .buttonStyle(SecondaryButtonStyle(height: 36))
+        .buttonStyle(SecondaryButtonStyle(height: height))
+        .fixedSize()
         .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.accent, lineWidth: recording ? 1.5 : 0))
         .onDisappear(perform: stop)
         .help("Click, then press a shortcut. Esc cancels\(allowClear ? ", ⌫ clears" : "").")
@@ -165,35 +288,5 @@ struct HotKeyRecorder: View {
         recording = false
         if let monitor { NSEvent.removeMonitor(monitor) }
         monitor = nil
-    }
-}
-
-struct VoiceRulesEditor: View {
-    @ObservedObject var store = Store.shared
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            RowGroup {
-                ForEach($store.settings.voiceRules) { $rule in
-                    HStack(spacing: 12) {
-                        Checkbox(isOn: $rule.enabled, label: rule.text)
-                        TextField("Rule", text: $rule.text)
-                            .textFieldStyle(.plain)
-                            .font(.system(size: 14))
-                            .foregroundStyle(rule.enabled ? Theme.text : Theme.secondaryText)
-                        Button { store.settings.voiceRules.removeAll { $0.id == rule.id } } label: {
-                            Image(systemName: "xmark").font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.tertiaryText)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Delete rule")
-                    }
-                    .padding(.horizontal, 14)
-                    .frame(height: 46)
-                    if rule.id != store.settings.voiceRules.last?.id { RowDivider() }
-                }
-            }
-            Button("+ Add rule") { store.settings.voiceRules.append(VoiceRule(text: "")) }
-                .buttonStyle(DashedButtonStyle(capsule: false))
-        }
     }
 }

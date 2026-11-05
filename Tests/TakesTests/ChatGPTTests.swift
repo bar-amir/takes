@@ -265,7 +265,7 @@ final class ChatGPTScopeTests: XCTestCase {
             _ = try await ChatGPTTokens(store: ChatGPTMemoryStore()).accessToken()
             XCTFail("should refuse")
         } catch {
-            XCTAssertEqual(error.localizedDescription, "Sign in to ChatGPT in Settings › Engine.")
+            XCTAssertEqual(error.localizedDescription, "Sign in to ChatGPT in Settings › Model.")
         }
     }
 
@@ -318,7 +318,7 @@ final class ChatGPTRequestTests: XCTestCase {
                        "You've used this week's ChatGPT allowance for Takes. Manage it in ChatGPT › Settings › Usage, or pick another engine.")
         XCTAssertEqual(ChatGPTEngine.message(code: "subscription_sharing_usage_unavailable", message: nil, param: nil, status: 503),
                        "Your ChatGPT plan can't be used in Takes right now. Check ChatGPT › Settings › Usage.")
-        XCTAssertEqual(ChatGPTEngine.message(code: nil, message: nil, param: nil, status: 401), "Sign in to ChatGPT again in Settings › Engine.")
+        XCTAssertEqual(ChatGPTEngine.message(code: nil, message: nil, param: nil, status: 401), "Sign in to ChatGPT again in Settings › Model.")
         XCTAssertTrue(ChatGPTEngine.message(code: "subscription_sharing_unsupported_capability", message: "x", param: "model", status: 400)
             .contains("Pick another"))
         XCTAssertEqual(ChatGPTEngine.httpError(status: 403, body: Data(#"{"detail":"Unsupported region"}"#.utf8), requestID: "req_1")
@@ -517,7 +517,7 @@ final class ChatGPTServerTests: XCTestCase {
         defer { server.stop() }
         let store = signedIn()
         store.saveRegistration(ChatGPTRegistration(clientID: "oaiapp_1", subject: "user-1"))
-        await assertFails(engine(server, store), contains: "Sign in to ChatGPT again in Settings › Engine.")
+        await assertFails(engine(server, store), contains: "Sign in to ChatGPT again in Settings › Model.")
         XCTAssertNil(store.load())
         XCTAssertEqual(store.loadRegistration()?.clientID, "oaiapp_1")
     }
@@ -581,18 +581,25 @@ final class ChatGPTServerTests: XCTestCase {
         XCTAssertFalse(form.contains("client_secret"))
     }
 
-    func testSignInRejectsAForgedCallback() async throws {
+    /// A callback with the wrong state (from any web page or local program) is refused and doesn't end the sign-in:
+    /// it keeps waiting for the real one, here until it times out.
+    func testSignInIgnoresAForgedCallback() async throws {
         let store = ChatGPTMemoryStore()
         let client = ChatGPTAuthClient(tokenURL: URL(string: "http://127.0.0.1:9/never")!, discoveryURL: nil)
+        let forged = ChatGPTUpdateLog()
         do {
-            _ = try await ChatGPTSignIn.signIn(store: store, client: client, hostID: "urn:uuid:test", timeout: 10) { url in
+            _ = try await ChatGPTSignIn.signIn(store: store, client: client, hostID: "urn:uuid:test", timeout: 2) { url in
                 let redirect = URLComponents(url: url, resolvingAgainstBaseURL: false)!.queryItems!.first { $0.name == "redirect_uri" }!.value!
-                Task { _ = try? await URLSession.shared.data(from: URL(string: redirect + "?code=evil&state=wrong&client_id=oaiapp_evil")!) }
+                Task {
+                    let response = try? await URLSession.shared.data(from: URL(string: redirect + "?code=evil&state=wrong&client_id=oaiapp_evil")!).1
+                    forged.add(["\((response as? HTTPURLResponse)?.statusCode ?? 0)"])
+                }
             }
             XCTFail("should refuse")
         } catch {
-            XCTAssertTrue(error.localizedDescription.contains("different sign-in"), error.localizedDescription)
+            XCTAssertEqual(error as? ChatGPTAuthError, .timedOut)
         }
+        XCTAssertEqual(forged.all, [["400"]])
         XCTAssertNil(store.load())
         XCTAssertNil(store.loadRegistration())
     }

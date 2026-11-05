@@ -7,9 +7,10 @@ if CommandLine.arguments.contains("--bench") {
 }
 
 // Dry run of field reading on the frontmost app: prints how its text box was read, never sends keys.
+// It prints no text: any program can launch Takes with this flag, and it runs with Takes' Accessibility access.
 if CommandLine.arguments.contains("--focus-test") {
     let snapshot = FocusReader.snapshot(prefill: .fieldText, allowCopy: false)
-    print("\(snapshot.app?.bundleIdentifier ?? "?") · \(snapshot.method) · \(snapshot.text.count) chars · \(snapshot.text.prefix(80).debugDescription)")
+    print("\(snapshot.app?.bundleIdentifier ?? "?") · \(snapshot.method) · \(snapshot.text.count) chars")
     exit(0)
 }
 
@@ -17,6 +18,8 @@ if CommandLine.arguments.contains("--ax-probe") {
     AXProbe.run(arguments: CommandLine.arguments)
     exit(0)
 }
+
+BrandResources.registerFonts()
 
 if CommandLine.arguments.contains("--snapshot") {
     MainActor.assumeIsolated { Snapshot.run(arguments: CommandLine.arguments) }

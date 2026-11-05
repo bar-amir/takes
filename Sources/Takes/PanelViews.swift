@@ -66,10 +66,41 @@ private struct StripLabel: View {
     var body: some View { Text(text).font(.system(size: 13)).foregroundStyle(Theme.secondaryText).fixedSize() }
 }
 
+/// A quiet text button with its shortcut ("Dictate ⌘D"): secondary text that darkens on hover.
+struct QuietButtonStyle: ButtonStyle {
+    var size: CGFloat = 12
+
+    func makeBody(configuration: Configuration) -> some View {
+        QuietLabel(configuration: configuration, size: size)
+    }
+
+    private struct QuietLabel: View {
+        let configuration: Configuration
+        let size: CGFloat
+        @State private var hovering = false
+        @Environment(\.isEnabled) private var isEnabled
+
+        var body: some View {
+            configuration.label
+                .font(.system(size: size))
+                .foregroundStyle(hovering || configuration.isPressed ? Theme.text : Theme.secondaryText)
+                .opacity(isEnabled ? 1 : 0.45)
+                .contentShape(Rectangle())
+                .onHover { hovering = $0 }
+        }
+    }
+}
+
 // MARK: - Compose
 
 struct ComposeView: View {
     @ObservedObject var model: PanelModel
+
+    /// The compose panel's height without reply context: header, draft, status line, presets row and footer.
+    static let height: CGFloat = 320
+    /// The presets row: 32 pt controls with 12 pt above and below.
+    static let rowHeight: CGFloat = Spacing.control + 2 * Spacing.inner
+    static let footerHeight: CGFloat = Spacing.control + 2 * Spacing.bar
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -91,105 +122,101 @@ struct ComposeView: View {
                         .allowsHitTesting(false)
                 }
             }
-            // 80 (three lines) leaves room for a two-line dictation note on the fixed-height compose screen.
-            .frame(minHeight: 80, maxHeight: .infinity)
+            // 62 (about three lines) leaves room for a two-line dictation note on the fixed-height compose screen.
+            .frame(minHeight: 62, maxHeight: .infinity)
             // The text view insets its text by 7 pt (container inset 2 + line padding 5), so text starts on the gutter.
             .padding(.horizontal, Spacing.gutter - 7)
-            .padding(.top, Spacing.section)
+            .padding(.top, Spacing.inner)
 
-            DictationRow(dictation: model.dictation, onToggle: model.toggleDictation) {
-                Text([model.sourceLabel, "\(model.wordCount) word\(model.wordCount == 1 ? "" : "s")"].filter { !$0.isEmpty }.joined(separator: " · "))
-                    .font(.system(size: 12))
-                    .foregroundStyle(Theme.secondaryText)
-            } trailing: {
-                ReplyContextAddButton(model: model)
-            }
-            .padding(.horizontal, Spacing.gutter)
-            .padding(.top, Spacing.item)
-            .padding(.bottom, Spacing.section)
+            ComposeStatusRow(model: model, dictation: model.dictation)
+                .padding(.horizontal, Spacing.gutter)
+                .padding(.top, Spacing.item)
+                .padding(.bottom, Spacing.inner)
             ToneReadSection(model: model)
 
             Rule()
             presetRow
             Rule()
-            settingsStrip
-            Rule()
             footer
         }
         .background(shortcuts)
+        .overlay(alignment: .bottomTrailing) { optionsPopover }
     }
 
+    /// One row that never wraps: the chosen preset, the next most used by name, "+N ⇥", and the run options chip.
     private var presetRow: some View {
         HStack(spacing: Spacing.item) {
-            Button(action: model.openPicker) {
-                HStack(spacing: Spacing.item) {
-                    PresetDot(hex: model.preset.colorHex)
-                    Text(model.preset.name).lineLimit(1)
-                    Image(systemName: "chevron.down").font(.system(size: 10, weight: .bold))
-                }
+            ViewThatFits(in: .horizontal) {
+                presets(limit: PresetRow.named)
+                presets(limit: 2)
+                presets(limit: 1)
             }
-            .buttonStyle(PillButtonStyle(selected: true, height: Spacing.control))
-            .fixedSize()
-            if model.autoPicked {
-                Text("picked for this app").font(.system(size: 12)).foregroundStyle(Theme.secondaryText).fixedSize()
-            }
-            ForEach(model.store.presets.filter { $0.id != model.presetID }.prefix(3)) { preset in
-                Button(preset.name) { model.choose(preset.id) }
-                    .buttonStyle(PillButtonStyle(height: Spacing.control))
-                    .lineLimit(1)
-                    .layoutPriority(-1)
-            }
-            Spacer(minLength: 0)
+            Spacer(minLength: Spacing.item)
+            RunOptionsChip(model: model)
         }
+        .frame(height: Spacing.control)
         .padding(.horizontal, Spacing.gutter)
-        .padding(.vertical, Spacing.bar)
+        .padding(.vertical, Spacing.inner)
     }
 
-    private var settingsStrip: some View {
-        HStack(spacing: Spacing.section) {
-            HStack(spacing: Spacing.item) {
-                StripLabel("Takes")
-                NumberSegments(selection: $model.takeCount)
-            }
-            HStack(spacing: Spacing.item) {
-                StripLabel("Model")
-                MenuPicker(options: model.modelOptions, selection: $model.modelID)
-            }
-            if !model.usesOneModel {
-                HStack(spacing: Spacing.item) {
-                    StripLabel("Effort")
-                    MenuPicker(options: Models.efforts.map { (value: $0, title: $0.capitalized) }, selection: $model.effort)
+    private func presets(limit: Int) -> some View {
+        let layout = model.presetRow(limit: limit)
+        return HStack(spacing: 6) {
+            ForEach(layout.shown, id: \.self) { id in
+                if let preset = model.store.preset(id: id) {
+                    if id == model.presetID {
+                        Button(action: model.openPicker) {
+                            HStack(spacing: Spacing.item) {
+                                PresetDot(hex: preset.colorHex)
+                                Text(preset.name).lineLimit(1)
+                            }
+                        }
+                        .buttonStyle(PillButtonStyle(selected: true, height: 30))
+                        .help(model.autoPicked ? "Picked for \(model.appName). Tab shows every preset." : "Tab shows every preset.")
+                        .accessibilityLabel("Preset: \(preset.name)")
+                        .accessibilityHint("Opens the preset list. Tab.")
+                    } else {
+                        Button(preset.name) { model.choose(preset.id) }
+                            .buttonStyle(PillButtonStyle(height: 30))
+                            .lineLimit(1)
+                            .help(model.shortcutNumber(of: preset).map { "⌘\($0)" } ?? preset.name)
+                    }
                 }
             }
-            if model.store.settings.engine == .chatGPT {
-                // OpenAI's Sign in with ChatGPT guidelines: say the plan is in use next to the model, with a way to manage it.
-                HStack(spacing: Spacing.item) {
-                    StripLabel("ChatGPT plan")
-                    Button("Manage") { NSWorkspace.shared.open(ChatGPTOAuth.usageURL) }
-                        .buttonStyle(PillButtonStyle(height: Spacing.control))
-                        .accessibilityLabel("Manage ChatGPT plan usage")
-                        .accessibilityHint("Opens your ChatGPT usage settings in the browser")
+            if layout.overflow > 0 {
+                Button(action: model.openPicker) {
+                    HStack(spacing: 4) { Text("+\(layout.overflow)"); Kbd("⇥") }
+                        .padding(.horizontal, 6)
+                        .frame(height: 30)
                 }
+                .buttonStyle(QuietButtonStyle(size: 13))
+                .accessibilityLabel("\(layout.overflow) more presets")
+                .accessibilityHint("Opens the preset list. Tab.")
             }
-            Spacer(minLength: 0)
-            Text(model.isOverridden ? "Changed for this run" : "From the preset")
-                .font(.system(size: 12))
-                .foregroundStyle(Theme.secondaryText)
-                .lineLimit(1)
-                .layoutPriority(-1)
         }
-        .padding(.horizontal, Spacing.gutter)
-        .padding(.vertical, Spacing.bar)
-        .fixedSize(horizontal: false, vertical: true)
-        .background(Theme.strip)
+        .fixedSize()
+    }
+
+    @ViewBuilder private var optionsPopover: some View {
+        if model.optionsOpen {
+            ZStack(alignment: .bottomTrailing) {
+                // A click anywhere else closes it, like a popover.
+                Color.clear.contentShape(Rectangle()).onTapGesture { withAnimation(Motion.animation()) { model.optionsOpen = false } }
+                RunOptionsPopover(model: model)
+                    .padding(.trailing, Spacing.gutter - 4)
+                    .padding(.bottom, Self.footerHeight + 1 + Self.rowHeight - Spacing.inner + 6)
+                    .transition(.opacity.combined(with: .offset(y: 6)))
+            }
+        }
     }
 
     private var footer: some View {
         HStack {
             HStack(spacing: Spacing.section) {
                 KeyHint(keys: ["⇥"], label: "presets")
-                KeyHint(keys: ["⌘", "1–9"], label: "jump")
-                KeyHint(keys: ["⌘", "K"], label: "more")
+                Button { toggleOptions() } label: { KeyHint(keys: ["⌘", "K"], label: "options") }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Run options")
                 ToneReadHint(model: model)
             }
             Spacer()
@@ -206,15 +233,129 @@ struct ComposeView: View {
         .padding(.vertical, Spacing.bar)
     }
 
+    private func toggleOptions() {
+        withAnimation(Motion.animation(.easeOut(duration: Motion.quick))) { model.optionsOpen.toggle() }
+    }
+
     private var shortcuts: some View {
         ZStack {
             ForEach(1...9, id: \.self) { number in
                 ShortcutButton(key: KeyEquivalent(Character("\(number)"))) { model.choose(number: number) }
             }
-            ShortcutButton(key: "k") { model.onMore() }
+            ShortcutButton(key: "k") { toggleOptions() }
             ShortcutButton(key: ",") { model.onOpenSettings(.presets, false) }
             ReplyContextShortcuts(model: model)
             ShortcutButton(key: "d") { model.toggleDictation() }
+        }
+    }
+}
+
+/// The line under the draft: where it came from and its length, then the quiet "Replying to" and "Dictate"
+/// buttons. While dictating, or when dictation has something to say, its own row takes over.
+private struct ComposeStatusRow: View {
+    @ObservedObject var model: PanelModel
+    @ObservedObject var dictation: Dictation
+
+    var body: some View {
+        if case .idle = dictation.state {
+            HStack(spacing: Spacing.section) {
+                Text([model.sourceLabel, "\(model.wordCount) word\(model.wordCount == 1 ? "" : "s")"].filter { !$0.isEmpty }.joined(separator: " · "))
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.secondaryText)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+                ReplyContextAddButton(model: model)
+                Button(action: model.toggleDictation) {
+                    HStack(spacing: 5) { Text("Dictate"); Kbd("⌘D") }
+                }
+                .buttonStyle(QuietButtonStyle())
+                .fixedSize()
+                .accessibilityLabel("Dictate")
+                .accessibilityHint("Command D. Speak your draft. Speech is turned into text on this Mac.")
+            }
+            .frame(height: 22)
+        } else {
+            DictationRow(dictation: dictation, onToggle: model.toggleDictation) { EmptyView() } trailing: { EmptyView() }
+        }
+    }
+}
+
+/// "3 · Sonnet 5.5 · Low ⌄" at the end of the presets row. Quiet while it matches the preset; Ink once changed.
+private struct RunOptionsChip: View {
+    @ObservedObject var model: PanelModel
+    @State private var hovering = false
+
+    var body: some View {
+        let changed = model.isOverridden
+        Button {
+            withAnimation(Motion.animation(.easeOut(duration: Motion.quick))) { model.optionsOpen.toggle() }
+        } label: {
+            HStack(spacing: 6) {
+                Text(model.runOptionsLabel).lineLimit(1)
+                Image(systemName: "chevron.down").font(.system(size: 9, weight: .bold))
+            }
+            .font(.system(size: 12.5, weight: changed ? .semibold : .regular))
+            .foregroundStyle(changed ? Theme.onAccent : (hovering ? Theme.text : Theme.controlText))
+            .padding(.horizontal, 10)
+            .frame(height: 28)
+            .background(RoundedRectangle(cornerRadius: 7).fill(changed ? Theme.accent : (hovering || model.optionsOpen ? Theme.kbdFill : Theme.strip)))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .fixedSize()
+        .onHover { hovering = $0 }
+        .help(changed ? "Changed for this run. ⌘K" : "Takes, model and effort, from the preset. ⌘K")
+        .accessibilityLabel("Run options: \(model.runLabel)\(changed ? ", changed for this run" : "")")
+        .accessibilityHint("Command K")
+    }
+}
+
+/// The run options, opened from the chip or ⌘K: the same controls the panel always had.
+private struct RunOptionsPopover: View {
+    @ObservedObject var model: PanelModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.item) {
+            row("Takes") {
+                NumberSegments(selection: $model.takeCount)
+                Spacer(minLength: Spacing.item)
+                // Changed values show on the chip in Ink; this puts them back.
+                if model.isOverridden {
+                    Button("Reset") { model.resetRunOptions() }.buttonStyle(QuietButtonStyle()).fixedSize()
+                        .help("Back to the preset's takes, model and effort")
+                } else {
+                    Button("Defaults…") { model.onOpenSettings(.engine, false) }.buttonStyle(QuietButtonStyle()).fixedSize()
+                        .help("Settings for new presets")
+                }
+            }
+            row("Model") { MenuPicker(options: model.modelOptions, selection: $model.modelID) }
+            if !model.usesOneModel {
+                row("Effort") { MenuPicker(options: Models.efforts.map { (value: $0, title: $0.capitalized) }, selection: $model.effort) }
+            }
+            if model.store.settings.engine == .chatGPT {
+                // OpenAI's Sign in with ChatGPT guidelines: say the plan is in use next to the model, with a way to manage it.
+                row("Plan") {
+                    Text("Your ChatGPT plan").font(.system(size: 13)).foregroundStyle(Theme.controlText)
+                    Button("Manage") { NSWorkspace.shared.open(ChatGPTOAuth.usageURL) }
+                        .buttonStyle(QuietButtonStyle(size: 13))
+                        .accessibilityLabel("Manage ChatGPT plan usage")
+                        .accessibilityHint("Opens your ChatGPT usage settings in the browser")
+                }
+            }
+        }
+        .padding(Spacing.inner)
+        .frame(width: 344)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Theme.surface).shadow(color: .black.opacity(0.16), radius: 18, y: 8))
+        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.controlBorder))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Run options")
+    }
+
+    private func row<Content: View>(_ label: String, @ViewBuilder _ content: () -> Content) -> some View {
+        HStack(spacing: Spacing.item) {
+            Text(label).font(.system(size: 13)).foregroundStyle(Theme.secondaryText).frame(width: 52, alignment: .leading)
+            content()
+            Spacer(minLength: 0)
         }
     }
 }
@@ -393,6 +534,8 @@ struct TakesView: View {
     @FocusState private var gridFocused: Bool
     @State private var refineFocus = 0
     @State private var gridHeight: CGFloat = 0
+    @State private var flagsMonitor: Any?
+    @Namespace private var selection
 
     var body: some View {
         VStack(spacing: 0) {
@@ -437,33 +580,60 @@ struct TakesView: View {
                 .focusable()
                 .focusEffectDisabled()
                 .focused($gridFocused)
-                .onKeyPress(.leftArrow) { model.moveSelection(-1); return .handled }
-                .onKeyPress(.rightArrow) { model.moveSelection(1); return .handled }
-                .onKeyPress(.upArrow) { model.moveSelection(-3); return .handled }
-                .onKeyPress(.downArrow) { model.moveSelection(3); return .handled }
+                .onKeyPress(.leftArrow) { move(-1); return .handled }
+                .onKeyPress(.rightArrow) { move(1); return .handled }
+                .onKeyPress(.upArrow) { move(-3); return .handled }
+                .onKeyPress(.downArrow) { move(3); return .handled }
                 .onKeyPress(.return) { model.pasteSelected(); return .handled }
                 .onKeyPress(.escape) { model.escape(); return .handled }
 
                 refineBar
             }
 
-            CoachStrip(run: model.coach)
+            CoachStrip(model: model, run: model.coach)
+            if let offer = model.invitation, !model.running {
+                CoachInvitationStrip(model: model, offer: offer)
+                    .transition(.asymmetric(insertion: .push(from: .top).combined(with: .opacity), removal: .opacity))
+            }
             Rule()
             footer
         }
+        .animation(Motion.animation().delay(Motion.standard), value: model.invitation)
         .fixedSize(horizontal: false, vertical: true)
         .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { model.takesContentHeight = $0; model.onContentHeight($0) }
         // The panel doesn't shrink while takes stream in; once they're done it fits again. Deferred and read from
         // the model, so it uses the finished screen's height (say "No mistakes found"), not the streaming one.
         .onChange(of: model.running) { DispatchQueue.main.async { model.onContentHeight(model.takesContentHeight) } }
         .background(shortcuts)
-        .onAppear { gridFocused = true }
+        .onAppear {
+            gridFocused = true
+            watchOption()
+        }
+        .onDisappear {
+            if let flagsMonitor { NSEvent.removeMonitor(flagsMonitor) }
+            flagsMonitor = nil
+            model.optionHeld = false
+        }
         .onChange(of: model.focusToken) { gridFocused = true }
     }
 
     static let maxGridHeight: CGFloat = 480
 
-    /// Rows of up to three cards. Cards in a row share its height, so their footers line up.
+    private func move(_ delta: Int) {
+        withAnimation(Motion.animation()) { model.moveSelection(delta) }
+    }
+
+    /// ⌥ held shows every take's changes at once.
+    private func watchOption() {
+        guard flagsMonitor == nil else { return }
+        flagsMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [model] event in
+            let held = event.modifierFlags.intersection(.deviceIndependentFlagsMask) == .option
+            if model.optionHeld != held { model.optionHeld = held }
+            return event
+        }
+    }
+
+    /// Rows of up to three cards. Cards in a row share its height.
     private var grid: some View {
         let columns = max(1, min(model.cardCount, 3))
         let rows = stride(from: 0, to: model.cardCount, by: columns).map { Array($0..<min($0 + columns, model.cardCount)) }
@@ -471,10 +641,13 @@ struct TakesView: View {
             ForEach(rows, id: \.first) { row in
                 HStack(alignment: .top, spacing: Spacing.section) {
                     ForEach(row, id: \.self) { index in
-                        TakeCard(model: model, index: index)
+                        TakeCard(model: model, index: index, ring: selection)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .onTapGesture(count: 2) { model.paste(index) }
-                            .onTapGesture { model.select(index); gridFocused = true }
+                            .onTapGesture {
+                                withAnimation(Motion.animation()) { model.select(index) }
+                                gridFocused = true
+                            }
                     }
                     ForEach(row.count..<columns, id: \.self) { _ in Color.clear.frame(maxWidth: .infinity) }
                 }
@@ -495,12 +668,17 @@ struct TakesView: View {
             Text(model.runLabel)
                 .font(.system(size: 13))
                 .foregroundStyle(Theme.secondaryText)
-            Spacer()
-            Button { model.show(.compose) } label: { HStack(spacing: 6) { Text("Edit draft"); Kbd("⌘E") } }
-                .buttonStyle(SecondaryButtonStyle())
-            Button(action: model.generate) { HStack(spacing: 6) { Text("Regenerate"); Kbd("⌘R") } }
-                .buttonStyle(SecondaryButtonStyle())
-                .disabled(model.running)
+                .lineLimit(1)
+            Spacer(minLength: Spacing.item)
+            HStack(spacing: Spacing.section) {
+                Button { model.show(.compose) } label: { HStack(spacing: 4) { Kbd("⌘E"); Text("edit") } }
+                    .accessibilityLabel("Edit draft")
+                Button(action: model.generate) { HStack(spacing: 4) { Kbd("⌘R"); Text("again") } }
+                    .disabled(model.running)
+                    .accessibilityLabel("Regenerate")
+            }
+            .buttonStyle(QuietButtonStyle())
+            .fixedSize()
         }
         .frame(height: Spacing.control)
         .padding(.horizontal, Spacing.gutter)
@@ -532,7 +710,8 @@ struct TakesView: View {
         HStack(spacing: Spacing.section) {
             HStack(spacing: Spacing.section) {
                 KeyHint(keys: ["←", "→"], label: "move")
-                KeyHint(keys: ["⌘", "C"], label: "copy only")
+                if !model.showsFixes { KeyHint(keys: ["⌥"], label: "changes") }
+                KeyHint(keys: ["⌘", "C"], label: "copy")
                 KeyHint(keys: ["esc"], label: "back")
             }
             .fixedSize()
@@ -569,6 +748,7 @@ struct TakesView: View {
             }
             ShortcutButton(key: "e") { model.show(.compose) }
             ShortcutButton(key: "r") { model.generate() }
+            ShortcutButton(key: ";") { withAnimation(Motion.animation()) { model.coachExpanded.toggle() } }
             ShortcutButton(key: "c") {
                 if model.textSelectionActive() {
                     NSApp.sendAction(#selector(NSText.copy(_:)), to: nil, from: nil)
@@ -583,20 +763,26 @@ struct TakesView: View {
 private struct TakeCard: View {
     @ObservedObject var model: PanelModel
     let index: Int
+    let ring: Namespace.ID
 
     var body: some View {
         let isSelected = model.selected == index
         let finished = model.isFinished(index)
         let hasText = index < model.takes.count
-        let showChanges = model.changesShown.contains(index) && finished
+        let showChanges = finished && (model.changesShown.contains(index) || model.optionHeld)
 
         VStack(alignment: .leading, spacing: Spacing.inner) {
-            HStack {
-                Text(label(isSelected: isSelected, finished: finished, showChanges: showChanges))
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(isSelected ? Theme.accent : Theme.secondaryText)
-                Spacer()
-                if index < 5 { Kbd("⌘\(index + 1)") }
+            HStack(spacing: Spacing.item) {
+                Text(label(finished: finished, showChanges: showChanges))
+                    .font(.mono(10.5, bold: true))
+                    .kerning(0.5)
+                    .foregroundStyle(isSelected ? Theme.text : Theme.secondaryText)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+                if !finished && hasText { ProgressView().controlSize(.mini) }
+                if index < 5 {
+                    Text("⌘\(index + 1)").font(.mono(10.5)).foregroundStyle(Theme.tertiaryText)
+                }
             }
 
             Group {
@@ -617,59 +803,40 @@ private struct TakeCard: View {
             .foregroundStyle(Theme.text)
             .lineSpacing(4)
             .fixedSize(horizontal: false, vertical: true)
-            .frame(maxWidth: .infinity, minHeight: 96, maxHeight: .infinity, alignment: .topLeading)
+            .frame(maxWidth: .infinity, minHeight: 72, maxHeight: .infinity, alignment: .topLeading)
             TakeToneLine(model: model, index: index)
-
-            Rule()
-            HStack(spacing: Spacing.item) {
-                Text(!finished ? "writing" : model.showsFixes ? Proofread.fixLabel(model.fixCount(index))
-                     : "\(WordCounter.count(model.takes[index])) words")
-                    .font(.system(size: 12))
-                    .foregroundStyle(Theme.secondaryText)
-                Spacer()
-                if finished {
-                    Button("Changes") { model.toggleChanges(index) }
-                        .buttonStyle(ToggleChipStyle(on: showChanges))
-                        .accessibilityAddTraits(showChanges ? .isSelected : [])
-                    Button { model.onCopy(index, model.takes[index]) } label: {
-                        Image(systemName: "doc.on.doc").font(.system(size: 11, weight: .medium))
-                    }
-                    .buttonStyle(SecondaryButtonStyle(height: 28))
-                    .accessibilityLabel("Copy take \(index + 1)")
-                } else {
-                    ProgressView().controlSize(.mini)
-                }
-            }
-            .frame(height: 28)
         }
         .padding(Spacing.section)
         .background(RoundedRectangle(cornerRadius: 12).fill(Theme.surface))
         // Drawn inside the card's edge, so the selected card's thicker border doesn't eat into the gaps around it.
-        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(isSelected ? Theme.accent : Theme.border, lineWidth: isSelected ? 2 : 1))
-        .shadow(color: isSelected ? Theme.accent.opacity(0.14) : .clear, radius: 10, y: 4)
+        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.border, lineWidth: 1))
+        .overlay {
+            // One ring that slides from card to card.
+            if isSelected {
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(Theme.accent, lineWidth: 2)
+                    .shadow(color: Theme.accent.opacity(0.14), radius: 10, y: 4)
+                    .matchedGeometryEffect(id: "ring", in: ring)
+            }
+        }
         .contentShape(Rectangle())
+        // Each card rises 6 pt and fades in as its first words land, 120 ms after the one before it.
+        .opacity(hasText || !model.running ? 1 : 0.55)
+        .offset(y: hasText || !model.running ? 0 : 6)
+        .animation(Motion.animation().delay(Double(index) * Motion.stagger), value: hasText)
+        .help(tooltip(finished: finished))
     }
 
-    private func label(isSelected: Bool, finished: Bool, showChanges: Bool) -> String {
-        let base = "Take \(index + 1)"
-        if !finished { return "\(base) · writing…" }
-        if showChanges { return "\(base) · showing changes" }
-        return isSelected ? "\(base) · selected" : base
+    private func label(finished: Bool, showChanges: Bool) -> String {
+        let base = "TAKE \(index + 1)"
+        if !finished { return "\(base) · WRITING" }
+        return showChanges ? "\(base) · CHANGES" : base
     }
-}
 
-/// The small "Changes" toggle: dark when on, as in the mockup.
-private struct ToggleChipStyle: ButtonStyle {
-    let on: Bool
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 12))
-            .foregroundStyle(on ? Theme.surface : Theme.controlText)
-            .padding(.horizontal, 10)
-            .frame(height: 28)
-            .background(RoundedRectangle(cornerRadius: 7).fill(on ? Theme.controlText : Theme.surface))
-            .overlay(RoundedRectangle(cornerRadius: 7).stroke(on ? Theme.controlText : Theme.controlBorder))
-            .contentShape(Rectangle())
+    private func tooltip(finished: Bool) -> String {
+        guard finished else { return "" }
+        let words = "\(WordCounter.count(model.takes[index])) words"
+        let fixes = model.showsFixes ? Proofread.fixLabel(model.fixCount(index)) + " · " : ""
+        return "\(fixes)\(words) · ⌥ shows changes · ⌘C copies"
     }
 }

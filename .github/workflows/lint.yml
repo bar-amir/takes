@@ -1,0 +1,37 @@
+# Checks the style of the Swift files a pull request changes with swift-format (.swift-format).
+# Advisory for now: problems show as warnings on the changed lines and the check doesn't fail,
+# because the existing code hasn't been formatted with swift-format yet.
+# Runs on pull_request with a read-only token and no secrets, so it's safe for forks.
+name: Lint
+
+on:
+  pull_request:
+    paths: ["**/*.swift", ".swift-format", ".github/workflows/lint.yml"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  swift-format:
+    runs-on: macos-26
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Lint changed Swift files
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          files=$(git diff --name-only --diff-filter=ACMR "$BASE_SHA" HEAD -- '*.swift')
+          if [[ -z "$files" ]]; then echo "No Swift files changed."; exit 0; fi
+          echo "$files"
+          # swift-format prints file:line:col: warning: …; turn each into a GitHub annotation.
+          echo "$files" | xargs swift format lint --configuration .swift-format 2>&1 \
+            | sed -nE 's/^([^:]+):([0-9]+):([0-9]+): (warning|error): (.*)$/::warning file=\1,line=\2,col=\3::\5/p' || true

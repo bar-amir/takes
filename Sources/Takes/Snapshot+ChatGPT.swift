@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// "Your ChatGPT plan" screens for `--snapshot`, in light and dark: the Settings › Engine card signed out, waiting for
+/// "Your ChatGPT plan" screens for `--snapshot`, in light and dark: the Settings › Model card signed out, waiting for
 /// the browser, signed in with the plan's models, and signed in without plan usage; and the panel on a ChatGPT model.
 /// The sign-in state and model list are set by hand; nothing is saved, fetched or opened.
 extension Snapshot {
@@ -33,7 +33,7 @@ extension Snapshot {
                 Store.shared.settings.chatGPTModel = state.model
                 let settings = SettingsState()
                 settings.tab = .engine
-                renderChatGPT(SettingsView(state: settings), size: CGSize(width: 1200, height: 1000), dark: dark,
+                renderChatGPT(SettingsView(state: settings), size: CGSize(width: 780, height: 760), dark: dark,
                               to: url.appendingPathComponent("10-chatgpt-card-\(state.name)-\(suffix).png"))
             }
 
@@ -43,7 +43,7 @@ extension Snapshot {
             compose.reset(focus: FocusSnapshot(app: nil, text: "ya thursday works but i need the specs by wed eod otherwise qa slips again",
                                                source: .field, caretRect: nil), presetID: Store.shared.presets.first?.id)
             compose.previewAppName = "Slack"
-            renderChatGPT(PanelRootView(model: compose), size: CGSize(width: 720, height: 400), dark: dark,
+            renderChatGPT(PanelRootView(model: compose), size: CGSize(width: 720, height: ComposeView.height), dark: dark,
                           to: url.appendingPathComponent("10-chatgpt-panel-compose-\(suffix).png"))
         }
     }

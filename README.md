@@ -30,7 +30,7 @@ brew install --cask bar-amir/tap/takes
 
 <!-- TODO: replace with a ~10-second demo GIF of real use: a chat field → ⌃⌥Space → 3 takes stream in → paste. -->
 <p align="center">
-  <a href="https://bar-amir.github.io/takes/"><img src="site/img/takes.png" alt="The Takes panel: a rough Slack draft at the top, three rewritten takes side by side below it, one showing its changes against the draft, and a Paste button" width="900"></a>
+  <a href="https://bar-amir.github.io/takes/"><img src="site/img/layers/takes.webp" alt="The Takes panel as floating layers: a rough Slack draft at the top, three rewritten takes below it with the middle one lifted to the front, and a Paste button" width="820"></a>
 </p>
 
 ## How it works
@@ -47,18 +47,35 @@ brew install --cask bar-amir/tap/takes
 - **Proofread.** Fixes spelling, grammar and punctuation, keeps your words, and marks every fix. When nothing needs fixing, it says so.
 - **Write and paste right away.** Give a preset its own hotkey and it writes and pastes one take with no panel. ⌘Z undoes it.
 - **Context and tone.** Add the message you're replying to, as reference only. Each take gets a short note on how it may come across.
+- **English coach.** Optional, for people who write in English as a second language. It spots the mistakes your takes fix, notices the ones you repeat and turns them into short lessons built from your own sentences. Off until you turn it on.
 - **Dictation.** Speak a draft with ⌘D. Speech is recognised on your Mac and never leaves it.
 - **Any language.** Reply in any language, with a "Translate to …" preset for each one you write in.
 - **Keyboard first.** Everything has a shortcut. See the [full reference](docs/usage.md).
 
 <table>
   <tr>
-    <td width="50%"><img src="site/img/presets.png" alt="Preset editor with instruction, Do and Avoid rules and write-like-me examples"></td>
-    <td width="50%"><img src="site/img/proofread.png" alt="A Proofread take with each fix struck through and underlined"></td>
+    <td width="50%"><img src="site/img/layers/presets.webp" alt="A stack of preset tiles with Slack message pulled out, beside its instruction and Do and Avoid rules"></td>
+    <td width="50%"><img src="site/img/layers/proofread.webp" alt="A proofread take with each fix marked and the fixes floating beside it"></td>
   </tr>
   <tr>
     <td align="center">Presets with your rules and examples</td>
     <td align="center">Proofread, with every fix marked</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="site/img/layers/coach.webp" alt="The English coach card with its fixes lifted out: “If you will send” to “If you send”, and two more"></td>
+    <td width="50%"><img src="site/img/layers/local.webp" alt="The model menu with a local model picked and an On this Mac badge"></td>
+  </tr>
+  <tr>
+    <td align="center">English coach</td>
+    <td align="center">A model on your Mac</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="site/img/layers/instant.webp" alt="A pasted message with a “Pasted” toast and a Return key above it"></td>
+    <td width="50%"><img src="site/img/layers/dictation.webp" alt="A draft being dictated, with a live waveform"></td>
+  </tr>
+  <tr>
+    <td align="center">Write and paste right away</td>
+    <td align="center">Dictation</td>
   </tr>
 </table>
 
@@ -90,7 +107,7 @@ Claude Code is the default. You can switch any time in Settings › Engine.
 
 ## Privacy
 
-Takes sends your draft only to the engine you chose, directly from your Mac and under your own account: Anthropic with Claude, OpenAI with your ChatGPT plan, the provider you picked with your own key, or, with a local model, nowhere outside your Mac. Dictation audio never leaves the Mac. The developer runs no server and receives nothing from the app; the app has no analytics, crash reporting or tracking. [PRIVACY.md](PRIVACY.md) lists exactly what's read, sent and stored, how Takes follows Anthropic's and OpenAI's rules, and what the website counts.
+Takes sends your draft only to the engine you chose, directly from your Mac and under your own account: Anthropic with Claude, OpenAI with your ChatGPT plan, the provider you picked with your own key, or, with a local model, nowhere outside your Mac. Dictation audio never leaves the Mac. If you turn on the English coach, its notes (the short phrase around each mistake, never your whole message) stay on your Mac for 30 days. The developer runs no server and receives nothing from the app; the app has no analytics, crash reporting or tracking. [PRIVACY.md](PRIVACY.md) lists exactly what's read, sent and stored, how Takes follows Anthropic's and OpenAI's rules, and what the website counts.
 
 ## Costs and responsibility
 
@@ -102,7 +119,7 @@ Takes is free, but the model it calls isn't always:
 - **OpenAI or other API key:** you're billed by that provider for the tokens each run uses. Takes doesn't cap your spending; set a limit in the provider's console.
 - **Local model:** free, but it runs on your Mac's memory, CPU and battery.
 
-What makes a run use more: more takes, a bigger model (Opus over Sonnet over Haiku), higher effort, a long draft or reply context, and write-like-me examples. Each of these is a request of its own: the tone notes after the takes (Haiku, unless you turn "Show tone" off), ⌘T, refine, "More like take N" and ⌘R.
+What makes a run use more: more takes, a bigger model (Opus over Sonnet over Haiku), higher effort, a long draft or reply context, and write-like-me examples. Each of these is a request of its own: the tone notes after the takes (Haiku, unless you turn "Show tone" off), ⌘T, refine, "More like take N" and ⌘R. The English coach, if you turn it on, adds one short check per English draft on your engine's quick model, about 1,000 tokens.
 
 Takes are written by an AI model. They can be wrong, miss your meaning or sound different from what you intended, and they're only as good as the preset's instructions, examples and the model you pick. Read a take before you send it. What you send, and to whom, is up to you. Takes is provided as is, without warranty (see the [License](LICENSE)).
 
@@ -164,6 +181,6 @@ Takes is free, has no ads or paid tier, and is built in spare time. If it saves 
 
 ## License
 
-The code is released under the [MIT License](LICENSE). The "Takes" name and icon aren't covered by the license; please don't use them for your own fork or product.
+The code is released under the [MIT License](LICENSE). The "Takes" name, logo and icon aren't covered by the license; please don't use them for your own fork or product. Third-party software Takes includes, such as [Sparkle](https://sparkle-project.org), is listed with its licenses in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
-Takes isn't made, endorsed or supported by Anthropic, OpenAI or any other provider. It runs Claude Code or calls a provider's API with your own account.
+Takes isn't made, endorsed or supported by Anthropic, OpenAI or any other provider. It runs Claude Code or calls a provider's API with your own account. Claude and Claude Code are trademarks of Anthropic, PBC; ChatGPT and OpenAI are trademarks of OpenAI; Mac and macOS are trademarks of Apple Inc. Other product names belong to their owners.

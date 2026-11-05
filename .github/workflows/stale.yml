@@ -1,0 +1,47 @@
+# Closes issues and pull requests that are waiting on their author, and nothing else.
+#
+# - Only items labelled "needs info" (an issue missing details) or "waiting on author" (a pull request
+#   with review comments to address) are touched. Bugs and ideas are never closed just for being old.
+# - Issues get a reminder after 14 days without activity and pull requests after 23; both close
+#   7 days after the reminder. Any reply removes the stale label.
+name: Stale
+
+on:
+  schedule:
+    - cron: "41 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: stale
+  cancel-in-progress: false
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # v11.0.0
+        with:
+          only-issue-labels: needs info
+          only-pr-labels: waiting on author
+          days-before-stale: 14
+          days-before-pr-stale: 23
+          days-before-close: 7
+          stale-issue-label: stale
+          stale-pr-label: stale
+          stale-issue-message: >
+            This issue is waiting for more details. Without a reply it will close in 7 days.
+            You can reply at any time, even after it closes, and it will be looked at again.
+          close-issue-message: >
+            Closed because the details needed to look into it didn't arrive. Reply with them and it will be reopened.
+          stale-pr-message: >
+            This pull request is waiting on changes from its author. Without activity it will close in 7 days.
+            Push a commit or reply to keep it open.
+          close-pr-message: >
+            Closed after a month without activity. Thanks for the work. You're welcome to reopen it when you have time.
+          exempt-issue-labels: security
+          operations-per-run: 60

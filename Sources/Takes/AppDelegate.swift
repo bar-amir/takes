@@ -1,9 +1,10 @@
 import AppKit
+import Carbon
 import Combine
 import Sparkle
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var statusItem: NSStatusItem!
     private let panel = PanelController()
     private lazy var instant = InstantModeController(panel: panel)
@@ -46,6 +47,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         OnboardingWindowController.shared.openPractice = { [weak self] text, frame, paste, cancel in
             self?.panel.summonPractice(text: text, boxFrame: frame, paste: paste, cancel: cancel)
         }
+        // Onboarding's last step hands off to the menu bar: point at the real icon.
+        OnboardingWindowController.shared.onFinished = { [weak self] in self?.showStatusPopover(.welcome) }
+        let popover = StatusPopoverController.shared
+        popover.tryIt = { [weak self] in
+            self?.panel.summonPractice(text: Onboarding.sampleDraft, boxFrame: nil, paste: { _ in }, cancel: {})
+        }
+        popover.openPanel = { [weak self] in
+            // Opened from Finder, Takes is frontmost; give the keyboard back to the app the user was in first.
+            NSApp.hide(nil)
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 250_000_000)
+                self?.summonPanel()
+            }
+        }
+        popover.openSettings = { [weak self] in self?.openPresets() }
+        popover.finishSetup = { [weak self] in self?.showSetup() }
         Task {
             await monitor.refreshEngine()
             // New users get onboarding; people who had Takes before never do, and get the setup window if needed.
@@ -55,6 +72,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 SetupWindowController.shared.show()
             }
         }
+    }
+
+    /// Opening Takes again (Finder, Spotlight, Launchpad) while it's running: resume onboarding if it isn't
+    /// finished, otherwise point at the menu-bar icon, which is where Takes lives.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if Onboarding.shouldShow(Store.shared.settings) {
+            OnboardingWindowController.shared.show()
+        } else {
+            showStatusPopover(.reopen(missing: SetupMonitor.shared.missingSummary))
+        }
+        return false
+    }
+
+    private func showStatusPopover(_ kind: StatusPopoverController.Kind) {
+        guard let button = statusItem.button else { return }
+        StatusPopoverController.shared.show(kind, from: button)
     }
 
     /// Opens the panel, or the setup window when Takes can't work yet.
@@ -94,46 +127,124 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if freed { registerHotKeys() }
     }
 
+    /// The status menu: Open Takes and Presets first, then what Takes is set to, then Settings and the app items.
+    /// Show run log and Support Takes are ⌥ alternates. While setup is incomplete, its item stays at the top.
     private func rebuildStatusMenu() {
         let monitor = SetupMonitor.shared
+        let store = Store.shared
         statusItem.button?.image = BrandMark.menuBarImage(alert: !monitor.allSet)
         let menu = NSMenu()
+        menu.delegate = self
         if !monitor.allSet {
-            let finish = NSMenuItem(title: "Finish setting up Takes…", action: #selector(showSetup), keyEquivalent: "")
-            finish.target = self
-            menu.addItem(finish)
+            menu.addItem(item("Finish setting up Takes…", #selector(showSetup)))
             menu.addItem(.separator())
         }
-        let open = NSMenuItem(title: "Open Takes   \(Store.shared.settings.summonHotKey.display)", action: #selector(summon), keyEquivalent: "")
-        open.target = self
+        let open = item("Open Takes", #selector(summon))
+        let hotKey = store.settings.summonHotKey
+        if let equivalent = hotKey.menuKeyEquivalent {
+            open.keyEquivalent = equivalent.key
+            open.keyEquivalentModifierMask = equivalent.modifiers
+        } else {
+            open.title = "Open Takes   \(hotKey.display)"
+        }
         menu.addItem(open)
-        menu.addItem(.separator())
-        for tab in SettingsTab.allCases {
-            let item = NSMenuItem(title: "\(tab.rawValue)…", action: #selector(openSettings(_:)), keyEquivalent: "")
-            item.representedObject = tab.rawValue
-            item.target = self
-            menu.addItem(item)
+
+        let presets = NSMenuItem(title: "Presets", action: nil, keyEquivalent: "")
+        let presetMenu = NSMenu(title: "Presets")
+        for preset in store.presets {
+            let run = item(preset.name, #selector(runPreset(_:)))
+            run.representedObject = preset.id
+            if let equivalent = preset.hotKey?.menuKeyEquivalent {
+                run.keyEquivalent = equivalent.key
+                run.keyEquivalentModifierMask = equivalent.modifiers
+            }
+            presetMenu.addItem(run)
         }
-        let setup = NSMenuItem(title: "Setup and permissions…", action: #selector(showSetup), keyEquivalent: "")
-        setup.target = self
-        menu.addItem(setup)
+        presetMenu.addItem(.separator())
+        presetMenu.addItem(item("Edit Presets…", #selector(openPresets)))
+        presets.submenu = presetMenu
+        menu.addItem(presets)
+
         menu.addItem(.separator())
-        let log = NSMenuItem(title: "Show run log", action: #selector(showLog), keyEquivalent: "")
-        log.target = self
-        menu.addItem(log)
-        let about = NSMenuItem(title: "About Takes", action: #selector(showAbout), keyEquivalent: "")
-        about.target = self
-        menu.addItem(about)
-        let support = NSMenuItem(title: "Support Takes…", action: #selector(showSponsors), keyEquivalent: "")
-        support.target = self
-        menu.addItem(support)
+        coachItem.isEnabled = false
+        modelItem.isEnabled = false
+        updateStatusRows()
+        menu.addItem(coachItem)
+        menu.addItem(modelItem)
+
+        menu.addItem(.separator())
+        let settings = item("Settings…", #selector(openPresets))
+        settings.keyEquivalent = ","
+        settings.keyEquivalentModifierMask = .command
+        menu.addItem(settings)
+
+        let check = NSMenuItem(title: "Check for Updates…", action: nil, keyEquivalent: "")
         if let updater = Updater.shared.controller {
-            let check = NSMenuItem(title: "Check for Updates…", action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)), keyEquivalent: "")
+            check.action = #selector(SPUStandardUpdaterController.checkForUpdates(_:))
             check.target = updater
-            menu.addItem(check)
         }
+        check.keyEquivalentModifierMask = []
+        menu.addItem(check)
+        menu.addItem(alternate(item("Support Takes…", #selector(showSponsors))))
+        let about = item("About Takes", #selector(showAbout))
+        about.keyEquivalentModifierMask = []
+        menu.addItem(about)
+        menu.addItem(alternate(item("Show run log", #selector(showLog))))
+        menu.addItem(.separator())
         menu.addItem(withTitle: "Quit Takes", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         statusItem.menu = menu
+    }
+
+    private let coachItem = NSMenuItem(title: "English Coach: off", action: nil, keyEquivalent: "")
+    private let modelItem = NSMenuItem(title: "Model", action: nil, keyEquivalent: "")
+
+    /// The status rows read what's set now, so they're refreshed each time the menu opens.
+    private func updateStatusRows() {
+        let settings = Store.shared.settings
+        coachItem.title = Self.coachStatus(enabled: settings.coach.enabled, lessonsReady: Self.lessonsReady())
+        modelItem.title = Self.modelStatus(settings)
+    }
+
+    func menuNeedsUpdate(_ menu: NSMenu) { updateStatusRows() }
+
+    /// Lessons the coach has put together that haven't been opened yet.
+    private static func lessonsReady() -> Int {
+        let coach = CoachStore.shared
+        return coach.stats().filter { $0.count >= CoachStore.lessonAt && coach.data.lessonsRead[$0.id] == nil }.count
+    }
+
+    nonisolated static func coachStatus(enabled: Bool, lessonsReady: Int) -> String {
+        guard enabled else { return "English Coach: off" }
+        switch lessonsReady {
+        case 0: return "English Coach: on"
+        case 1: return "English Coach: on · 1 lesson ready"
+        default: return "English Coach: on · \(lessonsReady) lessons ready"
+        }
+    }
+
+    static func modelStatus(_ settings: AppSettings) -> String {
+        let engine: String, model: String
+        switch settings.engine {
+        case .claudeCode: engine = "Claude Code"; model = Models.label(settings.defaultModel)
+        case .apiKey: engine = "Anthropic API"; model = Models.label(settings.defaultModel)
+        case .chatGPT: engine = "ChatGPT"; model = settings.chatGPTModel
+        case .provider: engine = Provider.current(settings).name; model = settings.providerModel
+        case .local: engine = LocalServerKind.displayName(settings.localBaseURL); model = settings.localModel
+        }
+        return model.isEmpty ? "Model: \(engine)" : "Model: \(engine) · \(model)"
+    }
+
+    private func item(_ title: String, _ action: Selector) -> NSMenuItem {
+        let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
+        item.target = self
+        return item
+    }
+
+    /// Shown in place of the item above it while ⌥ is held.
+    private func alternate(_ item: NSMenuItem) -> NSMenuItem {
+        item.keyEquivalentModifierMask = .option
+        item.isAlternate = true
+        return item
     }
 
     /// Takes shows no menu bar, but the Edit menu's shortcuts still work in the Settings window.
@@ -173,15 +284,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func openPresets() { SettingsWindowController.shared.show(tab: .presets) }
 
-    @objc private func openSettings(_ sender: NSMenuItem) {
-        guard let raw = sender.representedObject as? String, let tab = SettingsTab(rawValue: raw) else { return }
-        SettingsWindowController.shared.show(tab: tab)
+    @objc private func runPreset(_ sender: NSMenuItem) {
+        guard let id = sender.representedObject as? String else { return }
+        summonPanel(presetID: id)
     }
 
     @objc private func showAbout() {
         NSApp.activate(ignoringOtherApps: true)
         NSApp.orderFrontStandardAboutPanel(options: [
-            .credits: NSAttributedString(string: "Rewrite anything, in any text box, with Claude or a model of your choice.\ngithub.com/bar-amir/takes"),
+            .credits: NSAttributedString(string: "A few ways to say it, in any Mac app, with Claude or a model of your choice.\ngithub.com/bar-amir/takes\n\nAn independent app, not made or endorsed by Anthropic, OpenAI or any other model provider. Uses Sparkle (MIT License) for updates; see THIRD-PARTY-NOTICES.md."),
         ])
     }
 
@@ -191,5 +302,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func showLog() {
         NSWorkspace.shared.activateFileViewerSelecting([RunLog.url])
+    }
+}
+
+extension KeyCombo {
+    /// The combo as a menu item's key equivalent and modifier mask, so AppKit draws and aligns the glyphs itself;
+    /// nil for a key a menu can't show that way.
+    var menuKeyEquivalent: (key: String, modifiers: NSEvent.ModifierFlags)? {
+        var modifiers: NSEvent.ModifierFlags = []
+        if self.modifiers & UInt32(controlKey) != 0 { modifiers.insert(.control) }
+        if self.modifiers & UInt32(optionKey) != 0 { modifiers.insert(.option) }
+        if self.modifiers & UInt32(shiftKey) != 0 { modifiers.insert(.shift) }
+        if self.modifiers & UInt32(cmdKey) != 0 { modifiers.insert(.command) }
+        let name = String(display.drop { "⌃⌥⇧⌘".contains($0) })
+        func function(_ key: Int) -> String { String(UnicodeScalar(UInt16(key)).map(Character.init) ?? " ") }
+        let named: [String: String] = [
+            "Space": " ", "↵": "\r", "⇥": "\t", "⌫": "\u{8}", "Esc": "\u{1b}",
+            "←": function(NSLeftArrowFunctionKey), "→": function(NSRightArrowFunctionKey),
+            "↑": function(NSUpArrowFunctionKey), "↓": function(NSDownArrowFunctionKey),
+        ]
+        if let key = named[name] { return (key, modifiers) }
+        if name.count >= 2, name.first == "F", let n = Int(name.dropFirst()), (1...12).contains(n) {
+            return (function(NSF1FunctionKey + n - 1), modifiers)
+        }
+        guard name.count == 1 else { return nil }
+        return (name.lowercased(), modifiers)
     }
 }

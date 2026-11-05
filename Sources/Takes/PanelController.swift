@@ -52,6 +52,11 @@ final class PanelController {
             self?.close()
             SettingsWindowController.shared.show(tab: .presets, gallery: true)
         }
+        model.onSetUpCoach = { [weak self] patterns in
+            self?.close()
+            CoachSetupRequest.shared.pending = patterns
+            SettingsWindowController.shared.show(tab: .coach, newPreset: false)
+        }
         model.dictation.onRegainFocus = { [weak self] in self?.panel?.makeKey() }
         model.textSelectionActive = { [weak self] in
             guard let textView = self?.panel?.firstResponder as? NSTextView else { return false }
@@ -105,9 +110,94 @@ final class PanelController {
         configure(model)
         let panel = self.panel ?? makePanel()
         self.panel = panel
+        let wasVisible = panel.isVisible
         lastScreen = nil
         layout()
+        if wasVisible {
+            panel.makeKeyAndOrderFront(nil)
+        } else {
+            summonAnimated(panel)
+        }
+    }
+
+    // MARK: Motion
+
+    /// The panel grows from the caret: scale 0.96 → 1 and a fade, 180 ms. Reduce Motion: the fade only.
+    private func summonAnimated(_ panel: KeyPanel) {
+        panel.alphaValue = 0
         panel.makeKeyAndOrderFront(nil)
+        if !Motion.reduceMotion, let view = panel.contentView {
+            view.wantsLayer = true
+            view.layoutSubtreeIfNeeded()
+            let anchor = caretRect.map { caret in
+                CGPoint(x: min(max(caret.midX - panel.frame.minX, 0), panel.frame.width),
+                        y: min(max(caret.midY - panel.frame.minY, 0), panel.frame.height))
+            } ?? CGPoint(x: view.bounds.midX, y: view.bounds.midY)
+            view.layer?.add(Self.scale(from: 0.96, to: 1, about: anchor, duration: Motion.standard), forKey: "summon")
+        }
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = Motion.standard
+            context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            panel.animator().alphaValue = 1
+        }
+    }
+
+    /// A scale animation about a point in the layer, ending where the layer already is.
+    static func scale(from: CGFloat, to: CGFloat, about point: CGPoint, duration: Double) -> CABasicAnimation {
+        func transform(_ scale: CGFloat) -> CATransform3D {
+            var t = CATransform3DMakeTranslation(point.x, point.y, 0)
+            t = CATransform3DScale(t, scale, scale, 1)
+            return CATransform3DTranslate(t, -point.x, -point.y, 0)
+        }
+        let animation = CABasicAnimation(keyPath: "transform")
+        animation.fromValue = transform(from)
+        animation.toValue = transform(to)
+        animation.duration = duration
+        animation.timingFunction = CAMediaTimingFunction(name: .easeOut)
+        return animation
+    }
+
+    /// Dismissing is faster than summoning (120 ms). The panel itself leaves at once, so focus and the paste go back
+    /// to the app straight away; a still picture of it fades and shrinks a little in its place.
+    private func dismissAnimated(_ panel: NSPanel) {
+        guard panel.isVisible else { return }
+        guard let view = panel.contentView, let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else {
+            panel.orderOut(nil)
+            return
+        }
+        view.cacheDisplay(in: view.bounds, to: rep)
+        let image = NSImage(size: view.bounds.size)
+        image.addRepresentation(rep)
+        let ghost = NSPanel(contentRect: panel.frame, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+        ghost.isOpaque = false
+        ghost.backgroundColor = .clear
+        ghost.hasShadow = true
+        ghost.level = panel.level
+        ghost.ignoresMouseEvents = true
+        ghost.collectionBehavior = panel.collectionBehavior
+        let imageView = NSImageView(frame: NSRect(origin: .zero, size: panel.frame.size))
+        imageView.image = image
+        imageView.imageScaling = .scaleAxesIndependently
+        imageView.wantsLayer = true
+        imageView.layer?.cornerRadius = 12
+        imageView.layer?.masksToBounds = true
+        ghost.contentView = imageView
+        ghost.orderFrontRegardless()
+        panel.orderOut(nil)
+        if !Motion.reduceMotion {
+            let size = imageView.bounds.size
+            let shrink = Self.scale(from: 1, to: 0.98, about: CGPoint(x: size.width / 2, y: size.height / 2), duration: Motion.quick)
+            shrink.fillMode = .forwards
+            shrink.isRemovedOnCompletion = false
+            imageView.layer?.add(shrink, forKey: "dismiss")
+        }
+        NSAnimationContext.runAnimationGroup({ context in
+            context.duration = Motion.quick
+            context.timingFunction = CAMediaTimingFunction(name: .easeIn)
+            ghost.animator().alphaValue = 0
+        }, completionHandler: {
+            ghost.orderOut(nil)
+        })
     }
 
     private func makePanel() -> KeyPanel {
@@ -136,7 +226,7 @@ final class PanelController {
         guard let panel else { return }
         let size: CGSize
         switch model.screen {
-        case .compose: size = CGSize(width: 720, height: 400 + ReplyContextBar.extraHeight(model))
+        case .compose: size = CGSize(width: 720, height: ComposeView.height + ReplyContextBar.extraHeight(model))
         case .presets: size = CGSize(width: 800, height: 560)
         case .takes:
             let count = max(model.cardCount, model.takeCount)
@@ -217,7 +307,7 @@ final class PanelController {
     private func showMoreMenu() {
         guard let panel, let view = panel.contentView else { return }
         let menu = NSMenu()
-        let items: [(String, SettingsTab)] = [("Edit presets…", .presets), ("Voice rules…", .voice), ("English coach…", .coach), ("Engine and defaults…", .engine), ("History…", .history)]
+        let items: [(String, SettingsTab)] = [("Edit presets…", .presets), ("Writing rules…", .writing), ("English coach…", .coach), ("Model and defaults…", .model), ("History…", .history)]
         for (title, tab) in items {
             let item = NSMenuItem(title: title, action: #selector(MenuTarget.open(_:)), keyEquivalent: "")
             item.representedObject = tab.rawValue
@@ -233,7 +323,7 @@ final class PanelController {
 
     func close() {
         model.dictation.dismiss()
-        panel?.orderOut(nil)
+        if let panel { dismissAnimated(panel) }
         endPractice()
     }
 }

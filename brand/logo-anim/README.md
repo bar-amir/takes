@@ -17,3 +17,7 @@ Nine Higgsfield clips (Seedance 2.5, 5 s, 960×960, no audio) for the masthead l
 `process.py <name> <url>` downloads a master, measures the screen colour and the still frames at each end, and calls `key.sh`, which writes the transparent files in `site/img/logo/` (VP9-alpha WebM for Chrome and Firefox, HEVC-alpha MOV for Safari), trimmed so a hover always meets a moving clip.
 
 On the site the clip box is a square twice the logo's width, centred on it (`.logo-anim` in `site/index.html`). Each hover plays the next clip in turn.
+
+## The mark at the end of the page
+
+`t-swirl.mp4` is an endless loop for the t mark: the bubble filled with a cobalt, tomato and cream lava-lamp swirl that keeps flowing and trading colours, never resting on the flat mark. `t-swirl-frame.png` is its start and end image (the mark from `t-greenscreen.png` with the swirl painted in, so the loop closes on itself); the flat frame `t-greenscreen.png` is kept for other clips. `./key.sh t-swirl.mp4 ../../site/img/logo/tmark 00FF00` keys it untrimmed. `.mark-loop` in `site/index.html` plays it on a loop as soon as it scrolls near, with no hover, unless motion is reduced; the clip box is 214% of the mark (the mark is 46.7% of the frame).

@@ -1,47 +1,35 @@
 import AppKit
 import SwiftUI
 
-/// The "Your ChatGPT plan" card in Settings › Engine: sign in through the browser, pick a model, test it, manage usage.
-/// Text only: no OpenAI logo or colours (OpenAI's brand guidelines), and the sign-in button says "Continue with ChatGPT".
+/// The "Your ChatGPT plan" row's status in Settings › Model. It describes the sign-in, never which engine is in use,
+/// so it can't suggest the plan is writing while another engine is selected.
+struct ChatGPTEngineBadge: View {
+    @ObservedObject var signIn = ChatGPTSignIn.shared
+
+    var body: some View {
+        switch signIn.state {
+        case .signedIn(_, true): StatusBadge(text: "Signed in", good: true)
+        case .signedIn(_, false): StatusBadge(text: "Plan usage not allowed", good: false)
+        case .signingIn: ProgressView().controlSize(.mini).accessibilityLabel("Waiting for the browser")
+        default: Text("Plus or Pro").font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
+        }
+    }
+}
+
+/// The selected "Your ChatGPT plan" row in Settings › Model: sign in through the browser, pick a model, test it,
+/// manage usage. Text only: no OpenAI logo or colours (OpenAI's brand guidelines), and the sign-in button says
+/// "Continue with ChatGPT".
 struct ChatGPTEngineSettings: View {
     @ObservedObject var store = Store.shared
     @ObservedObject var signIn = ChatGPTSignIn.shared
     @ObservedObject var models = ChatGPTModels.shared
-    let selected: Bool
 
     enum TestState: Equatable { case idle, running, passed(Int), failed(String) }
     @State var test = TestState.idle
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                Text("Your ChatGPT plan").font(.system(size: 15, weight: .semibold))
-                badge
-            }
-            Text("Sign in with ChatGPT and write with the models in your Plus or Pro plan. No extra cost; your plan's limits apply.")
-                .font(.system(size: 13)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
-            if selected {
-                details.padding(.top, 4)
-            }
-        }
-        .task(id: signIn.canUsePlan) { if signIn.canUsePlan, !models.checked { await models.refresh() } }
-    }
-
-    @ViewBuilder private var badge: some View {
-        switch signIn.state {
-        case .signedIn(_, true): pill("Using ChatGPT plan", good: true)
-        case .signedIn(_, false): pill("Plan usage not allowed", good: false)
-        default: EmptyView()
-        }
-    }
-
-    private func pill(_ text: String, good: Bool) -> some View {
-        Text(text)
-            .font(.system(size: 11, weight: .semibold))
-            .padding(.horizontal, 8)
-            .padding(.vertical, 2)
-            .foregroundStyle(good ? Theme.doText : Theme.avoidText)
-            .background(Capsule().fill(good ? Theme.doFill : Theme.avoidFill))
+        details
+            .task(id: signIn.canUsePlan) { if signIn.canUsePlan, !models.checked { await models.refresh() } }
     }
 
     @ViewBuilder private var details: some View {

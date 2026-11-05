@@ -35,7 +35,7 @@ Use two ink colours plus the background in each piece. Longer reading text stays
 
 - **DIN Condensed Bold**, uppercase, for campaign headlines. Short, clear lines that give the logo an orderly partner.
 - **Arial** Regular and Bold for reading text and for drafts and takes, which should read like messages, not advertising.
-- **Courier New**, sparingly, for labels: TAKE 1/2/3, edition labels, small cues.
+- **JetBrains Mono** (Medium and Bold, SIL OFL 1.1), sparingly, for labels: TAKE 1/2/3, keycaps, small cues. The site and the app both use it; the app bundles it in `Resources/Fonts`.
 
 ## Voice
 

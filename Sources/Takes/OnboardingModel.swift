@@ -13,9 +13,23 @@ final class OnboardingModel: ObservableObject {
     @Published private(set) var flow: OnboardingFlow {
         didSet {
             if flow.progress != oldValue.progress { save(flow.progress) }
-            if flow.step != oldValue.step { onStepChange(flow.step) }
+            if flow.step != oldValue.step {
+                forward = flow.index >= oldValue.index
+                onStepChange(flow.step)
+            }
         }
     }
+    /// Which way the last step change went, so the new step pushes in from that side.
+    private(set) var forward = true
+    /// Claude Code was found on this Mac; Connect a model says so on its card.
+    @Published var claudeInstalled = false
+    /// Ollama or LM Studio answered with at least one model.
+    @Published var localRunning = false
+    /// The option Connect a model opens on; the rest are behind "Other ways to connect".
+    @Published var recommendedEngine = EngineKind.claudeCode
+    @Published var showOtherEngines = false
+    /// English Coach is on; when it's off, Done says it's offered later.
+    @Published var coachEnabled = false
     @Published var engineStatus = SetupMonitor.EngineStatus.checking
     @Published var engineKind = EngineKind.claudeCode {
         didSet { if engineKind != oldValue { onEngineKindChange(engineKind) } }
@@ -56,6 +70,8 @@ final class OnboardingModel: ObservableObject {
     /// The practice box's frame on screen, so the panel opens beside it.
     var practiceBoxFrame: () -> CGRect? = { nil }
     var autoAdvanceDelay: TimeInterval = 0.9
+    /// Saves the privacy consent; the app writes it to settings, tests and snapshots leave it.
+    var recordPrivacyAccepted: () -> Void = {}
 
     private var subscriptions: Set<AnyCancellable> = []
 
@@ -75,11 +91,15 @@ final class OnboardingModel: ObservableObject {
         let monitor = SetupMonitor.shared
         let store = Store.shared
         engineKind = store.settings.engine
+        recommendedEngine = engineKind
+        claudeInstalled = ClaudeCodeEngine.claudePath != nil
+        coachEnabled = store.settings.coach.enabled
         hotKey = store.settings.summonHotKey
         let installed = Set(store.presets.map(\.name))
         languages = store.settings.writingLanguages
         chosenPresets = Set(starters.map(\.name)).intersection(installed)
         saveLanguages = { languages in store.settings.languages = languages }
+        recordPrivacyAccepted = { store.settings.privacyAccepted = true }
         save = { progress in if store.settings.onboarding != progress { store.settings.onboarding = progress } }
         onEngineKindChange = { [weak self] kind in
             if store.settings.engine != kind { store.settings.engine = kind }
@@ -108,7 +128,32 @@ final class OnboardingModel: ObservableObject {
                 setConditions(read(accessibility, engine, taken, settings))
             }
             .store(in: &subscriptions)
+        detectEngine()
     }
+
+    /// Before Connect a model is reached, opens it on the option that already works on this Mac.
+    private func detectEngine() {
+        guard flow.index <= OnboardingStep.allCases.firstIndex(of: .engine) ?? 0, !flow.conditions.engineReady else { return }
+        Task { [weak self] in
+            await LocalModels.shared.refresh()
+            guard let self else { return }
+            let running = LocalModels.shared.running.contains { !($0.models ?? []).isEmpty }
+            localRunning = running
+            let pick = Onboarding.recommendedEngine(current: engineKind, currentReady: engineStatus.isReady,
+                                                    claudeInstalled: claudeInstalled, localRunning: running)
+            recommendedEngine = pick
+            if pick != engineKind, !engineStatus.isReady { engineKind = pick }
+        }
+    }
+
+    /// The engines in the order Connect a model lists them: the recommended one first.
+    var engineOrder: [EngineKind] {
+        let all: [EngineKind] = [.claudeCode, .apiKey, .chatGPT, .provider, .local]
+        return [recommendedEngine] + all.filter { $0 != recommendedEngine }
+    }
+
+    /// Get started on the opening screen.
+    func openingDone() { go { $0.progress.openingSeen = true } }
 
     /// New conditions. A step that has just come true shows its check, then moves on by itself.
     func setConditions(_ conditions: OnboardingConditions) {
@@ -160,8 +205,7 @@ final class OnboardingModel: ObservableObject {
 
     var canSkip: Bool {
         switch step {
-        case .hotkey: return !flow.isCurrentSatisfied
-        case .presets: return true
+        case .personalize: return true
         case .practice: return practiceStage != .pasted
         default: return false
         }
@@ -169,19 +213,27 @@ final class OnboardingModel: ObservableObject {
 
     // MARK: Primary action
 
+    /// What Connect a model's button does for the picked engine, before "Understood, " is put in front of it.
+    private var engineAction: String {
+        switch engineKind {
+        case .apiKey: return "Save key"
+        case .local: return engineStatus == .checking ? "Checking…" : "Check again"
+        case .chatGPT: return ChatGPTSignIn.shared.state == .signingIn ? "Waiting for the browser…" : "Continue with ChatGPT"
+        case .provider: return "Open Engine settings"
+        case .claudeCode: return engineStatus == .checking ? "Checking…" : "Open Terminal"
+        }
+    }
+
     var primaryTitle: String {
         switch step {
-        case .welcome: return "Get started"
         case .accessibility: return flow.isCurrentSatisfied ? "Continue" : "Open System Settings"
         case .engine:
             if flow.isCurrentSatisfied { return "Continue" }
-            if engineKind == .apiKey { return "Save key" }
-            if engineKind == .local { return engineStatus == .checking ? "Checking…" : "Check again" }
-            if engineKind == .chatGPT { return ChatGPTSignIn.shared.state == .signingIn ? "Waiting for the browser…" : "Continue with ChatGPT" }
-            if engineKind == .provider { return "Open Engine settings" }
-            return engineStatus == .checking ? "Checking…" : "Copy command and open Terminal"
-        case .privacy: return flow.isCurrentSatisfied ? "Continue" : "I understand"
-        case .hotkey, .presets: return "Continue"
+            // Reading where the text goes is part of this step; the button says so until it's been accepted.
+            let action = flow.conditions.engineReady ? "Continue" : engineAction
+            if flow.conditions.privacyAccepted || action.hasSuffix("…") { return action }
+            return "Understood, " + action.prefix(1).lowercased() + action.dropFirst()
+        case .personalize: return "Continue"
         case .practice: return practiceStage == .pasted ? "Continue" : "Open Takes"
         case .done: return "Start using Takes"
         }
@@ -190,12 +242,12 @@ final class OnboardingModel: ObservableObject {
     var primaryEnabled: Bool {
         switch step {
         case .engine:
-            if flow.isCurrentSatisfied { return true }
+            if flow.isCurrentSatisfied || flow.conditions.engineReady { return true }
             if engineKind == .apiKey { return !apiKeyInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
             if engineKind == .chatGPT { return ChatGPTSignIn.shared.state != .signingIn }
             if engineKind == .provider { return true }
             return engineStatus != .checking
-        case .presets: return !chosenPresets.isEmpty
+        case .personalize: return !chosenPresets.isEmpty
         case .practice: return practiceStage != .panelOpen
         default: return true
         }
@@ -204,20 +256,17 @@ final class OnboardingModel: ObservableObject {
     func primary() {
         guard primaryEnabled else { return }
         switch step {
-        case .welcome, .hotkey:
-            go { $0.next() }
         case .accessibility:
             if flow.isCurrentSatisfied { go { $0.next() } } else { SetupMonitor.shared.requestAccessibility() }
         case .engine:
+            acceptPrivacy()
             if flow.isCurrentSatisfied { go { $0.next() } }
             else if engineKind == .apiKey { saveAPIKey() }
             else if engineKind == .local { checkLocalEngine() }
             else if engineKind == .chatGPT { ChatGPTSignIn.shared.start() }
-            else if engineKind == .provider { SettingsWindowController.shared.show(tab: .engine) }
+            else if engineKind == .provider { SettingsWindowController.shared.show(tab: .model) }
             else { copySignInCommand() }
-        case .privacy:
-            acceptPrivacy()
-        case .presets:
+        case .personalize:
             applyPresets()
             go { $0.next() }
         case .practice:
@@ -229,14 +278,13 @@ final class OnboardingModel: ObservableObject {
 
     // MARK: Steps
 
+    /// Pressing Connect a model's "Understood, …" button: the user has read where their text goes.
     func acceptPrivacy() {
-        if !flow.conditions.privacyAccepted {
-            Store.shared.settings.privacyAccepted = true
-            var conditions = flow.conditions
-            conditions.privacyAccepted = true
-            go { _ = $0.update(conditions) }
-        }
-        go { $0.next() }
+        guard !flow.conditions.privacyAccepted else { return }
+        recordPrivacyAccepted()
+        var conditions = flow.conditions
+        conditions.privacyAccepted = true
+        go { _ = $0.update(conditions) }
     }
 
     /// Looks for Ollama / LM Studio again; picks the first installed model if none is picked yet.
@@ -322,9 +370,25 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
     /// While the practice step is on screen, the hotkey opens the panel on the practice box.
     var handlesHotKey: Bool { isVisible && model?.step == .practice }
 
+    /// Runs once onboarding's last step is done and its window has closed; the app points at the menu-bar icon.
+    var onFinished: () -> Void = {}
+
+    /// Opens onboarding where it was left: the opening screen first if Get started hasn't been pressed yet.
     func show() {
         let model = self.model ?? makeModel()
         self.model = model
+        if !model.flow.progress.openingSeen && window?.isVisible != true {
+            OpeningWindowController.shared.show { [weak self] in
+                model.openingDone()
+                self?.showSteps()
+            }
+            return
+        }
+        showSteps()
+    }
+
+    private func showSteps() {
+        guard let model else { return }
         let window = self.window ?? makeWindow(model: model)
         self.window = window
         Task { await SetupMonitor.shared.refreshEngine() }
@@ -341,6 +405,7 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
         model.onFinish = { [weak self] in
             self?.window?.close()
             // Anything still missing (a skipped hotkey) is in the setup window from here on.
+            self?.onFinished()
         }
         model.onStepChange = { [weak self] step in self?.stepChanged(step) }
         model.openPractice = { [weak self] text, frame, paste, cancel in

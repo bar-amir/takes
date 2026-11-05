@@ -42,6 +42,38 @@ final class SetupMonitor: ObservableObject {
         return "When you ask for takes, it sends your draft, your preset's instructions and any context you add straight from your Mac \(destination)."
     }
 
+    /// Who receives the draft with the chosen engine, for onboarding's "where your text goes": the company or
+    /// server, or nil when nothing leaves the Mac.
+    static func recipient(for settings: AppSettings) -> String? {
+        switch settings.engine {
+        case .claudeCode, .apiKey: return "Anthropic"
+        case .chatGPT: return "OpenAI"
+        case .provider:
+            let provider = Provider.current(settings)
+            return provider.id == "custom" ? "the server you added" : provider.name
+        case .local: return nil
+        }
+    }
+
+    /// One short line on what's still missing, for the menu-bar popover; nil when Takes is ready.
+    static func missingSummary(accessibility: Bool, engine: EngineStatus, privacyAccepted: Bool, hotKeyFree: Bool) -> String? {
+        var missing: [String] = []
+        if !accessibility { missing.append("allow Accessibility") }
+        if case .problem = engine { missing.append("connect a model") }
+        if !privacyAccepted { missing.append("review where text goes") }
+        if !hotKeyFree { missing.append("pick a free hotkey") }
+        switch missing.count {
+        case 0: return nil
+        case 1: return "One thing left: \(missing[0])."
+        default: return "\(missing.count) things left to set up."
+        }
+    }
+
+    /// `missingSummary` for the Mac right now.
+    var missingSummary: String? {
+        Self.missingSummary(accessibility: accessibility, engine: engine, privacyAccepted: privacyAccepted, hotKeyFree: takenHotKeys.isEmpty)
+    }
+
     /// The reminder to check a take, naming Claude only when it's Claude writing.
     static func mistakesNote(for settings: AppSettings) -> String {
         (settings.engine.isClaude ? "Claude" : "Models") + " can get things wrong, and takes are only as good as your preset's instructions. Read a take before you send it: what you send is up to you."
@@ -172,7 +204,7 @@ struct SetupView: View {
             HStack {
                 Button("Open Settings") {
                     onDone()
-                    SettingsWindowController.shared.show(tab: .engine)
+                    SettingsWindowController.shared.show(tab: .model)
                 }
                 .buttonStyle(SecondaryButtonStyle(height: 36))
                 Spacer()
@@ -233,7 +265,7 @@ struct SetupView: View {
                         }
                         Button("Use an API key instead") {
                             onDone()
-                            SettingsWindowController.shared.show(tab: .engine)
+                            SettingsWindowController.shared.show(tab: .model)
                         }
                     }
                     Text("Paste the command in Terminal, sign in in the browser, then paste the code it shows back into Terminal.")
@@ -242,7 +274,7 @@ struct SetupView: View {
                 } else {
                     Button(engineButton) {
                         onDone()
-                        SettingsWindowController.shared.show(tab: .engine)
+                        SettingsWindowController.shared.show(tab: .model)
                     }
                     .buttonStyle(PrimaryButtonStyle())
                 }
@@ -302,7 +334,7 @@ struct SetupView: View {
             if !free {
                 Button("Change shortcut") {
                     onDone()
-                    SettingsWindowController.shared.show(tab: .engine)
+                    SettingsWindowController.shared.show(tab: .model)
                 }
                 .buttonStyle(PrimaryButtonStyle())
             }

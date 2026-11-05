@@ -15,7 +15,10 @@ struct StepBadge: View {
             if state == .current { Circle().stroke(Theme.accent, lineWidth: 1.5).frame(width: size, height: size) }
             switch state {
             case .done:
-                Image(systemName: "checkmark").font(.system(size: size * 0.43, weight: .bold)).foregroundStyle(Theme.doText)
+                DrawnCheck(lineWidth: max(1.5, size * 0.09))
+                    .foregroundStyle(Theme.doText)
+                    .frame(width: size * 0.44, height: size * 0.44)
+                    .transition(.opacity)
             case .skipped:
                 Image(systemName: "minus").font(.system(size: size * 0.43, weight: .bold)).foregroundStyle(Theme.tertiaryText)
             default:
@@ -31,6 +34,33 @@ struct StepBadge: View {
         case .done: return Theme.doFill
         case .current: return Theme.accentSoft
         case .skipped, .todo: return Theme.kbdFill
+        }
+    }
+}
+
+/// A check that draws itself on with a stroke when it appears (300 ms), or is simply there under Reduce Motion.
+struct DrawnCheck: View {
+    var lineWidth: CGFloat = 2
+    @State private var drawn: CGFloat = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        CheckShape()
+            .trim(from: 0, to: reduceMotion ? 1 : drawn)
+            .stroke(style: StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round))
+            .onAppear {
+                guard drawn == 0 else { return }
+                withAnimation(.easeOut(duration: 0.3)) { drawn = 1 }
+            }
+    }
+
+    struct CheckShape: Shape {
+        func path(in rect: CGRect) -> Path {
+            var path = Path()
+            path.move(to: CGPoint(x: rect.minX, y: rect.minY + rect.height * 0.55))
+            path.addLine(to: CGPoint(x: rect.minX + rect.width * 0.38, y: rect.maxY - rect.height * 0.08))
+            path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY + rect.height * 0.12))
+            return path
         }
     }
 }

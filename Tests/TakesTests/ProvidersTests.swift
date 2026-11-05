@@ -154,7 +154,7 @@ final class ProviderRequestTests: XCTestCase {
         XCTAssertEqual(error(429, #"{"error":{"message":"Rate limit reached"}}"#).message, "Over your provider's rate limit or out of credit.")
         XCTAssertEqual(error(402, #"{"error":{"message":"Insufficient credits"}}"#, .openRouter).kind, .rateLimited)
         XCTAssertEqual(error(404, #"{"error":{"message":"The model `gpt-x` does not exist or you do not have access to it."}}"#).message,
-                       "OpenAI doesn't have the model “gpt-x”. Pick another in Settings › Engine.")
+                       "OpenAI doesn't have the model “gpt-x”. Pick another in Settings › Model.")
         XCTAssertEqual(error(400, #"{"error":{"message":"Invalid model: nope"}}"#, .mistral, model: "nope").kind, .missingModel)
         XCTAssertEqual(error(503, "upstream down").message, "OpenAI is having trouble (HTTP 503). Try again in a minute.")
         XCTAssertEqual(error(400, #"{"error":"bad request body"}"#).message, "OpenAI error: bad request body")
@@ -372,7 +372,7 @@ final class ProviderEngineServerTests: XCTestCase {
             _ = try await engine.run(request(takes: 1, model: "nope")) { _ in }
             XCTFail("should fail")
         } catch {
-            XCTAssertEqual(error.localizedDescription, "OpenAI doesn't have the model “nope”. Pick another in Settings › Engine.")
+            XCTAssertEqual(error.localizedDescription, "OpenAI doesn't have the model “nope”. Pick another in Settings › Model.")
         }
         do {
             _ = try await ProviderEngine.models(provider: provider(server), key: "bad")
