@@ -48,6 +48,7 @@ struct ChatGPTEngine: TakesEngine {
                 case .completed, .incomplete:
                     finished = parsed
                 case .failed(let code, let message, let param):
+                    if let limit = Self.limitError(code: code) { throw limit }
                     throw EngineError.failed(Self.message(code: code, message: message, param: param, status: nil))
                 }
             }
@@ -130,17 +131,29 @@ struct ChatGPTEngine: TakesEngine {
         return request
     }
 
-    static func httpError(status: Int, body: Data, requestID: String?) -> EngineError {
+    static func httpError(status: Int, body: Data, requestID: String?) -> Error {
         let json = (try? JSONSerialization.jsonObject(with: body)) as? [String: Any]
         let error = json?["error"] as? [String: Any]
+        if let limit = limitError(code: error?["code"] as? String) { return limit }
         let message = error?["message"] as? String ?? json?["detail"] as? String
             ?? String(decoding: body.prefix(300), as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
-        return .failed(Self.message(code: error?["code"] as? String, message: message, param: error?["param"] as? String,
+        return EngineError.failed(Self.message(code: error?["code"] as? String, message: message, param: error?["param"] as? String,
                                     status: status, requestID: requestID))
     }
 
     static let usageLimitMessage = "You've used this week's ChatGPT allowance for Takes. Manage it in ChatGPT › Settings › Usage, or pick another engine."
     static let unavailableMessage = "Your ChatGPT plan can't be used in Takes right now. Check ChatGPT › Settings › Usage."
+
+    /// The plan's allowance is used up or can't be used: the fix is in ChatGPT's usage settings.
+    static func limitError(code: String?) -> UsageLimitError? {
+        switch code {
+        case "subscription_sharing_usage_limit_exceeded":
+            UsageLimitError(kind: .planLimit, message: usageLimitMessage, manage: ChatGPTOAuth.usageURL)
+        case "subscription_sharing_usage_unavailable":
+            UsageLimitError(kind: .planLimit, message: unavailableMessage, manage: ChatGPTOAuth.usageURL)
+        default: nil
+        }
+    }
 
     /// Plain words for OpenAI's error codes (errors-and-recovery); the HTTP status when there's no code.
     static func message(code: String?, message: String?, param: String?, status: Int?, requestID: String? = nil) -> String {

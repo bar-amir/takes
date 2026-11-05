@@ -39,8 +39,10 @@ struct APIEngine: TakesEngine {
             var data = Data()
             for try await byte in bytes { data.append(byte) }
             let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
-            let message = (json?["error"] as? [String: Any])?["message"] as? String ?? "HTTP \(http.statusCode)"
-            throw EngineError.failed("API error: \(message)")
+            let error = json?["error"] as? [String: Any]
+            throw Self.apiError(status: http.statusCode, type: error?["type"] as? String,
+                                message: error?["message"] as? String ?? "HTTP \(http.statusCode)",
+                                retryAfter: http.value(forHTTPHeaderField: "retry-after"))
         }
 
         var text = ""
@@ -60,8 +62,9 @@ struct APIEngine: TakesEngine {
             case "message_delta":
                 stopReason = (json["delta"] as? [String: Any])?["stop_reason"] as? String ?? stopReason
             case "error":
-                let message = (json["error"] as? [String: Any])?["message"] as? String ?? "stream error"
-                throw EngineError.failed("API error: \(message)")
+                let error = json["error"] as? [String: Any]
+                throw Self.apiError(status: nil, type: error?["type"] as? String,
+                                    message: error?["message"] as? String ?? "stream error", retryAfter: nil)
             default:
                 break
             }
@@ -73,6 +76,32 @@ struct APIEngine: TakesEngine {
         let takes = TakeSplitter.split(text, streaming: false)
         guard !takes.isEmpty else { throw EngineError.failed("Claude returned no takes.") }
         return EngineResult(takes: takes, wallMs: elapsedMs(), firstTextMs: firstTextMs)
+    }
+}
+
+extension APIEngine {
+    static let billingURL = URL(string: "https://console.anthropic.com/settings/billing")!
+    static let limitsURL = URL(string: "https://console.anthropic.com/settings/limits")!
+
+    /// Plain words for the Messages API's errors: https://docs.anthropic.com/en/api/errors
+    static func apiError(status: Int?, type: String?, message: String, retryAfter: String?) -> Error {
+        let lower = message.lowercased()
+        if type == "billing_error" || status == 402 || lower.contains("credit balance") {
+            return UsageLimitError(kind: .outOfCredit,
+                                   message: "Your Anthropic account is out of credit. Add credit in the Anthropic Console, or pick another engine.",
+                                   manage: billingURL)
+        }
+        // "You have reached your specified API usage limits. You will regain access on …"
+        if lower.contains("usage limit") || lower.contains("spend limit") {
+            let message = "Your Anthropic account reached the spend limit set for it. Raise the limit in the Anthropic Console, or pick another engine."
+            return UsageLimitError(kind: .planLimit, message: message, manage: limitsURL)
+        }
+        if type == "rate_limit_error" || status == 429 {
+            return UsageLimitError(kind: .rateLimited,
+                                   message: "Your Anthropic key hit its rate limit. \(UsageLimitError.retryHint(retryAfter))",
+                                   manage: limitsURL)
+        }
+        return EngineError.failed("API error: \(message)")
     }
 }
 

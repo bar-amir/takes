@@ -142,8 +142,10 @@ final class ProviderRequestTests: XCTestCase {
     }
 
     func testErrorWording() {
-        func error(_ status: Int, _ body: String, _ provider: Provider = .openAI, model: String = "gpt-x") -> ProviderError {
-            ProviderEngine.httpError(status: status, body: Data(body.utf8), provider: provider, model: model)
+        struct Wording { let message: String; let kind: ProviderError.Kind? }
+        func error(_ status: Int, _ body: String, _ provider: Provider = .openAI, model: String = "gpt-x") -> Wording {
+            let error = ProviderEngine.httpError(status: status, body: Data(body.utf8), provider: provider, model: model)
+            return Wording(message: error.localizedDescription, kind: (error as? ProviderError)?.kind)
         }
         XCTAssertEqual(error(401, #"{"error":{"message":"Incorrect API key provided"}}"#).message,
                        "The key was refused. Check it in your OpenAI dashboard.")
@@ -151,14 +153,41 @@ final class ProviderRequestTests: XCTestCase {
         // Gemini says a bad key with a 400, wrapped in an array.
         let gemini = error(400, #"[{"error":{"code":400,"message":"API key not valid. Please pass a valid API key."}}]"#, .gemini)
         XCTAssertEqual(gemini.message, "The key was refused. Check it in your Google Gemini dashboard.")
-        XCTAssertEqual(error(429, #"{"error":{"message":"Rate limit reached"}}"#).message, "Over your provider's rate limit or out of credit.")
-        XCTAssertEqual(error(402, #"{"error":{"message":"Insufficient credits"}}"#, .openRouter).kind, .rateLimited)
         XCTAssertEqual(error(404, #"{"error":{"message":"The model `gpt-x` does not exist or you do not have access to it."}}"#).message,
                        "OpenAI doesn't have the model “gpt-x”. Pick another in Settings › Model.")
         XCTAssertEqual(error(400, #"{"error":{"message":"Invalid model: nope"}}"#, .mistral, model: "nope").kind, .missingModel)
         XCTAssertEqual(error(503, "upstream down").message, "OpenAI is having trouble (HTTP 503). Try again in a minute.")
         XCTAssertEqual(error(400, #"{"error":"bad request body"}"#).message, "OpenAI error: bad request body")
         XCTAssertEqual(error(401, "", .custom(baseURL: "https://x.example.com/v1")).message, "The server refused the key. Check it and try again.")
+    }
+
+    func testLimitErrors() {
+        func limit(_ status: Int, _ body: String, _ provider: Provider = .openAI, retryAfter: String? = nil) -> UsageLimitError? {
+            ProviderEngine.httpError(status: status, body: Data(body.utf8), provider: provider, model: "m", retryAfter: retryAfter)
+                as? UsageLimitError
+        }
+        let busy = limit(429, #"{"error":{"message":"Rate limit reached for gpt-x on tokens per min","code":"rate_limit_exceeded"}}"#,
+                         retryAfter: "20")
+        XCTAssertEqual(busy?.kind, .rateLimited)
+        XCTAssertEqual(busy?.message, "OpenAI is limiting requests from your key. Try again in 20 seconds.")
+
+        // OpenAI says "out of credit" with a 429.
+        let quota = limit(429, #"{"error":{"message":"You exceeded your current quota.","code":"insufficient_quota"}}"#)
+        XCTAssertEqual(quota?.kind, .outOfCredit)
+        XCTAssertEqual(quota?.manage, Provider.openAI.billingURL)
+        XCTAssertEqual(quota?.message,
+                       "OpenAI says your account is out of credit or quota. Check billing in your OpenAI dashboard, or pick another engine.")
+
+        let credits = limit(402, #"{"error":{"message":"Insufficient credits","code":402}}"#, .openRouter)
+        XCTAssertEqual(credits?.kind, .outOfCredit)
+        XCTAssertEqual(credits?.manage, URL(string: "https://openrouter.ai/settings/credits"))
+        // No billing page known: the key page.
+        XCTAssertEqual(limit(402, "", .mistral)?.manage, Provider.mistral.consoleURL)
+        // Gemini's quota errors come as a one-item array and mention billing.
+        let quotaBody = #"[{"error":{"code":429,"message":"You exceeded your current quota, please check your plan and billing details."}}]"#
+        let gemini = limit(429, quotaBody, .gemini)
+        XCTAssertEqual(gemini?.kind, .outOfCredit)
+        XCTAssertNil(limit(402, "", .custom(baseURL: "https://x.example.com/v1"))?.manage)
     }
 
     func testSplitting() {

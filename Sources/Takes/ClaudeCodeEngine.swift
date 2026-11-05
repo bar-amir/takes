@@ -106,8 +106,7 @@ struct ClaudeCodeEngine: TakesEngine {
                     return
                 }
                 if result["is_error"] as? Bool == true {
-                    let message = result["result"] as? String ?? "unknown error"
-                    continuation.resume(throwing: EngineError.failed(Self.errorMessage(message)))
+                    continuation.resume(throwing: Self.resultError(result["result"] as? String ?? "unknown error"))
                     return
                 }
                 // The result line holds the full text; prefer it over the streamed pieces.
@@ -119,6 +118,41 @@ struct ClaudeCodeEngine: TakesEngine {
                 continuation.resume(returning: EngineResult(takes: takes, wallMs: elapsedMs(), firstTextMs: firstTextMs))
             }
         }
+    }
+
+    static let usageURL = URL(string: "https://claude.ai/settings/usage")!
+
+    /// The error for a result line with `is_error`, in plain words for plan limits and credit.
+    static func resultError(_ message: String, now: Date = Date()) -> Error {
+        let lower = message.lowercased()
+        if lower.contains("credit balance") {
+            let message = "The Anthropic account Claude Code uses is out of credit. Add credit in the Anthropic Console, or pick another engine."
+            return UsageLimitError(kind: .outOfCredit, message: message, manage: APIEngine.billingURL)
+        }
+        // "Claude AI usage limit reached|1767225600", "5-hour limit reached ∙ resets 3pm", "You've hit your limit · resets 3pm"
+        if lower.contains("limit reached") || lower.contains("hit your limit") || lower.contains("usage limit") {
+            let reset = resetPhrase(message, now: now).map { " \($0)" } ?? ""
+            return UsageLimitError(kind: .planLimit,
+                                   message: "You've reached your Claude plan's usage limit.\(reset) Pick another engine to keep going.",
+                                   manage: usageURL)
+        }
+        return EngineError.failed(errorMessage(message))
+    }
+
+    /// "It resets 3pm." from Claude Code's limit message: a "resets …" phrase, or a Unix time after "|".
+    static func resetPhrase(_ message: String, now: Date = Date()) -> String? {
+        if let bar = message.lastIndex(of: "|"),
+           let seconds = TimeInterval(message[message.index(after: bar)...].trimmingCharacters(in: .whitespaces)) {
+            let date = Date(timeIntervalSince1970: seconds)
+            guard date > now else { return nil }
+            let formatter = DateFormatter()
+            formatter.timeStyle = .short
+            formatter.dateStyle = Calendar.current.isDate(date, inSameDayAs: now) ? .none : .medium
+            return "It resets \(Calendar.current.isDate(date, inSameDayAs: now) ? "at " : "")\(formatter.string(from: date))."
+        }
+        guard let range = message.range(of: "resets ", options: .caseInsensitive) else { return nil }
+        let when = message[range.upperBound...].trimmingCharacters(in: .whitespacesAndNewlines.union(CharacterSet(charactersIn: ".")))
+        return when.isEmpty ? nil : "It resets \(when)."
     }
 
     /// Shown instead of the CLI's own wording when the login is the problem. Plain words, no commands: the

@@ -527,6 +527,36 @@ struct PresetPickerView: View {
     }
 }
 
+// MARK: - Limits
+
+/// Out of credit, at a plan limit, or rate limited: what happened, and the page that fixes it.
+struct LimitNotice: View {
+    let limit: UsageLimitError
+    @ObservedObject var model: PanelModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.inner) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(limit.title).font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.text)
+                Text(limit.message).font(.system(size: 14)).foregroundStyle(Theme.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+            }
+            .accessibilityElement(children: .combine)
+            HStack {
+                // Out of credit or at a plan limit, the fix is on the provider's site, so that's the primary action.
+                if let url = limit.manage, limit.kind != .rateLimited {
+                    Button(limit.manageTitle) { NSWorkspace.shared.open(url) }.buttonStyle(PrimaryButtonStyle())
+                        .accessibilityHint("Opens your account's usage page in the browser")
+                    Button("Try again", action: model.generate).buttonStyle(SecondaryButtonStyle(height: 36))
+                } else {
+                    Button("Try again", action: model.generate).buttonStyle(PrimaryButtonStyle())
+                }
+                Button("Change engine…") { model.onOpenSettings(.engine, false) }.buttonStyle(SecondaryButtonStyle(height: 36))
+            }
+        }
+    }
+}
+
 // MARK: - Takes
 
 struct TakesView: View {
@@ -546,20 +576,20 @@ struct TakesView: View {
 
             if let error = model.error {
                 VStack(alignment: .leading, spacing: Spacing.inner) {
-                    Text(error).font(.system(size: 14)).foregroundStyle(Theme.avoidText).textSelection(.enabled)
-                    HStack {
-                        if error == ChatGPTEngine.usageLimitMessage || error == ChatGPTEngine.unavailableMessage {
-                            // Usage limit: the fix is in ChatGPT's settings, so that's the primary action.
-                            Button("Manage usage") { NSWorkspace.shared.open(ChatGPTOAuth.usageURL) }.buttonStyle(PrimaryButtonStyle())
-                            Button("Try again", action: model.generate).buttonStyle(SecondaryButtonStyle(height: 36))
-                        } else if error == ClaudeCodeEngine.signedOutMessage {
-                            // Signed out: signing in is the fix, then Try again once it's done.
-                            Button("Sign in to Claude", action: ClaudeCodeEngine.openSignIn).buttonStyle(PrimaryButtonStyle())
-                            Button("Try again", action: model.generate).buttonStyle(SecondaryButtonStyle(height: 36))
-                        } else {
-                            Button("Try again", action: model.generate).buttonStyle(PrimaryButtonStyle())
+                    if let limit = model.limit {
+                        LimitNotice(limit: limit, model: model)
+                    } else {
+                        Text(error).font(.system(size: 14)).foregroundStyle(Theme.avoidText).textSelection(.enabled)
+                        HStack {
+                            if error == ClaudeCodeEngine.signedOutMessage {
+                                // Signed out: signing in is the fix, then Try again once it's done.
+                                Button("Sign in to Claude", action: ClaudeCodeEngine.openSignIn).buttonStyle(PrimaryButtonStyle())
+                                Button("Try again", action: model.generate).buttonStyle(SecondaryButtonStyle(height: 36))
+                            } else {
+                                Button("Try again", action: model.generate).buttonStyle(PrimaryButtonStyle())
+                            }
+                            Button("Edit draft") { model.show(.compose) }.buttonStyle(SecondaryButtonStyle(height: 36))
                         }
-                        Button("Edit draft") { model.show(.compose) }.buttonStyle(SecondaryButtonStyle(height: 36))
                     }
                 }
                 .padding(.horizontal, Spacing.gutter)
