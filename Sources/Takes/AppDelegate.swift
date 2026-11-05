@@ -128,14 +128,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     /// The status menu: Open Takes and Presets first, then what Takes is set to, then Settings and the app items.
-    /// Show run log and Support Takes are ⌥ alternates. While setup is incomplete, its item stays at the top.
+    /// Show run log and Support Takes are ⌥ alternates. Until onboarding is finished, "Finish setting up" stays at the
+    /// top; after that a missing piece shows as the alert dot on the icon, and the hotkey opens setup when it's blocking.
     private func rebuildStatusMenu() {
         let monitor = SetupMonitor.shared
         let store = Store.shared
         statusItem.button?.image = BrandMark.menuBarImage(alert: !monitor.allSet)
         let menu = NSMenu()
         menu.delegate = self
-        if !monitor.allSet {
+        if !store.settings.onboarding.finished && !monitor.allSet {
             menu.addItem(item("Finish setting up Takes…", #selector(showSetup)))
             menu.addItem(.separator())
         }
@@ -290,10 +291,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     @objc private func showAbout() {
-        NSApp.activate(ignoringOtherApps: true)
-        NSApp.orderFrontStandardAboutPanel(options: [
-            .credits: NSAttributedString(string: "A few ways to say it, in any Mac app, with Claude or a model of your choice.\ngithub.com/bar-amir/takes\n\nAn independent app, not made or endorsed by Anthropic, OpenAI or any other model provider. Uses Sparkle (MIT License) for updates; see THIRD-PARTY-NOTICES.md."),
-        ])
+        AboutWindowController.shared.show()
     }
 
     @objc private func showSponsors() {

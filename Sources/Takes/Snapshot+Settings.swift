@@ -39,6 +39,11 @@ extension Snapshot {
             renderSettingsTab(.model, dark: dark, to: url.appendingPathComponent("5-settings-model-api-key-\(suffix).png"))
             store.settings.engine = .claudeCode
             signIn.state = .signedOut
+            // The About window, with the logo's still frame in place of the loop.
+            let about = AboutView(still: true)
+            let aboutSize = NSHostingView(rootView: about).fittingSize
+            try? settingsBitmap(about.background(Theme.formBackground), size: aboutSize, dark: dark)?
+                .representation(using: .png, properties: [:])?.write(to: url.appendingPathComponent("5-about-\(suffix).png"))
         }
     }
 

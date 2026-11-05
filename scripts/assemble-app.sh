@@ -38,6 +38,7 @@ cp THIRD-PARTY-NOTICES.md "$APP/Contents/Resources/THIRD-PARTY-NOTICES.md"
 # Mono label font (JetBrains Mono, SIL OFL 1.1; license travels with it) and the onboarding opening photo.
 [[ -d Resources/Fonts ]] && ditto Resources/Fonts "$APP/Contents/Resources/Fonts"
 [[ -d Resources/Onboarding ]] && ditto Resources/Onboarding "$APP/Contents/Resources/Onboarding"
+[[ -d Resources/About ]] && ditto Resources/About "$APP/Contents/Resources/About"
 
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>

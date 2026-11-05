@@ -338,8 +338,11 @@ export function mount(el, name, { interactive = false, exportMode = false, part 
     const w = el.clientWidth || 800, h = el.clientHeight || 520; renderer.setSize(w, h, false);
     canvas.style.width = "100%"; canvas.style.height = "100%";
     camera.aspect = w / h; const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-    const fw = card ? 60 / 66 : 1, fh = card ? 1 / 1.26 : 1;
-    const d = Math.max(bounds[1] / 2 / (t * fh), bounds[0] / 2 / (t * camera.aspect * fw)) * (exportMode && !sprites ? (part ? 1.04 : 1.22) : name === "takes" ? 1.12 : 1.1 / zoom);
+    // On phones the card stacks the stage above its caption with no bleed, so the scene fills the whole stage.
+    const narrow = !exportMode && matchMedia("(max-width: 720px)").matches;
+    const fw = card && !narrow ? 60 / 66 : 1, fh = card && !narrow ? 1 / 1.26 : 1;
+    const air = narrow ? (name === "takes" ? 1.0 : 0.96 / zoom) : name === "takes" ? 1.12 : 1.1 / zoom;
+    const d = Math.max(bounds[1] / 2 / (t * fh), bounds[0] / 2 / (t * camera.aspect * fw)) * (exportMode && !sprites ? (part ? 1.04 : 1.22) : air);
     camera.position.set(0, 0, d + 1); camera.lookAt(0, 0, 0); camera.clearViewOffset(); camera.zoom = 1;
     camera.updateProjectionMatrix();
   }
