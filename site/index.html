@@ -407,7 +407,7 @@ fill="currentColor" stroke="none">
   <section class="product">
     <div class="wrap">
       <h2 class="display">Choice is the product.</h2>
-      <div class="layers" data-scene="takes" data-sprites="img/layers/parts" tabindex="0" aria-label="The Takes panel as floating layers: the draft above three takes of a Slack message, each with a note on how it may read. Point at a take, or use the arrow keys, to bring it to the front."><img src="img/layers/takes-front.webp?v=10" width="1500" height="1000" alt="The Takes panel as floating layers: the draft above three takes of a Slack message, each with a note on how it may read: direct and firm, warm and clear, brief and a bit curt. The middle take is lifted to the front."></div>
+      <div class="layers" data-scene="takes" data-sprites="img/layers/parts" tabindex="0" aria-label="The Takes panel as floating layers: the draft above three takes of a Slack message, each with a note on how it may read. Point at a take, or use the arrow keys, to bring it to the front."><img src="img/layers/takes-front.webp?v=12" width="1500" height="1000" alt="The Takes panel as floating layers: the draft above three takes of a Slack message, each with a note on how it may read: direct and firm, warm and clear, brief and a bit curt. The middle take is lifted to the front."></div>
       <p class="caption">Compare complete alternatives and how each may read. Inspect changes, refine a selected take, then paste it back.</p>
     </div>
   </section>
@@ -560,7 +560,7 @@ fill="currentColor" stroke="none">
     const twin = (slide) => { const sc = slide.querySelector(".slide-stage")?.dataset.scene; return all.filter((s) => s !== slide && s.querySelector(".slide-stage")?.dataset.scene === sc); };
     const wake = async (slide) => { const st = slide.querySelector(".slide-stage"); if (!st || live.has(st)) return; live.set(st, null);
       if (slide.dataset.clone) twin(slide).forEach((t) => { wake(t); const k = all.indexOf(t); if (live.size < 8) [all[k - 1], all[k + 1]].forEach((nb) => nb && wake(nb)); }); // a few contexts at most
-      try { lib = lib || await import("./js/layers.js?v=26");
+      try { lib = lib || await import("./js/layers.js?v=28");
         if (!live.has(st)) return;
         live.set(st, lib.mount(st, st.dataset.scene, { interactive: true, sprites: st.dataset.sprites, card: true, onReady: () => st.classList.add("live") }));
       } catch (err) { console.warn("layers: slide failed", st.dataset.scene, err); live.delete(st); } };
@@ -580,7 +580,7 @@ fill="currentColor" stroke="none">
   if (el && "IntersectionObserver" in window) {
     const io = new IntersectionObserver(async ([e]) => {
       if (!e.isIntersecting) return; io.disconnect();
-      try { const { mount } = await import("./js/layers.js?v=26"); mount(el, el.dataset.scene, { interactive: true, sprites: el.dataset.sprites, clips: "clips" in el.dataset, onReady: () => el.classList.add("live") }); }
+      try { const { mount } = await import("./js/layers.js?v=28"); mount(el, el.dataset.scene, { interactive: true, sprites: el.dataset.sprites, clips: "clips" in el.dataset, onReady: () => el.classList.add("live") }); }
       catch { /* no WebGL or offline: keep the still */ }
     }, { rootMargin: "300px" });
     io.observe(el);
