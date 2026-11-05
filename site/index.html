@@ -167,7 +167,7 @@ section h2 { font-size: clamp(52px, 6.4vw, 84px); }
 .cnav:disabled { opacity: .3; cursor: default; background: transparent; color: var(--ink); }
 .track { --gutter: max(24px, calc((100vw - 1368px) / 2 + 24px)); list-style: none; margin: -72px 0 -56px; padding: 72px var(--gutter) 56px; scroll-behavior: auto;
   display: grid; grid-auto-flow: column; grid-auto-columns: min(1320px, calc(100vw - 48px)); gap: 24px;
-  overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); scrollbar-width: none; }
+  overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-padding-inline: var(--gutter); scrollbar-width: none; }
 .track::-webkit-scrollbar { display: none; }
 .track:focus-visible { outline-offset: -3px; }
 .slide { position: relative; aspect-ratio: 2.3 / 1; border-radius: 24px; background: #ECE2D1 center / cover no-repeat; scroll-snap-align: start; }
