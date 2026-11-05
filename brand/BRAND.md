@@ -13,6 +13,7 @@ The short version of the brand book (Product Identity, October 2026). The book i
 | `t-mark-small.svg` | The same t with a heavier bubble rim, for 16–32 px: menu bar, `site/favicon.svg` and `site/favicon.ico`. The t keeps its exact shape. |
 | `foil-texture.jpg` | Holographic foil (generated), masked into the t for the Night edition. |
 | App icon, disk icon | The Night edition: Paper die-cut rim, Ink bubble, foil t. `scripts/render-foil.swift` draws them; `scripts/make-app-icon.sh` builds `Resources/AppIcon.icns`, `Resources/dmg/` (disk icon and install window) and the site's favicon fallbacks. |
+| `social/social-preview.jpg` | 1280×640 share image (generated with Higgsfield GPT Image 2.5 from `logo-anim/logo-greenscreen.png`, `logo-anim/t-swirl-frame.png` and `site/img/hero-og.jpg`): the wordmark as a marbled cobalt, tomato and cream slab on the sunlit paper desk. GitHub's social preview and the site's `og:image` (`site/img/social.jpg`). |
 
 - **Expressive outside, quiet inside.** The wordmark carries the brand on the web, in campaigns and on stickers. The app itself uses system type, Ink accents and native light and dark surfaces; preset and semantic colours keep their meaning.
 - Use the full wordmark only where the letters have room: **96 px wide minimum** on screen (192 px at 2x), **25 mm** in print. Below that, use the compact symbol. Never force the wordmark into 16–32 px.
