@@ -289,6 +289,27 @@ function frameRight(renderer, scene, camera) {
   renderer.render(scene, camera);
 }
 
+// ---------- device motion ----------
+// On phones the scenes follow the phone's tilt the way they follow the cursor on desktop. Readings are relative to how
+// the phone is being held: the resting angle drifts slowly toward the current one, so a slow change of grip re-centres.
+// iPhone Safari asks permission first, which needs a tap, so it's requested on the first touch anywhere on the page.
+const motion = { x: 0, y: 0, active: false };
+if (typeof window !== "undefined" && "DeviceOrientationEvent" in window && matchMedia("(pointer: coarse)").matches) {
+  let rest = null;
+  const clamp = (v) => Math.max(-1, Math.min(1, v));
+  const listen = () => addEventListener("deviceorientation", (e) => {
+    if (e.beta == null || e.gamma == null) return;
+    if (!rest) rest = { b: e.beta, g: e.gamma };
+    rest.b += (e.beta - rest.b) * 0.01; rest.g += (e.gamma - rest.g) * 0.01;
+    motion.x = clamp((e.gamma - rest.g) / 18); motion.y = clamp((rest.b - e.beta) / 18); motion.active = true;
+  });
+  if (typeof DeviceOrientationEvent.requestPermission === "function") {
+    const ask = () => { removeEventListener("touchend", ask);
+      DeviceOrientationEvent.requestPermission().then((r) => { if (r === "granted") listen(); }).catch(() => {}); };
+    addEventListener("touchend", ask, { passive: true });
+  } else listen();
+}
+
 // ---------- mount ----------
 // opts: interactive (hover/tap/arrows bring a take forward), exportMode (render once, transparent),
 // part (export one named part alone, front-on), shot (export the wide carousel framing), sprites (a folder of
@@ -341,7 +362,7 @@ export function mount(el, name, { interactive = false, exportMode = false, part 
     // On phones the card stacks the stage above its caption with no bleed, so the scene fills the whole stage.
     const narrow = !exportMode && matchMedia("(max-width: 720px)").matches;
     const fw = card && !narrow ? 60 / 66 : 1, fh = card && !narrow ? 1 / 1.26 : 1;
-    const air = narrow ? (name === "takes" ? 1.0 : 0.96 / zoom) : name === "takes" ? 1.12 : 1.1 / zoom;
+    const air = narrow ? (name === "takes" ? 1.0 : 1.08 / zoom) : name === "takes" ? 1.12 : 1.1 / zoom;
     const d = Math.max(bounds[1] / 2 / (t * fh), bounds[0] / 2 / (t * camera.aspect * fw)) * (exportMode && !sprites ? (part ? 1.04 : 1.22) : air);
     camera.position.set(0, 0, d + 1); camera.lookAt(0, 0, 0); camera.clearViewOffset(); camera.zoom = 1;
     camera.updateProjectionMatrix();
@@ -420,7 +441,9 @@ export function mount(el, name, { interactive = false, exportMode = false, part 
   function frame(now) {
     if (!visible || !alive) return;
     const k = reduce ? 1 : 1 - Math.exp(-Math.min(0.05, (now - last) / 1000) * 9); last = now;
-    if (!reduce) { tilt.x += (pointer.y * -0.05 - tilt.x) * k; tilt.y += (pointer.x * 0.08 - tilt.y) * k; } // the camera follows the cursor a little
+    // The camera follows the cursor a little, or on a phone the phone's tilt.
+    const p = motion.active ? motion : pointer;
+    if (!reduce) { tilt.x += (p.y * -0.05 - tilt.x) * k; tilt.y += (p.x * 0.08 - tilt.y) * k; }
     root.rotation.set(base.x + tilt.x, base.y + tilt.y, 0); floor.rotation.copy(root.rotation);
     if (ready) pose(k);
     renderer.render(scene, camera); requestAnimationFrame(frame);

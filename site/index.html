@@ -196,7 +196,7 @@ section h2 { font-size: clamp(52px, 6.4vw, 84px); }
 @media (max-width: 720px) {
   .slide { aspect-ratio: auto; display: grid; grid-template-columns: minmax(0, 1fr); }
   /* The stage is wider than the card and starts above it, so the pieces float over the card's top and side edges. */
-  .slide-stage { position: relative; top: auto; right: auto; bottom: auto; width: 112%; aspect-ratio: 3 / 2; margin: -16% -6% -2%; }
+  .slide-stage { position: relative; top: auto; right: auto; bottom: auto; width: 108%; aspect-ratio: 3 / 2; margin: -12% -4% -4%; }
   .slide-copy { position: static; transform: none; width: auto; padding: 4px 22px 26px; }
   .carousel-nav { display: none; }
   /* The product shot bleeds to the screen edges on phones, so the panel reads at a useful size. */
@@ -555,7 +555,7 @@ fill="currentColor" stroke="none">
     const twin = (slide) => { const sc = slide.querySelector(".slide-stage")?.dataset.scene; return all.filter((s) => s !== slide && s.querySelector(".slide-stage")?.dataset.scene === sc); };
     const wake = async (slide) => { const st = slide.querySelector(".slide-stage"); if (!st || live.has(st)) return; live.set(st, null);
       if (slide.dataset.clone) twin(slide).forEach((t) => { wake(t); const k = all.indexOf(t); if (live.size < 8) [all[k - 1], all[k + 1]].forEach((nb) => nb && wake(nb)); }); // a few contexts at most
-      try { lib = lib || await import("./js/layers.js?v=14");
+      try { lib = lib || await import("./js/layers.js?v=16");
         if (!live.has(st)) return;
         live.set(st, lib.mount(st, st.dataset.scene, { interactive: true, sprites: st.dataset.sprites, card: true, onReady: () => st.classList.add("live") }));
       } catch (err) { console.warn("layers: slide failed", st.dataset.scene, err); live.delete(st); } };
@@ -575,7 +575,7 @@ fill="currentColor" stroke="none">
   if (el && "IntersectionObserver" in window) {
     const io = new IntersectionObserver(async ([e]) => {
       if (!e.isIntersecting) return; io.disconnect();
-      try { const { mount } = await import("./js/layers.js?v=14"); mount(el, el.dataset.scene, { interactive: true, sprites: el.dataset.sprites, onReady: () => el.classList.add("live") }); }
+      try { const { mount } = await import("./js/layers.js?v=16"); mount(el, el.dataset.scene, { interactive: true, sprites: el.dataset.sprites, onReady: () => el.classList.add("live") }); }
       catch { /* no WebGL or offline: keep the still */ }
     }, { rootMargin: "300px" });
     io.observe(el);
@@ -589,6 +589,11 @@ fill="currentColor" stroke="none">
       hero.autoplay = false; hero.pause(); hero.poster = "img/hero-og.jpg"; hero.removeAttribute("src");
       hero.querySelector("source")?.remove(); hero.load();
     } else {
+      // iPhone Safari can drop back to the poster (the first frame) once the clip ends or after it scrolls off screen,
+      // so once it plays, the poster becomes the end frame: whatever happens, the hero holds on the printed takes.
+      const end = new Image(); end.src = "img/hero-og.jpg";
+      hero.addEventListener("playing", () => { hero.poster = "img/hero-og.jpg"; }, { once: true });
+      hero.addEventListener("ended", () => { hero.pause(); try { hero.currentTime = Math.max(0, hero.duration - 0.05); } catch {} });
       hero.play().catch(() => {});
     }
   }
@@ -598,22 +603,19 @@ fill="currentColor" stroke="none">
   const logo = document.querySelector(".logo-anim");
   const clips = ["melt", "shuffle", "chatter", "zipper", "kaleido", "split", "bubblegum", "tv", "spiral"];
   let next = Math.floor(Math.random() * clips.length);
-  const ext = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) ? "mov" : "webm"; // Safari plays alpha only in HEVC
-  // iPhone and iPad draw a lighter box behind transparent video (Safari, and in-app browsers such as WhatsApp's), so
-  // they keep the still logo and mark. The hover clips also need a real pointer: on touch, a tap would start one.
-  const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  const hover = matchMedia("(hover: hover) and (pointer: fine)").matches;
+  // WebKit (Safari, and iPhone in-app browsers whose user agent lacks "Safari") plays alpha only in HEVC.
+  const ext = /AppleWebKit/.test(navigator.userAgent) && !/Chrome|Chromium|Android/.test(navigator.userAgent) ? "mov" : "webm";
   // The mark in the last section loops its own clip, without hover, unless motion is reduced.
   const mark = document.querySelector(".mark-loop");
-  if (mark && !iOS && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  if (mark && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
     const v = mark.querySelector("video");
     v.addEventListener("playing", () => mark.classList.add("playing"));
     v.addEventListener("error", () => mark.classList.remove("playing"));
     new IntersectionObserver((es) => {
-      es.forEach((e) => { if (e.isIntersecting) { if (!v.src) v.src = `img/logo/tmark.${ext}?v=2`; v.play().catch(() => {}); } else v.pause(); });
+      es.forEach((e) => { if (e.isIntersecting) { if (!v.src) v.src = `img/logo/tmark.${ext}?v=3`; v.play().catch(() => {}); } else v.pause(); });
     }, { rootMargin: "200px" }).observe(mark);
   }
-  if (logo && hover && !iOS) {
+  if (logo) {
     const v = logo.querySelector("video");
     const stop = () => logo.classList.remove("playing");
     v.addEventListener("playing", () => logo.classList.add("playing"));
@@ -623,7 +625,7 @@ fill="currentColor" stroke="none">
       if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
       if (logo.classList.contains("playing") && v.duration - v.currentTime > 0.5) return;
       stop();
-      v.src = `img/logo/${clips[next]}.${ext}`;
+      v.src = `img/logo/${clips[next]}.${ext}?v=3`;
       next = (next + 1) % clips.length;
       v.play().catch(stop);
     });
