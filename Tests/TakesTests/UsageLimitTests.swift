@@ -51,8 +51,10 @@ final class UsageLimitTests: XCTestCase {
                        "You've reached your Claude plan's usage limit. Pick another engine to keep going.")
 
         XCTAssertEqual((ClaudeCodeEngine.resultError("Credit balance is too low") as? UsageLimitError)?.kind, .outOfCredit)
+        // Sign-in problems keep their own message and "Sign in to Claude" button.
         XCTAssertEqual(ClaudeCodeEngine.resultError("Not logged in · Please run /login").localizedDescription,
-                       "Claude Code: Not logged in · Please run /login Run `claude auth login` in Terminal.")
+                       ClaudeCodeEngine.signedOutMessage)
+        XCTAssertNil(ClaudeCodeEngine.resultError("Not logged in · Please run /login") as? UsageLimitError)
     }
 
     func testRetryHint() {

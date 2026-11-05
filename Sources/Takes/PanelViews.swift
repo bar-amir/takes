@@ -581,7 +581,13 @@ struct TakesView: View {
                     } else {
                         Text(error).font(.system(size: 14)).foregroundStyle(Theme.avoidText).textSelection(.enabled)
                         HStack {
-                            Button("Try again", action: model.generate).buttonStyle(PrimaryButtonStyle())
+                            if error == ClaudeCodeEngine.signedOutMessage {
+                                // Signed out: signing in is the fix, then Try again once it's done.
+                                Button("Sign in to Claude", action: ClaudeCodeEngine.openSignIn).buttonStyle(PrimaryButtonStyle())
+                                Button("Try again", action: model.generate).buttonStyle(SecondaryButtonStyle(height: 36))
+                            } else {
+                                Button("Try again", action: model.generate).buttonStyle(PrimaryButtonStyle())
+                            }
                             Button("Edit draft") { model.show(.compose) }.buttonStyle(SecondaryButtonStyle(height: 36))
                         }
                     }

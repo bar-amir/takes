@@ -52,6 +52,12 @@ enum Snapshot {
         done.timing = "first words 1.3 s · all takes 2.8 s"
         render(PanelRootView(model: done), size: CGSize(width: 1060, height: fittedHeight(done)), to: url.appendingPathComponent("4-takes.png"))
 
+        let signedOut = model()
+        signedOut.screen = .takes
+        signedOut.sourceDraft = draft
+        signedOut.error = ClaudeCodeEngine.signedOutMessage
+        render(PanelRootView(model: signedOut), size: CGSize(width: 1060, height: fittedHeight(signedOut)), to: url.appendingPathComponent("4-takes-signed-out.png"))
+
         renderSettings(to: url)
         render(SetupView(monitor: SetupMonitor.shared, onDone: {}), size: CGSize(width: 640, height: 820),
                to: url.appendingPathComponent("6-setup.png"))
