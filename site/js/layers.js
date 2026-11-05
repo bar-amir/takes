@@ -171,7 +171,7 @@ const SCENES = {
     root.add(sized(place(f("reveiw", "review"), 3.7, 2.0, 1.0, "fix1"), 1.25));
     root.add(sized(place(f("tommorow", "tomorrow"), 4.3, 0.45, 1.7, "fix2"), 1.25));
     root.add(sized(place(f("its", "it's"), 3.4, -1.3, 2.3, "fix3"), 1.25));
-    return { bounds: [11.8, 5.2], zoom: 1.18 };
+    return { bounds: [11.8, 5.2], zoom: 1.06 };
   },
   presets(renderer, root) {
     ["Polish email", "Slack message", "Proofread", "Shorter", "Friendlier"].forEach((s, i) => {
@@ -184,7 +184,7 @@ const SCENES = {
     const rules = (title, color, items) => (c) => { dot(c, 36, 44, 8, color); text(c, title, 54, 52, { size: 24, weight: 700, color });
       items.forEach((it, i) => text(c, it, 30, 112 + i * 52, { size: 24 })); };
     root.add(place(tile(renderer, { w: 3.0, h: 2.2, r: 0.22, depth: 0.14, draw: rules("Do", C.green, ["Full sentences", "One ask per email"]) }), -0.15, -0.9, 1.2, "do"));
-    root.add(place(tile(renderer, { w: 3.0, h: 2.2, r: 0.22, depth: 0.14, draw: rules("Avoid", C.red, ["Slang", "Exclamation marks"]) }), 3.05, -1.55, 1.9, "avoid"));
+    root.add(place(tile(renderer, { w: 3.0, h: 2.2, r: 0.22, depth: 0.14, draw: rules("Avoid", C.red, ["Slang", "Exclamation marks"]) }), 2.45, -1.55, 1.9, "avoid"));
     return { bounds: [10.6, 5.4], offsetY: -0.35 };
   },
   shortcut(renderer, root) {
@@ -353,9 +353,9 @@ export function mount(el, name, { interactive = false, exportMode = false, part 
   // A sprite's shadow: the higher the piece sits, the further, larger and softer its shadow falls.
   // It is drawn just under the piece, so it falls on whatever sits below it.
   const shade = (o) => { const sh = o.userData.shadow; if (!sh) return; const z = o.position.z, e = Math.min(z, 1.6);
-    sh.position.set(o.position.x + 0.08 + e * 0.14, o.position.y - 0.12 - e * 0.18, z - 0.06);
-    const sc = 1.02 + e * 0.05; sh.scale.set(o.userData.w * sc * o.scale.x, o.userData.h * sc * o.scale.x, 1);
-    sh.material.opacity = 0.3 + e * 0.09; };
+    sh.position.set(o.position.x + 0.14 + e * 0.16, o.position.y - 0.2 - e * 0.2, z - 0.28); // set well back, so the turned camera reveals it
+    const sc = 1.03 + e * 0.05; sh.scale.set(o.userData.w * sc * o.scale.x, o.userData.h * sc * o.scale.x, 1);
+    sh.material.opacity = 0.34 + e * 0.08; };
   const pose = (k) => { root.updateMatrixWorld(); toCam.copy(camera.position); root.worldToLocal(toCam);
     if (takes) takes.forEach((t, i) => lift(t, i === active, k, 2.0, 1.04, 0.97, 0.3));
     root.children.forEach(shade);
