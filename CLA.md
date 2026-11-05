@@ -1,10 +1,10 @@
 # Takes Contributor License Agreement
 
-Version 1.0 · 2026-10-26
+Version 1.1 · 2026-11-04
 
 Thank you for contributing to Takes. This agreement explains what rights you give Bar Amir (the "Maintainer") when you contribute. You keep the copyright in your work. You give the Maintainer a broad license so the project can stay open source today and keep the option of being released under other terms later, including as a paid or closed-source app.
 
-You accept this agreement by replying to your first pull request with this exact sentence: "I have read the Takes CLA (version 1.0) and I agree to it." A bot records your signature (your GitHub username and the time) in `signatures.json` on the repository's `cla-signatures` branch, and it covers all your future pull requests.
+You accept this agreement by replying to your first pull request with this exact sentence: "I have read the Takes CLA (version 1.1) and I agree to it." A bot records your signature (your GitHub username and the time) in `signatures.json` on the repository's `cla-signatures` branch, and it covers all your future pull requests.
 
 ## 1. Definitions
 
@@ -21,7 +21,7 @@ The Maintainer may distribute your Contributions under the project's current lic
 
 ## 4. Patent license
 
-You grant the Maintainer, and anyone who receives software distributed by the Maintainer, a perpetual, worldwide, non-exclusive, free of charge, royalty-free and irrevocable patent license to make, use, sell, offer to sell, import and otherwise transfer your Contributions. This covers only patent claims that you can license and that would be infringed by your Contribution alone or combined with the project. If you start patent litigation claiming that the project or a Contribution infringes a patent, the patent licenses you received under this agreement for the project end on the date that litigation is filed.
+You grant the Maintainer, and anyone who receives software distributed by the Maintainer, a perpetual, worldwide, non-exclusive, free of charge, royalty-free and irrevocable patent license to make, use, sell, offer to sell, import and otherwise transfer your Contributions. This covers only patent claims that you can license and that would be infringed by your Contribution alone or combined with the project. If anyone starts patent litigation (including a cross-claim or counterclaim) against you or anyone else, claiming that your Contribution, or the project it is part of, directly or indirectly infringes a patent, the patent licenses granted to them under this agreement for that Contribution and the project end on the date that litigation is filed.
 
 ## 5. What you confirm
 
@@ -41,6 +41,10 @@ To the extent the law allows, you agree not to assert moral rights (such as the 
 ## 8. General
 
 This agreement covers all your past and future Contributions to Takes. The Maintainer may publish a new version of this agreement. A new version applies only to Contributions made after you accept it.
+
+## Changes
+
+- **1.1 (2026-11-04):** Section 4 now ends the patent license of whoever starts patent litigation, as in the Apache Individual CLA. In 1.0 it ended licenses the contributor "received under this agreement", which this agreement doesn't grant, so it had no effect. Signatures of 1.0 stay valid for the Contributions made under it.
 
 ---
 

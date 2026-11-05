@@ -357,6 +357,7 @@ final class ChatGPTSignIn: ObservableObject {
         let previous = store.load()
         let attempt = ChatGPTAuthorization(hostID: hostID, clientID: registration?.clientID, port: server.port)
         server.accepts = { if case .success = attempt.parseCallback($0) { return true }; return false }
+        server.belongs = { if case .failure(.stateMismatch) = attempt.parseCallback($0) { return false }; return true }
         open(attempt.url(idTokenHint: previous?.idToken, loginHint: previous?.email))
 
         let callback: ChatGPTAuthorization.Callback

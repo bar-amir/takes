@@ -292,7 +292,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @objc private func showAbout() {
         NSApp.activate(ignoringOtherApps: true)
         NSApp.orderFrontStandardAboutPanel(options: [
-            .credits: NSAttributedString(string: "Rewrite anything, in any text box, with Claude or a model of your choice.\ngithub.com/bar-amir/takes"),
+            .credits: NSAttributedString(string: "A few ways to say it, in any Mac app, with Claude or a model of your choice.\ngithub.com/bar-amir/takes\n\nAn independent app, not made or endorsed by Anthropic, OpenAI or any other model provider. Uses Sparkle (MIT License) for updates; see THIRD-PARTY-NOTICES.md."),
         ])
     }
 

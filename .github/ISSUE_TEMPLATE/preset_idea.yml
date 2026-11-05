@@ -1,6 +1,6 @@
 name: Preset idea
 description: Share a preset that works well, or suggest one to ship by default.
-labels: [preset]
+labels: [preset, triage]
 body:
   - type: input
     id: name

@@ -1,7 +1,10 @@
 name: Feature request
 description: An idea that would make Takes better.
-labels: [enhancement]
+labels: [enhancement, triage]
 body:
+  - type: markdown
+    attributes:
+      value: Not sure yet, or want to talk an idea through first? Start a thread in [Discussions › Ideas](https://github.com/bar-amir/takes/discussions/categories/ideas).
   - type: textarea
     id: problem
     attributes:
@@ -19,3 +22,12 @@ body:
       label: Privacy
       options:
         - label: This idea doesn't need Takes to send data anywhere new (or I've explained why it's worth it).
+  - type: dropdown
+    id: contribute
+    attributes:
+      label: Would you like to build it?
+      description: Please wait for a reply on this issue before you start, so the work fits where Takes is going.
+      options:
+        - No, just suggesting it
+        - Yes, with some guidance
+        - Yes, I can build it myself

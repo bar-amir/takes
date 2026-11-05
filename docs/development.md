@@ -1,6 +1,6 @@
 # Developing Takes
 
-How to build Takes, how it works inside, and the tools for checking it. Start with [CONTRIBUTING.md](../CONTRIBUTING.md) for how changes get in.
+How to build Takes, how it works inside, and the tools for checking it. Start with [CONTRIBUTING.md](../CONTRIBUTING.md) for how changes get in, and [architecture.md](architecture.md) for a walk through the code.
 
 ## Build and run
 
@@ -11,7 +11,7 @@ Takes is a Swift package (Swift 6, macOS 14+). No Xcode project is needed.
 open build/Takes.app
 ```
 
-`swift test` runs the unit tests in `Tests/TakesTests`.
+`swift test` runs the unit tests in `Tests/TakesTests`. `scripts/check.sh` runs everything CI runs: the release build, the tests, and `swift format lint` on the Swift files you changed (style in `.swift-format` and `.editorconfig`).
 
 On first launch macOS asks for Accessibility access (System Settings › Privacy & Security › Accessibility). Takes needs it to read the focused field and to paste. `build.sh` signs ad hoc with a fixed designated requirement, so the permission usually survives rebuilds. If the hotkey works but nothing gets prefilled or pasted, remove Takes from the list and add it again.
 

@@ -179,6 +179,8 @@ struct PresetsTab: View {
             for var preset in decoded {
                 preset.id = UUID().uuidString
                 preset.hotKey = nil
+                // A file can't turn on paste-without-looking; the user does that themselves (PRIVACY.md).
+                preset.instantMode = nil
                 store.presets.append(preset)
                 state.selectedPresetID = preset.id
             }

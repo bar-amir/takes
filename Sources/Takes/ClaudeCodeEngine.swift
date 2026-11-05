@@ -19,8 +19,11 @@ struct ClaudeCodeEngine: TakesEngine {
             throw EngineError.failed("Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model.")
         }
 
+        // The user message goes in on stdin, never as an argument: as a positional argument, text starting with "-"
+        // would be parsed as a CLI option (a draft of "--mcp-config=…" could start a program), and arguments are
+        // visible to other processes in `ps`.
         var args = [
-            "-p", request.user,
+            "-p",
             "--system-prompt", request.system,
             "--model", request.model,
             "--effort", request.effort,
@@ -34,7 +37,8 @@ struct ClaudeCodeEngine: TakesEngine {
         }
 
         let process = Self.process(claudePath, args)
-        let stdout = Pipe(), stderr = Pipe()
+        let stdin = Pipe(), stdout = Pipe(), stderr = Pipe()
+        process.standardInput = stdin
         process.standardOutput = stdout
         process.standardError = stderr
 
@@ -48,6 +52,14 @@ struct ClaudeCodeEngine: TakesEngine {
                 } catch {
                     continuation.resume(throwing: error)
                     return
+                }
+                // Written on its own queue: a long draft can fill the pipe before claude starts reading.
+                let input = stdin.fileHandleForWriting
+                // If claude exits before reading everything, the write fails instead of killing Takes with SIGPIPE.
+                _ = fcntl(input.fileDescriptor, F_SETNOSIGPIPE, 1)
+                DispatchQueue.global().async {
+                    try? input.write(contentsOf: Data(request.user.utf8))
+                    try? input.close()
                 }
 
                 var text = ""
