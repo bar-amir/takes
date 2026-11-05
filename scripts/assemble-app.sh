@@ -34,6 +34,7 @@ if [[ "${RELEASE:-0}" == "1" ]]; then
   <key>SUVerifyUpdateBeforeExtraction</key><true/>"
 fi
 [[ -f Resources/AppIcon.icns ]] && cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
+cp THIRD-PARTY-NOTICES.md "$APP/Contents/Resources/THIRD-PARTY-NOTICES.md"
 
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
