@@ -94,9 +94,9 @@ const place = (obj, x, y, z, name) => { obj.position.set(x, y, z); if (name) obj
 // ---------- scenes ----------
 // Each scene returns { bounds: [w, h], takes?: [tile groups] } after adding tiles to `root`.
 const TAKES = [
-  ["Take 1", "Thursday works for me. One ask: I need the specs by Wednesday EOD, otherwise QA slips again."],
-  ["Take 2", "Sure, Thursday it is. I'll need the specs by Wednesday EOD so QA doesn't slip again."],
-  ["Take 3", "Thursday's fine as long as the specs land by Wed EOD."],
+  ["Take 1", "Thursday works for me. One ask: I need the specs by Wednesday EOD, otherwise QA slips again.", "direct and firm", C.cobalt],
+  ["Take 2", "Sure, Thursday it is. I'll need the specs by Wednesday EOD so QA doesn't slip again.", "warm and clear", C.acid],
+  ["Take 3", "Thursday's fine as long as the specs land by Wed EOD.", "brief, a bit curt", C.tomato],
 ];
 const label = (ctx, s, x = 26, y = 44) => text(ctx, s, x, y, { size: 20, weight: 700 });
 const measure = (s, size, weight = 700) => { const c = measure.c ||= document.createElement("canvas").getContext("2d"); c.font = `${weight} ${size}px ${FONT}`; return c.measureText(s).width / PX; };
@@ -113,10 +113,16 @@ const SCENES = {
     root.add(place(tile(renderer, { w: 9.6, h: 0.9, r: 0.16, depth: 0.08, bg: C.strip,
       draw: (c, cw, ch) => { text(c, "Your draft", 24, 34, { size: 15, weight: 700, color: C.mute });
         text(c, "ya thursday works but i need the specs by wed eod otherwise qa slips again", 24, 66, { size: 21 }); } }), 0, 1.85, 0.55, "draft"));
-    const takes = TAKES.map(([t, body], i) => {
+    const takes = TAKES.map(([t, body, tone, dotColor], i) => {
       const card = tile(renderer, { w: 3.0, h: 2.9, r: 0.22, depth: 0.22, bg: C.card,
         outline: { width: 2, color: "#E3DED4" }, selectedOutline: { width: 5, color: C.ink },
         draw: (c) => { label(c, t); wrap(c, body, 26, 92, 248, { size: 22, lead: 1.42 }); } });
+      // How the take may read, as in the app's tone note: a chip sitting on the card's free bottom area, lifted off
+      // its face, so it moves with its take. It stays a drawn tile when the card itself is shown as a render.
+      const note = tile(renderer, { w: 0.8 + measure(tone, 24), h: 0.54, r: 0.27, depth: 0.12, bg: C.ink,
+        draw: (c, cw, ch) => { dot(c, 30, ch / 2, 8, dotColor); text(c, tone, 50, ch / 2 + 9, { size: 24, weight: 700, color: C.paper }); } });
+      note.userData.face.material.alphaTest = 0.5; // its clear corners mustn't hide the card render behind them
+      note.userData.keep = true; card.add(place(note, -1.5 + 0.26 + note.userData.w / 2, -1.0, card.userData.top + 0.1, "tone"));
       card.userData.home = new THREE.Vector3(-3.15 + i * 3.15, -0.45, 0.95);
       root.add(place(card, ...card.userData.home.toArray(), "take" + (i + 1))); return card;
     });
@@ -420,7 +426,11 @@ export function mount(el, name, { interactive = false, exportMode = false, part 
         // The blank base panel stretches to its tile; everything else keeps the render's own proportions.
         const ph = n === "base" ? obj.userData.h : w / aspect;
         const plane = new THREE.Mesh(new THREE.PlaneGeometry(w, ph), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }));
-        obj.children.forEach((c) => { c.visible = false; }); obj.add(plane); obj.visible = true; obj.userData.sprite = plane; obj.userData.h = ph;
+        obj.children.forEach((c) => { c.visible = !!c.userData.keep; }); obj.add(plane); obj.visible = true; obj.userData.sprite = plane; obj.userData.h = ph;
+        const tone = obj.getObjectByName("tone"); // a take's tone chip casts a soft shadow onto the card render it sits on
+        if (tone) { const sh = new THREE.Mesh(new THREE.PlaneGeometry(tone.userData.w * 1.1, tone.userData.h * 1.3),
+          new THREE.MeshBasicMaterial({ map: shadowTexture(), transparent: true, depthWrite: false, opacity: 0.5 }));
+          sh.position.set(tone.position.x + 0.08, tone.position.y - 0.12, tone.position.z - 0.05); sh.renderOrder = 81; obj.add(sh); }
         if (n === "ring") { ring = obj; continue; }
         const sh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: shadowTexture(), transparent: true, depthWrite: false }));
         root.add(sh); obj.userData.shadow = sh;
@@ -445,7 +455,7 @@ export function mount(el, name, { interactive = false, exportMode = false, part 
   const aim = (e) => { const r = el.getBoundingClientRect();
     ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); pointer = { x: ndc.x, y: ndc.y }; ray.setFromCamera(ndc, camera); };
   const hitTake = () => { const hits = ray.intersectObjects(takes.flatMap((t) => t.children.filter((c) => c.visible)));
-    return hits.length ? takes.findIndex((t) => t.children.includes(hits[0].object)) : -1; };
+    if (!hits.length) return -1; let o = hits[0].object; while (o && !takes.includes(o)) o = o.parent; return o ? takes.indexOf(o) : -1; }; // a hit on a take's tone tag counts
   const onMove = (e) => { aim(e); if (!interactive) return;
     if (takes) { const i = hitTake(); setActive(i); el.style.cursor = i >= 0 ? "pointer" : ""; } };
   const onDown = (e) => { aim(e); if (interactive && takes) setActive(hitTake()); };
