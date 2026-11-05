@@ -25,6 +25,8 @@ struct Provider: Equatable, Identifiable {
     var extraHeaders: [String: String] = [:]
     /// Tried in order when no model is picked: an exact ID first, then the shortest ID starting with it.
     var preferredModels: [String] = []
+    /// Where to add credit; `consoleURL` when nil.
+    var billingURL: URL?
 
     var isCustom: Bool { id == Provider.customID }
     static let customID = "custom"
@@ -35,7 +37,8 @@ struct Provider: Equatable, Identifiable {
         id: "openai", name: "OpenAI", baseURL: "https://api.openai.com/v1",
         consoleURL: URL(string: "https://platform.openai.com/api-keys"), keyPrefix: "sk-",
         dataNote: "Takes sends your drafts to OpenAI under your own API account. OpenAI's API terms apply, and it bills you per use.",
-        preferredModels: ["gpt-5.4-mini", "gpt-5-mini", "gpt-4.1-mini", "gpt-4o-mini"])
+        preferredModels: ["gpt-5.4-mini", "gpt-5-mini", "gpt-4.1-mini", "gpt-4o-mini"],
+        billingURL: URL(string: "https://platform.openai.com/settings/organization/billing/overview"))
 
     // OpenAI compatibility: https://ai.google.dev/gemini-api/docs/openai · terms: https://ai.google.dev/gemini-api/terms
     // (in the EEA, Switzerland and the UK, apps may only use paid keys).
@@ -52,7 +55,8 @@ struct Provider: Equatable, Identifiable {
         consoleURL: URL(string: "https://openrouter.ai/settings/keys"), keyPrefix: "sk-or-",
         dataNote: "Takes sends your drafts to OpenRouter under your own account, and OpenRouter passes them to the company that runs the model you pick. Both companies' terms apply.",
         extraHeaders: ["X-Title": "Takes"],
-        preferredModels: ["openai/gpt-5.4-mini", "openai/gpt-5-mini", "google/gemini-2.5-flash"])
+        preferredModels: ["openai/gpt-5.4-mini", "openai/gpt-5-mini", "google/gemini-2.5-flash"],
+        billingURL: URL(string: "https://openrouter.ai/settings/credits"))
 
     // OpenAI compatibility: https://console.groq.com/docs/openai · data: https://console.groq.com/docs/your-data
     static let groq = Provider(
@@ -60,7 +64,8 @@ struct Provider: Equatable, Identifiable {
         consoleURL: URL(string: "https://console.groq.com/keys"), keyPrefix: "gsk_",
         dataNote: "Takes sends your drafts to Groq under your own API account. Groq's terms apply, and it bills you per use.",
         strictFormat: true,
-        preferredModels: ["llama-3.3-70b-versatile", "openai/gpt-oss-120b"])
+        preferredModels: ["llama-3.3-70b-versatile", "openai/gpt-oss-120b"],
+        billingURL: URL(string: "https://console.groq.com/settings/billing"))
 
     // https://docs.mistral.ai/api/ · terms: https://mistral.ai/terms
     static let mistral = Provider(
@@ -190,7 +195,7 @@ final class SameHostRedirectGuard: NSObject, URLSessionTaskDelegate {
 
 /// What went wrong, in words the user can act on. `kind` drives the card's badge.
 struct ProviderError: LocalizedError, Equatable {
-    enum Kind: Equatable { case keyRefused, rateLimited, missingModel, declined, other }
+    enum Kind: Equatable { case keyRefused, missingModel, declined, other }
     var kind: Kind
     var message: String
     var errorDescription: String? { message }
@@ -328,7 +333,8 @@ struct ProviderEngine: TakesEngine {
                 options = next
                 continue
             }
-            throw Self.httpError(status: http.statusCode, body: data, provider: provider, model: request.model)
+            throw Self.httpError(status: http.statusCode, body: data, provider: provider, model: request.model,
+                                 retryAfter: http.value(forHTTPHeaderField: "retry-after"))
         }
 
         var parser = SSEParser()
@@ -405,15 +411,25 @@ struct ProviderEngine: TakesEngine {
         return String(decoding: body.prefix(300), as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    static func httpError(status: Int, body: Data, provider: Provider, model: String) -> ProviderError {
+    /// A `ProviderError`, or a `UsageLimitError` for 402 and 429.
+    static func httpError(status: Int, body: Data, provider: Provider, model: String, retryAfter: String? = nil) -> Error {
         let message = message(body)
         let lower = message.lowercased()
         let badKey = lower.contains("api key") && (lower.contains("not valid") || lower.contains("invalid") || lower.contains("incorrect"))
         if status == 401 || badKey || (status == 403 && lower.contains("key")) {
             return ProviderError(kind: .keyRefused, message: provider.refusedMessage)
         }
-        if status == 429 || status == 402 {
-            return ProviderError(kind: .rateLimited, message: "Over your provider's rate limit or out of credit.")
+        // OpenAI says "out of credit" with a 429 and `insufficient_quota`; Gemini's quota errors mention billing.
+        if status == 402 || (status == 429 && (errorCode(body) == "insufficient_quota"
+                                               || ["credit", "billing", "insufficient_quota"].contains(where: lower.contains))) {
+            let place = provider.isCustom ? "Check the account for this server" : "Check billing in your \(provider.name) dashboard"
+            return UsageLimitError(kind: .outOfCredit,
+                                   message: "\(provider.name) says your account is out of credit or quota. \(place), or pick another engine.",
+                                   manage: provider.isCustom ? nil : provider.billingURL ?? provider.consoleURL)
+        }
+        if status == 429 {
+            return UsageLimitError(kind: .rateLimited,
+                                   message: "\(provider.name) is limiting requests from your key. \(UsageLimitError.retryHint(retryAfter))")
         }
         let modelMissing = lower.contains("model") && ["not found", "does not exist", "not exist", "invalid model", "no such model", "unknown model", "not a valid model"].contains(where: lower.contains)
         if status == 404 && (lower.contains("model") || message.isEmpty) || (status == 400 && modelMissing) {
@@ -427,6 +443,13 @@ struct ProviderEngine: TakesEngine {
             return ProviderError(kind: .other, message: "\(provider.name) is having trouble (HTTP \(status)). Try again in a minute.")
         }
         return ProviderError(kind: .other, message: "\(provider.name) error: \(message.isEmpty ? "HTTP \(status)" : message)")
+    }
+
+    /// `error.code` when it's a string ("insufficient_quota"), from an object or Gemini's one-item array.
+    static func errorCode(_ body: Data) -> String? {
+        let json = try? JSONSerialization.jsonObject(with: body)
+        let object = json as? [String: Any] ?? (json as? [[String: Any]])?.first
+        return (object?["error"] as? [String: Any])?["code"] as? String
     }
 
     static func friendly(_ error: Error, provider: Provider) -> Error {

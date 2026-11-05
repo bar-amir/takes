@@ -325,6 +325,16 @@ final class ChatGPTRequestTests: XCTestCase {
             .localizedDescription, "ChatGPT refused the request: Unsupported region (request req_1)")
     }
 
+    func testAllowanceErrorsOfferManageUsage() {
+        let body = Data(#"{"error":{"code":"subscription_sharing_usage_limit_exceeded","message":"limit"}}"#.utf8)
+        let limit = ChatGPTEngine.httpError(status: 429, body: body, requestID: nil) as? UsageLimitError
+        XCTAssertEqual(limit?.kind, .planLimit)
+        XCTAssertEqual(limit?.message, ChatGPTEngine.usageLimitMessage)
+        XCTAssertEqual(limit?.manage, ChatGPTOAuth.usageURL)
+        XCTAssertEqual(ChatGPTEngine.limitError(code: "subscription_sharing_usage_unavailable")?.message, ChatGPTEngine.unavailableMessage)
+        XCTAssertNil(ChatGPTEngine.limitError(code: "rate_limit_exceeded"))
+    }
+
     func testModelListKeepsListedModelsInOrder() {
         let data = Data(#"""
         {"models":[

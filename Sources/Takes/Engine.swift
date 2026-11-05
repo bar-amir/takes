@@ -24,6 +24,35 @@ enum EngineError: LocalizedError {
     }
 }
 
+/// The engine's account can't take more requests: out of credit, at its plan or spend limit, or rate limited for now.
+/// The panel shows a title, `message`, and a button to `manage`, the page where the user can fix it.
+struct UsageLimitError: LocalizedError, Equatable {
+    enum Kind: Equatable { case outOfCredit, planLimit, rateLimited }
+    var kind: Kind
+    var message: String
+    var manage: URL?
+    var errorDescription: String? { message }
+
+    var title: String {
+        switch kind {
+        case .outOfCredit: "Out of credit"
+        case .planLimit: "Usage limit reached"
+        case .rateLimited: "Too many requests"
+        }
+    }
+
+    /// The button that opens `manage`.
+    var manageTitle: String { kind == .outOfCredit ? "Add credit" : "Manage usage" }
+
+    /// "Try again in 20 seconds." from a Retry-After header in seconds.
+    static func retryHint(_ retryAfter: String?) -> String {
+        guard let seconds = retryAfter.flatMap({ Int($0.trimmingCharacters(in: .whitespaces)) }), seconds > 0, seconds <= 3600
+        else { return "Try again in a moment." }
+        if seconds < 90 { return "Try again in \(seconds) second\(seconds == 1 ? "" : "s")." }
+        return "Try again in \((seconds + 59) / 60) minutes."
+    }
+}
+
 /// Something that turns a request into streamed takes.
 protocol TakesEngine {
     /// `onUpdate` receives the takes written so far (the last may be partial), off the main thread.

@@ -72,6 +72,22 @@ extension Snapshot {
             .init(pattern: "collocations", fix: .init(removed: "make you a feedback", added: "give you feedback")),
         ], repeating: ["conditionals"], drafts: 4)
 
+        // Limits: the engine's account is out of credit, at its plan limit, or rate limited.
+        func limitModel(_ error: Error) -> PanelModel {
+            let model = takesModel()
+            model.takes = []
+            model.timing = ""
+            model.error = error.localizedDescription
+            model.limit = error as? UsageLimitError
+            return model
+        }
+        let limits = [
+            ("10-limit-out-of-credit", limitModel(APIEngine.apiError(status: 400, type: "invalid_request_error",
+                                                                     message: "Your credit balance is too low", retryAfter: nil))),
+            ("11-limit-plan", limitModel(ClaudeCodeEngine.resultError("5-hour limit reached ∙ resets 3pm"))),
+            ("12-limit-rate", limitModel(ProviderEngine.httpError(status: 429, body: Data(), provider: .openAI, model: "", retryAfter: "20"))),
+        ]
+
         let toast = ToastView(message: "Pasted take 1 · your clipboard is back", showUndo: true,
                               coachNote: "“If you will send” → “If you send” · 4th time this month",
                               onSaveExample: {}, onDone: {})
@@ -87,7 +103,7 @@ extension Snapshot {
             write(PanelRootView(model: changed), compose720, "3-compose-options-changed")
             for (name, model) in [("4-takes-coach-collapsed", collapsed), ("5-takes-coach-expanded", expanded),
                                   ("6-takes-coach-checking", checking), ("7-takes-changes-option-held", changes),
-                                  ("8-takes-coach-invitation", invited)] {
+                                  ("8-takes-coach-invitation", invited)] + limits {
                 write(PanelRootView(model: model), CGSize(width: 1060, height: fittedHeight(model)), name)
             }
             write(toast.padding(20).frame(width: 820, height: 140).background(Color(hex: dark ? "#3A3A3F" : "#E9E7E1")),

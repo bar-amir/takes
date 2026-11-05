@@ -24,6 +24,8 @@ final class PanelModel: ObservableObject {
     var coachNudge: String?
     @Published var running = false
     @Published var error: String?
+    /// Set with `error` when the engine's account is out of credit or at a limit: the panel offers a way to fix it.
+    @Published var limit: UsageLimitError?
     @Published var selected = 0
     @Published var changesShown: Set<Int> = []
     /// ⌥ held on the takes screen: every card shows its changes.
@@ -153,6 +155,7 @@ final class PanelModel: ObservableObject {
         optionHeld = false
         running = false
         error = nil
+        limit = nil
         refineText = ""
         timing = ""
         filter = ""
@@ -314,6 +317,7 @@ final class PanelModel: ObservableObject {
         let token = runToken
         running = true
         error = nil
+        limit = nil
         takes = []
         takeTones.reset()
         toneRead.dismiss()
@@ -343,6 +347,7 @@ final class PanelModel: ObservableObject {
                 guard runToken == token else { return }
                 running = false
                 self.error = error.localizedDescription
+                limit = error as? UsageLimitError
                 onScreenChange()
             }
         }
