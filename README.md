@@ -52,33 +52,6 @@ brew install --cask bar-amir/tap/takes
 - **Any language.** Reply in any language, with a "Translate to …" preset for each one you write in.
 - **Keyboard first.** Everything has a shortcut. See the [full reference](docs/usage.md).
 
-<table>
-  <tr>
-    <td width="50%"><img src="site/img/layers/presets.webp" alt="A stack of preset tiles with Slack message pulled out, beside its instruction and Do and Avoid rules"></td>
-    <td width="50%"><img src="site/img/layers/proofread.webp" alt="A proofread take with each fix marked and the fixes floating beside it"></td>
-  </tr>
-  <tr>
-    <td align="center">Presets with your rules and examples</td>
-    <td align="center">Proofread, with every fix marked</td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="site/img/layers/coach.webp" alt="The English coach card with its fixes lifted out: “If you will send” to “If you send”, and two more"></td>
-    <td width="50%"><img src="site/img/layers/local.webp" alt="The model menu with a local model picked and an On this Mac badge"></td>
-  </tr>
-  <tr>
-    <td align="center">English coach</td>
-    <td align="center">A model on your Mac</td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="site/img/layers/instant.webp" alt="A pasted message with a “Pasted” toast and a Return key above it"></td>
-    <td width="50%"><img src="site/img/layers/dictation.webp" alt="A draft being dictated, with a live waveform"></td>
-  </tr>
-  <tr>
-    <td align="center">Write and paste right away</td>
-    <td align="center">Dictation</td>
-  </tr>
-</table>
-
 ## Install
 
 **[Download Takes.dmg](https://github.com/bar-amir/takes/releases/latest/download/Takes.dmg)**, open it and drag Takes to Applications. Or use Homebrew:
