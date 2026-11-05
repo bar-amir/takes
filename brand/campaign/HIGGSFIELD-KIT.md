@@ -49,6 +49,28 @@ perspective, so the hover keeps the rendered materials. Parts: `base`, `chip`, `
 - The page's still (`site/img/layers/takes-front.webp`) is the same scene exported once:
   `layers.html?scene=takes&sprites=img/layers/parts&export=1&w=1500&h=1000`.
 
+### Tone pills: marbled, and (later) flowing
+
+Each take's tone note (`tone1`–`tone3`) is a marbled pill in the About logo's material, each in its own colours:
+cobalt, tomato and cream; tomato, acid and cream; cobalt, acid and cream. Raised cream lettering, no dot.
+
+- Layout: `layers.html?scene=takes&part=tone1&export=1&w=1200&h=1200` (the drawn ink pill, for proportions and text).
+- Material: `Resources/About/logo-still.png`.
+- Prompt: "Render ONLY the single pill-shaped tag in the FIRST reference image as a physical object, in exactly the
+  material and finish of the SECOND reference image (the marbled logo slab): a thick, glossy, slightly domed slab of
+  marbled resin, the marbling made of flowing swirls of <colours> like a lava lamp … Its text "<tone>" is raised cream
+  glossy lettering embossed on the marble … No dot … The background is a perfectly flat, uniform pure green (#00FF00)
+  chroma key …" GPT Image 2.6, `quality: high`, `resolution: 2k`, `aspect_ratio: 21:9`, `background: opaque` (a green
+  screen rather than transparency, so the same still can start and end a loop clip).
+- Post: key the green (`ffmpeg -i <render>.png -vf "chromakey=0x<key>:0.14:0.05,despill=type=green:mix=0.7,format=rgba"`,
+  reading the key colour from a corner), then `scripts/frame-render.sh part <keyed>.png site/img/layers/parts/tone<n>.webp`.
+- Loop clips (not yet made): Seedance 2.5, `omni_reference`, the still as both `start_image` and `end_image`, 5 s, 21:9,
+  720p, no audio, prompt: the pill and its letters stay perfectly still, only the marbling flows like a lava lamp,
+  flat green background, last frame equals first. Scale the master to the render's width, apply the still's crop
+  (the `crop=` that `frame-render.sh` detects on the keyed still), and save it as `site/img/layers/parts/tone<n>.mp4`
+  (H.264, yuv420p, about 700 px wide, no alpha: the page keys the green in a shader and cuts to the still's edge).
+  Then add `data-clips` to the `.layers` element in `site/index.html`; without it the page never asks for the clips.
+
 ## Features carousel: one render per piece
 
 Each carousel slide is a live WebGL scene like the takes panel: every piece (a key, a chip, a card, a tile) is its own
