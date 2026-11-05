@@ -122,7 +122,7 @@ const SCENES = {
       const note = tile(renderer, { w: 0.8 + measure(tone, 24), h: 0.54, r: 0.27, depth: 0.12, bg: C.ink,
         draw: (c, cw, ch) => { dot(c, 30, ch / 2, 8, dotColor); text(c, tone, 50, ch / 2 + 9, { size: 24, weight: 700, color: C.paper }); } });
       note.userData.face.material.alphaTest = 0.5; // its clear corners mustn't hide the card render behind them
-      note.userData.keep = true; card.add(place(note, -1.5 + 0.26 + note.userData.w / 2, -1.0, card.userData.top + 0.1, "tone"));
+      note.userData.keep = note.userData.tone = true; card.add(place(note, -1.5 + 0.26 + note.userData.w / 2, -1.12, card.userData.top + 0.1, "tone" + (i + 1)));
       card.userData.home = new THREE.Vector3(-3.15 + i * 3.15, -0.45, 0.95);
       root.add(place(card, ...card.userData.home.toArray(), "take" + (i + 1))); return card;
     });
@@ -322,7 +322,7 @@ if (typeof window !== "undefined" && "DeviceOrientationEvent" in window && match
 // rendered part images; the takes scene then shows those instead of its own tiles).
 // card: the stage is a carousel stage that bleeds past its card (6% right, 13% top and bottom); the scene is then
 // fitted to the card's area, so only pieces that really stick out use the bleed.
-export function mount(el, name, { interactive = false, exportMode = false, part = null, shot = false, sprites = null, onReady = null, card = false } = {}) {
+export function mount(el, name, { interactive = false, exportMode = false, part = null, shot = false, sprites = null, onReady = null, card = false, clips = false } = {}) {
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: exportMode });
   renderer.setClearColor(0x000000, 0); renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -358,8 +358,8 @@ export function mount(el, name, { interactive = false, exportMode = false, part 
 
   // One part alone, seen almost straight on: the layout reference for its render.
   if (part) {
-    root.children.forEach((o) => { o.visible = o.name === part; });
-    const p = root.getObjectByName(part); p.position.set(0, 0, 0); p.rotation.set(0, 0, 0); bounds = [p.userData.w + 0.5, p.userData.h + 0.5]; takes = null;
+    const p = root.getObjectByName(part); if (p.parent !== root) root.attach(p); // a take's tone pill is exported on its own too
+    root.children.forEach((o) => { o.visible = o === p; }); p.position.set(0, 0, 0); p.rotation.set(0, 0, 0); bounds = [p.userData.w + 0.5, p.userData.h + 0.5]; takes = null;
   }
   // Rendered pieces are seen almost straight on, each scene turned a touch its own way; carousel frames use their
   // per-feature angle; otherwise the near-front three-quarter view of the stills.
@@ -416,8 +416,27 @@ export function mount(el, name, { interactive = false, exportMode = false, part 
   // Sprites: every named piece is shown as its own rendered image on a plane, at the tile's place and size, over a
   // soft drawn shadow. The drawn tiles stay underneath until every image has loaded.
   let ready = !sprites;
+  // The tone pills' marbling flows: each plays its green-screen loop (<sprites>/<name>.mp4, cropped like its still),
+  // keyed in the shader and cut to the still's edge, so the clip needs no alpha channel. Still with reduced motion.
+  const videos = [];
+  const liveTone = (plane, still, src) => {
+    const v = document.createElement("video"); v.muted = true; v.loop = true; v.playsInline = true; v.preload = "auto";
+    v.addEventListener("canplay", () => {
+      const vt = new THREE.VideoTexture(v); vt.colorSpace = THREE.NoColorSpace; // raw sRGB in, written out as is
+      plane.material.dispose();
+      plane.material = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { video: { value: vt }, still: { value: still } },
+        vertexShader: "varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+        fragmentShader: `uniform sampler2D video, still; varying vec2 vUv;
+          void main() { vec4 s = texture2D(still, vUv); vec3 c = texture2D(video, vUv).rgb;
+            float g = c.g - max(c.r, c.b); // how green: the key reads about 0.9, the marble and cream below 0.1
+            float k = 1.0 - smoothstep(0.2, 0.45, g); c.g = min(c.g, max(c.r, c.b) + 0.12); // and no green fringe
+            gl_FragColor = vec4(c, s.a * k); }` });
+      videos.push(v); if (visible) v.play().catch(() => {});
+    }, { once: true });
+    v.src = src;
+  };
   if (sprites) {
-    const names = root.children.filter((o) => o.name && (o.visible || o.name === "ring")).map((o) => o.name);
+    const names = []; root.traverse((o) => { if (o !== root && o.name && (o.visible || o.name === "ring")) names.push(o.name); }); // tone pills sit inside their takes
     const loader = new THREE.TextureLoader();
     Promise.all(names.map((n) => loader.loadAsync(`${sprites}/${n}.webp?v=${ASSET_V}`).then((tex) => [n, tex]))).then((loaded) => {
       for (const [n, tex] of loaded) {
@@ -427,7 +446,9 @@ export function mount(el, name, { interactive = false, exportMode = false, part 
         const ph = n === "base" ? obj.userData.h : w / aspect;
         const plane = new THREE.Mesh(new THREE.PlaneGeometry(w, ph), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }));
         obj.children.forEach((c) => { c.visible = !!c.userData.keep; }); obj.add(plane); obj.visible = true; obj.userData.sprite = plane; obj.userData.h = ph;
-        const tone = obj.getObjectByName("tone"); // a take's tone chip casts a soft shadow onto the card render it sits on
+        if (obj.userData.tone) { plane.renderOrder = 84; // drawn over its take's render, under the ring
+          if (clips && !exportMode && !reduce) liveTone(plane, tex, `${sprites}/${n}.mp4?v=${ASSET_V}`); continue; }
+        const tone = obj.children.find((c) => c.userData.tone); // a take's tone chip casts a soft shadow onto the card render it sits on
         if (tone) { const sh = new THREE.Mesh(new THREE.PlaneGeometry(tone.userData.w * 1.1, tone.userData.h * 1.3),
           new THREE.MeshBasicMaterial({ map: shadowTexture(), transparent: true, depthWrite: false, opacity: 0.5 }));
           sh.position.set(tone.position.x + 0.08, tone.position.y - 0.12, tone.position.z - 0.05); sh.renderOrder = 81; obj.add(sh); }
@@ -464,7 +485,8 @@ export function mount(el, name, { interactive = false, exportMode = false, part 
   el.addEventListener("pointermove", onMove); el.addEventListener("pointerdown", onDown); el.addEventListener("pointerleave", onLeave); el.addEventListener("keydown", onKey);
 
   let visible = true, alive = true, last = performance.now();
-  const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible && alive) { last = performance.now(); requestAnimationFrame(frame); } }); io.observe(el);
+  const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible && alive) { last = performance.now(); requestAnimationFrame(frame); }
+    videos.forEach((v) => { if (visible) v.play().catch(() => {}); else v.pause(); }); }); io.observe(el);
   const ro = new ResizeObserver(fit); ro.observe(el);
   function frame(now) {
     if (!visible || !alive) return;
@@ -478,7 +500,7 @@ export function mount(el, name, { interactive = false, exportMode = false, part 
   }
   requestAnimationFrame(frame);
   // Frees the WebGL context, so a carousel can keep only the slides near the screen alive.
-  const destroy = () => { alive = false; io.disconnect(); ro.disconnect();
+  const destroy = () => { alive = false; io.disconnect(); ro.disconnect(); videos.forEach((v) => { v.pause(); v.removeAttribute("src"); v.load(); });
     el.removeEventListener("pointermove", onMove); el.removeEventListener("pointerdown", onDown); el.removeEventListener("pointerleave", onLeave); el.removeEventListener("keydown", onKey);
     scene.traverse((o) => { o.geometry?.dispose(); [].concat(o.material || []).forEach((m) => { m.map?.dispose(); m.dispose(); }); });
     renderer.dispose(); renderer.forceContextLoss(); canvas.remove(); };
