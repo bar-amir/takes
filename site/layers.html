@@ -29,8 +29,8 @@
   if (exp) { stage.style.width = (q.get("w") || 1600) + "px"; stage.style.height = (q.get("h") || 1000) + "px"; }
   for (const s of ["takes", "shortcut", "presets", "proofread", "coach", "local", "instant", "dictation", "tone", "languages", "compose"])
     document.querySelector("nav").insertAdjacentHTML("beforeend", `<a href="?scene=${s}">${s}</a>`);
-  const part = q.get("part"), shot = q.has("shot"), sprites = q.get("sprites");
-  mount(stage, scene, { interactive: !exp, exportMode: exp, part, shot, sprites });
+  const part = q.get("part"), shot = q.has("shot"), sprites = q.get("sprites"), card = q.has("card");
+  mount(stage, scene, { interactive: !exp, exportMode: exp, part, shot, sprites, card });
   document.title = "ready";
 </script>
 </body>

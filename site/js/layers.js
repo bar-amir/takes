@@ -293,7 +293,9 @@ function frameRight(renderer, scene, camera) {
 // opts: interactive (hover/tap/arrows bring a take forward), exportMode (render once, transparent),
 // part (export one named part alone, front-on), shot (export the wide carousel framing), sprites (a folder of
 // rendered part images; the takes scene then shows those instead of its own tiles).
-export function mount(el, name, { interactive = false, exportMode = false, part = null, shot = false, sprites = null, onReady = null } = {}) {
+// card: the stage is a carousel stage that bleeds past its card (6% right, 13% top and bottom); the scene is then
+// fitted to the card's area, so only pieces that really stick out use the bleed.
+export function mount(el, name, { interactive = false, exportMode = false, part = null, shot = false, sprites = null, onReady = null, card = false } = {}) {
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: exportMode });
   renderer.setClearColor(0x000000, 0); renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -336,7 +338,8 @@ export function mount(el, name, { interactive = false, exportMode = false, part 
     const w = el.clientWidth || 800, h = el.clientHeight || 520; renderer.setSize(w, h, false);
     canvas.style.width = "100%"; canvas.style.height = "100%";
     camera.aspect = w / h; const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-    const d = Math.max(bounds[1] / 2 / t, bounds[0] / 2 / (t * camera.aspect)) * (exportMode && !sprites ? (part ? 1.04 : 1.22) : name === "takes" ? 1.12 : 1.1 / zoom);
+    const fw = card ? 60 / 66 : 1, fh = card ? 1 / 1.26 : 1;
+    const d = Math.max(bounds[1] / 2 / (t * fh), bounds[0] / 2 / (t * camera.aspect * fw)) * (exportMode && !sprites ? (part ? 1.04 : 1.22) : name === "takes" ? 1.12 : 1.1 / zoom);
     camera.position.set(0, 0, d + 1); camera.lookAt(0, 0, 0); camera.clearViewOffset(); camera.zoom = 1;
     camera.updateProjectionMatrix();
   }

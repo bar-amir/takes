@@ -27,4 +27,4 @@ pieces() { case $1 in
 for s in ${PIECE_SCENES-shortcut presets proofread coach local instant dictation tone languages}; do mkdir -p "$OUT/pieces/$s"; for p in $(pieces "$s"); do shoot "scene=$s&part=$p" "$OUT/pieces/$s/$p.png" 1200 1200; done; done
 echo "frames in $OUT"
 # Stills of the live carousel scenes (rendered pieces, same framing as the page), shown until WebGL takes over.
-for s in ${STILLS-}; do shoot "scene=$s&sprites=img/slides/parts/$s" "$OUT/stills-$s.png" 1200 1035; done
+for s in ${STILLS-}; do shoot "scene=$s&sprites=img/slides/parts/$s&card=1" "$OUT/stills-$s.png" 1200 956; done
