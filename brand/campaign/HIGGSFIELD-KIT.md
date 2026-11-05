@@ -58,10 +58,10 @@ cursor a little. The pieces themselves stay still. Pieces per scene are the name
 | Scene | Pieces |
 |---|---|
 | shortcut | field, key-control, key-option, key-space, chip (reuses the takes chip) |
-| presets | chip1 (reuses the takes chip), chip2–chip5, instruction, do, avoid |
+| presets | chip1 (Polish email, selected: Ink with an Acid dot), chip2–chip5 (greyed), instruction, do, avoid |
 | proofread | card, fix1–fix3 |
 | coach | draft, tray, fix1–fix3 |
-| local | panel, menu, badge |
+| local | panel (the Engine card, Ink with the found line in Acid), menu, badge |
 | instant | field, toast, return |
 | dictation | card, pill, wave |
 | tone | reply, take, note |
@@ -76,7 +76,8 @@ cursor a little. The pieces themselves stay still. Pieces per scene are the name
   perspective. Keep all text word for word … Transparent background, no ground shadow, nothing else."
 - Post: `scripts/frame-render.sh part <render.png> site/img/slides/parts/<scene>/<piece>.webp`.
 - Stills: `STILLS="<scenes>" scripts/export-layers.sh` exports each live scene once (1200 × 1000, the stage's aspect),
-  saved as `site/img/slides/stills/<scene>.webp`. The page shows it until the live scene loads, so the swap is seamless;
+  saved as `site/img/slides/stills/<scene>.webp` (1200 × 1035: the stage is 13% taller than the card at each end, so pieces
+  can float past the card's edges). The page shows it until the live scene loads, so the swap is seamless;
   if the renders fail to load, the still stays and the canvas is removed.
 - Card surfaces: `site/img/slides/bg/1–9.webp` are crops of the hero tabletop (`brand/hero/key-*.jpg`), flipped, tinted
   and blended half into the card colour, one per slide, with a CSS gradient for the hero's diagonal light.
