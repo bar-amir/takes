@@ -107,12 +107,12 @@ section h2 { font-size: clamp(52px, 6.4vw, 84px); }
 .layers canvas { position: absolute; inset: 0; touch-action: pan-y; }
 .shot { background: #fff; box-shadow: 0 1px 0 rgba(23,23,20,.08), 0 24px 60px rgba(23,23,20,.12); }
 .caption { margin: 22px 0 0; font-size: 21px; max-width: 34em; }
-.product { position: relative; padding: 64px 0 72px; background: #E6D8C2 url(img/product-bg.webp) center / cover no-repeat; }
+.product { position: relative; padding: 56px 0 72px; background: #E6D8C2 url(img/product-bg.webp) center / cover no-repeat; }
 .product::before { content: ""; position: absolute; inset: 0; background: linear-gradient(112deg, rgba(255,250,240,.28), rgba(255,250,240,0) 40%, rgba(60,40,15,.1)); pointer-events: none; }
 .product .wrap { position: relative; }
 .product h2 { margin-bottom: 20px; }
 .product .caption { margin-top: 10px; }
-.features { padding-top: 96px; }
+.features { padding-top: 112px; }
 .carousel-head { position: relative; z-index: 3; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 36px; }
 .carousel-nav { display: flex; gap: 10px; }
 .cnav { width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--ink); background: transparent; color: var(--ink); font: 22px var(--text); cursor: pointer; }
@@ -135,7 +135,7 @@ section h2 { font-size: clamp(52px, 6.4vw, 84px); }
 #slide-tone { background-image: url(img/slides/bg/8.webp); }
 #slide-languages { background-image: url(img/slides/bg/9.webp); }
 
-.slide-stage { position: absolute; top: -13%; right: -6%; bottom: -13%; width: 66%; } /* taller than the card, so pieces can float past its edges */
+.slide-stage { position: absolute; z-index: 2; top: -13%; right: -6%; bottom: -13%; width: 66%; } /* taller than the card, so pieces can float past its edges */
 .slide-stage > img { display: block; width: 100%; height: 100%; object-fit: contain; transition: opacity .5s ease; }
 .slide-stage canvas { position: absolute; inset: 0; }
 .slide-stage.live > img { opacity: 0; }
@@ -342,6 +342,15 @@ fill="currentColor" stroke="none">
 </div>
 
 <main>
+  <section class="product">
+    <div class="wrap">
+      <div class="label eyebrow">The product</div>
+      <h2 class="display">Choice is the product.</h2>
+      <div class="layers" data-scene="takes" data-sprites="img/layers/parts" tabindex="0" aria-label="The Takes panel as floating layers: the draft above three takes of a Slack message. Point at a take, or use the arrow keys, to bring it to the front."><img src="img/layers/takes-front.webp?v=5" width="1500" height="1000" alt="The Takes panel as floating layers: the draft above three takes of a Slack message, the middle take lifted to the front"></div>
+      <p class="caption">Compare complete alternatives, inspect changes, refine a selected take, then paste it back.</p>
+    </div>
+  </section>
+
   <section id="how" class="idea">
     <div class="wrap">
       <h2 class="display caps">Your thought.<br>A few takes.</h2>
@@ -365,15 +374,6 @@ fill="currentColor" stroke="none">
         <div class="voice-row"><div class="label">03</div><h3>Polish email</h3><p><span class="from">can u resend the invoice its missing the PO number</span>Could you resend the invoice? The PO number is missing.</p></div>
         <div class="voice-row"><div class="label">04</div><h3>Translate</h3><p><span class="from">Running ten minutes late, start without me.</span>Ich komme zehn Minuten später, fangt ohne mich an.</p></div>
       </div>
-    </div>
-  </section>
-
-  <section class="product">
-    <div class="wrap">
-      <div class="label eyebrow">The product</div>
-      <h2 class="display">Choice is the product.</h2>
-      <div class="layers" data-scene="takes" data-sprites="img/layers/parts" tabindex="0" aria-label="The Takes panel as floating layers: the draft above three takes of a Slack message. Point at a take, or use the arrow keys, to bring it to the front."><img src="img/layers/takes-front.webp?v=5" width="1500" height="1000" alt="The Takes panel as floating layers: the draft above three takes of a Slack message, the middle take lifted to the front"></div>
-      <p class="caption">Compare complete alternatives, inspect changes, refine a selected take, then paste it back.</p>
     </div>
   </section>
 
