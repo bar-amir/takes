@@ -515,7 +515,7 @@ fill="currentColor" stroke="none">
       </div>
       <div class="mark-loop">
         <svg class="mark" viewBox="0 0 1993 2002" role="img" aria-label="Takes mark"><use href="#t"/></svg>
-        <img class="still" src="img/logo/tmark-still.webp" alt="" aria-hidden="true" decoding="async">
+        <img class="still" src="img/logo/tmark-still.webp?v=2" alt="" aria-hidden="true" decoding="async">
         <video muted playsinline loop preload="metadata" aria-hidden="true"></video>
       </div>
     </div>
@@ -617,7 +617,7 @@ fill="currentColor" stroke="none">
     v.addEventListener("playing", () => mark.classList.add("playing"));
     v.addEventListener("error", () => mark.classList.remove("playing"));
     new IntersectionObserver((es) => {
-      es.forEach((e) => { if (e.isIntersecting) { if (!v.src) v.src = `img/logo/tmark.${ext}?v=3`; v.play().catch(() => {}); } else v.pause(); });
+      es.forEach((e) => { if (e.isIntersecting) { if (!v.src) v.src = `img/logo/tmark.${ext}?v=4`; v.play().catch(() => {}); } else v.pause(); });
     }, { rootMargin: "200px" }).observe(mark);
   }
   if (logo) {
