@@ -8,6 +8,7 @@ All notable changes to Takes. Versions follow [semantic versioning](https://semv
 - "Finish setting up Takes…" leaves the menu once setup is done. If something stops working later, the menu bar icon shows its dot and the hotkey opens setup.
 - Settings grows and shrinks around its centre when you switch tabs, and the Coach tab has the same background as the others.
 - Update notes in the updater show bold text and links instead of Markdown symbols.
+- In the preset picker (Tab), moving with the arrow keys scrolls the list to keep the highlighted preset in view.
 
 ## 0.6.0 · 2026-11-05
 
