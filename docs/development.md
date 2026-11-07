@@ -37,6 +37,15 @@ Copies you build yourself never check for updates.
 
 `build/Takes.app/Contents/MacOS/Takes --snapshot <folder>` renders every screen with sample data to PNGs. Include the relevant ones in pull requests that change the UI. The images in `site/img` come from it.
 
+## Translations
+
+The UI is translated into the languages in `Resources/Localizations`, one `<language>.lproj` folder each with `Localizable.strings` and `InfoPlist.strings` (the microphone and speech recognition prompts). `assemble-app.sh` copies them into the app, and macOS picks the language from System Settings › General › Language & Region, including per-app languages.
+
+- Text given to SwiftUI as a literal (`Text("…")`, `Button("…")`, `.help("…")`) is translated already. Any other text shown to people, such as a `String` passed to the app's own components, an error message or a menu item, goes through `String(localized: "…")`. Prompts, logs and anything saved or compared stay as they are.
+- After changing UI text, run `scripts/localization.py extract` to update `en.lproj`, then `scripts/localization.py check` to see what each language is missing. `scripts/localization.py missing de` prints the English entries German doesn't have yet. Until a string is translated, the English shows.
+- Interpolated Strings become `%@` and Ints `%lld`; add new Int interpolations to `INT_INTERPOLATIONS` in the script. Translations must keep the same specifiers (in any order, as `%1$@`), and `LocalizationTests` fails if they don't.
+- To see a language, run `build/Takes.app/Contents/MacOS/Takes --snapshot <folder> -AppleLanguages '(de)'`.
+
 ## How it calls the model
 
 With Claude Code: `claude -p` with a preset-built system prompt, `--model`, `--effort` and `--output-format stream-json --include-partial-messages`. Takes are separated by `===` lines and appear in the panel as they're written. It runs from an empty temp folder so no CLAUDE.md is picked up. See `Sources/Takes/ClaudeCodeEngine.swift`.
