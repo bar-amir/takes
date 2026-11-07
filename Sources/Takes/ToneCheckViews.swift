@@ -25,13 +25,13 @@ struct TakeToneLine: View {
     var body: some View {
         if model.preset.showTone, !model.running, model.isFinished(index) {
             let note = tones.note(index)
-            Text(note.map(ToneCheck.label) ?? (tones.loading ? "Reading the tone…" : " "))
+            Text(note.map(ToneCheck.label) ?? (tones.loading ? String(localized: "Reading the tone…") : " "))
                 .font(.system(size: 12))
                 .foregroundStyle(note == nil ? Theme.tertiaryText : Theme.secondaryText)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: note)
-                .accessibilityLabel(note.map { "Tone: \(ToneCheck.label($0).lowercased())" } ?? "")
+                .accessibilityLabel(note.map { String(localized: "Tone: \(ToneCheck.label($0).lowercased())") } ?? "")
                 .accessibilityHidden(note == nil && !tones.loading)
         }
     }
@@ -43,7 +43,7 @@ struct ToneReadHint: View {
 
     var body: some View {
         if model.preset.showTone {
-            Button(action: model.checkTone) { KeyHint(keys: ["⌘", "T"], label: "how it reads") }
+            Button(action: model.checkTone) { KeyHint(keys: ["⌘", "T"], label: String(localized: "how it reads", comment: "Key hint: ⌘T checks how the draft reads")) }
                 .buttonStyle(.plain)
                 .keyboardShortcut("t", modifiers: .command)
                 .disabled(model.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -67,7 +67,7 @@ struct ToneReadSection: View {
             if toneRead.isShown {
                 HStack(alignment: .top, spacing: Spacing.item) {
                     content.frame(maxWidth: .infinity, alignment: .leading)
-                    Button(action: toneRead.dismiss) { KeyHint(keys: ["esc"], label: "dismiss") }
+                    Button(action: toneRead.dismiss) { KeyHint(keys: ["esc"], label: String(localized: "dismiss", comment: "Key hint: esc dismisses the tone read")) }
                         .buttonStyle(.plain)
                         .accessibilityLabel("Dismiss the tone read")
                 }
@@ -118,7 +118,7 @@ struct PresetToneSection: View {
     @Binding var preset: Preset
 
     var body: some View {
-        PresetOptionRow(isOn: $preset.showTone, title: "Show tone",
-                        detail: "A few words under each take on how it may come across, like “may read as a bit curt”. ⌘T in compose checks your draft.")
+        PresetOptionRow(isOn: $preset.showTone, title: String(localized: "Show tone"),
+                        detail: String(localized: "A few words under each take on how it may come across, like “may read as a bit curt”. ⌘T in compose checks your draft."))
     }
 }

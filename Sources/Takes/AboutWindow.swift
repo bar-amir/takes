@@ -42,7 +42,8 @@ struct AboutView: View {
     private var version: String {
         let short = info["CFBundleShortVersionString"] as? String ?? "dev"
         let build = info["CFBundleVersion"] as? String
-        return build.map { $0 == short ? "Version \(short)" : "Version \(short) (\($0))" } ?? "Version \(short)"
+        return build.map { $0 == short ? String(localized: "Version \(short)") : String(localized: "Version \(short) (\($0))") }
+            ?? String(localized: "Version \(short)")
     }
     private var copyright: String { info["NSHumanReadableCopyright"] as? String ?? "© 2026 Bar Amir. MIT License." }
 

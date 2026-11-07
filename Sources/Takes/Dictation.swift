@@ -404,7 +404,7 @@ final class SystemSpeech: SpeechBackend {
             try engine.start()
         } catch {
             input.removeTap(onBus: 0)
-            throw SpeechError.failed("The microphone couldn't start: \(error.localizedDescription)")
+            throw SpeechError.failed(String(localized: "The microphone couldn't start: \(error.localizedDescription)"))
         }
 
         task = recognizer.recognitionTask(with: request) { result, error in

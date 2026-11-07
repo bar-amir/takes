@@ -54,10 +54,10 @@ enum InstantMode {
 
         func message(app: String) -> String {
             switch self {
-            case .engine(let reason): return "Nothing was pasted. \(reason)"
-            case .noTake: return "The model sent back an empty take. Nothing was pasted."
-            case .leftField: return "You left \(app), so nothing was pasted."
-            case .couldNotReturn: return "Couldn't get back to \(app). The take is on the clipboard: press ⌘V."
+            case .engine(let reason): return String(localized: "Nothing was pasted. \(reason)")
+            case .noTake: return String(localized: "The model sent back an empty take. Nothing was pasted.")
+            case .leftField: return String(localized: "You left \(app), so nothing was pasted.")
+            case .couldNotReturn: return String(localized: "Couldn't get back to \(app). The take is on the clipboard: press ⌘V.")
             }
         }
     }
@@ -163,7 +163,7 @@ final class InstantModeController {
         }
         last = nil
         caret = focus.caretRect
-        let app = focus.app?.localizedName ?? "the app"
+        let app = focus.app?.localizedName ?? String(localized: "the app")
         let pid = focus.app?.processIdentifier
         let restore = store.settings.restoreClipboard
         let run = InstantRun(

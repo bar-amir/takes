@@ -94,14 +94,16 @@ final class PanelModel: ObservableObject {
     var previewAppName: String?
     var previewAppURL: URL?
     var appName: String { previewAppName ?? focus?.app?.localizedName ?? "the focused app" }
+    /// `appName` for the screen: the fallback is translated. History and the coach keep `appName`.
+    var displayAppName: String { previewAppName ?? focus?.app?.localizedName ?? String(localized: "the focused app") }
     var appURL: URL? { previewAppName != nil ? previewAppURL : focus?.app?.bundleURL }
     var appBundleID: String? { focus?.app?.bundleIdentifier }
 
     var sourceLabel: String {
         switch focus?.source {
-        case .selection: return "From your selection"
-        case .field: return draft.isEmpty ? "The field was empty" : "From the field"
-        default: return focus?.app == nil ? "" : "Couldn't read the field"
+        case .selection: return String(localized: "From your selection")
+        case .field: return draft.isEmpty ? String(localized: "The field was empty") : String(localized: "From the field")
+        default: return focus?.app == nil ? "" : String(localized: "Couldn't read the field")
         }
     }
 
@@ -269,7 +271,7 @@ final class PanelModel: ObservableObject {
 
     /// "3 · Sonnet 5.5 · Low": the run options on the compose chip.
     var runOptionsLabel: String {
-        usesOneModel ? "\(takeCount) · \(Models.displayLabel(modelID))" : "\(takeCount) · \(Models.label(modelID)) · \(effort.capitalized)"
+        usesOneModel ? "\(takeCount) · \(Models.displayLabel(modelID))" : "\(takeCount) · \(Models.label(modelID)) · \(Models.effortLabel(effort))"
     }
 
     func choose(number: Int) {
@@ -357,8 +359,8 @@ final class PanelModel: ObservableObject {
         running = false
         takes = result.takes
         selected = min(selected, max(takes.count - 1, 0))
-        let seconds = { (ms: Int) in String(format: "%.1f s", Double(ms) / 1000) }
-        timing = [result.firstTextMs.map { "first words \(seconds($0))" }, "all takes \(seconds(result.wallMs))"]
+        let seconds = { (ms: Int) in String(format: NSLocalizedString("%.1f s", comment: "Seconds"), Double(ms) / 1000) }
+        timing = [result.firstTextMs.map { String(localized: "first words \(seconds($0))") }, String(localized: "all takes \(seconds(result.wallMs))")]
             .compactMap { $0 }.joined(separator: " · ")
         store.settings.lastFirstTextMs = result.firstTextMs
 

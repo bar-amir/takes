@@ -34,10 +34,10 @@ private struct PanelHeader: View {
     var body: some View {
         HStack(spacing: Spacing.inner) {
             AppGlyph(appURL: model.appURL)
-            (Text("Into ").foregroundStyle(Theme.secondaryText) + Text(model.appName).fontWeight(.semibold).foregroundStyle(Theme.text))
+            Text("Into \(Text(model.displayAppName).fontWeight(.semibold).foregroundStyle(Theme.text))").foregroundStyle(Theme.secondaryText)
                 .font(.system(size: 13))
             Spacer()
-            KeyHint(keys: ["esc"], label: "close")
+            KeyHint(keys: ["esc"], label: String(localized: "close", comment: "Key hint: esc closes the panel"))
         }
         .frame(height: Spacing.control)
         .padding(.horizontal, Spacing.gutter)
@@ -172,7 +172,7 @@ struct ComposeView: View {
                             }
                         }
                         .buttonStyle(PillButtonStyle(selected: true, height: 30))
-                        .help(model.autoPicked ? "Picked for \(model.appName). Tab shows every preset." : "Tab shows every preset.")
+                        .help(model.autoPicked ? "Picked for \(model.displayAppName). Tab shows every preset." : "Tab shows every preset.")
                         .accessibilityLabel("Preset: \(preset.name)")
                         .accessibilityHint("Opens the preset list. Tab.")
                     } else {
@@ -213,8 +213,8 @@ struct ComposeView: View {
     private var footer: some View {
         HStack {
             HStack(spacing: Spacing.section) {
-                KeyHint(keys: ["⇥"], label: "presets")
-                Button { toggleOptions() } label: { KeyHint(keys: ["⌘", "K"], label: "options") }
+                KeyHint(keys: ["⇥"], label: String(localized: "presets", comment: "Key hint: Tab opens the preset list"))
+                Button { toggleOptions() } label: { KeyHint(keys: ["⌘", "K"], label: String(localized: "options", comment: "Key hint: ⌘K opens the run options")) }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Run options")
                 ToneReadHint(model: model)
@@ -259,7 +259,8 @@ private struct ComposeStatusRow: View {
     var body: some View {
         if case .idle = dictation.state {
             HStack(spacing: Spacing.section) {
-                Text([model.sourceLabel, "\(model.wordCount) word\(model.wordCount == 1 ? "" : "s")"].filter { !$0.isEmpty }.joined(separator: " · "))
+                let words = model.wordCount == 1 ? String(localized: "1 word") : String(localized: "\(model.wordCount) words")
+                Text([model.sourceLabel, words].filter { !$0.isEmpty }.joined(separator: " · "))
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.secondaryText)
                     .lineLimit(1)
@@ -305,7 +306,7 @@ private struct RunOptionsChip: View {
         .fixedSize()
         .onHover { hovering = $0 }
         .help(changed ? "Changed for this run. ⌘K" : "Takes, model and effort, from the preset. ⌘K")
-        .accessibilityLabel("Run options: \(model.runLabel)\(changed ? ", changed for this run" : "")")
+        .accessibilityLabel(changed ? Text("Run options: \(model.runLabel), changed for this run") : Text("Run options: \(model.runLabel)"))
         .accessibilityHint("Command K")
     }
 }
@@ -316,7 +317,7 @@ private struct RunOptionsPopover: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.item) {
-            row("Takes") {
+            row(String(localized: "Takes", comment: "Run options: number of takes")) {
                 NumberSegments(selection: $model.takeCount)
                 Spacer(minLength: Spacing.item)
                 // Changed values show on the chip in Ink; this puts them back.
@@ -328,13 +329,15 @@ private struct RunOptionsPopover: View {
                         .help("Settings for new presets")
                 }
             }
-            row("Model") { MenuPicker(options: model.modelOptions, selection: $model.modelID) }
+            row(String(localized: "Model")) { MenuPicker(options: model.modelOptions, selection: $model.modelID) }
             if !model.usesOneModel {
-                row("Effort") { MenuPicker(options: Models.efforts.map { (value: $0, title: $0.capitalized) }, selection: $model.effort) }
+                row(String(localized: "Effort")) {
+                    MenuPicker(options: Models.efforts.map { (value: $0, title: Models.effortLabel($0)) }, selection: $model.effort)
+                }
             }
             if model.store.settings.engine == .chatGPT {
                 // OpenAI's Sign in with ChatGPT guidelines: say the plan is in use next to the model, with a way to manage it.
-                row("Plan") {
+                row(String(localized: "Plan", comment: "Run options: the ChatGPT plan in use")) {
                     Text("Your ChatGPT plan").font(.system(size: 13)).foregroundStyle(Theme.controlText)
                     Button("Manage") { NSWorkspace.shared.open(ChatGPTOAuth.usageURL) }
                         .buttonStyle(QuietButtonStyle(size: 13))
@@ -380,7 +383,7 @@ struct PresetPickerView: View {
             HStack(spacing: Spacing.inner) {
                 Image(systemName: "magnifyingglass").font(.system(size: 14, weight: .medium)).foregroundStyle(Theme.secondaryText)
                 KeyTextField(text: Binding(get: { model.filter }, set: { model.filter = $0; model.filterChanged() }),
-                             placeholder: "Filter presets…", fontSize: 15, focusToken: model.focusToken,
+                             placeholder: String(localized: "Filter presets…"), fontSize: 15, focusToken: model.focusToken,
                              onSubmit: model.chooseHighlighted, onUp: { model.moveHighlight(-1) },
                              onDown: { model.moveHighlight(1) }, onEscape: model.escape)
                 HStack(spacing: 3) {
@@ -413,11 +416,11 @@ struct PresetPickerView: View {
                     let picked = rows.filter { pickedIDs.contains($0.element.id) }
                     let others = rows.filter { !pickedIDs.contains($0.element.id) }
                     if !picked.isEmpty {
-                        sectionTitle("Picked for \(model.appName)")
+                        sectionTitle(String(localized: "Picked for \(model.displayAppName)"))
                         ForEach(picked, id: \.element.id) { row($0.element, index: $0.offset) }
                     }
                     if !others.isEmpty {
-                        sectionTitle("All presets")
+                        sectionTitle(String(localized: "All presets"))
                         ForEach(others, id: \.element.id) { row($0.element, index: $0.offset) }
                     }
                     if model.showsBrowseRow { BrowsePresetsRow(model: model).id(PresetListRow.browse) }
@@ -530,9 +533,13 @@ struct PresetPickerView: View {
     private func previewFootnote(_ preset: Preset) -> String {
         var parts: [String] = []
         let rules = model.store.settings.voiceRules.filter(\.enabled).count
-        if rules > 0 { parts.append("Plus your \(rules) voice rule\(rules == 1 ? "" : "s")") }
-        if !preset.examples.isEmpty { parts.append("\(preset.examples.count) example\(preset.examples.count == 1 ? "" : "s") of your voice") }
-        if !preset.apps.isEmpty { parts.append("auto-picked in " + preset.apps.map(\.name).joined(separator: ", ")) }
+        if rules > 0 { parts.append(rules == 1 ? String(localized: "Plus your 1 voice rule") : String(localized: "Plus your \(rules) voice rules")) }
+        let examples = preset.examples.count
+        if examples > 0 { parts.append(examples == 1 ? String(localized: "1 example of your voice") : String(localized: "\(examples) examples of your voice")) }
+        if !preset.apps.isEmpty {
+            let apps = preset.apps.map(\.name).joined(separator: ", ")
+            parts.append(String(localized: "auto-picked in \(apps)"))
+        }
         return parts.joined(separator: " · ")
     }
 }
@@ -729,7 +736,7 @@ struct TakesView: View {
         HStack(spacing: Spacing.inner) {
             Image(systemName: "pencil").font(.system(size: 14, weight: .medium)).foregroundStyle(Theme.secondaryText)
             KeyTextField(text: $model.refineText,
-                         placeholder: "Refine take \(model.selected + 1): warmer, drop the second ask, add a thanks…",
+                         placeholder: String(localized: "Refine take \(model.selected + 1): warmer, drop the second ask, add a thanks…"),
                          fontSize: 14, focusToken: refineFocus,
                          onSubmit: { model.refine(); gridFocused = true },
                          onEscape: { gridFocused = true })
@@ -749,16 +756,16 @@ struct TakesView: View {
     private var footer: some View {
         HStack(spacing: Spacing.section) {
             HStack(spacing: Spacing.section) {
-                KeyHint(keys: ["←", "→"], label: "move")
-                if !model.showsFixes { KeyHint(keys: ["⌥"], label: "changes") }
-                KeyHint(keys: ["⌘", "C"], label: "copy")
-                KeyHint(keys: ["esc"], label: "back")
+                KeyHint(keys: ["←", "→"], label: String(localized: "move", comment: "Key hint: arrows move between takes"))
+                if !model.showsFixes { KeyHint(keys: ["⌥"], label: String(localized: "changes", comment: "Key hint: ⌥ shows each take's changes")) }
+                KeyHint(keys: ["⌘", "C"], label: String(localized: "copy", comment: "Key hint: ⌘C copies the take"))
+                KeyHint(keys: ["esc"], label: String(localized: "back", comment: "Key hint: esc goes back"))
             }
             .fixedSize()
             Spacer(minLength: 0)
             if model.running {
                 TimelineView(.periodic(from: model.startedAt, by: 0.1)) { context in
-                    Text(String(format: "Writing… %.1f s", context.date.timeIntervalSince(model.startedAt)))
+                    Text(String(format: NSLocalizedString("Writing… %.1f s", comment: ""), context.date.timeIntervalSince(model.startedAt)))
                         .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).monospacedDigit()
                 }
             } else if !model.timing.isEmpty {
@@ -868,16 +875,16 @@ private struct TakeCard: View {
     }
 
     private func label(finished: Bool, showChanges: Bool) -> String {
-        let base = "TAKE \(index + 1)"
-        if !finished { return "\(base) · WRITING" }
-        return showChanges ? "\(base) · CHANGES" : base
+        let number = index + 1
+        if !finished { return String(localized: "TAKE \(number) · WRITING") }
+        return showChanges ? String(localized: "TAKE \(number) · CHANGES") : String(localized: "TAKE \(number)")
     }
 
     private func tooltip(finished: Bool) -> String {
         guard finished else { return "" }
-        let words = "\(WordCounter.count(model.takes[index])) words"
-        let fixes = model.showsFixes ? Proofread.fixLabel(model.fixCount(index)) + " · " : ""
-        return "\(fixes)\(words) · ⌥ shows changes · ⌘C copies"
+        let count = WordCounter.count(model.takes[index])
+        let hints = String(localized: "\(count) words · ⌥ shows changes · ⌘C copies")
+        return model.showsFixes ? Proofread.fixLabel(model.fixCount(index)) + " · " + hints : hints
     }
 }
 

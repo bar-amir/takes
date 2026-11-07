@@ -111,7 +111,7 @@ struct ReplyContextBar: View {
 
     private var subtitle: String {
         if let notice = model.contextNotice { return notice }
-        guard let context = model.replyContext, model.hasReplyContext else { return "Reference only" }
+        guard let context = model.replyContext, model.hasReplyContext else { return String(localized: "Reference only") }
         return [context.lengthLabel, context.originLabel].compactMap { $0 }.joined(separator: " · ")
     }
 }
@@ -234,8 +234,8 @@ struct ReplyContextSettings: View {
     @ObservedObject var store = Store.shared
 
     var body: some View {
-        FormToggle("Use the clipboard as context when it looks like a message",
-                   detail: "Only text copied in the last 2 minutes, under 4,000 characters. Passwords, files and images are skipped. Takes never reads the screen or other windows.",
+        FormToggle(String(localized: "Use the clipboard as context when it looks like a message"),
+                   detail: String(localized: "Only text copied in the last 2 minutes, under 4,000 characters. Passwords, files and images are skipped. Takes never reads the screen or other windows."),
                    isOn: $store.settings.clipboardContext)
     }
 }

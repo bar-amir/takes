@@ -95,7 +95,7 @@ final class PanelController {
         // The first try should show several takes to choose from, so it starts on a rewriting preset, not a proofreader.
         let presetID = Store.shared.presets.first { !$0.isMinimalEdits }?.id
         open(focus: FocusSnapshot(app: nil, text: text, source: .field, caretRect: boxFrame), presetID: presetID)
-        model.previewAppName = "the practice box"
+        model.previewAppName = String(localized: "the practice box")
     }
 
     private func endPractice() {
@@ -282,14 +282,16 @@ final class PanelController {
         close()
         Paster.paste(text, into: focus, replaceAll: replaceAll, restoreClipboard: restore) { [weak self] pasted in
             guard let self else { return }
+            let number = index + 1
             guard pasted else {
                 // The field's app couldn't be brought back; nothing was typed anywhere.
-                let app = focus?.app?.localizedName ?? "the app"
-                self.toast.show(message: "Couldn't get back to \(app). Take \(index + 1) is on the clipboard: press ⌘V",
+                let app = focus?.app?.localizedName ?? String(localized: "the app")
+                self.toast.show(message: String(localized: "Couldn't get back to \(app). Take \(number) is on the clipboard: press ⌘V"),
                                 showUndo: false, near: self.caretRect, onSaveExample: nil)
                 return
             }
-            self.toast.show(message: "Pasted take \(index + 1)" + (restore ? " · your clipboard is back" : ""),
+            self.toast.show(message: restore ? String(localized: "Pasted take \(number) · your clipboard is back")
+                                             : String(localized: "Pasted take \(number)"),
                             showUndo: true, near: self.caretRect, coachNote: nudge) { [presetID] in
                 guard let presetID else { return }
                 Store.shared.addExample(text, toPreset: presetID)
@@ -301,13 +303,17 @@ final class PanelController {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(text, forType: .string)
         close()
-        toast.show(message: "Copied take \(index + 1)", showUndo: false, near: caretRect, onSaveExample: nil)
+        toast.show(message: String(localized: "Copied take \(index + 1)"), showUndo: false, near: caretRect, onSaveExample: nil)
     }
 
     private func showMoreMenu() {
         guard let panel, let view = panel.contentView else { return }
         let menu = NSMenu()
-        let items: [(String, SettingsTab)] = [("Edit presets…", .presets), ("Writing rules…", .writing), ("English coach…", .coach), ("Model and defaults…", .model), ("History…", .history)]
+        let items: [(String, SettingsTab)] = [
+            (String(localized: "Edit presets…"), .presets), (String(localized: "Writing rules…"), .writing),
+            (String(localized: "English coach…"), .coach), (String(localized: "Model and defaults…"), .model),
+            (String(localized: "History…"), .history),
+        ]
         for (title, tab) in items {
             let item = NSMenuItem(title: title, action: #selector(MenuTarget.open(_:)), keyEquivalent: "")
             item.representedObject = tab.rawValue
