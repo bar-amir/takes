@@ -48,7 +48,7 @@ struct CoachStrip: View {
                                 HStack(spacing: 6) {
                                     Image(systemName: "arrow.up.right").font(.system(size: 10, weight: .bold)).foregroundStyle(Theme.doText)
                                     Text("\(tip.goal):").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.doText)
-                                    (Text("“\(tip.wrong)” could be ") + Text("“\(tip.better)”").fontWeight(.semibold))
+                                    Text("“\(tip.wrong)” could be \(Text("“\(tip.better)”").fontWeight(.semibold))")
                                         .font(.system(size: 12)).lineLimit(1)
                                 }
                             }
@@ -74,7 +74,7 @@ struct CoachStrip: View {
             HStack(spacing: Spacing.item) {
                 HStack(spacing: 0) {
                     Text("Coach").font(.system(size: 13, weight: .bold))
-                    Text(n == 0 ? " · a tip for your goals" : " · \(n) note\(n == 1 ? "" : "s")\(top == nil || model.coachExpanded ? "" : " · top: ")")
+                    Text(Self.summary(notes: n, showsTop: top != nil && !model.coachExpanded))
                         .font(.system(size: 13)).foregroundStyle(Theme.controlText)
                     if let top, !model.coachExpanded {
                         CoachFix(wrong: top.wrong, right: top.right, size: 13).layoutPriority(-1)
@@ -97,8 +97,15 @@ struct CoachStrip: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(model.coachExpanded ? "Hide the coach's notes" : "Show all \(n) coach notes")
+        .accessibilityLabel(model.coachExpanded ? Text("Hide the coach's notes") : Text("Show all \(n) coach notes"))
         .accessibilityHint("Command semicolon")
+    }
+
+    /// What follows "Coach" on the collapsed line: " · 3 notes · top: ", then the top fix.
+    private static func summary(notes n: Int, showsTop: Bool) -> String {
+        if n == 0 { return String(localized: " · a tip for your goals") }
+        if n == 1 { return showsTop ? String(localized: " · 1 note · top: ") : String(localized: " · 1 note") }
+        return showsTop ? String(localized: " · \(n) notes · top: ") : String(localized: " · \(n) notes")
     }
 
     private func toggle() {
@@ -183,7 +190,8 @@ struct CoachInvitationStrip: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 9) {
             HStack(alignment: .firstTextBaseline, spacing: Spacing.item) {
-                (Text("Your takes fixed \(offer.found.count == 1 ? "an English slip" : "\(offer.found.count) English slips"). ").fontWeight(.semibold)
+                ((offer.found.count == 1 ? Text("Your takes fixed an English slip. ")
+                    : Text("Your takes fixed \(offer.found.count) English slips. ")).fontWeight(.semibold)
                     + Text("You made the first one in \(offer.drafts) drafts this month.").foregroundStyle(Theme.secondaryText))
                     .font(.system(size: 13.5))
                     .lineLimit(1)
@@ -258,7 +266,7 @@ struct DraftStrip: View {
             Text("Your draft").font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.tertiaryText)
             MarkedDraftText(text: draft, marks: marks)
                 .accessibilityLabel(draft)
-                .accessibilityHint(run.findings.isEmpty ? "" : run.findings.map { "\($0.wrong) to \($0.right)" }.joined(separator: "; "))
+                .accessibilityHint(run.findings.isEmpty ? "" : run.findings.map { String(localized: "\($0.wrong) to \($0.right)") }.joined(separator: "; "))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, Spacing.gutter)
@@ -471,7 +479,7 @@ struct NudgesMenu: View {
     var body: some View {
         Button(action: showMenu) {
             HStack(spacing: 6) {
-                Text(showsChoice ? selection.title : "Nudges").font(.system(size: 13, weight: .semibold))
+                Text(showsChoice ? selection.title : String(localized: "Nudges")).font(.system(size: 13, weight: .semibold))
                 Image(systemName: "chevron.down").font(.system(size: 9, weight: .bold))
             }
             .foregroundStyle(Theme.text)
@@ -489,7 +497,7 @@ struct NudgesMenu: View {
             menu.addItem(item)
         }
         menu.addItem(.separator())
-        let note = NSMenuItem(title: "Never more than one nudge per paste", action: nil, keyEquivalent: "")
+        let note = NSMenuItem(title: String(localized: "Never more than one nudge per paste"), action: nil, keyEquivalent: "")
         note.isEnabled = false
         menu.addItem(note)
         menu.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
@@ -506,17 +514,17 @@ struct CoachHeading: View {
 }
 
 enum CoachCopy {
-    static let tokens = "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing."
-    static let billing = "Claude Code or ChatGPT: counts toward your plan. An API key (Anthropic, OpenAI or other): billed like any run. A local model: free, but slower and less accurate. Usage is shown here every month."
-    static let privacy = "Only the phrase around each mistake is kept, never your whole message, for 30 days. Your draft goes to your engine, as it already does for takes. Turning the coach off deletes everything it kept."
+    static let tokens = String(localized: "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing.")
+    static let billing = String(localized: "Claude Code or ChatGPT: counts toward your plan. An API key (Anthropic, OpenAI or other): billed like any run. A local model: free, but slower and less accurate. Usage is shown here every month.")
+    static let privacy = String(localized: "Only the phrase around each mistake is kept, never your whole message, for 30 days. Your draft goes to your engine, as it already does for takes. Turning the coach off deletes everything it kept.")
 
     static func engineName(_ settings: AppSettings) -> String {
         let engine: String
         switch settings.engine {
         case .claudeCode: engine = "Claude Code"
-        case .apiKey: engine = "Anthropic API key"
-        case .local: engine = "Local model"
-        case .provider: engine = "API key"
+        case .apiKey: engine = String(localized: "Anthropic API key")
+        case .local: engine = String(localized: "Local model")
+        case .provider: engine = String(localized: "API key")
         case .chatGPT: engine = "ChatGPT"
         }
         let model = settings.quickModel
@@ -620,7 +628,7 @@ struct CoachIntroView: View {
         .background(RoundedRectangle(cornerRadius: 8).fill(Color(hex: "#24242B")))
     }
 
-    private func tile<Content: View>(_ title: String?, @ViewBuilder _ content: () -> Content) -> some View {
+    private func tile<Content: View>(_ title: LocalizedStringKey?, @ViewBuilder _ content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             if let title { Text(title).font(.system(size: 12, weight: .bold)) }
             content()
@@ -631,11 +639,11 @@ struct CoachIntroView: View {
         .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Theme.border))
     }
 
-    private func caption(_ text: String) -> some View {
+    private func caption(_ text: LocalizedStringKey) -> some View {
         Text(text).font(.system(size: 11.5)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
     }
 
-    private func column(_ title: String, _ text: Text, details: Bool = false) -> some View {
+    private func column(_ title: LocalizedStringKey, _ text: Text, details: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(title).font(.system(size: 12.5, weight: .bold))
             text.font(.system(size: 12.5)).foregroundStyle(Theme.controlText).fixedSize(horizontal: false, vertical: true)
@@ -765,25 +773,25 @@ struct CoachSetupView: View {
 
     private var title: String {
         switch step {
-        case 1: "What should the coach focus on?"
-        case 2: "What’s your first language?"
-        default: "Which drafts should it check?"
+        case 1: String(localized: "What should the coach focus on?")
+        case 2: String(localized: "What’s your first language?")
+        default: String(localized: "Which drafts should it check?")
         }
     }
 
     private var subtitle: String {
         switch step {
-        case 1: "It watches everything either way. Focus areas get nudges after you paste."
-        case 2: "Lessons explain why a mistake feels right in it, like false friends."
-        default: "Only drafts you write in English are checked."
+        case 1: String(localized: "It watches everything either way. Focus areas get nudges after you paste.")
+        case 2: String(localized: "Lessons explain why a mistake feels right in it, like false friends.")
+        default: String(localized: "Only drafts you write in English are checked.")
         }
     }
 
     private var footnote: String {
         switch step {
-        case 1: "Step 1 of 3 · next: your first language"
-        case 2: "Step 2 of 3 · next: presets"
-        default: "Step 3 of 3 · about 1,000 tokens per English draft"
+        case 1: String(localized: "Step 1 of 3 · next: your first language")
+        case 2: String(localized: "Step 2 of 3 · next: presets")
+        default: String(localized: "Step 3 of 3 · about 1,000 tokens per English draft")
         }
     }
 
@@ -825,7 +833,7 @@ struct CoachSetupView: View {
                             VStack(alignment: .leading, spacing: 10) {
                                 ForEach(CoachGuide.Group.allCases, id: \.self) { group in
                                     VStack(alignment: .leading, spacing: 6) {
-                                        Text(group.rawValue).font(.system(size: 11.5, weight: .semibold)).foregroundStyle(Theme.secondaryText)
+                                        Text(group.title).font(.system(size: 11.5, weight: .semibold)).foregroundStyle(Theme.secondaryText)
                                         FlowLayout(spacing: 6) {
                                             ForEach(CoachGuide.patterns.filter { $0.group == group }) { pattern in
                                                 Button(pattern.name) { toggleFocus(pattern.id) }
@@ -865,8 +873,8 @@ struct CoachSetupView: View {
     private var firstLanguageNote: String {
         let code = draft.firstLanguage.isEmpty ? "he" : draft.firstLanguage
         return CoachGuide.patterns.contains { $0.firstLanguage[code] != nil }
-            ? "Lessons explain why a mistake feels right in \(Languages.englishName(code))."
-            : "Lessons have notes for Hebrew so far; other languages get the rule and your own examples."
+            ? String(localized: "Lessons explain why a mistake feels right in \(Languages.englishName(code)).")
+            : String(localized: "Lessons have notes for Hebrew so far; other languages get the rule and your own examples.")
     }
 
     // Step 3
@@ -905,7 +913,8 @@ struct CoachSetupView: View {
 
             HStack(spacing: Spacing.inner) {
                 Text("English").font(.system(size: 13, weight: .semibold))
-                ChoiceSegments(options: [(CoachSettings.Variant.us, "US"), (.uk, "UK")], selection: $draft.variant)
+                ChoiceSegments(options: [(CoachSettings.Variant.us, String(localized: "US", comment: "US English")),
+                                         (.uk, String(localized: "UK", comment: "UK English"))], selection: $draft.variant)
                     .fixedSize()
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                     .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.controlBorder))
@@ -916,8 +925,8 @@ struct CoachSetupView: View {
 
     private var presetsSummary: String {
         let counted = store.presets.filter { draft.counts($0) }
-        if counted.map(\.id) == englishPresets.map(\.id) { return "All presets that write English (\(counted.count))" }
-        return "\(counted.count) of \(store.presets.count) presets"
+        if counted.map(\.id) == englishPresets.map(\.id) { return String(localized: "All presets that write English (\(counted.count))") }
+        return String(localized: "\(counted.count) of \(store.presets.count) presets")
     }
 
     private func option<Content: View>(selected: Bool, action: @escaping () -> Void, @ViewBuilder _ content: () -> Content) -> some View {
@@ -961,12 +970,11 @@ struct CoachOverviewView: View {
             VStack(alignment: .leading, spacing: 16) {
                 group(nil) {
                     row {
-                        (Text("English Coach").fontWeight(.bold)
-                         + Text(" · \(coach.data.drafts.count) draft\(coach.data.drafts.count == 1 ? "" : "s"), \(coach.words.formatted()) words in 30 days")
-                            .foregroundStyle(Theme.secondaryText))
+                        (Text("English Coach").fontWeight(.bold) + draftsSummary.foregroundStyle(Theme.secondaryText))
                             .lineLimit(1)
                         Spacer(minLength: Spacing.item)
-                        CoachSwitch(isOn: Binding(get: { true }, set: { if !$0 { confirmOff = true } }), label: "English coach")
+                        CoachSwitch(isOn: Binding(get: { true }, set: { if !$0 { confirmOff = true } }),
+                                    label: String(localized: "English coach"))
                     }
                 }
 
@@ -1039,7 +1047,7 @@ struct CoachOverviewView: View {
                     row {
                         Text("First language")
                         Spacer()
-                        MenuPicker(options: [("", "None")] + Languages.common.filter { $0 != "en" }.map { ($0, Languages.englishName($0)) },
+                        MenuPicker(options: [("", String(localized: "None"))] + Languages.common.filter { $0 != "en" }.map { ($0, Languages.englishName($0)) },
                                    selection: $store.settings.coach.firstLanguage)
                     }
                     RowDivider()
@@ -1081,12 +1089,18 @@ struct CoachOverviewView: View {
         }
     }
 
-    private var goalsSummary: String {
-        let goals = store.settings.coach.goals
-        return goals.isEmpty ? "None" : goals.joined(separator: ", ")
+    /// " · 12 drafts, 1,840 words in 30 days" after "English Coach".
+    private var draftsSummary: Text {
+        let drafts = coach.data.drafts.count, words = coach.words.formatted()
+        return drafts == 1 ? Text(" · 1 draft, \(words) words in 30 days") : Text(" · \(drafts) drafts, \(words) words in 30 days")
     }
 
-    private func group<Content: View>(_ title: String?, @ViewBuilder _ content: () -> Content) -> some View {
+    private var goalsSummary: String {
+        let goals = store.settings.coach.goals
+        return goals.isEmpty ? String(localized: "None") : goals.joined(separator: ", ")
+    }
+
+    private func group<Content: View>(_ title: LocalizedStringKey?, @ViewBuilder _ content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             if let title { Text(title).font(.system(size: 11.5, weight: .semibold)).foregroundStyle(Theme.secondaryText).padding(.leading, 4) }
             VStack(spacing: 0) { content() }
@@ -1105,7 +1119,10 @@ struct CoachOverviewView: View {
     private func patternRow(_ stat: CoachStore.PatternStats, focus: Bool) -> some View {
         row {
             Text(stat.pattern.name).lineLimit(1)
-                .help(stat.latest.map { "Latest: “\($0.finding.wrong)” → “\($0.finding.right)” · \($0.app), \($0.date.formatted(.relative(presentation: .named)))" } ?? "")
+                .help(stat.latest.map { (latest: CoachSighting) -> String in
+                    let when = latest.date.formatted(.relative(presentation: .named))
+                    return String(localized: "Latest: “\(latest.finding.wrong)” → “\(latest.finding.right)” · \(latest.app), \(when)")
+                } ?? "")
             if focus {
                 Text("Focus").font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.doText)
                     .padding(.horizontal, 7).padding(.vertical, 2).background(Capsule().fill(Theme.doFill))
@@ -1134,7 +1151,7 @@ struct CoachOverviewView: View {
 
     private func trendLabel(_ stat: CoachStore.PatternStats) -> String {
         guard let trend = stat.trend else { return "\(stat.count)×" }
-        if abs(trend) < 0.1 { return "→ steady" }
+        if abs(trend) < 0.1 { return String(localized: "→ steady") }
         return "\(trend > 0 ? "↑" : "↓") \(Int(abs(trend) * 100))%"
     }
 
@@ -1165,7 +1182,7 @@ struct CoachSparkline: View {
             }
             .stroke(color, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
         }
-        .accessibilityLabel("Weekly counts: " + values.map(String.init).joined(separator: ", "))
+        .accessibilityLabel(String(localized: "Weekly counts: \(values.map(String.init).joined(separator: ", "))"))
     }
 }
 
@@ -1185,9 +1202,9 @@ struct CoachLessonView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .bottom) {
                 VStack(alignment: .leading, spacing: 6) {
-                    CoachBackButton(title: "English coach") { state.coachScreen = .home }.padding(.bottom, 4)
+                    CoachBackButton(title: String(localized: "English coach")) { state.coachScreen = .home }.padding(.bottom, 4)
                     Text(pattern.name).font(.system(size: 22, weight: .bold))
-                    Text("\(sightings.count) time\(sightings.count == 1 ? "" : "s") in 30 days\(apps(sightings)) · from the built-in guide and your own drafts")
+                    Text(summary(sightings))
                         .font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
                 }
                 Spacer()
@@ -1198,7 +1215,7 @@ struct CoachLessonView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 18) {
                         VStack(alignment: .leading, spacing: 8) {
-                            CoachHeading("The rule")
+                            CoachHeading(String(localized: "The rule"))
                             Text(pattern.rule).font(.system(size: 15)).fixedSize(horizontal: false, vertical: true)
                             Text(pattern.example).font(.system(size: 15, weight: .medium)).fixedSize(horizontal: false, vertical: true)
                             if let note = pattern.firstLanguage[store.settings.coach.firstLanguage] {
@@ -1211,7 +1228,7 @@ struct CoachLessonView: View {
 
                         if !examples.isEmpty {
                             VStack(alignment: .leading, spacing: 10) {
-                                CoachHeading("From your drafts")
+                                CoachHeading(String(localized: "From your drafts"))
                                 RowGroup {
                                     ForEach(Array(examples.enumerated()), id: \.element.id) { index, sighting in
                                         HStack(spacing: 16) {
@@ -1230,7 +1247,7 @@ struct CoachLessonView: View {
 
                         if !pattern.contrasts.isEmpty {
                             VStack(alignment: .leading, spacing: 10) {
-                                CoachHeading("Don’t mix them up")
+                                CoachHeading(String(localized: "Don’t mix them up"))
                                 RowGroup {
                                     ForEach(Array(pattern.contrasts.enumerated()), id: \.offset) { index, row in
                                         HStack(spacing: 12) {
@@ -1263,7 +1280,7 @@ struct CoachLessonView: View {
                     .font(.system(size: 13)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
             }
             VStack(alignment: .leading, spacing: 8) {
-                CoachHeading("Since you read this")
+                CoachHeading(String(localized: "Since you read this"))
                 let since = coach.sinceRead(pattern.id) ?? (0, 0)
                 HStack { Text("English drafts"); Spacer(); Text("\(since.drafts)").fontWeight(.bold) }.font(.system(size: 13))
                 HStack {
@@ -1289,9 +1306,17 @@ struct CoachLessonView: View {
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.border))
     }
 
-    private func apps(_ sightings: [CoachSighting]) -> String {
+    /// "4 times in 30 days, in Slack and Mail · from the built-in guide and your own drafts"
+    private func summary(_ sightings: [CoachSighting]) -> String {
         var names: [String] = []
         for s in sightings where !names.contains(s.app) { names.append(s.app) }
-        return names.isEmpty ? "" : ", in " + names.prefix(3).joined(separator: " and ")
+        let n = sightings.count
+        guard !names.isEmpty else {
+            return n == 1 ? String(localized: "1 time in 30 days · from the built-in guide and your own drafts")
+                : String(localized: "\(n) times in 30 days · from the built-in guide and your own drafts")
+        }
+        let apps = Array(names.prefix(3)).formatted(.list(type: .and))
+        return n == 1 ? String(localized: "1 time in 30 days, in \(apps) · from the built-in guide and your own drafts")
+            : String(localized: "\(n) times in 30 days, in \(apps) · from the built-in guide and your own drafts")
     }
 }
