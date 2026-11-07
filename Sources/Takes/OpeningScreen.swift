@@ -39,7 +39,7 @@ final class OpeningWindowController: NSObject {
     private func makeWindow() -> NSWindow {
         let window = OpeningWindow(contentRect: NSRect(origin: .zero, size: Self.size), styleMask: [.borderless],
                                    backing: .buffered, defer: false)
-        window.title = "Welcome to Takes"
+        window.title = String(localized: "Welcome to Takes")
         window.isReleasedWhenClosed = false
         window.isOpaque = false
         window.backgroundColor = .clear
