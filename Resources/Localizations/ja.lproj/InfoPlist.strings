@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takesは、下書きを音声入力している間だけ聞き取ります（パネルで⌘D）。音声はこのMac上でテキストに変換され、オーディオがMacの外に出ることはありません。";
+"NSSpeechRecognitionUsageDescription" = "Takesは、オンデバイスの音声認識のみを使って、音声入力した下書きをこのMac上でテキストに変換します。Appleやほかの誰にも何も送信されません。";

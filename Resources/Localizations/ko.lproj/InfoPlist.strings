@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes는 초안을 받아쓰는 동안에만 듣습니다(패널에서 ⌘D). 음성은 이 Mac에서 텍스트로 변환되며 오디오는 Mac 밖으로 나가지 않습니다.";
+"NSSpeechRecognitionUsageDescription" = "Takes는 기기 내 음성 인식만 사용하여 받아쓴 초안을 이 Mac에서 텍스트로 변환합니다. Apple이나 다른 누구에게도 아무것도 전송되지 않습니다.";
