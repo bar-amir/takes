@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes posluša le med narekovanjem osnutka (⌘D v plošči). Govor se pretvori v besedilo na tem Macu, zvok pa ga nikoli ne zapusti.";
+"NSSpeechRecognitionUsageDescription" = "Takes pretvori vaš narekovani osnutek v besedilo na tem Macu, pri čemer uporablja le prepoznavanje govora v napravi. Nič se ne pošlje podjetju Apple ali komur koli drugemu.";

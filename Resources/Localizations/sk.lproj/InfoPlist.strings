@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes počúva iba počas diktovania konceptu (⌘D v paneli). Reč sa prevedie na text na tomto Macu a zvuk ho nikdy neopustí.";
+"NSSpeechRecognitionUsageDescription" = "Takes prevedie váš nadiktovaný koncept na text na tomto Macu iba pomocou rozpoznávania reči v zariadení. Nič sa neodosiela spoločnosti Apple ani nikomu inému.";

@@ -1,10 +1,10 @@
 " · %lld areas in grammar, word choice and phrasing" = " · व्याकरण, शब्द-चयन और वाक्य-रचना में %lld क्षेत्र";
 " · %lld drafts, %@ words in 30 days" = " · 30 दिनों में %lld ड्राफ़्ट, %@ शब्द";
 " · %lld notes" = " · %lld नोट";
-" · %lld notes · top: " = " · %lld नोट · सबसे ज़्यादा:";
+" · %lld notes · top: " = " · %lld नोट · सबसे ज़्यादा: ";
 " · 1 draft, %@ words in 30 days" = " · 30 दिनों में 1 ड्राफ़्ट, %@ शब्द";
 " · 1 note" = " · 1 नोट";
-" · 1 note · top: " = " · 1 नोट · सबसे ज़्यादा:";
+" · 1 note · top: " = " · 1 नोट · सबसे ज़्यादा: ";
 " · a tip for your goals" = " · आपके लक्ष्यों के लिए एक सुझाव";
 " · “close the light” → “turn off the light” · 4th time" = " · “close the light” → “turn off the light” · चौथी बार";
 "%.1f s" = "%.1f से॰";
@@ -908,7 +908,7 @@
 "Try it" = "आज़माएँ";
 "Try it here" = "यहाँ आज़माएँ";
 "Try it now" = "अभी आज़माएँ";
-"Try: " = "आज़माएँ:";
+"Try: " = "आज़माएँ: ";
 "Turn Dock hiding on/off" = "Dock छिपाना चालू/बंद करें";
 "Turn off and delete" = "बंद करें और डिलीट करें";
 "Turn off the English coach?" = "अंग्रेज़ी कोच बंद करें?";
@@ -1014,10 +1014,10 @@
 "Your progress" = "आपकी प्रगति";
 "Your server" = "आपका सर्वर";
 "Your take was pasted back into the box, the same way it goes into Slack, Mail or any other app." = "आपका विकल्प वापस बॉक्स में पेस्ट हो गया, ठीक वैसे ही जैसे Slack, Mail या किसी और ऐप में होता है।";
-"Your takes fixed %lld English slips. " = "आपके विकल्पों ने अंग्रेज़ी की %lld चूकें ठीक कीं।";
-"Your takes fixed an English slip. " = "आपके विकल्पों ने अंग्रेज़ी की एक चूक ठीक की।";
+"Your takes fixed %lld English slips. " = "आपके विकल्पों ने अंग्रेज़ी की %lld चूकें ठीक कीं। ";
+"Your takes fixed an English slip. " = "आपके विकल्पों ने अंग्रेज़ी की एक चूक ठीक की। ";
 "Your text and the model" = "आपका टेक्स्ट और मॉडल";
-"~1,000 tokens per English draft. Lessons are free. " = "हर अंग्रेज़ी ड्राफ़्ट पर ~1,000 टोकन। पाठ मुफ़्त हैं।";
+"~1,000 tokens per English draft. Lessons are free. " = "हर अंग्रेज़ी ड्राफ़्ट पर ~1,000 टोकन। पाठ मुफ़्त हैं। ";
 "· checking your English" = "· आपकी अंग्रेज़ी जाँचना";
 "· how you want to sound, tracked as tips" = "· आप कैसा सुनाई देना चाहते हैं, सुझावों के रूप में ट्रैक किया गया";
 "“%@” could be %@" = "“%@” की जगह %@ हो सकता है";

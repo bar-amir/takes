@@ -1024,7 +1024,7 @@
 "“%@” → “%@” · %@ time this month" = "«%@» → «%@» · %@ φορά αυτόν τον μήνα";
 "“%@” → “%@” · %@ time this month · lesson ready" = "«%@» → «%@» · %@ φορά αυτόν τον μήνα · μάθημα έτοιμο";
 "→ steady" = "→ σταθερό";
-"↓ 50% articles this month" = "↓ 50% a / the αυτόν τον μήνα";
+"↓ 50% articles this month" = "↓ 50% άρθρα αυτόν τον μήνα";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld έλεγχοι · δωρεάν μαθήματα";
 "⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

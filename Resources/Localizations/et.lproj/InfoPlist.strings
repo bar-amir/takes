@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes kuulab ainult siis, kui dikteerite mustandit (⌘D paneelis). Teie kõne muudetakse tekstiks selles Macis ja heli ei lahku sealt kunagi.";
+"NSSpeechRecognitionUsageDescription" = "Takes muudab teie dikteeritud mustandi tekstiks selles Macis, kasutades ainult seadmesisest kõnetuvastust. Midagi ei saadeta Apple'ile ega kellelegi teisele.";
