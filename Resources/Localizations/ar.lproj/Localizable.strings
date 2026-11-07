@@ -1,10 +1,10 @@
 " · %lld areas in grammar, word choice and phrasing" = " · %lld مجالات في القواعد واختيار الكلمات والصياغة";
 " · %lld drafts, %@ words in 30 days" = " · %lld مسودات، %@ كلمة في 30 يومًا";
 " · %lld notes" = " · %lld ملاحظات";
-" · %lld notes · top: " = " · %lld ملاحظات · الأبرز:";
+" · %lld notes · top: " = " · %lld ملاحظات · الأبرز: ";
 " · 1 draft, %@ words in 30 days" = " · مسودة واحدة، %@ كلمة في 30 يومًا";
 " · 1 note" = " · ملاحظة واحدة";
-" · 1 note · top: " = " · ملاحظة واحدة · الأبرز:";
+" · 1 note · top: " = " · ملاحظة واحدة · الأبرز: ";
 " · a tip for your goals" = " · نصيحة لأهدافك";
 " · “close the light” → “turn off the light” · 4th time" = " · “close the light” → “turn off the light” · المرة الرابعة";
 "%.1f s" = "%.1f ث";
@@ -908,7 +908,7 @@
 "Try it" = "جرّبه";
 "Try it here" = "جرّبه هنا";
 "Try it now" = "جرّبه الآن";
-"Try: " = "جرّب:";
+"Try: " = "جرّب: ";
 "Turn Dock hiding on/off" = "تشغيل/إيقاف إخفاء Dock";
 "Turn off and delete" = "إيقاف وحذف";
 "Turn off the English coach?" = "هل تريد إيقاف مدرب الإنجليزية؟";
@@ -1014,10 +1014,10 @@
 "Your progress" = "تقدّمك";
 "Your server" = "خادمك";
 "Your take was pasted back into the box, the same way it goes into Slack, Mail or any other app." = "لُصقت صيغتك في المربع، بالطريقة نفسها التي تدخل بها إلى Slack أو Mail أو أي تطبيق آخر.";
-"Your takes fixed %lld English slips. " = "صحّحت صيغك %lld هفوات في الإنجليزية.";
-"Your takes fixed an English slip. " = "صحّحت صيغك هفوة واحدة في الإنجليزية.";
+"Your takes fixed %lld English slips. " = "صحّحت صيغك %lld هفوات في الإنجليزية. ";
+"Your takes fixed an English slip. " = "صحّحت صيغك هفوة واحدة في الإنجليزية. ";
 "Your text and the model" = "نصك والنموذج";
-"~1,000 tokens per English draft. Lessons are free. " = "نحو 1,000 رمز لكل مسودة إنجليزية. الدروس مجانية.";
+"~1,000 tokens per English draft. Lessons are free. " = "نحو 1,000 رمز لكل مسودة إنجليزية. الدروس مجانية. ";
 "· checking your English" = "· جارٍ فحص إنجليزيتك";
 "· how you want to sound, tracked as tips" = "· كيف تريد أن تبدو، تُتابع كنصائح";
 "“%@” could be %@" = "يمكن أن تكون “%@” %@";

@@ -1018,8 +1018,8 @@
 "Your takes fixed an English slip. " = "Versiosi korjasivat yhden englannin lipsahduksen. ";
 "Your text and the model" = "Tekstisi ja malli";
 "~1,000 tokens per English draft. Lessons are free. " = "~1 000 tokenia englanninkielistä luonnosta kohden. Oppitunnit ovat ilmaisia. ";
-"· checking your English" = " · englantisi tarkistus";
-"· how you want to sound, tracked as tips" = " · miltä haluat kuulostaa, seurataan vinkkeinä";
+"· checking your English" = "· englantisi tarkistus";
+"· how you want to sound, tracked as tips" = "· miltä haluat kuulostaa, seurataan vinkkeinä";
 "“%@” could be %@" = "“%@” voisi olla %@";
 "“%@” → “%@” · %@ time this month" = "“%@” → “%@” · %@ kerta tässä kuussa";
 "“%@” → “%@” · %@ time this month · lesson ready" = "“%@” → “%@” · %@ kerta tässä kuussa · oppitunti valmiina";

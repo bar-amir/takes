@@ -1,10 +1,10 @@
 " · %lld areas in grammar, word choice and phrasing" = " · %lld حوزه در دستور، انتخاب واژه و جمله‌بندی";
 " · %lld drafts, %@ words in 30 days" = " · %lld پیش‌نویس، %@ واژه در ۳۰ روز";
 " · %lld notes" = " · %lld یادداشت";
-" · %lld notes · top: " = " · %lld یادداشت · بیشترین:";
+" · %lld notes · top: " = " · %lld یادداشت · بیشترین: ";
 " · 1 draft, %@ words in 30 days" = " · ۱ پیش‌نویس، %@ واژه در ۳۰ روز";
 " · 1 note" = " · ۱ یادداشت";
-" · 1 note · top: " = " · ۱ یادداشت · بیشترین:";
+" · 1 note · top: " = " · ۱ یادداشت · بیشترین: ";
 " · a tip for your goals" = " · نکته‌ای برای هدف‌های شما";
 " · “close the light” → “turn off the light” · 4th time" = " · “close the light” → “turn off the light” · بار چهارم";
 "%.1f s" = "%.1f ثانیه";
@@ -908,7 +908,7 @@
 "Try it" = "امتحان کنید";
 "Try it here" = "اینجا امتحان کنید";
 "Try it now" = "همین حالا امتحان کنید";
-"Try: " = "امتحان کنید:";
+"Try: " = "امتحان کنید: ";
 "Turn Dock hiding on/off" = "روشن/خاموش کردن پنهان‌سازی Dock";
 "Turn off and delete" = "خاموش کن و حذف کن";
 "Turn off the English coach?" = "مربی انگلیسی خاموش شود؟";
@@ -1014,10 +1014,10 @@
 "Your progress" = "پیشرفت شما";
 "Your server" = "سرور شما";
 "Your take was pasted back into the box, the same way it goes into Slack, Mail or any other app." = "نسخهٔ شما در کادر جای‌گذاری شد؛ در Slack، Mail یا هر برنامهٔ دیگری هم همین‌طور می‌رود.";
-"Your takes fixed %lld English slips. " = "نسخه‌های شما %lld لغزش انگلیسی را اصلاح کردند.";
-"Your takes fixed an English slip. " = "نسخه‌های شما یک لغزش انگلیسی را اصلاح کردند.";
+"Your takes fixed %lld English slips. " = "نسخه‌های شما %lld لغزش انگلیسی را اصلاح کردند. ";
+"Your takes fixed an English slip. " = "نسخه‌های شما یک لغزش انگلیسی را اصلاح کردند. ";
 "Your text and the model" = "متن شما و مدل";
-"~1,000 tokens per English draft. Lessons are free. " = "حدود ۱٬۰۰۰ توکن برای هر پیش‌نویس انگلیسی. درس‌ها رایگان‌اند.";
+"~1,000 tokens per English draft. Lessons are free. " = "حدود ۱٬۰۰۰ توکن برای هر پیش‌نویس انگلیسی. درس‌ها رایگان‌اند. ";
 "· checking your English" = "· در حال بررسی انگلیسی شما";
 "· how you want to sound, tracked as tips" = "· لحنی که می‌خواهید، به‌صورت نکته دنبال می‌شود";
 "“%@” could be %@" = "«%@» می‌تواند %@ باشد";

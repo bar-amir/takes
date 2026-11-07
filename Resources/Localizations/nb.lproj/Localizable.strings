@@ -1,10 +1,10 @@
 " · %lld areas in grammar, word choice and phrasing" = " · %lld områder i grammatikk, ordvalg og formulering";
 " · %lld drafts, %@ words in 30 days" = " · %lld utkast, %@ ord på 30 dager";
 " · %lld notes" = " · %lld notater";
-" · %lld notes · top: " = " · %lld notater · oftest:";
+" · %lld notes · top: " = " · %lld notater · oftest: ";
 " · 1 draft, %@ words in 30 days" = " · 1 utkast, %@ ord på 30 dager";
 " · 1 note" = " · 1 notat";
-" · 1 note · top: " = " · 1 notat · oftest:";
+" · 1 note · top: " = " · 1 notat · oftest: ";
 " · a tip for your goals" = " · et tips til målene dine";
 " · “close the light” → “turn off the light” · 4th time" = " · “close the light” → “turn off the light” · 4. gang";
 "%.1f s" = "%.1f s";
@@ -908,7 +908,7 @@
 "Try it" = "Prøv det";
 "Try it here" = "Prøv det her";
 "Try it now" = "Prøv det nå";
-"Try: " = "Prøv:";
+"Try: " = "Prøv: ";
 "Turn Dock hiding on/off" = "Slå skjuling av Dock på/av";
 "Turn off and delete" = "Slå av og slett";
 "Turn off the English coach?" = "Vil du slå av engelskcoachen?";
@@ -1014,10 +1014,10 @@
 "Your progress" = "Fremgangen din";
 "Your server" = "Tjeneren din";
 "Your take was pasted back into the box, the same way it goes into Slack, Mail or any other app." = "Versjonen din ble limt inn i feltet, på samme måte som i Slack, Mail eller hvilken som helst annen app.";
-"Your takes fixed %lld English slips. " = "Versjonene dine rettet %lld engelske feil.";
-"Your takes fixed an English slip. " = "Versjonene dine rettet en engelsk feil.";
+"Your takes fixed %lld English slips. " = "Versjonene dine rettet %lld engelske feil. ";
+"Your takes fixed an English slip. " = "Versjonene dine rettet en engelsk feil. ";
 "Your text and the model" = "Teksten din og modellen";
-"~1,000 tokens per English draft. Lessons are free. " = "~1000 tokens per engelske utkast. Leksjoner er gratis.";
+"~1,000 tokens per English draft. Lessons are free. " = "~1000 tokens per engelske utkast. Leksjoner er gratis. ";
 "· checking your English" = "· sjekker engelsken din";
 "· how you want to sound, tracked as tips" = "· hvordan du vil høres ut, fulgt som tips";
 "“%@” could be %@" = "“%@” kunne vært %@";

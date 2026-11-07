@@ -1,10 +1,10 @@
 " · %lld areas in grammar, word choice and phrasing" = " · %lld תחומים בדקדוק, בבחירת מילים ובניסוח";
 " · %lld drafts, %@ words in 30 days" = " · %lld טיוטות, %@ מילים ב-30 יום";
 " · %lld notes" = " · %lld הערות";
-" · %lld notes · top: " = " · %lld הערות · הנפוצה:";
+" · %lld notes · top: " = " · %lld הערות · הנפוצה: ";
 " · 1 draft, %@ words in 30 days" = " · טיוטה אחת, %@ מילים ב-30 יום";
 " · 1 note" = " · הערה אחת";
-" · 1 note · top: " = " · הערה אחת · הנפוצה:";
+" · 1 note · top: " = " · הערה אחת · הנפוצה: ";
 " · a tip for your goals" = " · טיפ למטרות שלך";
 " · “close the light” → “turn off the light” · 4th time" = " · “close the light” → “turn off the light” · פעם רביעית";
 "%.1f s" = "%.1f שנ׳";
@@ -908,7 +908,7 @@
 "Try it" = "נסה את זה";
 "Try it here" = "נסה את זה כאן";
 "Try it now" = "נסה עכשיו";
-"Try: " = "נסה:";
+"Try: " = "נסה: ";
 "Turn Dock hiding on/off" = "הפעל/כבה הסתרה של ה-Dock";
 "Turn off and delete" = "כבה ומחק";
 "Turn off the English coach?" = "לכבות את מאמן האנגלית?";
@@ -1014,10 +1014,10 @@
 "Your progress" = "ההתקדמות שלך";
 "Your server" = "השרת שלך";
 "Your take was pasted back into the box, the same way it goes into Slack, Mail or any other app." = "הגרסה שלך הודבקה בחזרה בתיבה, בדיוק כמו שהיא נכנסת ל-Slack, ל-Mail או לכל יישום אחר.";
-"Your takes fixed %lld English slips. " = "הגרסאות שלך תיקנו %lld מעידות באנגלית.";
-"Your takes fixed an English slip. " = "הגרסאות שלך תיקנו מעידה אחת באנגלית.";
+"Your takes fixed %lld English slips. " = "הגרסאות שלך תיקנו %lld מעידות באנגלית. ";
+"Your takes fixed an English slip. " = "הגרסאות שלך תיקנו מעידה אחת באנגלית. ";
 "Your text and the model" = "הטקסט שלך והמודל";
-"~1,000 tokens per English draft. Lessons are free. " = "כ-1,000 טוקנים לכל טיוטה באנגלית. השיעורים בחינם.";
+"~1,000 tokens per English draft. Lessons are free. " = "כ-1,000 טוקנים לכל טיוטה באנגלית. השיעורים בחינם. ";
 "· checking your English" = "· בודק את האנגלית שלך";
 "· how you want to sound, tracked as tips" = "· איך אתה רוצה להישמע, במעקב כטיפים";
 "“%@” could be %@" = "“%@” יכול להיות %@";

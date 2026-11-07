@@ -1018,8 +1018,8 @@
 "Your takes fixed an English slip. " = "Teie variandid parandasid ühe inglise keele libisemise. ";
 "Your text and the model" = "Teie tekst ja mudel";
 "~1,000 tokens per English draft. Lessons are free. " = "~1000 tokenit ingliskeelse mustandi kohta. Õppetunnid on tasuta. ";
-"· checking your English" = " · teie inglise keele kontroll";
-"· how you want to sound, tracked as tips" = " · kuidas soovite kõlada, jälgitakse nõuannetena";
+"· checking your English" = "· teie inglise keele kontroll";
+"· how you want to sound, tracked as tips" = "· kuidas soovite kõlada, jälgitakse nõuannetena";
 "“%@” could be %@" = "“%@” võiks olla %@";
 "“%@” → “%@” · %@ time this month" = "“%@” → “%@” · %@ kord sel kuul";
 "“%@” → “%@” · %@ time this month · lesson ready" = "“%@” → “%@” · %@ kord sel kuul · õppetund valmis";

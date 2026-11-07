@@ -368,7 +368,12 @@ def check():
         bad = [k for k, v in table.items() if k in english and specifiers(k) != specifiers(v)]
         for k in bad:
             print(f"{lang}: specifiers differ: {k!r} → {table[k]!r}")
-        errors += len(bad)
+        # Strings joined to others keep their leading and trailing spaces.
+        spacing = [k for k, v in table.items() if k in english and v.strip()
+                   and ((k[:1] == " ") != (v[:1] == " ") or (k[-1:] == " ") != (v[-1:] == " "))]
+        for k in spacing:
+            print(f"{lang}: spaces at the ends differ: {k!r} → {table[k]!r}")
+        errors += len(bad) + len(spacing)
         status = f"{len(table) - len(extra)}/{len(english)}"
         if missing:
             status += f", {len(missing)} missing"
