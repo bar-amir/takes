@@ -48,7 +48,7 @@ final class LocalizationTests: XCTestCase {
 
     /// The format specifiers in a string by position ("%2$@" is position 2), ignoring "%%".
     static func specifiers(_ string: String) -> [Int: String] {
-        let pattern = try! NSRegularExpression(pattern: #"%(?:(\d+)\$)?[-+ 0#]*\d*(?:\.\d+)?(ll|l|h|hh|q|z|t|j)?([@dDuUxXoOfFeEgGcCsSaAp%])"#)
+        let pattern = try! NSRegularExpression(pattern: #"%(?:(\d+)\$)?[-+0#]*\d*(?:\.\d+)?(ll|l|h|hh|q|z|t|j)?([@dDuUxXoOfFeEgGcCsSaAp%])"#)
         var found: [Int: String] = [:]
         var position = 0
         let range = NSRange(string.startIndex..., in: string)

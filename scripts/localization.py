@@ -335,7 +335,7 @@ def parse_strings(path):
     return result
 
 
-SPECIFIER = re.compile(r"%(?:(\d+)\$)?[-+ 0#]*\d*(?:\.\d+)?(ll|l|h|hh|q|z|t|j)?([@dDuUxXoOfFeEgGcCsSaAp%])")
+SPECIFIER = re.compile(r"%(?:(\d+)\$)?[-+0#]*\d*(?:\.\d+)?(ll|l|h|hh|q|z|t|j)?([@dDuUxXoOfFeEgGcCsSaAp%])")
 
 
 def specifiers(s):

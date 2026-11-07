@@ -628,7 +628,16 @@ final class CoachStore: ObservableObject {
             : String(localized: "“\(wrong)” → “\(right)” · \(nth) time this month")
     }
 
-    static func ordinal(_ n: Int) -> String {
+    /// "4th", in the language the app is shown in ("4.", "4e").
+    static func ordinal(_ n: Int) -> String { ordinal(n, in: Bundle.main.preferredLocalizations.first ?? "en") }
+
+    static func ordinal(_ n: Int, in language: String) -> String {
+        if !language.hasPrefix("en") {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .ordinal
+            formatter.locale = Locale(identifier: language)
+            if let text = formatter.string(from: NSNumber(value: n)) { return text }
+        }
         let suffix = (11...13).contains(n % 100) ? "th" : ["th", "st", "nd", "rd"][n % 10 < 4 ? n % 10 : 0]
         return "\(n)\(suffix)"
     }
