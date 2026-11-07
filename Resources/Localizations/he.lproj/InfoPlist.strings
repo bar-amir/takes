@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes מאזין רק בזמן שאתה מכתיב טיוטה (⌘D בחלונית). הדיבור שלך הופך לטקסט ב-Mac הזה והשמע אף פעם לא יוצא ממנו.";
+"NSSpeechRecognitionUsageDescription" = "Takes הופך את הטיוטה שהכתבת לטקסט ב-Mac הזה, באמצעות זיהוי דיבור במכשיר בלבד. שום דבר לא נשלח ל-Apple או לאף אחד אחר.";
