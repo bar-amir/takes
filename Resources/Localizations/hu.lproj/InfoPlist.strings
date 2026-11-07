@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "A Takes csak akkor figyel, amikor piszkozatot diktál (⌘D a panelen). A beszéde ezen a Macen alakul szöveggé, és a hang sosem hagyja el.";
+"NSSpeechRecognitionUsageDescription" = "A Takes ezen a Macen alakítja szöveggé a diktált piszkozatát, kizárólag eszközön futó beszédfelismeréssel. Semmi sem jut el az Apple-höz vagy bárki máshoz.";
