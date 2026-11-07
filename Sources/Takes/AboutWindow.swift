@@ -51,8 +51,8 @@ struct AboutView: View {
         VStack(spacing: 0) {
             AboutLogo(still: still)
                 .frame(width: 236, height: 162) // The clip is 368 × 252.
-                .accessibilityLabel("Takes")
-            Text("Takes")
+                .accessibilityLabel(Text(verbatim: "Takes"))
+            Text(verbatim: "Takes")
                 .font(.system(size: 20, weight: .bold))
                 .padding(.top, 2)
             Text(version)

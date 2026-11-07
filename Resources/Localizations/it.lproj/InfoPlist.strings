@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes ascolta solo mentre detti una bozza (⌘D nel pannello). La tua voce viene trasformata in testo su questo Mac e l'audio non lo lascia mai.";
+"NSSpeechRecognitionUsageDescription" = "Takes trasforma in testo la bozza che detti su questo Mac, usando solo il riconoscimento vocale sul dispositivo. Nulla viene inviato ad Apple o ad altri.";

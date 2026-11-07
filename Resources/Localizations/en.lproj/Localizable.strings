@@ -2436,7 +2436,7 @@
 /* Setup.swift:339 */
 "Taken: %@" = "Taken: %@";
 
-/* Run options: number of takes · AboutWindow.swift:54, AboutWindow.swift:55, OnboardingView.swift:115, PanelViews.swift:320 */
+/* Run options: number of takes · PanelViews.swift:320 */
 "Takes" = "Takes";
 
 /* OnboardingView.swift:282 */

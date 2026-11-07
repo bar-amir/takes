@@ -112,7 +112,7 @@ struct OnboardingStepList: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: Spacing.item) {
                 AppGlyph(size: 26)
-                Text("Takes").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.text)
+                Text(verbatim: "Takes").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.text)
             }
             .padding(.bottom, 26)
             .accessibilityHidden(true)

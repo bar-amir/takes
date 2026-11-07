@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "O Takes só ouve enquanto dita um rascunho (⌘D no painel). A sua fala é convertida em texto neste Mac e o áudio nunca sai dele.";
+"NSSpeechRecognitionUsageDescription" = "O Takes converte o rascunho ditado em texto neste Mac, usando apenas o reconhecimento de fala no dispositivo. Nada é enviado à Apple nem a mais ninguém.";
