@@ -8,32 +8,32 @@ struct GeneralTab: View {
 
     var body: some View {
         SettingsPage {
-            FormSection("Opening Takes") {
-                FormRow("Hotkey") {
+            FormSection(String(localized: "Opening Takes")) {
+                FormRow(String(localized: "Hotkey")) {
                     HotKeyRecorder(combo: Binding(get: { store.settings.summonHotKey },
                                                   set: { if let combo = $0 { store.settings.summonHotKey = combo } }),
                                    allowClear: false, height: 28)
                 }
                 FormDivider()
-                FormRow("Open the panel", detail: "Wherever it opens, it moves aside rather than cover the text box.") {
+                FormRow(String(localized: "Open the panel"), detail: String(localized: "Wherever it opens, it moves aside rather than cover the text box.")) {
                     PanelPositionPicker(selection: $store.settings.panelPosition)
                 }
                 FormDivider()
-                FormRow("Start with") {
+                FormRow(String(localized: "Start with")) {
                     MenuPicker(options: Prefill.allCases.map { (value: $0, title: $0.label) }, selection: $store.settings.prefill)
                 }
             }
 
-            FormSection("Clipboard", footer: "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history.") {
-                FormToggle("Put my clipboard back after pasting", isOn: $store.settings.restoreClipboard)
+            FormSection(String(localized: "Clipboard"), footer: String(localized: "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history.")) {
+                FormToggle(String(localized: "Put my clipboard back after pasting"), isOn: $store.settings.restoreClipboard)
                 FormDivider()
                 ReplyContextSettings()
             }
 
             DictationSettings()
 
-            FormSection("System") {
-                FormRow("Permissions") { PermissionsStatus() }
+            FormSection(String(localized: "System")) {
+                FormRow(String(localized: "Permissions")) { PermissionsStatus() }
             }
         }
     }
@@ -45,9 +45,9 @@ struct PermissionsStatus: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            item("Accessibility", state: monitor.accessibility ? .allowed : .denied)
+            item(String(localized: "Accessibility"), state: monitor.accessibility ? .allowed : .denied)
             Text("·").foregroundStyle(Theme.tertiaryText)
-            item("Microphone", state: microphone)
+            item(String(localized: "Microphone"), state: microphone)
             Button("Check…") { SetupWindowController.shared.show() }
                 .buttonStyle(FormLinkButtonStyle())
                 .accessibilityHint("Opens setup and permissions")
@@ -78,8 +78,10 @@ struct PermissionsStatus: View {
         }
         .foregroundStyle(color)
         .fixedSize()
-        .help(state == .notAsked ? "\(name): macOS asks the first time it's needed." : state == .allowed ? "\(name): allowed" : "\(name): off")
+        .help(state == .notAsked ? String(localized: "\(name): macOS asks the first time it's needed.")
+              : state == .allowed ? String(localized: "\(name): allowed") : String(localized: "\(name): off"))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(name): " + (state == .allowed ? "allowed" : state == .denied ? "off" : "not asked yet"))
+        .accessibilityLabel(state == .allowed ? String(localized: "\(name): allowed")
+                            : state == .denied ? String(localized: "\(name): off") : String(localized: "\(name): not asked yet"))
     }
 }

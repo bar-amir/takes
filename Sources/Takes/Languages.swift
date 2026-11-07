@@ -24,9 +24,18 @@ enum Languages {
         return name.prefix(1).uppercased() + name.dropFirst()
     }
 
-    /// The English name, for prompts and preset names ("Hebrew").
+    /// The English name, for prompts ("Hebrew").
     static func englishName(_ code: String) -> String {
         Locale(identifier: "en").localizedString(forLanguageCode: code) ?? code
+    }
+
+    /// The name in the language the app's UI is shown in, for labels ("Hebrew" in English, "hébreu" in French).
+    static func displayName(_ code: String) -> String {
+        let ui = Locale.canonicalLanguageIdentifier(from: Bundle.main.preferredLocalizations.first ?? "en")
+        guard ui != "Base", ui != "en", let name = Locale(identifier: ui).localizedString(forLanguageCode: code) else {
+            return englishName(code)
+        }
+        return name
     }
 
     /// Offered by "Add language" and "Other language": widely written languages, sorted by English name.
@@ -64,7 +73,7 @@ enum ReplyLanguage: Hashable, Identifiable {
 
     var label: String {
         switch self {
-        case .sameAsDraft: return "Same as draft"
+        case .sameAsDraft: return String(localized: "Same as draft")
         case .language(let code): return Languages.nativeName(code)
         }
     }
@@ -99,7 +108,7 @@ struct LanguageChips: View {
                             Image(systemName: "xmark").font(.system(size: 9, weight: .bold)).foregroundStyle(Theme.secondaryText)
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel("Remove \(Languages.englishName(code))")
+                        .accessibilityLabel("Remove \(Languages.displayName(code))")
                     }
                 }
                 .padding(.horizontal, 10)
@@ -145,8 +154,8 @@ enum LanguageMenu {
     static func show(excluding: [String], pick: @escaping (String) -> Void) {
         let menu = NSMenu()
         for code in Languages.common where !excluding.contains(code) {
-            let native = Languages.nativeName(code), english = Languages.englishName(code)
-            menu.addItem(ClosureMenuItem(title: native == english ? english : "\(native) · \(english)") { pick(code) })
+            let native = Languages.nativeName(code), shown = Languages.displayName(code)
+            menu.addItem(ClosureMenuItem(title: native == shown ? shown : "\(native) · \(shown)") { pick(code) })
         }
         menu.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
     }

@@ -26,9 +26,9 @@ struct PresetGalleryView: View {
 
     private var addTitle: String {
         let items = toAdd
-        if items.count > 1 { return "Add \(items.count) presets" }
-        if let one = items.first { return "Add “\(one.name)”" }
-        return "Added"
+        if items.count > 1 { return String(localized: "Add \(items.count) presets") }
+        if let one = items.first { return String(localized: "Add “\(one.name)”") }
+        return String(localized: "Added")
     }
 
     var body: some View {
@@ -110,7 +110,7 @@ struct PresetGalleryView: View {
                     .accessibilityHidden(true)
             } else {
                 Checkbox(isOn: Binding(get: { checked.contains(template.id) }, set: { _ in toggle(template.id) }),
-                         label: "Add \(template.name)")
+                         label: String(localized: "Add \(template.name)"))
             }
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
@@ -199,10 +199,13 @@ struct GalleryPresetPreview: View {
 
     private var footnote: String {
         var parts: [String] = []
-        if case .language(let code) = preset.language { parts.append("Always writes in \(Languages.englishName(code)).") }
-        if !preset.apps.isEmpty { parts.append("Picked automatically in \(preset.apps.map(\.name).joined(separator: ", ")).") }
-        parts.append(added ? "Already in your presets. Edit it there."
-                           : "You can change everything after adding it, including the apps it's picked in.")
+        if case .language(let code) = preset.language { parts.append(String(localized: "Always writes in \(Languages.displayName(code)).")) }
+        if !preset.apps.isEmpty {
+            let apps = preset.apps.map(\.name).joined(separator: ", ")
+            parts.append(String(localized: "Picked automatically in \(apps)."))
+        }
+        parts.append(added ? String(localized: "Already in your presets. Edit it there.")
+                           : String(localized: "You can change everything after adding it, including the apps it's picked in."))
         return parts.joined(separator: " ")
     }
 }

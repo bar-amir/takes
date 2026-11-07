@@ -120,7 +120,7 @@ struct PillButtonStyle: ButtonStyle {
 struct NumberSegments: View {
     @Binding var selection: Int
     var range: ClosedRange<Int> = 1...5
-    var label = "Number of takes"
+    var label = String(localized: "Number of takes")
 
     var body: some View {
         HStack(spacing: 0) {

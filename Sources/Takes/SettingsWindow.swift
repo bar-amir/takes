@@ -13,7 +13,16 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     static let englishCoach = SettingsTab.coach
 
     var id: String { rawValue }
-    var title: String { rawValue }
+    var title: String {
+        switch self {
+        case .general: return String(localized: "General")
+        case .presets: return String(localized: "Presets")
+        case .writing: return String(localized: "Writing")
+        case .coach: return String(localized: "Coach")
+        case .model: return String(localized: "Model")
+        case .history: return String(localized: "History")
+        }
+    }
 
     /// The SF Symbol on the tab's toolbar button.
     var symbol: String {
@@ -230,7 +239,7 @@ struct ChipsEditor: View {
                 .background(Capsule().fill(style == .positive ? Theme.doFill : style == .negative ? Theme.avoidFill : Theme.kbdFill))
             }
             if adding {
-                StyledTextField(placeholder: "Type and press ↵", text: $newText, height: 28, onSubmit: commit)
+                StyledTextField(placeholder: String(localized: "Type and press ↵"), text: $newText, height: 28, onSubmit: commit)
                     .frame(width: 200)
                     .onExitCommand { adding = false; newText = "" }
             } else {
@@ -257,7 +266,7 @@ struct HotKeyRecorder: View {
 
     var body: some View {
         Button(action: toggle) {
-            Text(recording ? "Press a shortcut…" : (combo?.display ?? "Record shortcut"))
+            Text(recording ? String(localized: "Press a shortcut…") : (combo?.display ?? String(localized: "Record shortcut")))
                 .font(.system(size: height < 32 ? 13 : 14, weight: .semibold))
                 .foregroundStyle(recording ? Theme.accent : Theme.text)
                 .lineLimit(1)
@@ -267,7 +276,7 @@ struct HotKeyRecorder: View {
         .fixedSize()
         .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.accent, lineWidth: recording ? 1.5 : 0))
         .onDisappear(perform: stop)
-        .help("Click, then press a shortcut. Esc cancels\(allowClear ? ", ⌫ clears" : "").")
+        .help(allowClear ? String(localized: "Click, then press a shortcut. Esc cancels, ⌫ clears.") : String(localized: "Click, then press a shortcut. Esc cancels."))
     }
 
     private func toggle() { recording ? stop() : start() }

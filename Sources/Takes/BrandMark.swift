@@ -40,7 +40,7 @@ enum BrandMark {
             return true
         }
         image.isTemplate = true
-        image.accessibilityDescription = alert ? "Takes needs setup" : "Takes"
+        image.accessibilityDescription = alert ? String(localized: "Takes needs setup") : "Takes"
         return image
     }
 
