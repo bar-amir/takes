@@ -1,10 +1,10 @@
 " · %lld areas in grammar, word choice and phrasing" = " · %lld τομείς σε γραμματική, επιλογή λέξεων και διατύπωση";
 " · %lld drafts, %@ words in 30 days" = " · %lld προσχέδια, %@ λέξεις σε 30 ημέρες";
 " · %lld notes" = " · %lld σημειώσεις";
-" · %lld notes · top: " = " · %lld σημειώσεις · συχνότερο:";
+" · %lld notes · top: " = " · %lld σημειώσεις · συχνότερο: ";
 " · 1 draft, %@ words in 30 days" = " · 1 προσχέδιο, %@ λέξεις σε 30 ημέρες";
 " · 1 note" = " · 1 σημείωση";
-" · 1 note · top: " = " · 1 σημείωση · συχνότερο:";
+" · 1 note · top: " = " · 1 σημείωση · συχνότερο: ";
 " · a tip for your goals" = " · μια συμβουλή για τους στόχους σας";
 " · “close the light” → “turn off the light” · 4th time" = " · «close the light» → «turn off the light» · 4η φορά";
 "%.1f s" = "%.1f δ";
@@ -908,7 +908,7 @@
 "Try it" = "Δοκιμάστε το";
 "Try it here" = "Δοκιμάστε το εδώ";
 "Try it now" = "Δοκιμάστε το τώρα";
-"Try: " = "Δοκιμάστε:";
+"Try: " = "Δοκιμάστε: ";
 "Turn Dock hiding on/off" = "Ενεργοποίηση/απενεργοποίηση απόκρυψης του Dock";
 "Turn off and delete" = "Απενεργοποίηση και διαγραφή";
 "Turn off the English coach?" = "Απενεργοποίηση του προπονητή αγγλικών;";
@@ -1014,10 +1014,10 @@
 "Your progress" = "Η πρόοδός σας";
 "Your server" = "Ο διακομιστής σας";
 "Your take was pasted back into the box, the same way it goes into Slack, Mail or any other app." = "Η εκδοχή σας επικολλήθηκε πίσω στο πλαίσιο, όπως ακριβώς μπαίνει στο Slack, στο Mail ή σε οποιαδήποτε άλλη εφαρμογή.";
-"Your takes fixed %lld English slips. " = "Οι εκδοχές σας διόρθωσαν %lld αγγλικά λάθη.";
-"Your takes fixed an English slip. " = "Οι εκδοχές σας διόρθωσαν ένα αγγλικό λάθος.";
+"Your takes fixed %lld English slips. " = "Οι εκδοχές σας διόρθωσαν %lld αγγλικά λάθη. ";
+"Your takes fixed an English slip. " = "Οι εκδοχές σας διόρθωσαν ένα αγγλικό λάθος. ";
 "Your text and the model" = "Το κείμενό σας και το μοντέλο";
-"~1,000 tokens per English draft. Lessons are free. " = "~1.000 token ανά αγγλικό προσχέδιο. Τα μαθήματα είναι δωρεάν.";
+"~1,000 tokens per English draft. Lessons are free. " = "~1.000 token ανά αγγλικό προσχέδιο. Τα μαθήματα είναι δωρεάν. ";
 "· checking your English" = "· έλεγχος των αγγλικών σας";
 "· how you want to sound, tracked as tips" = "· πώς θέλετε να ακούγεστε, με παρακολούθηση ως συμβουλές";
 "“%@” could be %@" = "Το «%@» θα μπορούσε να είναι %@";

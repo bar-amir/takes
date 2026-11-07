@@ -1,10 +1,10 @@
 " · %lld areas in grammar, word choice and phrasing" = " · %lld области в граматиката, избора на думи и изказа";
 " · %lld drafts, %@ words in 30 days" = " · %lld чернови, %@ думи за 30 дни";
 " · %lld notes" = " · %lld бележки";
-" · %lld notes · top: " = " · %lld бележки · най-честа:";
+" · %lld notes · top: " = " · %lld бележки · най-честа: ";
 " · 1 draft, %@ words in 30 days" = " · 1 чернова, %@ думи за 30 дни";
 " · 1 note" = " · 1 бележка";
-" · 1 note · top: " = " · 1 бележка · най-честа:";
+" · 1 note · top: " = " · 1 бележка · най-честа: ";
 " · a tip for your goals" = " · съвет за целите ви";
 " · “close the light” → “turn off the light” · 4th time" = " · „close the light“ → „turn off the light“ · 4-ти път";
 "%.1f s" = "%.1f с";
@@ -908,7 +908,7 @@
 "Try it" = "Опитайте";
 "Try it here" = "Опитайте тук";
 "Try it now" = "Опитайте сега";
-"Try: " = "Опитайте:";
+"Try: " = "Опитайте: ";
 "Turn Dock hiding on/off" = "Включване/изключване на скриването на Dock";
 "Turn off and delete" = "Изключи и изтрий";
 "Turn off the English coach?" = "Да се изключи ли треньорът по английски?";
@@ -1014,10 +1014,10 @@
 "Your progress" = "Вашият напредък";
 "Your server" = "Вашият сървър";
 "Your take was pasted back into the box, the same way it goes into Slack, Mail or any other app." = "Вариантът ви беше поставен обратно в полето, по същия начин, по който влиза в Slack, Mail или всяка друга програма.";
-"Your takes fixed %lld English slips. " = "Вариантите ви поправиха %lld грешки в английския.";
-"Your takes fixed an English slip. " = "Вариантите ви поправиха една грешка в английския.";
+"Your takes fixed %lld English slips. " = "Вариантите ви поправиха %lld грешки в английския. ";
+"Your takes fixed an English slip. " = "Вариантите ви поправиха една грешка в английския. ";
 "Your text and the model" = "Текстът ви и моделът";
-"~1,000 tokens per English draft. Lessons are free. " = "~1000 токена на английска чернова. Уроците са безплатни.";
+"~1,000 tokens per English draft. Lessons are free. " = "~1000 токена на английска чернова. Уроците са безплатни. ";
 "· checking your English" = "· проверка на английския ви";
 "· how you want to sound, tracked as tips" = "· как искате да звучите, следено като съвети";
 "“%@” could be %@" = "„%@“ може да е %@";
