@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Nakikinig lang ang Takes habang nagdi-dictate ka ng draft (⌘D sa panel). Ginagawang text ang pananalita mo sa Mac na ito at hindi kailanman umaalis dito ang audio.";
+"NSSpeechRecognitionUsageDescription" = "Ginagawang text ng Takes ang draft na dinidikta mo sa Mac na ito, gamit lang ang on-device na speech recognition. Walang ipinapadala sa Apple o sa sinuman.";
