@@ -35,21 +35,24 @@ struct UsageLimitError: LocalizedError, Equatable {
 
     var title: String {
         switch kind {
-        case .outOfCredit: "Out of credit"
-        case .planLimit: "Usage limit reached"
-        case .rateLimited: "Too many requests"
+        case .outOfCredit: String(localized: "Out of credit")
+        case .planLimit: String(localized: "Usage limit reached")
+        case .rateLimited: String(localized: "Too many requests")
         }
     }
 
     /// The button that opens `manage`.
-    var manageTitle: String { kind == .outOfCredit ? "Add credit" : "Manage usage" }
+    var manageTitle: String { kind == .outOfCredit ? String(localized: "Add credit") : String(localized: "Manage usage") }
 
     /// "Try again in 20 seconds." from a Retry-After header in seconds.
     static func retryHint(_ retryAfter: String?) -> String {
         guard let seconds = retryAfter.flatMap({ Int($0.trimmingCharacters(in: .whitespaces)) }), seconds > 0, seconds <= 3600
-        else { return "Try again in a moment." }
-        if seconds < 90 { return "Try again in \(seconds) second\(seconds == 1 ? "" : "s")." }
-        return "Try again in \((seconds + 59) / 60) minutes."
+        else { return String(localized: "Try again in a moment.") }
+        if seconds < 90 {
+            return seconds == 1 ? String(localized: "Try again in 1 second.") : String(localized: "Try again in \(seconds) seconds.")
+        }
+        let minutes = (seconds + 59) / 60
+        return String(localized: "Try again in \(minutes) minutes.")
     }
 }
 

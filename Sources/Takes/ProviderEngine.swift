@@ -36,7 +36,7 @@ struct Provider: Equatable, Identifiable {
     static let openAI = Provider(
         id: "openai", name: "OpenAI", baseURL: "https://api.openai.com/v1",
         consoleURL: URL(string: "https://platform.openai.com/api-keys"), keyPrefix: "sk-",
-        dataNote: "Takes sends your drafts to OpenAI under your own API account. OpenAI's API terms apply, and it bills you per use.",
+        dataNote: String(localized: "Takes sends your drafts to OpenAI under your own API account. OpenAI's API terms apply, and it bills you per use."),
         preferredModels: ["gpt-5.4-mini", "gpt-5-mini", "gpt-4.1-mini", "gpt-4o-mini"],
         billingURL: URL(string: "https://platform.openai.com/settings/organization/billing/overview"))
 
@@ -45,7 +45,7 @@ struct Provider: Equatable, Identifiable {
     static let gemini = Provider(
         id: "gemini", name: "Google Gemini", baseURL: "https://generativelanguage.googleapis.com/v1beta/openai",
         consoleURL: URL(string: "https://aistudio.google.com/apikey"), keyPrefix: "AIza",
-        dataNote: "Takes sends your drafts to Google under your own Gemini API key. Google's Gemini API terms apply, and it bills your project.",
+        dataNote: String(localized: "Takes sends your drafts to Google under your own Gemini API key. Google's Gemini API terms apply, and it bills your project."),
         preferredModels: ["gemini-3-flash", "gemini-2.5-flash", "gemini-flash-latest"])
 
     // https://openrouter.ai/docs/api-reference/overview · app attribution headers: https://openrouter.ai/docs/app-attribution
@@ -53,7 +53,7 @@ struct Provider: Equatable, Identifiable {
     static let openRouter = Provider(
         id: "openrouter", name: "OpenRouter", baseURL: "https://openrouter.ai/api/v1",
         consoleURL: URL(string: "https://openrouter.ai/settings/keys"), keyPrefix: "sk-or-",
-        dataNote: "Takes sends your drafts to OpenRouter under your own account, and OpenRouter passes them to the company that runs the model you pick. Both companies' terms apply.",
+        dataNote: String(localized: "Takes sends your drafts to OpenRouter under your own account, and OpenRouter passes them to the company that runs the model you pick. Both companies' terms apply."),
         extraHeaders: ["X-Title": "Takes"],
         preferredModels: ["openai/gpt-5.4-mini", "openai/gpt-5-mini", "google/gemini-2.5-flash"],
         billingURL: URL(string: "https://openrouter.ai/settings/credits"))
@@ -62,7 +62,7 @@ struct Provider: Equatable, Identifiable {
     static let groq = Provider(
         id: "groq", name: "Groq", baseURL: "https://api.groq.com/openai/v1",
         consoleURL: URL(string: "https://console.groq.com/keys"), keyPrefix: "gsk_",
-        dataNote: "Takes sends your drafts to Groq under your own API account. Groq's terms apply, and it bills you per use.",
+        dataNote: String(localized: "Takes sends your drafts to Groq under your own API account. Groq's terms apply, and it bills you per use."),
         strictFormat: true,
         preferredModels: ["llama-3.3-70b-versatile", "openai/gpt-oss-120b"],
         billingURL: URL(string: "https://console.groq.com/settings/billing"))
@@ -71,15 +71,15 @@ struct Provider: Equatable, Identifiable {
     static let mistral = Provider(
         id: "mistral", name: "Mistral", baseURL: "https://api.mistral.ai/v1",
         consoleURL: URL(string: "https://console.mistral.ai/api-keys"),
-        dataNote: "Takes sends your drafts to Mistral under your own API account. Mistral's terms apply, and it bills you per use.",
+        dataNote: String(localized: "Takes sends your drafts to Mistral under your own API account. Mistral's terms apply, and it bills you per use."),
         preferredModels: ["mistral-medium-latest", "mistral-small-latest", "mistral-large-latest"])
 
     static let known: [Provider] = [openAI, gemini, openRouter, groq, mistral]
 
     /// Any server that speaks the OpenAI chat-completions API over https, at the address the user typed.
     static func custom(baseURL: String) -> Provider {
-        Provider(id: customID, name: URL(string: baseURL)?.host ?? "Your server", baseURL: baseURL,
-                 dataNote: "Takes sends your drafts to this address. Only use a server you trust.", strictFormat: true)
+        Provider(id: customID, name: URL(string: baseURL)?.host ?? String(localized: "Your server"), baseURL: baseURL,
+                 dataNote: String(localized: "Takes sends your drafts to this address. Only use a server you trust."), strictFormat: true)
     }
 
     /// The provider the settings point at ("custom" for an address Takes doesn't know).
@@ -105,7 +105,7 @@ struct Provider: Equatable, Identifiable {
         Keychain.set(key?.trimmingCharacters(in: .whitespacesAndNewlines), account: keyAccount)
     }
 
-    var keyPlaceholder: String { keyPrefix.map { "Paste your key (\($0)…)" } ?? "Paste your key" }
+    var keyPlaceholder: String { keyPrefix.map { String(localized: "Paste your key (\($0)…)") } ?? String(localized: "Paste your key") }
 
     /// Longest prefix first: "sk-ant-" and "sk-or-" also start with "sk-".
     private static let keyOwners: [(prefix: String, name: String, article: String)] = [
@@ -118,12 +118,14 @@ struct Provider: Equatable, Identifiable {
         guard !isCustom else { return nil }
         let key = key.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let owner = Self.keyOwners.first(where: { key.hasPrefix($0.prefix) }), owner.name != name else { return nil }
-        return "This looks like \(owner.article) \(owner.name) key. \(name) needs a key from its own dashboard."
+        return owner.article == "an"
+            ? String(localized: "This looks like an \(owner.name) key. \(name) needs a key from its own dashboard.")
+            : String(localized: "This looks like a \(owner.name) key. \(name) needs a key from its own dashboard.")
     }
 
     /// "Check it in your OpenAI dashboard."
     var refusedMessage: String {
-        isCustom ? "The server refused the key. Check it and try again." : "The key was refused. Check it in your \(name) dashboard."
+        isCustom ? String(localized: "The server refused the key. Check it and try again.") : String(localized: "The key was refused. Check it in your \(name) dashboard.")
     }
 }
 
@@ -200,7 +202,7 @@ struct ProviderError: LocalizedError, Equatable {
     var message: String
     var errorDescription: String? { message }
 
-    static let declined = ProviderError(kind: .declined, message: "The provider declined to rewrite this draft.")
+    static let declined = ProviderError(kind: .declined, message: String(localized: "The provider declined to rewrite this draft."))
 }
 
 // MARK: - Model lists
@@ -304,12 +306,12 @@ struct ProviderEngine: TakesEngine {
     func run(_ request: EngineRequest, onUpdate: @escaping @Sendable ([String]) -> Void) async throws -> EngineResult {
         let provider = providerOverride ?? Provider.current(settings)
         guard let url = ProviderEndpoint.url(provider.baseURL, "chat/completions") else {
-            throw EngineError.failed("Add an https address for your server in Settings › Model.")
+            throw EngineError.failed(String(localized: "Add an https address for your server in Settings › Model."))
         }
         guard let key = keyOverride ?? provider.key else {
-            throw EngineError.failed("Add your \(provider.name) API key in Settings › Model.")
+            throw EngineError.failed(String(localized: "Add your \(provider.name) API key in Settings › Model."))
         }
-        guard !request.model.isEmpty else { throw EngineError.failed("Pick a model in Settings › Model.") }
+        guard !request.model.isEmpty else { throw EngineError.failed(String(localized: "Pick a model in Settings › Model.")) }
         let system = provider.strictFormat ? request.system + "\n" + LocalPrompt.formatRules(takes: request.takes) : request.system
 
         let started = Date()
@@ -325,7 +327,7 @@ struct ProviderEngine: TakesEngine {
             } catch {
                 throw Self.friendly(error, provider: provider)
             }
-            guard let http = response as? HTTPURLResponse else { throw EngineError.failed("No answer from \(provider.name).") }
+            guard let http = response as? HTTPURLResponse else { throw EngineError.failed(String(localized: "No answer from \(provider.name).")) }
             if http.statusCode == 200 { break }
             var data = Data()
             for try await byte in bytes { data.append(byte) }
@@ -346,7 +348,7 @@ struct ProviderEngine: TakesEngine {
         func handle(_ events: [SSEParser.Event]) throws {
             for event in events {
                 guard case .data(let payload) = event, let chunk = LocalChunk.parse(payload) else { continue }
-                if let error = chunk.error { throw EngineError.failed("\(provider.name): \(error)") }
+                if let error = chunk.error { throw EngineError.failed(String(localized: "\(provider.name): \(error)")) }
                 if chunk.finishReason == "content_filter" { filtered = true }
                 guard let piece = chunk.text, !piece.isEmpty else { continue }
                 if firstTextMs == nil { firstTextMs = elapsedMs() }
@@ -373,7 +375,7 @@ struct ProviderEngine: TakesEngine {
 
         if filtered { throw ProviderError.declined }
         let takes = Self.split(text, provider: provider, streaming: false, expected: request.takes)
-        guard !takes.isEmpty else { throw EngineError.failed("\(provider.name) returned no takes. Try again, or pick another model.") }
+        guard !takes.isEmpty else { throw EngineError.failed(String(localized: "\(provider.name) returned no takes. Try again, or pick another model.")) }
         return EngineResult(takes: takes, wallMs: elapsedMs(), firstTextMs: firstTextMs)
     }
 
@@ -422,27 +424,30 @@ struct ProviderEngine: TakesEngine {
         // OpenAI says "out of credit" with a 429 and `insufficient_quota`; Gemini's quota errors mention billing.
         if status == 402 || (status == 429 && (errorCode(body) == "insufficient_quota"
                                                || ["credit", "billing", "insufficient_quota"].contains(where: lower.contains))) {
-            let place = provider.isCustom ? "Check the account for this server" : "Check billing in your \(provider.name) dashboard"
+            let creditMessage = provider.isCustom
+                ? String(localized: "\(provider.name) says your account is out of credit or quota. Check the account for this server, or pick another engine.")
+                : String(localized: "\(provider.name) says your account is out of credit or quota. Check billing in your \(provider.name) dashboard, or pick another engine.")
             return UsageLimitError(kind: .outOfCredit,
-                                   message: "\(provider.name) says your account is out of credit or quota. \(place), or pick another engine.",
+                                   message: creditMessage,
                                    manage: provider.isCustom ? nil : provider.billingURL ?? provider.consoleURL)
         }
         if status == 429 {
             return UsageLimitError(kind: .rateLimited,
-                                   message: "\(provider.name) is limiting requests from your key. \(UsageLimitError.retryHint(retryAfter))")
+                                   message: String(localized: "\(provider.name) is limiting requests from your key. \(UsageLimitError.retryHint(retryAfter))"))
         }
         let modelMissing = lower.contains("model") && ["not found", "does not exist", "not exist", "invalid model", "no such model", "unknown model", "not a valid model"].contains(where: lower.contains)
         if status == 404 && (lower.contains("model") || message.isEmpty) || (status == 400 && modelMissing) {
             return ProviderError(kind: .missingModel,
-                                 message: "\(provider.name) doesn't have the model “\(model)”. Pick another in Settings › Model.")
+                                 message: String(localized: "\(provider.name) doesn't have the model “\(model)”. Pick another in Settings › Model."))
         }
         if (300..<400).contains(status) {
-            return ProviderError(kind: .other, message: "\(provider.name) tried to send Takes to another address, and Takes didn't follow.")
+            return ProviderError(kind: .other, message: String(localized: "\(provider.name) tried to send Takes to another address, and Takes didn't follow."))
         }
         if status >= 500 {
-            return ProviderError(kind: .other, message: "\(provider.name) is having trouble (HTTP \(status)). Try again in a minute.")
+            return ProviderError(kind: .other, message: String(localized: "\(provider.name) is having trouble (HTTP \(status)). Try again in a minute."))
         }
-        return ProviderError(kind: .other, message: "\(provider.name) error: \(message.isEmpty ? "HTTP \(status)" : message)")
+        let detail = message.isEmpty ? "HTTP \(status)" : message
+        return ProviderError(kind: .other, message: String(localized: "\(provider.name) error: \(detail)"))
     }
 
     /// `error.code` when it's a string ("insufficient_quota"), from an object or Gemini's one-item array.
@@ -456,27 +461,27 @@ struct ProviderEngine: TakesEngine {
         guard let urlError = error as? URLError else { return error }
         switch urlError.code {
         case .notConnectedToInternet, .networkConnectionLost:
-            return EngineError.failed("Couldn't reach \(provider.name): this Mac seems to be offline. Check your connection and try again.")
+            return EngineError.failed(String(localized: "Couldn't reach \(provider.name): this Mac seems to be offline. Check your connection and try again."))
         case .cannotFindHost, .cannotConnectToHost, .dnsLookupFailed:
             return EngineError.failed(provider.isCustom
-                                      ? "Couldn't reach \(provider.name). Check the address in Settings › Model."
-                                      : "Couldn't reach \(provider.name). Check your internet connection and try again.")
+                                      ? String(localized: "Couldn't reach \(provider.name). Check the address in Settings › Model.")
+                                      : String(localized: "Couldn't reach \(provider.name). Check your internet connection and try again."))
         case .timedOut:
-            return EngineError.failed("\(provider.name) took too long to answer. Try again, or pick a faster model.")
+            return EngineError.failed(String(localized: "\(provider.name) took too long to answer. Try again, or pick a faster model."))
         case .secureConnectionFailed, .serverCertificateUntrusted, .serverCertificateHasBadDate, .serverCertificateNotYetValid,
              .serverCertificateHasUnknownRoot, .clientCertificateRejected:
-            return EngineError.failed("The secure connection to \(provider.name) failed, so Takes didn't send anything.")
+            return EngineError.failed(String(localized: "The secure connection to \(provider.name) failed, so Takes didn't send anything."))
         case .cancelled:
             return CancellationError()
         default:
-            return EngineError.failed("Couldn't reach \(provider.name): \(urlError.localizedDescription)")
+            return EngineError.failed(String(localized: "Couldn't reach \(provider.name): \(urlError.localizedDescription)"))
         }
     }
 
     /// The provider's chat models. Throws `ProviderError` (`.keyRefused` for a bad key) or a friendly network error.
     static func models(provider: Provider, key: String) async throws -> [String] {
         guard let url = ProviderEndpoint.url(provider.baseURL, "models") else {
-            throw EngineError.failed("Add an https address for your server in Settings › Model.")
+            throw EngineError.failed(String(localized: "Add an https address for your server in Settings › Model."))
         }
         var request = URLRequest(url: url)
         request.timeoutInterval = 15
@@ -491,7 +496,7 @@ struct ProviderEngine: TakesEngine {
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
         guard status == 200 else { throw httpError(status: status, body: data, provider: provider, model: "") }
         guard let models = ProviderModelList.parse(data, provider: provider) else {
-            throw EngineError.failed("\(provider.name) didn't send a model list.")
+            throw EngineError.failed(String(localized: "\(provider.name) didn't send a model list."))
         }
         return models
     }
@@ -501,10 +506,10 @@ struct ProviderEngine: TakesEngine {
         let provider = provider ?? Provider.current(settings)
         let model = settings.providerModel
         guard let url = ProviderEndpoint.url(provider.baseURL, "chat/completions") else {
-            return .failure(EngineError.failed("Add an https address for your server first."))
+            return .failure(EngineError.failed(String(localized: "Add an https address for your server first.")))
         }
-        guard let key = key ?? provider.key else { return .failure(EngineError.failed("Save your \(provider.name) API key first.")) }
-        guard !model.isEmpty else { return .failure(EngineError.failed("Pick a model first.")) }
+        guard let key = key ?? provider.key else { return .failure(EngineError.failed(String(localized: "Save your \(provider.name) API key first."))) }
+        guard !model.isEmpty else { return .failure(EngineError.failed(String(localized: "Pick a model first."))) }
         var options = ProviderRequestOptions.initial(provider: provider, model: model)
         let started = Date()
         do {
@@ -522,11 +527,11 @@ struct ProviderEngine: TakesEngine {
                 guard status == 200 else { return .failure(httpError(status: status, body: data, provider: provider, model: model)) }
                 // A reasoning model can run out of room before it writes "OK"; the request still worked.
                 guard let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any], json["choices"] is [Any] else {
-                    return .failure(EngineError.failed("\(provider.name) answered, but not with a chat reply. Check the model."))
+                    return .failure(EngineError.failed(String(localized: "\(provider.name) answered, but not with a chat reply. Check the model.")))
                 }
                 return .success(Int(Date().timeIntervalSince(started) * 1000))
             }
-            return .failure(EngineError.failed("\(provider.name) refused the request."))
+            return .failure(EngineError.failed(String(localized: "\(provider.name) refused the request.")))
         } catch {
             return .failure(friendly(error, provider: provider))
         }
@@ -664,12 +669,12 @@ final class ProviderModels: ObservableObject {
     func badge(_ settings: AppSettings) -> (text: String, good: Bool)? {
         let provider = Provider.current(settings)
         switch state {
-        case .noAddress: return ("No address yet", false)
-        case .noKey: return ("No key yet", false)
-        case .refused: return ("Key refused", false)
+        case .noAddress: return (String(localized: "No address yet"), false)
+        case .noKey: return (String(localized: "No key yet"), false)
+        case .refused: return (String(localized: "Key refused"), false)
         case .idle, .checking: return nil
         case .ready, .failed:
-            if settings.providerModel.isEmpty { return ("Pick a model", false) }
+            if settings.providerModel.isEmpty { return (String(localized: "Pick a model"), false) }
             return ("\(provider.name) · \(settings.providerModel)", true)
         }
     }
@@ -683,8 +688,8 @@ extension SetupMonitor {
     static func providerEngineStatus() async -> EngineStatus {
         let settings = Store.shared.settings
         let provider = Provider.current(settings)
-        guard ProviderEndpoint.url(provider.baseURL, "models") != nil else { return .problem("No server address yet") }
-        guard let key = provider.key else { return .problem("No API key saved yet") }
+        guard ProviderEndpoint.url(provider.baseURL, "models") != nil else { return .problem(String(localized: "No server address yet")) }
+        guard let key = provider.key else { return .problem(String(localized: "No API key saved yet")) }
         var hasher = Hasher()
         hasher.combine(provider.baseURL)
         hasher.combine(key)
@@ -696,17 +701,17 @@ extension SetupMonitor {
         do {
             let models = try await ProviderEngine.models(provider: provider, key: key)
             if settings.providerModel.isEmpty {
-                status = .problem("Pick a model")
+                status = .problem(String(localized: "Pick a model"))
             } else if !models.isEmpty, !models.contains(settings.providerModel) {
-                status = .problem("\(provider.name) doesn't list \(settings.providerModel)")
+                status = .problem(String(localized: "\(provider.name) doesn't list \(settings.providerModel)"))
             } else {
                 status = .ready("\(provider.name) · \(settings.providerModel)")
             }
         } catch let error as ProviderError where error.kind == .keyRefused {
-            status = .problem("The key was refused")
+            status = .problem(String(localized: "The key was refused"))
         } catch {
             // Some servers don't list models; a picked model is the best Takes can check.
-            status = settings.providerModel.isEmpty ? .problem("Couldn't reach \(provider.name)") : .ready("\(provider.name) · \(settings.providerModel)")
+            status = settings.providerModel.isEmpty ? .problem(String(localized: "Couldn't reach \(provider.name)")) : .ready("\(provider.name) · \(settings.providerModel)")
         }
         lastProviderCheck = (signature, Date(), status)
         return status

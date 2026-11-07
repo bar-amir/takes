@@ -473,7 +473,7 @@ private struct EngineStep: View {
     @ViewBuilder private var claudeCodeDetail: some View {
         if !ready, model.engineStatus != .checking {
             VStack(alignment: .leading, spacing: 6) {
-                if case .problem(let text) = model.engineStatus, text.contains("installed") {
+                if case .problem(let text) = model.engineStatus, text == String(localized: "Claude Code isn't installed") {
                     StepNote(String(localized: "Install Claude Code first, then come back. This page checks again every few seconds."))
                     Button("How to install Claude Code") { NSWorkspace.shared.open(URL(string: "https://claude.com/claude-code")!) }
                         .buttonStyle(SecondaryButtonStyle(height: 28))
@@ -499,7 +499,7 @@ private struct EngineStep: View {
     @ViewBuilder private var localDetail: some View {
         if !ready, model.engineStatus != .checking {
             VStack(alignment: .leading, spacing: 6) {
-                if case .problem(let text) = model.engineStatus, text.contains("isn't running") {
+                if case .problem(let text) = model.engineStatus, text == String(localized: "\(LocalServerKind.displayName(Store.shared.settings.localBaseURL)) isn't running") {
                     StepNote(String(localized: "Open Ollama or LM Studio, then press Check again. Takes doesn't download or install anything."))
                     Button("Get Ollama") { NSWorkspace.shared.open(URL(string: "https://ollama.com")!) }
                         .buttonStyle(SecondaryButtonStyle(height: 28))

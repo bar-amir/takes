@@ -8,8 +8,8 @@ struct ChatGPTEngineBadge: View {
 
     var body: some View {
         switch signIn.state {
-        case .signedIn(_, true): StatusBadge(text: "Signed in", good: true)
-        case .signedIn(_, false): StatusBadge(text: "Plan usage not allowed", good: false)
+        case .signedIn(_, true): StatusBadge(text: String(localized: "Signed in"), good: true)
+        case .signedIn(_, false): StatusBadge(text: String(localized: "Plan usage not allowed"), good: false)
         case .signingIn: ProgressView().controlSize(.mini).accessibilityLabel("Waiting for the browser")
         default: Text("Plus or Pro").font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
         }
@@ -36,8 +36,8 @@ struct ChatGPTEngineSettings: View {
         VStack(alignment: .leading, spacing: 10) {
             switch signIn.state {
             case .signedOut:
-                continueButton("Continue with ChatGPT")
-                hint("The browser opens. Sign in, choose your account, and allow Takes to use your plan.")
+                continueButton(String(localized: "Continue with ChatGPT"))
+                hint(String(localized: "The browser opens. Sign in, choose your account, and allow Takes to use your plan."))
                 if let note = signIn.signOutNote { hint(note, warning: true) }
             case .signingIn:
                 HStack(spacing: 8) {
@@ -47,20 +47,21 @@ struct ChatGPTEngineSettings: View {
                         .buttonStyle(SecondaryButtonStyle(height: 26))
                         .keyboardShortcut(.cancelAction)
                 }
-                hint("Finish signing in in your browser. Takes waits up to 5 minutes.")
+                hint(String(localized: "Finish signing in in your browser. Takes waits up to 5 minutes."))
             case .signedIn(let email, true):
-                hint(email.map { "Signed in as \($0)." } ?? "Signed in.")
+                hint(email.map { String(localized: "Signed in as \($0).") } ?? String(localized: "Signed in."))
                 modelPicker
                 accountButtons
             case .signedIn(let email, false):
-                hint("Signed in\(email.map { " as \($0)" } ?? ""), but plan usage wasn't allowed. Sign in again and allow it.", warning: true)
+                hint(email.map { String(localized: "Signed in as \($0), but plan usage wasn't allowed. Sign in again and allow it.") }
+                     ?? String(localized: "Signed in, but plan usage wasn't allowed. Sign in again and allow it."), warning: true)
                 HStack(spacing: 8) {
-                    continueButton("Sign in again")
+                    continueButton(String(localized: "Sign in again"))
                     Button("Sign out") { signIn.signOut() }.buttonStyle(SecondaryButtonStyle(height: 30))
                 }
             case .failed(let message):
                 hint(message, warning: true)
-                continueButton("Try again")
+                continueButton(String(localized: "Try again"))
             }
         }
     }
@@ -76,14 +77,14 @@ struct ChatGPTEngineSettings: View {
             if models.models.isEmpty, !models.checked || models.checking {
                 HStack(spacing: 6) {
                     ProgressView().controlSize(.mini)
-                    hint("Getting your plan's models…")
+                    hint(String(localized: "Getting your plan's models…"))
                 }
             } else if models.models.isEmpty {
-                hint(models.error ?? "ChatGPT didn't list any models for this account.", warning: true)
+                hint(models.error ?? String(localized: "ChatGPT didn't list any models for this account."), warning: true)
                 Button("Check again") { Task { await models.refresh() } }.buttonStyle(SecondaryButtonStyle(height: 26))
             } else {
                 HStack(spacing: 10) {
-                    LabeledMenu(label: "Model",
+                    LabeledMenu(label: String(localized: "Model"),
                                 options: models.modelOptions(picked: store.settings.chatGPTModel).map { (value: $0, title: models.label(for: $0)) },
                                 selection: Binding(get: { store.settings.chatGPTModel },
                                                    set: { store.settings.chatGPTModel = $0; test = .idle }))
@@ -93,7 +94,7 @@ struct ChatGPTEngineSettings: View {
                         .accessibilityHint("Asks the model for a one-word answer, using a little of your plan")
                 }
                 if !store.settings.chatGPTModel.isEmpty, !models.models.contains(store.settings.chatGPTModel) {
-                    hint("\(models.label(for: store.settings.chatGPTModel)) isn't in your plan's list any more. Pick another.", warning: true)
+                    hint(String(localized: "\(models.label(for: store.settings.chatGPTModel)) isn't in your plan's list any more. Pick another."), warning: true)
                 }
             }
             testResult
@@ -107,10 +108,10 @@ struct ChatGPTEngineSettings: View {
         case .running:
             HStack(spacing: 6) {
                 ProgressView().controlSize(.mini)
-                hint("Asking \(models.label(for: store.settings.chatGPTModel))…")
+                hint(String(localized: "Asking \(models.label(for: store.settings.chatGPTModel))…"))
             }
         case .passed(let ms):
-            Text(String(format: "Works. Answered in %.1f s.", Double(ms) / 1000))
+            Text(String(format: NSLocalizedString("Works. Answered in %.1f s.", comment: ""), Double(ms) / 1000))
                 .font(.system(size: 12)).foregroundStyle(Theme.doText)
         case .failed(let message):
             hint(message, warning: true)
@@ -161,10 +162,10 @@ struct ChatGPTOnboardingDetail: View {
 
     private var note: String {
         switch signIn.state {
-        case .signedOut: "The browser will open. Sign in, choose your account, and allow Takes to use your plan."
-        case .signingIn: "Waiting for the browser…"
-        case .signedIn(let email, true): email.map { "Signed in as \($0)." } ?? "Signed in."
-        case .signedIn(_, false): "Signed in, but plan usage wasn't allowed. Sign in again and allow it."
+        case .signedOut: String(localized: "The browser will open. Sign in, choose your account, and allow Takes to use your plan.")
+        case .signingIn: String(localized: "Waiting for the browser…")
+        case .signedIn(let email, true): email.map { String(localized: "Signed in as \($0).") } ?? String(localized: "Signed in.")
+        case .signedIn(_, false): String(localized: "Signed in, but plan usage wasn't allowed. Sign in again and allow it.")
         case .failed(let message): message
         }
     }

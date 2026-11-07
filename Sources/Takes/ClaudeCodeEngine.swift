@@ -16,7 +16,7 @@ struct ClaudeCodeEngine: TakesEngine {
 
     func run(_ request: EngineRequest, onUpdate: @escaping @Sendable ([String]) -> Void) async throws -> EngineResult {
         guard let claudePath = Self.claudePath else {
-            throw EngineError.failed("Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model.")
+            throw EngineError.failed(String(localized: "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model."))
         }
 
         // The user message goes in on stdin, never as an argument: as a positional argument, text starting with "-"
@@ -101,8 +101,8 @@ struct ClaudeCodeEngine: TakesEngine {
                 process.waitUntilExit()
 
                 guard let result = resultLine else {
-                    let message = String(data: errorOutput, encoding: .utf8) ?? ""
-                    continuation.resume(throwing: EngineError.failed("Claude Code failed: \(message.prefix(400))"))
+                    let message = String((String(data: errorOutput, encoding: .utf8) ?? "").prefix(400))
+                    continuation.resume(throwing: EngineError.failed(String(localized: "Claude Code failed: \(message)")))
                     return
                 }
                 if result["is_error"] as? Bool == true {
@@ -112,7 +112,7 @@ struct ClaudeCodeEngine: TakesEngine {
                 // The result line holds the full text; prefer it over the streamed pieces.
                 let takes = TakeSplitter.split(result["result"] as? String ?? text, streaming: false)
                 guard !takes.isEmpty else {
-                    continuation.resume(throwing: EngineError.failed("Claude returned no takes."))
+                    continuation.resume(throwing: EngineError.failed(String(localized: "Claude returned no takes.")))
                     return
                 }
                 continuation.resume(returning: EngineResult(takes: takes, wallMs: elapsedMs(), firstTextMs: firstTextMs))
@@ -126,15 +126,17 @@ struct ClaudeCodeEngine: TakesEngine {
     static func resultError(_ message: String, now: Date = Date()) -> Error {
         let lower = message.lowercased()
         if lower.contains("credit balance") {
-            let message = "The Anthropic account Claude Code uses is out of credit. Add credit in the Anthropic Console, or pick another engine."
+            let message = String(localized: "The Anthropic account Claude Code uses is out of credit. Add credit in the Anthropic Console, or pick another engine.")
             return UsageLimitError(kind: .outOfCredit, message: message, manage: APIEngine.billingURL)
         }
         // "Claude AI usage limit reached|1767225600", "5-hour limit reached ∙ resets 3pm", "You've hit your limit · resets 3pm"
         if lower.contains("limit reached") || lower.contains("hit your limit") || lower.contains("usage limit") {
-            let reset = resetPhrase(message, now: now).map { " \($0)" } ?? ""
-            return UsageLimitError(kind: .planLimit,
-                                   message: "You've reached your Claude plan's usage limit.\(reset) Pick another engine to keep going.",
-                                   manage: usageURL)
+            let limitMessage: String = if let reset = resetPhrase(message, now: now) {
+                String(localized: "You've reached your Claude plan's usage limit. \(reset) Pick another engine to keep going.")
+            } else {
+                String(localized: "You've reached your Claude plan's usage limit. Pick another engine to keep going.")
+            }
+            return UsageLimitError(kind: .planLimit, message: limitMessage, manage: usageURL)
         }
         return EngineError.failed(errorMessage(message))
     }
@@ -148,23 +150,25 @@ struct ClaudeCodeEngine: TakesEngine {
             let formatter = DateFormatter()
             formatter.timeStyle = .short
             formatter.dateStyle = Calendar.current.isDate(date, inSameDayAs: now) ? .none : .medium
-            return "It resets \(Calendar.current.isDate(date, inSameDayAs: now) ? "at " : "")\(formatter.string(from: date))."
+            let time = formatter.string(from: date)
+            return Calendar.current.isDate(date, inSameDayAs: now)
+                ? String(localized: "It resets at \(time).") : String(localized: "It resets \(time).")
         }
         guard let range = message.range(of: "resets ", options: .caseInsensitive) else { return nil }
         let when = message[range.upperBound...].trimmingCharacters(in: .whitespacesAndNewlines.union(CharacterSet(charactersIn: ".")))
-        return when.isEmpty ? nil : "It resets \(when)."
+        return when.isEmpty ? nil : String(localized: "It resets \(when).")
     }
 
     /// Shown instead of the CLI's own wording when the login is the problem. Plain words, no commands: the
     /// panel puts a "Sign in to Claude" button under it. The Claude desktop app keeps its own sign-in, so
     /// it can still work while this one has expired; say so, or the message looks wrong.
-    static let signedOutMessage = "Takes got signed out of Claude. Sign in again to keep going. This sign-in is separate from the Claude app, so it can expire even while the app still works."
+    static let signedOutMessage = String(localized: "Takes got signed out of Claude. Sign in again to keep going. This sign-in is separate from the Claude app, so it can expire even while the app still works.")
 
     /// The CLI's error, in words a person can act on. A sign-in problem (not signed in, or a session that
     /// expired and couldn't be refreshed: "Failed to authenticate: OAuth session expired…") becomes
     /// `signedOutMessage`; anything else keeps the CLI's wording.
     static func errorMessage(_ message: String) -> String {
-        isSignInProblem(message) ? signedOutMessage : "Claude Code: \(message)"
+        isSignInProblem(message) ? signedOutMessage : String(localized: "Claude Code: \(message)")
     }
 
     static func isSignInProblem(_ message: String) -> Bool {
@@ -177,15 +181,18 @@ struct ClaudeCodeEngine: TakesEngine {
     /// A .command file runs on open without the Automation permission that scripting Terminal would need.
     static func openSignIn() {
         let claude = claudePath ?? "claude"
-        let quoted = "'" + claude.replacingOccurrences(of: "'", with: "'\\''") + "'"
+        func shellQuoted(_ text: String) -> String { "'" + text.replacingOccurrences(of: "'", with: "'\\''") + "'" }
+        let quoted = shellQuoted(claude)
+        let intro = shellQuoted(String(localized: "Signing Takes in to Claude. Finish in the browser window that opens, then go back to Takes and press Try again."))
+        let done = shellQuoted(String(localized: "You can close this window now."))
         let script = """
             #!/bin/zsh
             clear
-            echo "Signing Takes in to Claude. Finish in the browser window that opens, then go back to Takes and press Try again."
+            echo \(intro)
             echo
             \(quoted) auth login
             echo
-            echo "You can close this window now."
+            echo \(done)
             """
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("Sign in to Claude.command")
         do {

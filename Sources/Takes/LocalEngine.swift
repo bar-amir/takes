@@ -26,7 +26,7 @@ enum LocalServerKind: String, CaseIterable {
         return port == 11434 ? .ollama : port == 1234 ? .lmStudio : nil
     }
 
-    static func displayName(_ baseURL: String) -> String { guess(baseURL)?.name ?? "The local model server" }
+    static func displayName(_ baseURL: String) -> String { guess(baseURL)?.name ?? String(localized: "The local model server") }
 
     /// The `ollama` command, for people who installed it with Homebrew rather than the app.
     static var ollamaCommand: String? {
@@ -325,9 +325,9 @@ struct LocalEngine: TakesEngine {
     func run(_ request: EngineRequest, onUpdate: @escaping @Sendable ([String]) -> Void) async throws -> EngineResult {
         let server = LocalServerKind.displayName(baseURL)
         guard let url = LocalEndpoint.url(baseURL, "chat/completions") else {
-            throw EngineError.failed("Takes only talks to model servers on this Mac (localhost). Change the address in Settings › Model.")
+            throw EngineError.failed(String(localized: "Takes only talks to model servers on this Mac (localhost). Change the address in Settings › Model."))
         }
-        guard !request.model.isEmpty else { throw EngineError.failed("Pick a local model in Settings › Model.") }
+        guard !request.model.isEmpty else { throw EngineError.failed(String(localized: "Pick a local model in Settings › Model.")) }
 
         let urlRequest = try Self.chatRequest(url: url, model: request.model,
                                               system: request.system + "\n" + LocalPrompt.formatRules(takes: request.takes),
@@ -341,7 +341,7 @@ struct LocalEngine: TakesEngine {
         } catch {
             throw Self.friendly(error, server: server, baseURL: baseURL)
         }
-        guard let http = response as? HTTPURLResponse else { throw EngineError.failed("No answer from \(server).") }
+        guard let http = response as? HTTPURLResponse else { throw EngineError.failed(String(localized: "No answer from \(server).")) }
         if http.statusCode != 200 {
             var data = Data()
             for try await byte in bytes { data.append(byte) }
@@ -356,7 +356,7 @@ struct LocalEngine: TakesEngine {
         func handle(_ events: [SSEParser.Event]) throws {
             for event in events {
                 guard case .data(let payload) = event, let chunk = LocalChunk.parse(payload) else { continue }
-                if let error = chunk.error { throw EngineError.failed("\(server): \(error)") }
+                if let error = chunk.error { throw EngineError.failed(String(localized: "\(server): \(error)")) }
                 guard let piece = chunk.text, !piece.isEmpty else { continue }
                 if firstTextMs == nil { firstTextMs = elapsedMs() }
                 text += piece
@@ -381,7 +381,7 @@ struct LocalEngine: TakesEngine {
         }
 
         let takes = LocalTakeCleaner.split(text, streaming: false, expected: request.takes)
-        guard !takes.isEmpty else { throw EngineError.failed("The local model returned no takes. Try again, or pick another model.") }
+        guard !takes.isEmpty else { throw EngineError.failed(String(localized: "The local model returned no takes. Try again, or pick another model.")) }
         return EngineResult(takes: takes, wallMs: elapsedMs(), firstTextMs: firstTextMs)
     }
 
@@ -404,12 +404,14 @@ struct LocalEngine: TakesEngine {
         let json = (try? JSONSerialization.jsonObject(with: body)) as? [String: Any]
         let message = json.flatMap(LocalChunk.errorMessage) ?? String(decoding: body.prefix(300), as: UTF8.self)
         if status == 404, message.lowercased().contains("model") || message.isEmpty {
-            return .failed("\(server) doesn't have the model “\(LocalModelList.label(model))”. Pick an installed model in Settings › Model.")
+            let label = LocalModelList.label(model)
+            return .failed(String(localized: "\(server) doesn't have the model “\(label)”. Pick an installed model in Settings › Model."))
         }
         if (300..<400).contains(status) {
-            return .failed("\(server) tried to send Takes to another address. Takes only talks to servers on this Mac.")
+            return .failed(String(localized: "\(server) tried to send Takes to another address. Takes only talks to servers on this Mac."))
         }
-        return .failed("\(server) error: \(message.isEmpty ? "HTTP \(status)" : message)")
+        let detail = message.isEmpty ? "HTTP \(status)" : message
+        return .failed(String(localized: "\(server) error: \(detail)"))
     }
 
     static func friendly(_ error: Error, server: String, baseURL: String) -> Error {
@@ -417,13 +419,13 @@ struct LocalEngine: TakesEngine {
         let place = URL(string: baseURL).map { "\($0.host ?? "localhost"):\($0.port.map(String.init) ?? "")" } ?? baseURL
         switch urlError.code {
         case .cannotConnectToHost, .cannotFindHost, .networkConnectionLost, .notConnectedToInternet:
-            return EngineError.failed("\(server) isn't running at \(place). Open it and try again, or pick another engine in Settings › Model.")
+            return EngineError.failed(String(localized: "\(server) isn't running at \(place). Open it and try again, or pick another engine in Settings › Model."))
         case .timedOut:
-            return EngineError.failed("The local model took too long to answer. Big models are slow the first time while they load; try again or pick a smaller one.")
+            return EngineError.failed(String(localized: "The local model took too long to answer. Big models are slow the first time while they load; try again or pick a smaller one."))
         case .cancelled:
             return CancellationError()
         default:
-            return EngineError.failed("Couldn't reach \(server): \(urlError.localizedDescription)")
+            return EngineError.failed(String(localized: "Couldn't reach \(server): \(urlError.localizedDescription)"))
         }
     }
 
@@ -441,7 +443,7 @@ struct LocalEngine: TakesEngine {
     static func test(baseURL: String, model: String) async -> Result<Int, Error> {
         let server = LocalServerKind.displayName(baseURL)
         guard let url = LocalEndpoint.url(baseURL, "chat/completions") else {
-            return .failure(EngineError.failed("Only addresses on this Mac work."))
+            return .failure(EngineError.failed(String(localized: "Only addresses on this Mac work.")))
         }
         let started = Date()
         do {
@@ -451,7 +453,7 @@ struct LocalEngine: TakesEngine {
             let status = (response as? HTTPURLResponse)?.statusCode ?? 0
             guard status == 200 else { return .failure(httpError(status: status, body: data, server: server, model: model)) }
             guard let text = String(data: data, encoding: .utf8).flatMap(LocalChunk.parse)?.text, !text.isEmpty else {
-                return .failure(EngineError.failed("\(server) answered, but with no text."))
+                return .failure(EngineError.failed(String(localized: "\(server) answered, but with no text.")))
             }
             return .success(Int(Date().timeIntervalSince(started) * 1000))
         } catch {
@@ -540,9 +542,9 @@ extension AppSettings {
     /// "on this Mac", "via OpenAI", "with your ChatGPT plan": where the one model runs, for labels.
     var oneModelPlace: String {
         switch engine {
-        case .local: "on this Mac"
-        case .provider: "via \(Provider.current(self).name)"
-        case .chatGPT: "with your ChatGPT plan"
+        case .local: String(localized: "on this Mac")
+        case .provider: String(localized: "via \(Provider.current(self).name)")
+        case .chatGPT: String(localized: "with your ChatGPT plan")
         case .claudeCode, .apiKey: ""
         }
     }
@@ -555,7 +557,7 @@ extension AppSettings {
 extension Models {
     /// Claude models by name, other models by their short ID.
     static func displayLabel(_ id: String) -> String {
-        all.contains { $0.id == id } ? label(id) : id.isEmpty ? "No model" : LocalModelList.label(id)
+        all.contains { $0.id == id } ? label(id) : id.isEmpty ? String(localized: "No model") : LocalModelList.label(id)
     }
 }
 
@@ -563,7 +565,10 @@ extension Preset {
     /// The summary for the engine in use, so it never names a model that won't run.
     func summary(for settings: AppSettings) -> String {
         guard settings.engine.usesOneModel else { return summary }
-        return "\(takes) take\(takes == 1 ? "" : "s") · \(Models.displayLabel(settings.oneModel)) \(settings.oneModelPlace) · \(length.label.lowercased())"
+        let model = Models.displayLabel(settings.oneModel), place = settings.oneModelPlace, size = length.inlineLabel
+        return takes == 1
+            ? String(localized: "1 take · \(model) \(place) · \(size)")
+            : String(localized: "\(takes) takes · \(model) \(place) · \(size)")
     }
 }
 
@@ -578,12 +583,12 @@ extension PanelModel {
         case .chatGPT: models = ChatGPTModels.shared.modelOptions(picked: modelID)
         case .claudeCode, .apiKey: return Models.all.map { (value: $0.id, title: $0.label) }
         }
-        return models.isEmpty ? [(value: modelID, title: "No model")] : models.map { (value: $0, title: LocalModelList.label($0)) }
+        return models.isEmpty ? [(value: modelID, title: String(localized: "No model"))] : models.map { (value: $0, title: LocalModelList.label($0)) }
     }
 
     /// "3 takes · Sonnet 5.5 · Low", or "3 takes · llama3.2 on this Mac".
     var runLabel: String {
-        let takes = "\(takeCount) take\(takeCount == 1 ? "" : "s")"
+        let takes = takeCount == 1 ? String(localized: "1 take") : String(localized: "\(takeCount) takes")
         return usesOneModel ? "\(takes) · \(Models.displayLabel(modelID)) \(store.settings.oneModelPlace)"
             : "\(takes) · \(Models.label(modelID)) · \(effort.capitalized)"
     }
@@ -595,10 +600,11 @@ extension SetupMonitor {
         let settings = Store.shared.settings
         let server = LocalServerKind.displayName(settings.localBaseURL)
         guard let models = await LocalEngine.models(at: settings.localBaseURL) else {
-            return .problem("\(server) isn't running")
+            return .problem(String(localized: "\(server) isn't running"))
         }
-        if settings.localModel.isEmpty { return .problem(models.isEmpty ? "\(server) has no models yet" : "No local model picked") }
-        guard models.contains(settings.localModel) else { return .problem("\(LocalModelList.label(settings.localModel)) isn't installed") }
+        if settings.localModel.isEmpty { return .problem(models.isEmpty ? String(localized: "\(server) has no models yet") : String(localized: "No local model picked")) }
+        let label = LocalModelList.label(settings.localModel)
+        guard models.contains(settings.localModel) else { return .problem(String(localized: "\(label) isn't installed")) }
         return .ready("\(server) · \(LocalModelList.label(settings.localModel))")
     }
 }
