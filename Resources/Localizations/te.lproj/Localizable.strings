@@ -810,7 +810,7 @@
 "TAKE %lld · WRITING" = "రూపం %lld · రాస్తోంది";
 "Taken" = "వాడుకలో ఉంది";
 "Taken: %@" = "వాడుకలో ఉంది: %@";
-"Takes" = "Takes";
+"Takes" = "రూపాలు";
 "Takes already listed and switched on? Select it, remove it with –, and add it again. macOS keeps access tied to the previous version after an update." = "Takes ఇప్పటికే జాబితాలో ఆన్‌లో ఉందా? దాన్ని ఎంచుకుని, – తో తీసివేసి, మళ్లీ జోడించండి. అప్‌డేట్ తర్వాత macOS యాక్సెస్‌ను పాత వెర్షన్‌కే ముడిపెట్టి ఉంచుతుంది.";
 "Takes calls %@ with your own API key." = "Takes మీ సొంత API కీతో %@ ను పిలుస్తుంది.";
 "Takes calls Claude with your Anthropic API key." = "Takes మీ Anthropic API కీతో Claudeను పిలుస్తుంది.";

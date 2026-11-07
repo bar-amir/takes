@@ -810,7 +810,7 @@
 "TAKE %lld · WRITING" = "VARIJANTA %lld · PIŠEM";
 "Taken" = "Zauzet";
 "Taken: %@" = "Zauzet: %@";
-"Takes" = "Takes";
+"Takes" = "Varijante";
 "Takes already listed and switched on? Select it, remove it with –, and add it again. macOS keeps access tied to the previous version after an update." = "Takes je već na popisu i uključen? Odaberite ga, uklonite pomoću – i ponovno dodajte. macOS nakon nadopune veže pristup uz prethodnu verziju.";
 "Takes calls %@ with your own API key." = "Takes poziva %@ s vašim API ključem.";
 "Takes calls Claude with your Anthropic API key." = "Takes poziva Claude s vašim Anthropic API ključem.";

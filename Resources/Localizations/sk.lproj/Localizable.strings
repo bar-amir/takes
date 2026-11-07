@@ -810,7 +810,7 @@
 "TAKE %lld · WRITING" = "VERZIA %lld · PÍŠE SA";
 "Taken" = "Obsadená";
 "Taken: %@" = "Obsadená: %@";
-"Takes" = "Takes";
+"Takes" = "Verzie";
 "Takes already listed and switched on? Select it, remove it with –, and add it again. macOS keeps access tied to the previous version after an update." = "Takes je už v zozname a zapnutý? Vyberte ho, odstráňte tlačidlom – a pridajte znova. macOS po aktualizácii viaže prístup na predchádzajúcu verziu.";
 "Takes calls %@ with your own API key." = "Takes volá %@ s vaším vlastným API kľúčom.";
 "Takes calls Claude with your Anthropic API key." = "Takes volá Claude s vaším API kľúčom Anthropic.";

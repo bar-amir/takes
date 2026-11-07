@@ -810,7 +810,7 @@
 "TAKE %lld · WRITING" = "版本 %lld · 寫作中";
 "Taken" = "已佔用";
 "Taken: %@" = "已佔用：%@";
-"Takes" = "Takes";
+"Takes" = "版本";
 "Takes already listed and switched on? Select it, remove it with –, and add it again. macOS keeps access tied to the previous version after an update." = "Takes 已在列表中且已開啟？請選擇它，用「–」移除，然後重新新增。更新後，macOS 仍會將取用權限關聯到之前的版本。";
 "Takes calls %@ with your own API key." = "Takes 使用你自己的 API 金鑰呼叫 %@。";
 "Takes calls Claude with your Anthropic API key." = "Takes 使用你的 Anthropic API 金鑰呼叫 Claude。";

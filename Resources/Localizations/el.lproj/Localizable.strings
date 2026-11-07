@@ -810,7 +810,7 @@
 "TAKE %lld · WRITING" = "ΕΚΔΟΧΗ %lld · ΓΡΑΦΕΤΑΙ";
 "Taken" = "Σε χρήση";
 "Taken: %@" = "Σε χρήση: %@";
-"Takes" = "Takes";
+"Takes" = "Εκδοχές";
 "Takes already listed and switched on? Select it, remove it with –, and add it again. macOS keeps access tied to the previous version after an update." = "Το Takes είναι ήδη στη λίστα και ενεργό; Επιλέξτε το, αφαιρέστε το με το – και προσθέστε το ξανά. Μετά από ενημέρωση το macOS συνδέει την πρόσβαση με την προηγούμενη έκδοση.";
 "Takes calls %@ with your own API key." = "Το Takes καλεί το %@ με το δικό σας κλειδί API.";
 "Takes calls Claude with your Anthropic API key." = "Το Takes καλεί το Claude με το κλειδί API της Anthropic που έχετε.";

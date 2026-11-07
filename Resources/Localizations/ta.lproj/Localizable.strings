@@ -810,7 +810,7 @@
 "TAKE %lld · WRITING" = "வடிவம் %lld · எழுதுகிறது";
 "Taken" = "பயன்பாட்டில் உள்ளது";
 "Taken: %@" = "பயன்பாட்டில் உள்ளது: %@";
-"Takes" = "Takes";
+"Takes" = "வடிவங்கள்";
 "Takes already listed and switched on? Select it, remove it with –, and add it again. macOS keeps access tied to the previous version after an update." = "Takes ஏற்கெனவே பட்டியலில் இயக்கத்தில் உள்ளதா? அதைத் தேர்ந்தெடுத்து – மூலம் அகற்றி, மீண்டும் சேர்க்கவும். புதுப்பிப்புக்குப் பின் macOS அணுகலை முந்தைய பதிப்புடன் இணைத்து வைத்திருக்கும்.";
 "Takes calls %@ with your own API key." = "Takes உங்கள் சொந்த API சாவியுடன் %@ ஐ அழைக்கிறது.";
 "Takes calls Claude with your Anthropic API key." = "Takes உங்கள் Anthropic API சாவியுடன் Claude ஐ அழைக்கிறது.";

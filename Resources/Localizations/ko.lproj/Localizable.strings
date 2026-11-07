@@ -810,7 +810,7 @@
 "TAKE %lld · WRITING" = "버전 %lld · 작성 중";
 "Taken" = "사용 중";
 "Taken: %@" = "사용 중: %@";
-"Takes" = "Takes";
+"Takes" = "버전";
 "Takes already listed and switched on? Select it, remove it with –, and add it again. macOS keeps access tied to the previous version after an update." = "Takes가 이미 목록에 있고 켜져 있나요? 선택한 다음 –로 제거하고 다시 추가하세요. macOS는 업데이트 후에도 이전 버전에 접근 권한을 연결해 둡니다.";
 "Takes calls %@ with your own API key." = "Takes는 내 API 키로 %@을(를) 호출합니다.";
 "Takes calls Claude with your Anthropic API key." = "Takes는 내 Anthropic API 키로 Claude를 호출합니다.";

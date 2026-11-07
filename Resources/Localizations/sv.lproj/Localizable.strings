@@ -810,7 +810,7 @@
 "TAKE %lld · WRITING" = "VERSION %lld · SKRIVER";
 "Taken" = "Upptagen";
 "Taken: %@" = "Upptagen: %@";
-"Takes" = "Takes";
+"Takes" = "Versioner";
 "Takes already listed and switched on? Select it, remove it with –, and add it again. macOS keeps access tied to the previous version after an update." = "Finns Takes redan i listan och är påslaget? Markera det, ta bort det med – och lägg till det igen. macOS knyter åtkomsten till den tidigare versionen efter en uppdatering.";
 "Takes calls %@ with your own API key." = "Takes anropar %@ med din egen API-nyckel.";
 "Takes calls Claude with your Anthropic API key." = "Takes anropar Claude med din Anthropic API-nyckel.";

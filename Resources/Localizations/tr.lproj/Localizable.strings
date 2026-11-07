@@ -810,7 +810,7 @@
 "TAKE %lld · WRITING" = "ÖNERİ %lld · YAZILIYOR";
 "Taken" = "Kullanımda";
 "Taken: %@" = "Kullanan: %@";
-"Takes" = "Takes";
+"Takes" = "Öneriler";
 "Takes already listed and switched on? Select it, remove it with –, and add it again. macOS keeps access tied to the previous version after an update." = "Takes zaten listede ve açık mı? Seçin, – ile kaldırın ve yeniden ekleyin. macOS, bir güncellemeden sonra erişimi önceki sürüme bağlı tutar.";
 "Takes calls %@ with your own API key." = "Takes, %@ hizmetini kendi API anahtarınızla çağırır.";
 "Takes calls Claude with your Anthropic API key." = "Takes, Claude’u Anthropic API anahtarınızla çağırır.";

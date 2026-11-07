@@ -810,7 +810,7 @@
 "TAKE %lld · WRITING" = "نسخهٔ %lld · در حال نوشتن";
 "Taken" = "گرفته شده";
 "Taken: %@" = "گرفته‌شده توسط %@";
-"Takes" = "Takes";
+"Takes" = "نسخه‌ها";
 "Takes already listed and switched on? Select it, remove it with –, and add it again. macOS keeps access tied to the previous version after an update." = "Takes از قبل در فهرست و روشن است؟ انتخابش کنید، با – حذفش کنید و دوباره اضافه‌اش کنید. macOS پس از به‌روزرسانی، دسترسی را به نسخهٔ قبلی گره می‌زند.";
 "Takes calls %@ with your own API key." = "Takes با کلید API خود شما %@ را فرا می‌خواند.";
 "Takes calls Claude with your Anthropic API key." = "Takes با کلید API ‏Anthropic شما Claude را فرا می‌خواند.";

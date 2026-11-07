@@ -810,7 +810,7 @@
 "TAKE %lld · WRITING" = "ВАРИАНТ %lld · ПИШЕТСЯ";
 "Taken" = "Занято";
 "Taken: %@" = "Занято: %@";
-"Takes" = "Takes";
+"Takes" = "Варианты";
 "Takes already listed and switched on? Select it, remove it with –, and add it again. macOS keeps access tied to the previous version after an update." = "Takes уже в списке и включен? Выберите его, удалите кнопкой – и добавьте снова. После обновления macOS привязывает доступ к предыдущей версии.";
 "Takes calls %@ with your own API key." = "Takes обращается к %@ с вашим собственным ключом API.";
 "Takes calls Claude with your Anthropic API key." = "Takes обращается к Claude с вашим ключом API Anthropic.";
