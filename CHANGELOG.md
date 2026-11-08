@@ -2,6 +2,19 @@
 
 All notable changes to Takes. Versions follow [semantic versioning](https://semver.org).
 
+## 0.8.0 · 2026-11-08
+
+- **A new hotkey: ⌥⇧Space.** The old ⌃⌥Space is a stock macOS shortcut (it switches input sources), so on most Macs Takes couldn't register it and new installs ended setup with a hotkey that did nothing. ⌥⇧Space is free on a stock Mac and isn't used by Raycast, Alfred, 1Password, Rectangle or Magnet. Existing installs keep the hotkey they have.
+- **A free hotkey, every time.** A new install starts on the first hotkey its Mac leaves free. When a hotkey is taken, setup, Settings › General and the preset editor say who has it (macOS, an installed app such as Raycast or 1Password, or another preset) and offer free ones to pick with one click.
+- **Open Takes at login.** A checkbox on the last setup step and a switch in Settings › General, off until you turn it on.
+- **Moving from the disk image.** Opened from the disk image or a download folder, Takes offers to move itself to Applications first, so the access you allow, the login item and updates all stick.
+- Setup opens right away instead of waiting for the engine check, and a Claude Code that doesn't answer no longer leaves a first launch with no window.
+- Claude Code is found through your own shell (fish and bash too), so nvm and Volta installs work. A Claude Code older than 2.1.41 is reported as too old, with the command to update it.
+- The setup window no longer floats over System Settings, Terminal and the browser it sends you to.
+- Signed in with ChatGPT but no model listed yet: the button says Check again instead of starting another sign-in.
+- Recording a shortcut that Takes already uses records it instead of opening the panel.
+- The film on takes.rocks shows the new hotkey, with a tighter ending.
+
 ## 0.7.0 · 2026-11-08
 
 - **Takes speaks your language.** The interface is translated into 46 languages besides English, and follows your Mac's language. Hebrew, Arabic and Persian are laid out right to left, with shortcuts still reading left to right. Preset names and instructions stay as you wrote them.
