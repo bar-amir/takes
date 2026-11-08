@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes hört nur zu, während du einen Entwurf diktierst (⌘D im Panel). Deine Sprache wird auf diesem Mac in Text umgewandelt, und der Ton verlässt ihn nie.";
+"NSSpeechRecognitionUsageDescription" = "Takes wandelt deinen diktierten Entwurf auf diesem Mac in Text um, nur mit Spracherkennung auf dem Gerät. Nichts wird an Apple oder andere gesendet.";

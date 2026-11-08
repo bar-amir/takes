@@ -6,7 +6,7 @@ struct PresetOptionsCard: View {
     @Binding var preset: Preset
 
     var body: some View {
-        FormSection("How it writes") {
+        FormSection(String(localized: "How it writes")) {
             MinimalEditsSection(preset: $preset).padding(.horizontal, 14).padding(.vertical, 10)
             FormDivider()
             PresetToneSection(preset: $preset).padding(.horizontal, 14).padding(.vertical, 10)

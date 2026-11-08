@@ -73,9 +73,9 @@ enum HotKeyChoice {
     /// Who has `combo`, for a hotkey macOS refused or also fires on: "macOS: Show Finder search window",
     /// "Raycast", or "another app" when nothing more can be told.
     static func owner(of combo: KeyCombo, macOS: String? = nil, installed: (String) -> Bool = isInstalled) -> String {
-        if let macOS { return "macOS: \(macOS)" }
-        if let system = SystemShortcuts.owner(of: combo) { return "macOS: \(system)" }
-        return knownApp(using: combo, installed: installed) ?? "another app"
+        if let macOS { return String(localized: "macOS: \(macOS)") }
+        if let system = SystemShortcuts.owner(of: combo) { return String(localized: "macOS: \(system)") }
+        return knownApp(using: combo, installed: installed) ?? String(localized: "another app")
     }
 
     // MARK: Free ones

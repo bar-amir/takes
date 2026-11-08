@@ -14,14 +14,14 @@ struct GeneralTab: View {
     private var hotKeyOwner: String? {
         let combo = store.settings.summonHotKey
         if monitor.takenHotKeys.contains(combo) { return HotKeyChoice.owner(of: combo) }
-        if let preset = store.presets.first(where: { $0.hotKey == combo }) { return "the preset “\(preset.name)”" }
+        if let preset = store.presets.first(where: { $0.hotKey == combo }) { return String(localized: "the preset “\(preset.name)”") }
         return nil
     }
 
     var body: some View {
         SettingsPage {
-            FormSection("Opening Takes") {
-                FormRow("Hotkey", detail: hotKeyOwner.map { "Also used by \($0). Pick another, or turn that one off." }) {
+            FormSection(String(localized: "Opening Takes")) {
+                FormRow(String(localized: "Hotkey"), detail: hotKeyOwner.map { String(localized: "Also used by \($0). Pick another, or turn that one off.") }) {
                     HotKeyRecorder(combo: Binding(get: { store.settings.summonHotKey },
                                                   set: { if let combo = $0 { store.settings.summonHotKey = combo } }),
                                    allowClear: false, height: 28)
@@ -32,27 +32,27 @@ struct GeneralTab: View {
                         .onChange(of: monitor.takenHotKeys) { _, _ in refreshSuggestions() }
                 }
                 FormDivider()
-                FormRow("Open the panel", detail: "Wherever it opens, it moves aside rather than cover the text box.") {
+                FormRow(String(localized: "Open the panel"), detail: String(localized: "Wherever it opens, it moves aside rather than cover the text box.")) {
                     PanelPositionPicker(selection: $store.settings.panelPosition)
                 }
                 FormDivider()
-                FormRow("Start with") {
+                FormRow(String(localized: "Start with")) {
                     MenuPicker(options: Prefill.allCases.map { (value: $0, title: $0.label) }, selection: $store.settings.prefill)
                 }
             }
 
-            FormSection("Clipboard", footer: "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history.") {
-                FormToggle("Put my clipboard back after pasting", isOn: $store.settings.restoreClipboard)
+            FormSection(String(localized: "Clipboard"), footer: String(localized: "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history.")) {
+                FormToggle(String(localized: "Put my clipboard back after pasting"), isOn: $store.settings.restoreClipboard)
                 FormDivider()
                 ReplyContextSettings()
             }
 
             DictationSettings()
 
-            FormSection(header: "System") {
-                FormToggle("Open Takes when I log in", isOn: Binding(get: { launchAtLogin }, set: setLaunchAtLogin))
+            FormSection(header: String(localized: "System")) {
+                FormToggle(String(localized: "Open Takes when I log in"), isOn: Binding(get: { launchAtLogin }, set: setLaunchAtLogin))
                 FormDivider()
-                FormRow("Permissions") { PermissionsStatus() }
+                FormRow(String(localized: "Permissions")) { PermissionsStatus() }
             } footer: {
                 if let launchAtLoginError { Text(launchAtLoginError).foregroundStyle(Theme.avoidText) }
             }
@@ -83,9 +83,9 @@ struct PermissionsStatus: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            item("Accessibility", state: monitor.accessibility ? .allowed : .denied)
+            item(String(localized: "Accessibility"), state: monitor.accessibility ? .allowed : .denied)
             Text("·").foregroundStyle(Theme.tertiaryText)
-            item("Microphone", state: microphone)
+            item(String(localized: "Microphone"), state: microphone)
             Button("Check…") { SetupWindowController.shared.show() }
                 .buttonStyle(FormLinkButtonStyle())
                 .accessibilityHint("Opens setup and permissions")
@@ -116,8 +116,10 @@ struct PermissionsStatus: View {
         }
         .foregroundStyle(color)
         .fixedSize()
-        .help(state == .notAsked ? "\(name): macOS asks the first time it's needed." : state == .allowed ? "\(name): allowed" : "\(name): off")
+        .help(state == .notAsked ? String(localized: "\(name): macOS asks the first time it's needed.")
+              : state == .allowed ? String(localized: "\(name): allowed") : String(localized: "\(name): off"))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(name): " + (state == .allowed ? "allowed" : state == .denied ? "off" : "not asked yet"))
+        .accessibilityLabel(state == .allowed ? String(localized: "\(name): allowed")
+                            : state == .denied ? String(localized: "\(name): off") : String(localized: "\(name): not asked yet"))
     }
 }

@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes lyssnar bara medan du dikterar ett utkast (⌘D i panelen). Talet blir text på den här datorn och ljudet lämnar den aldrig.";
+"NSSpeechRecognitionUsageDescription" = "Takes gör om ditt dikterade utkast till text på den här datorn, bara med taligenkänning på enheten. Inget skickas till Apple eller någon annan.";

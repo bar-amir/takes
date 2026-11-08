@@ -112,7 +112,7 @@ struct OnboardingStepList: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: Spacing.item) {
                 AppGlyph(size: 26)
-                Text("Takes").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.text)
+                Text(verbatim: "Takes").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.text)
             }
             .padding(.bottom, 26)
             .accessibilityHidden(true)
@@ -148,10 +148,10 @@ struct OnboardingStepList: View {
         }
         let spoken: String
         switch mark {
-        case .current: spoken = "current step"
-        case .done: spoken = "done"
-        case .skipped: spoken = "skipped"
-        case .todo: spoken = "to do"
+        case .current: spoken = String(localized: "current step")
+        case .done: spoken = String(localized: "done")
+        case .skipped: spoken = String(localized: "skipped")
+        case .todo: spoken = String(localized: "to do")
         }
         return HStack(spacing: 10) {
             StepBadge(number: number, state: state, size: 22)
@@ -235,6 +235,8 @@ struct BigKeys: View {
                     )
             }
         }
+        // Shortcuts read left to right in every language, as in macOS menus.
+        .environment(\.layoutDirection, .leftToRight)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Hotkey \(combo.display)")
     }
@@ -247,6 +249,7 @@ private struct BigKeysMini: View {
     let combo: KeyCombo
     var body: some View {
         HStack(spacing: 3) { ForEach(Array(BigKeys.parts(combo.display).enumerated()), id: \.offset) { Kbd($0.element) } }
+            .environment(\.layoutDirection, .leftToRight)
     }
 }
 
@@ -256,17 +259,17 @@ private struct AccessibilityStep: View {
     var body: some View {
         let allowed = model.flow.isCurrentSatisfied
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(title: "Allow Accessibility access",
-                       subtitle: "Takes needs it to read the text box you're typing in, and to paste your take back into it.")
+            StepHeader(title: String(localized: "Allow Accessibility access"),
+                       subtitle: String(localized: "Takes needs it to read the text box you're typing in, and to paste your take back into it."))
             StepCard(highlighted: !allowed) {
                 VStack(alignment: .leading, spacing: Spacing.inner) {
-                    InfoRow(icon: "text.cursor", text: "Reads only the text box you're in, and only when you press the hotkey.")
-                    InfoRow(icon: "keyboard", text: "Types nothing until you pick a take.")
-                    InfoRow(icon: "switch.2", text: "You can turn it off any time in System Settings › Privacy & Security › Accessibility.")
+                    InfoRow(icon: "text.cursor", text: String(localized: "Reads only the text box you're in, and only when you press the hotkey."))
+                    InfoRow(icon: "keyboard", text: String(localized: "Types nothing until you pick a take."))
+                    InfoRow(icon: "switch.2", text: String(localized: "You can turn it off any time in System Settings › Privacy & Security › Accessibility."))
                 }
             }
             HStack(spacing: Spacing.item) {
-                StatusPill(text: allowed ? "Access allowed" : "Waiting for access", good: allowed, waiting: !allowed)
+                StatusPill(text: allowed ? String(localized: "Access allowed") : String(localized: "Waiting for access"), good: allowed, waiting: !allowed)
                 if !allowed {
                     Text("Switch Takes on in the list. This page moves on by itself.")
                         .font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
@@ -283,7 +286,7 @@ private struct AccessibilityStep: View {
                     }
                     .padding(.top, Spacing.inner)
                 }
-                StepNote("Takes already listed and switched on? Select it, remove it with –, and add it again. macOS keeps access tied to the previous version after an update.")
+                StepNote(String(localized: "Takes already listed and switched on? Select it, remove it with –, and add it again. macOS keeps access tied to the previous version after an update."))
                     .padding(.top, Spacing.inner)
             }
         }
@@ -301,7 +304,7 @@ struct MoveToApplicationsNote: View {
                 Button("Move Takes to Applications", action: model.moveToApplications)
                     .buttonStyle(PrimaryButtonStyle(height: 32))
                     .accessibilityHint("Copies Takes to the Applications folder and opens it from there")
-                Text("Takes is running from \(AppLocation.whereItRuns). Move it first, so the access you allow stays with it.")
+                Text(String(localized: "Takes is running from \(AppLocation.whereItRuns). Move it first, so the access you allow stays with it."))
                     .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
             }
             if let error = model.moveError {
@@ -347,7 +350,7 @@ private struct EngineStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(title: "Connect a model", subtitle: "Takes writes with a model under your own account, or with one on this Mac.")
+            StepHeader(title: String(localized: "Connect a model"), subtitle: String(localized: "Takes writes with a model under your own account, or with one on this Mac."))
             // Collapsed, everything fits and the privacy lines sit right under the option; opened, the options
             // scroll and the privacy lines stay in view at the bottom.
             if expanded {
@@ -373,7 +376,7 @@ private struct EngineStep: View {
                         HStack(spacing: 4) {
                             Text(model.showOtherEngines ? "Other ways to connect" : "Other ways to connect: \(otherSummary(order.dropFirst()))")
                                 .lineLimit(1)
-                            Image(systemName: "chevron.right")
+                            Image(systemName: "chevron.forward")
                                 .font(.system(size: 10, weight: .semibold))
                                 .rotationEffect(.degrees(model.showOtherEngines ? 90 : 0))
                         }
@@ -393,11 +396,11 @@ private struct EngineStep: View {
     private func otherSummary(_ kinds: ArraySlice<EngineKind>) -> String {
         kinds.map { kind -> String in
             switch kind {
-            case .claudeCode: return "Claude plan"
-            case .apiKey: return "API key"
+            case .claudeCode: return String(localized: "Claude plan")
+            case .apiKey: return String(localized: "API key")
             case .chatGPT: return "ChatGPT"
-            case .provider: return "other provider"
-            case .local: return "local model"
+            case .provider: return String(localized: "other provider")
+            case .local: return String(localized: "local model")
             }
         }.joined(separator: ", ")
     }
@@ -412,11 +415,11 @@ private struct EngineStep: View {
     /// Where the text goes, naming who gets it for the picked engine.
     private var privacy: some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text("WHERE YOUR TEXT GOES").font(.mono(10.5, bold: true)).tracking(0.6).foregroundStyle(Theme.tertiaryText)
+            Text("WHERE YOUR TEXT GOES").font(.mono(10.5, bold: true)).tracking(Font.labelSpacing(0.6)).foregroundStyle(Theme.tertiaryText)
             if let recipient = SetupMonitor.recipient(for: settings) {
-                line("arrow.up.right", Text("Your draft and preset go from this Mac to ") + Text(recipient).bold() + Text(", under your account."))
+                line("arrow.up.forward", Text("Your draft and preset go from this Mac to \(Text(recipient).bold()), under your account."))
             } else {
-                line("lock", Text("Nothing leaves this Mac.").bold() + Text(" Your draft goes to the model server running on it."))
+                line("lock", Text("\(Text("Nothing leaves this Mac.").bold()) Your draft goes to the model server running on it."))
             }
             line("minus", Text("Nothing goes to the developer. No server, no tracking."))
             HStack(spacing: 4) {
@@ -446,32 +449,32 @@ private struct EngineStep: View {
     private var ready: Bool { model.flow.conditions.engineReady }
 
     private var statusText: String {
-        if model.engineKind == .claudeCode, model.installer.state.isBusy { return "Installing Claude Code" }
+        if model.engineKind == .claudeCode, model.installer.state.isBusy { return String(localized: "Installing Claude Code") }
         switch model.engineStatus {
-        case .checking: return "Checking…"
+        case .checking: return String(localized: "Checking…")
         case .ready(let text), .problem(let text): return text
         }
     }
 
     private func title(_ kind: EngineKind) -> String {
         switch kind {
-        case .claudeCode: return "Your Claude subscription"
-        case .apiKey: return "An Anthropic API key"
-        case .chatGPT: return "Your ChatGPT plan"
-        case .provider: return "An OpenAI or other API key"
-        case .local: return "A model on this Mac"
+        case .claudeCode: return String(localized: "Your Claude subscription")
+        case .apiKey: return String(localized: "An Anthropic API key")
+        case .chatGPT: return String(localized: "Your ChatGPT plan")
+        case .provider: return String(localized: "An OpenAI or other API key")
+        case .local: return String(localized: "A model on this Mac")
         }
     }
 
     private func detail(_ kind: EngineKind) -> String {
         switch kind {
         case .claudeCode: return model.claudeInstalled
-            ? "Claude Code is installed. Sign in once in Terminal, and Takes notices on its own. Counts toward your plan's limits."
-            : "Through Claude Code on this Mac. Counts toward your plan's usage limits."
-        case .apiKey: return "Pay per use, billed by Anthropic. Usually a cent or two per run; Takes doesn't cap your spending."
-        case .chatGPT: return "Sign in with ChatGPT. Plus or Pro, no extra cost; counts toward your plan's limits."
-        case .provider: return "Pay per use, billed by the provider; Takes doesn't cap your spending."
-        case .local: return "Ollama or LM Studio. Free, and nothing leaves your Mac."
+            ? String(localized: "Claude Code is installed. Sign in once in Terminal, and Takes notices on its own. Counts toward your plan's limits.")
+            : String(localized: "Through Claude Code on this Mac. Counts toward your plan's usage limits.")
+        case .apiKey: return String(localized: "Pay per use, billed by Anthropic. Usually a cent or two per run; Takes doesn't cap your spending.")
+        case .chatGPT: return String(localized: "Sign in with ChatGPT. Plus or Pro, no extra cost; counts toward your plan's limits.")
+        case .provider: return String(localized: "Pay per use, billed by the provider; Takes doesn't cap your spending.")
+        case .local: return String(localized: "Ollama or LM Studio. Free, and nothing leaves your Mac.")
         }
     }
 
@@ -495,7 +498,7 @@ private struct EngineStep: View {
                             StatusPill(text: statusText, good: model.engineStatus.isReady,
                                        waiting: model.engineStatus == .checking || (kind == .claudeCode && model.installer.state.isBusy))
                         } else if found(kind) {
-                            StatusPill(text: "Found on this Mac", good: true)
+                            StatusPill(text: String(localized: "Found on this Mac"), good: true)
                         }
                     }
                     if selected || kind == model.engineOrder.first {
@@ -534,7 +537,7 @@ private struct EngineStep: View {
                         ProgressView().controlSize(.small)
                         Text(progress).font(.system(size: 12, weight: .medium)).foregroundStyle(Theme.text)
                     }
-                    StepNote("This takes about a minute. Then Terminal opens so you can sign in.")
+                    StepNote(String(localized: "This takes about a minute. Then Terminal opens so you can sign in."))
                 } else if model.claudeMissing {
                     if let error = install.error {
                         Text(error).font(.system(size: 12)).foregroundStyle(Theme.avoidText)
@@ -542,14 +545,14 @@ private struct EngineStep: View {
                         Button("Install it yourself") { NSWorkspace.shared.open(ClaudeInstaller.manualURL) }
                             .buttonStyle(SecondaryButtonStyle(height: 28))
                     } else {
-                        StepNote("Takes installs it for you from Anthropic, then you sign in once. No password, nothing to type.")
+                        StepNote(String(localized: "Takes installs it for you from Anthropic, then you sign in once. No password, nothing to type."))
                     }
                 } else if model.signInOpened {
-                    StepNote("Finish signing in in the browser. This page moves on by itself.")
+                    StepNote(String(localized: "Finish signing in in the browser. This page moves on by itself."))
                     Button("Open Terminal again", action: model.openSignIn)
                         .buttonStyle(SecondaryButtonStyle(height: 28))
                 } else {
-                    StepNote("Terminal opens and takes you to your browser to sign in. Nothing to type.")
+                    StepNote(String(localized: "Terminal opens and takes you to your browser to sign in. Nothing to type."))
                 }
             }
             .padding(.top, 4)
@@ -559,12 +562,12 @@ private struct EngineStep: View {
     @ViewBuilder private var localDetail: some View {
         if !ready, model.engineStatus != .checking {
             VStack(alignment: .leading, spacing: 6) {
-                if case .problem(let text) = model.engineStatus, text.contains("isn't running") {
-                    StepNote("Open Ollama or LM Studio, then press Check again. Takes doesn't download or install anything.")
+                if case .problem(let text) = model.engineStatus, text == String(localized: "\(LocalServerKind.displayName(Store.shared.settings.localBaseURL)) isn't running") {
+                    StepNote(String(localized: "Open Ollama or LM Studio, then press Check again. Takes doesn't download or install anything."))
                     Button("Get Ollama") { NSWorkspace.shared.open(URL(string: "https://ollama.com")!) }
                         .buttonStyle(SecondaryButtonStyle(height: 28))
                 } else {
-                    StepNote("Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings.")
+                    StepNote(String(localized: "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings."))
                 }
             }
             .padding(.top, 4)
@@ -573,11 +576,11 @@ private struct EngineStep: View {
 
     @ViewBuilder private var apiKeyDetail: some View {
         if !ready {
-            StyledTextField(placeholder: "Paste your key (sk-ant-…)", text: $model.apiKeyInput, secure: true, height: 34,
+            StyledTextField(placeholder: String(localized: "Paste your key (sk-ant-…)"), text: $model.apiKeyInput, secure: true, height: 34,
                             onSubmit: model.primary)
                 .padding(.top, 4)
                 .accessibilityLabel("Anthropic API key")
-            StepNote("Saved in your keychain. Create one at console.anthropic.com.")
+            StepNote(String(localized: "Saved in your keychain. Create one at console.anthropic.com."))
         }
     }
 }
@@ -589,11 +592,11 @@ private struct PersonalizeStep: View {
     var body: some View {
         let free = model.hotKeyOwner == nil
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(title: "Make it yours", subtitle: "Your hotkey, and the presets you start with. All of it can change later in Settings.")
+            StepHeader(title: String(localized: "Make it yours"), subtitle: String(localized: "Your hotkey, and the presets you start with. All of it can change later in Settings."))
             VStack(alignment: .leading, spacing: Spacing.item) {
                 HStack(spacing: Spacing.section) {
                     BigKeys(combo: model.hotKey, size: 34)
-                    StatusPill(text: free ? "Free to use" : "Taken", good: free)
+                    StatusPill(text: free ? String(localized: "Free to use") : String(localized: "Taken", comment: "The hotkey is already used by something else"), good: free)
                     Spacer(minLength: 0)
                     Text("Change:").font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
                     HotKeyRecorder(combo: Binding(get: { model.hotKey }, set: { combo in
@@ -604,7 +607,7 @@ private struct PersonalizeStep: View {
                     .accessibilityLabel("Change hotkey")
                 }
                 Text(free ? "Press it in any text box to open Takes. Nothing else on this Mac uses it."
-                          : "Also used by \(model.hotKeyOwner ?? "another app"). Pick another, or turn that one off in System Settings › Keyboard.")
+                          : "Also used by \(model.hotKeyOwner ?? String(localized: "another app")). Pick another, or turn that one off in System Settings › Keyboard.")
                     .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
                 if !free { HotKeySuggestionChips(suggestions: model.hotKeySuggestions, pick: model.pickHotKey) }
             }
@@ -627,7 +630,7 @@ private struct PersonalizeStep: View {
                 .padding(1)
             }
             HStack {
-                if model.chosenPresets.isEmpty { StepNote("Keep at least one to continue.") }
+                if model.chosenPresets.isEmpty { StepNote(String(localized: "Keep at least one to continue.")) }
                 Spacer()
                 Button("Browse the preset gallery…") { SettingsWindowController.shared.show(tab: .presets, gallery: true) }
                     .buttonStyle(.link)
@@ -677,10 +680,10 @@ private struct PracticeStep: View {
     var body: some View {
         let stage = model.practiceStage
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(title: stage == .pasted ? "That's the whole flow" : "Try it here",
+            StepHeader(title: stage == .pasted ? String(localized: "That's the whole flow") : String(localized: "Try it here"),
                        subtitle: stage == .pasted
-                           ? "Your take was pasted back into the box, the same way it goes into Slack, Mail or any other app."
-                           : "This box works like any text box on your Mac. Use the draft below or write your own.")
+                           ? String(localized: "Your take was pasted back into the box, the same way it goes into Slack, Mail or any other app.")
+                           : String(localized: "This box works like any text box on your Mac. Use the draft below or write your own."))
             PracticeBox(text: $model.practiceText, model: model)
                 .frame(height: 104)
                 .background(RoundedRectangle(cornerRadius: 10).fill(Theme.surface))
@@ -688,8 +691,7 @@ private struct PracticeStep: View {
                                                                    lineWidth: stage == .pasted ? 1.5 : 1))
             VStack(alignment: .leading, spacing: 10) {
                 row(1, done: stage != .write, current: stage == .write) {
-                    HStack(spacing: 4) {
-                        Text("Click in the box and press")
+                    KeysSentence(sentence: String(localized: "Click in the box and press \(KeysSentence<EmptyView>.marker)")) {
                         BigKeysMini(combo: model.hotKey)
                     }
                 }
@@ -700,10 +702,10 @@ private struct PracticeStep: View {
             .foregroundStyle(Theme.text)
             .padding(.top, Spacing.section)
             if stage == .write && model.hotKeyOwner != nil {
-                StepNote("Your hotkey is taken right now, so use Open Takes below.").padding(.top, Spacing.inner)
+                StepNote(String(localized: "Your hotkey is taken right now, so use Open Takes below.")).padding(.top, Spacing.inner)
             }
             if stage == .panelOpen {
-                StepNote("Takes is open beside this window. Esc in Takes comes back here.").padding(.top, Spacing.inner)
+                StepNote(String(localized: "Takes is open beside this window. Esc in Takes comes back here.")).padding(.top, Spacing.inner)
             }
         }
     }
@@ -736,7 +738,7 @@ private struct PracticeBox: NSViewRepresentable {
         textView.textContainerInset = NSSize(width: 8, height: 10)
         textView.baseWritingDirection = .natural
         textView.string = text
-        textView.setAccessibilityLabel("Practice box")
+        textView.setAccessibilityLabel(String(localized: "Practice box"))
         scroll.drawsBackground = false
         scroll.hasVerticalScroller = true
         scroll.autohidesScrollers = true
@@ -769,13 +771,13 @@ private struct DoneStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(title: "You're set", subtitle: "Press \(model.hotKey.display) in any text box to start.")
+            StepHeader(title: String(localized: "You're set"), subtitle: String(localized: "Press \(model.hotKey.inline) in any text box to start."))
             MenuBarHint()
             HStack(alignment: .firstTextBaseline, spacing: Spacing.inner) {
-                Checkbox(isOn: $model.launchAtLogin, label: "Open Takes when I log in")
+                Checkbox(isOn: $model.launchAtLogin, label: String(localized: "Open Takes when I log in"))
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Open Takes when I log in").font(.system(size: 13)).foregroundStyle(Theme.text)
-                    Text(model.launchAtLoginError ?? "So the hotkey is ready without opening Takes first. Change it any time in Settings › General.")
+                    Text(model.launchAtLoginError ?? String(localized: "So the hotkey is ready without opening Takes first. Change it any time in Settings › General."))
                         .font(.system(size: 12)).foregroundStyle(model.launchAtLoginError == nil ? Theme.secondaryText : Theme.avoidText)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -783,14 +785,14 @@ private struct DoneStep: View {
             .padding(.top, Spacing.section)
             .accessibilityElement(children: .contain)
             VStack(alignment: .leading, spacing: Spacing.inner) {
-                InfoRow(icon: "menubar.arrow.up.rectangle", text: "Takes lives in the menu bar. Click its icon for presets, the coach and settings.")
-                InfoRow(icon: "slider.horizontal.3", text: "Make a preset your own in Settings › Presets: its rules, examples of how you write, and a hotkey of its own.")
+                InfoRow(icon: "menubar.arrow.up.rectangle", text: String(localized: "Takes lives in the menu bar. Click its icon for presets, the coach and settings."))
+                InfoRow(icon: "slider.horizontal.3", text: String(localized: "Make a preset your own in Settings › Presets: its rules, examples of how you write, and a hotkey of its own."))
                 InfoRow(icon: "mic", text: Self.dictationText(Dictation.permissionState))
                 if !model.coachEnabled {
-                    InfoRow(icon: "graduationcap", text: "English Coach is off. Takes offers it later, when it spots a mistake you repeat.")
+                    InfoRow(icon: "graduationcap", text: String(localized: "English Coach is off. Takes offers it later, when it spots a mistake you repeat."))
                 }
                 if !model.flow.progress.skipped.isEmpty {
-                    InfoRow(icon: "arrow.uturn.backward", text: "Skipped something? It's all in Settings, any time.")
+                    InfoRow(icon: "arrow.uturn.backward", text: String(localized: "Skipped something? It's all in Settings, any time."))
                 }
             }
             .padding(.top, Spacing.section)
@@ -802,9 +804,9 @@ extension DoneStep {
     /// Dictation is opt-in: one line here, and macOS asks the first time ⌘D is pressed.
     static func dictationText(_ state: Dictation.PermissionState) -> String {
         switch state {
-        case .allowed: return "Press ⌘D in the panel to speak a draft. It's turned into text on this Mac."
-        case .notAsked: return "Press ⌘D in the panel to speak a draft. macOS asks for the microphone the first time."
-        case .denied: return "To speak drafts with ⌘D, allow Takes under Microphone and Speech Recognition in System Settings › Privacy & Security."
+        case .allowed: return String(localized: "Press ⌘D in the panel to speak a draft. It's turned into text on this Mac.")
+        case .notAsked: return String(localized: "Press ⌘D in the panel to speak a draft. macOS asks for the microphone the first time.")
+        case .denied: return String(localized: "To speak drafts with ⌘D, allow Takes under Microphone and Speech Recognition in System Settings › Privacy & Security.")
         }
     }
 }

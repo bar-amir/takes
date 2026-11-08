@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes hanya mendengar semasa anda mengimlakkan draf (⌘D dalam panel). Pertuturan anda ditukar kepada teks pada Mac ini dan audio tidak pernah meninggalkannya.";
+"NSSpeechRecognitionUsageDescription" = "Takes menukar draf yang anda imlakkan kepada teks pada Mac ini, menggunakan pengecaman pertuturan pada peranti sahaja. Tiada apa-apa dihantar kepada Apple atau sesiapa lain.";

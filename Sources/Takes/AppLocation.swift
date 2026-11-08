@@ -25,16 +25,16 @@ enum AppLocation {
     static var needsMove: Bool { isTranslocated() || isOnReadOnlyVolume() }
 
     /// "the disk image" or "a temporary folder", for the note.
-    static var whereItRuns: String { isOnReadOnlyVolume() ? "the disk image" : "a temporary folder" }
+    static var whereItRuns: String { isOnReadOnlyVolume() ? String(localized: "the disk image") : String(localized: "a temporary folder") }
 
     enum MoveError: LocalizedError {
         case alreadyThere, copyFailed(String), couldNotOpen
 
         var errorDescription: String? {
             switch self {
-            case .alreadyThere: return "Takes is already in Applications."
-            case .copyFailed(let why): return "Couldn't copy Takes to Applications: \(why)"
-            case .couldNotOpen: return "Takes was copied to Applications but couldn't be opened from there. Open it from Applications yourself."
+            case .alreadyThere: return String(localized: "Takes is already in Applications.")
+            case .copyFailed(let why): return String(localized: "Couldn't copy Takes to Applications: \(why)")
+            case .couldNotOpen: return String(localized: "Takes was copied to Applications but couldn't be opened from there. Open it from Applications yourself.")
             }
         }
     }
@@ -55,7 +55,7 @@ enum AppLocation {
             // Only an older Takes is replaced, never something else with the same name.
             if fm.fileExists(atPath: destination.path) {
                 guard Bundle(url: destination)?.bundleIdentifier == Bundle.main.bundleIdentifier else {
-                    throw MoveError.copyFailed("something that isn't Takes is already at \(destination.path)")
+                    throw MoveError.copyFailed(String(localized: "something that isn't Takes is already at \(destination.path)"))
                 }
                 try fm.removeItem(at: destination)
             }

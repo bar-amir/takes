@@ -97,13 +97,13 @@ struct PresetsTab: View {
         return Button { state.selectedPresetID = preset.id } label: {
             HStack(spacing: 8) {
                 PresetDot(hex: preset.colorHex)
-                Text(preset.name.isEmpty ? "Untitled" : preset.name)
+                Text(preset.name.isEmpty ? String(localized: "Untitled") : preset.name)
                     .font(.system(size: 13, weight: selected ? .semibold : .regular))
                     .foregroundStyle(selected ? Theme.onAccent : Theme.text)
                     .lineLimit(1)
                 Spacer(minLength: 4)
                 if index < 9 {
-                    Text("⌘\(index + 1)").font(.system(size: 11))
+                    Text(verbatim: "\u{200E}⌘\(index + 1)").font(.system(size: 11))
                         .foregroundStyle(selected ? Theme.onAccent.opacity(0.7) : Theme.tertiaryText)
                 }
             }
@@ -141,7 +141,7 @@ struct PresetsTab: View {
     private func duplicate(_ preset: Preset) {
         var copy = preset
         copy.id = UUID().uuidString
-        copy.name += " copy"
+        copy.name = String(localized: "\(copy.name) copy")
         copy.hotKey = nil
         copy.apps = []
         let index = (store.index(of: preset.id) ?? store.presets.count - 1) + 1
@@ -151,7 +151,8 @@ struct PresetsTab: View {
 
     private func delete(_ preset: Preset) {
         guard store.presets.count > 1 else { return }
-        guard confirmDestructive("Delete “\(preset.name)”?", message: "You can't undo this.", button: "Delete") else { return }
+        guard confirmDestructive(String(localized: "Delete “\(preset.name)”?"), message: String(localized: "You can't undo this."),
+                                 button: String(localized: "Delete")) else { return }
         let index = store.index(of: preset.id) ?? 0
         store.presets.removeAll { $0.id == preset.id }
         state.selectedPresetID = store.presets[min(index, store.presets.count - 1)].id
@@ -196,9 +197,9 @@ private struct PresetEditor: View {
     private var hotKeyNote: String? {
         guard let combo = preset.hotKey else { return nil }
         let store = Store.shared
-        if combo == store.settings.summonHotKey { return "This is the Open Takes hotkey too; only one of them can fire." }
-        if let other = store.presets.first(where: { $0.id != preset.id && $0.hotKey == combo }) { return "Also the hotkey of “\(other.name)”." }
-        if monitor.takenHotKeys.contains(combo) { return "Also used by \(HotKeyChoice.owner(of: combo)). Pick another." }
+        if combo == store.settings.summonHotKey { return String(localized: "This is the Open Takes hotkey too; only one of them can fire.") }
+        if let other = store.presets.first(where: { $0.id != preset.id && $0.hotKey == combo }) { return String(localized: "Also the hotkey of “\(other.name)”.") }
+        if monitor.takenHotKeys.contains(combo) { return String(localized: "Also used by \(HotKeyChoice.owner(of: combo)). Pick another.") }
         return nil
     }
 
@@ -206,21 +207,21 @@ private struct PresetEditor: View {
         HStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    FormSection("Preset") {
-                        FormRow("Name") {
-                            StyledTextField(placeholder: "Name", text: $preset.name, height: 28).frame(width: 240)
+                    FormSection(String(localized: "Preset")) {
+                        FormRow(String(localized: "Name")) {
+                            StyledTextField(placeholder: String(localized: "Name"), text: $preset.name, height: 28).frame(width: 240)
                         }
                         FormDivider()
-                        FormRow("Color") { colors }
+                        FormRow(String(localized: "Color")) { colors }
                         FormDivider()
-                        FormRow("Own hotkey", detail: hotKeyNote) { HotKeyRecorder(combo: $preset.hotKey, height: 28) }
+                        FormRow(String(localized: "Own hotkey"), detail: hotKeyNote) { HotKeyRecorder(combo: $preset.hotKey, height: 28) }
                         FormDivider()
-                        FormRow("Picked automatically in") {
+                        FormRow(String(localized: "Picked automatically in")) {
                             AppsEditor(apps: $preset.apps).frame(maxWidth: 280, alignment: .trailing)
                         }
                     }
 
-                    FormSection("Instruction") {
+                    FormSection(String(localized: "Instruction")) {
                         TextEditor(text: $preset.instruction)
                             .font(.system(size: 13))
                             .lineSpacing(3)
@@ -231,29 +232,29 @@ private struct PresetEditor: View {
                             .accessibilityLabel("Instruction")
                     }
 
-                    FormSection("Do") {
+                    FormSection(String(localized: "Do", comment: "Things a preset should do")) {
                         ChipsEditor(items: $preset.dos, style: .positive).padding(10)
                     }
-                    FormSection("Avoid") {
+                    FormSection(String(localized: "Avoid", comment: "Things a preset should avoid")) {
                         ChipsEditor(items: $preset.avoid, style: .negative).padding(10)
                     }
 
                     ExamplesEditor(examples: $preset.examples)
 
-                    FormSection(header: "Run") {
-                        FormRow("Takes · Model · Effort") {
+                    FormSection(header: String(localized: "Run", comment: "Preset run settings")) {
+                        FormRow(String(localized: "Takes · Model · Effort")) {
                             HStack(spacing: 6) {
                                 MenuPicker(options: (1...5).map { (value: $0, title: "\($0)") }, selection: $preset.takes)
                                 MenuPicker(options: Models.all.map { (value: $0.id, title: $0.label) }, selection: $preset.model)
-                                MenuPicker(options: Models.efforts.map { (value: $0, title: $0.capitalized) }, selection: $preset.effort)
+                                MenuPicker(options: Models.efforts.map { (value: $0, title: Models.effortLabel($0)) }, selection: $preset.effort)
                             }
                         }
                         FormDivider()
-                        FormRow("Length") {
+                        FormRow(String(localized: "Length")) {
                             MenuPicker(options: TakeLength.allCases.map { (value: $0, title: $0.label) }, selection: $preset.length)
                         }
                         FormDivider()
-                        FormRow("Reply language") {
+                        FormRow(String(localized: "Reply language")) {
                             ReplyLanguagePicker(selection: $preset.language, writingLanguages: Store.shared.settings.writingLanguages)
                         }
                     } footer: {
@@ -292,7 +293,7 @@ private struct ExamplesEditor: View {
     @Binding var examples: [String]
 
     var body: some View {
-        FormSection(header: "Write like me") {
+        FormSection(header: String(localized: "Write like me")) {
             ForEach(examples.indices, id: \.self) { index in
                 HStack(alignment: .top, spacing: 8) {
                     TextEditor(text: Binding(get: { examples.indices.contains(index) ? examples[index] : "" },
@@ -370,7 +371,7 @@ private struct AppsEditor: View {
             menu.addItem(item)
         }
         menu.addItem(.separator())
-        menu.addItem(ClosureMenuItem(title: "Choose from Applications…", handler: chooseApp))
+        menu.addItem(ClosureMenuItem(title: String(localized: "Choose from Applications…"), handler: chooseApp))
         menu.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
     }
 
@@ -404,7 +405,7 @@ private struct TryItPanel: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                FormSection("Try it") {
+                FormSection(String(localized: "Try it")) {
                     TextEditor(text: $sample)
                         .font(.system(size: 13))
                         .lineSpacing(2)

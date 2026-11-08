@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes klausās tikai tad, kad diktējat melnrakstu (⌘D panelī). Jūsu runa tiek pārvērsta tekstā šajā Mac datorā, un audio to nekad neatstāj.";
+"NSSpeechRecognitionUsageDescription" = "Takes pārvērš jūsu nodiktēto melnrakstu tekstā šajā Mac datorā, izmantojot tikai ierīcē notiekošu runas atpazīšanu. Nekas netiek sūtīts ne Apple, ne kādam citam.";

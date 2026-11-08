@@ -31,11 +31,11 @@ struct InstantToast: View {
 
         var spoken: String {
             switch self {
-            case .writing(let preset): return "Writing with \(preset). Press Escape to cancel."
-            case .pasted: return "Pasted. Command Z undoes it."
-            case .unchanged: return "No changes needed. Nothing was pasted."
+            case .writing(let preset): return String(localized: "Writing with \(preset). Press Escape to cancel.")
+            case .pasted: return String(localized: "Pasted. Command Z undoes it.")
+            case .unchanged: return String(localized: "No changes needed. Nothing was pasted.")
             case .failed(let message, _): return message
-            case .cancelled: return "Cancelled. Nothing was pasted."
+            case .cancelled: return String(localized: "Cancelled. Nothing was pasted.")
             }
         }
     }
@@ -90,13 +90,13 @@ struct InstantToast: View {
     @ViewBuilder private var content: some View {
         switch state {
         case .writing(let preset):
-            (Text("Writing with ") + Text(preset).fontWeight(.semibold) + Text("…")).font(.system(size: 13))
-            Button(action: onCancel) { keyLabel("esc", "cancel") }
+            Text("Writing with \(Text(preset).fontWeight(.semibold))…").font(.system(size: 13))
+            Button(action: onCancel) { keyLabel("esc", String(localized: "cancel", comment: "Key hint: esc cancels the instant take")) }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Cancel, nothing will be pasted")
         case .pasted(let clipboardBack, let hotKey):
-            Text("Pasted" + (clipboardBack ? " · your clipboard is back" : "")).font(.system(size: 13))
-            keyLabel("⌘Z", "undo").accessibilityLabel("Command Z undoes the paste")
+            Text(clipboardBack ? "Pasted · your clipboard is back" : "Pasted").font(.system(size: 13))
+            keyLabel("⌘Z", String(localized: "undo", comment: "Key hint: ⌘Z undoes the paste")).accessibilityLabel("Command Z undoes the paste")
             openButton(hotKey)
         case .unchanged(let hotKey):
             Text("No changes needed. Your text is as you wrote it.").font(.system(size: 13))
@@ -125,7 +125,7 @@ struct InstantToast: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Open in Takes" + (hotKey.map { ", or press \($0) again" } ?? ""))
+        .accessibilityLabel(hotKey.map { String(localized: "Open in Takes, or press \($0) again") } ?? String(localized: "Open in Takes"))
     }
 
     private func keyLabel(_ keys: String, _ label: String) -> some View {
@@ -138,7 +138,8 @@ struct InstantToast: View {
 
     /// The paste toast's key cap, for a dark background.
     private func key(_ text: String) -> some View {
-        Text(text)
+        // The mark keeps "⌃⌥2" from turning into "2⌃⌥" in right-to-left languages.
+        Text(verbatim: "\u{200E}" + text)
             .font(.system(size: 11, weight: .semibold))
             .padding(.horizontal, 5)
             .padding(.vertical, 1)
@@ -154,10 +155,10 @@ struct InstantModeSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            PresetOptionRow(isOn: $preset.writesInstantly, title: "Write and paste right away",
+            PresetOptionRow(isOn: $preset.writesInstantly, title: String(localized: "Write and paste right away"),
                             detail: hasHotKey
-                                ? "\(preset.hotKey!.display) writes 1 take and pastes it, without opening the panel. Esc cancels while it writes, ⌘Z undoes the paste. An empty text box opens the panel instead. You won't see the take before it's pasted, so read it before you send."
-                                : "This preset's own hotkey would write 1 take and paste it, without opening the panel. It needs a hotkey of its own first.",
+                                ? String(localized: "\(preset.hotKey!.inline) writes 1 take and pastes it, without opening the panel. Esc cancels while it writes, ⌘Z undoes the paste. An empty text box opens the panel instead. You won't see the take before it's pasted, so read it before you send.")
+                                : String(localized: "This preset's own hotkey would write 1 take and paste it, without opening the panel. It needs a hotkey of its own first."),
                             enabled: hasHotKey)
             if !hasHotKey {
                 HStack(spacing: 10) {

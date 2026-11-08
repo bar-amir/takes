@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes kuuntelee vain, kun sanelet luonnosta (⌘D paneelissa). Puheesi muutetaan tekstiksi tässä Macissa, eikä ääni koskaan lähde siitä.";
+"NSSpeechRecognitionUsageDescription" = "Takes muuttaa sanelemasi luonnoksen tekstiksi tässä Macissa käyttäen vain laitteella toimivaa puheentunnistusta. Mitään ei lähetetä Applelle tai kenellekään muulle.";

@@ -19,7 +19,11 @@ enum Proofread {
     static let legacyName = "Proofread only, keep my words"
 
     static func fixLabel(_ count: Int) -> String {
-        count == 0 ? "No fixes" : "\(count) fix\(count == 1 ? "" : "es")"
+        switch count {
+        case 0: return String(localized: "No fixes")
+        case 1: return String(localized: "1 fix")
+        default: return String(localized: "\(count) fixes")
+        }
     }
 
     /// True when every take is the draft as written, apart from spacing.
@@ -48,7 +52,7 @@ enum Proofread {
 extension Preset {
     /// The built-in Proofread preset. Its id is fixed, so the gallery can tell whether it's already added.
     static var proofread: Preset {
-        Preset(id: "builtin.proofread", name: "Proofread", colorHex: "#1D6B4F",
+        Preset(id: "builtin.proofread", name: String(localized: "Proofread", comment: "Built-in preset name"), colorHex: "#1D6B4F",
                instruction: "Fix spelling, grammar, punctuation and clear typos. Keep my words, voice and tone.",
                dos: ["Keep line breaks, emoji, links, code and names exactly as written"],
                avoid: ["Rewording what's already correct", "Adding or removing anything"],
@@ -126,7 +130,7 @@ struct MinimalEditsSection: View {
     @Binding var preset: Preset
 
     var body: some View {
-        PresetOptionRow(isOn: $preset.isMinimalEdits, title: "Minimal edits",
-                        detail: "Fix mistakes only and keep my words. Takes open with each fix marked, and say so when there's nothing to fix.")
+        PresetOptionRow(isOn: $preset.isMinimalEdits, title: String(localized: "Minimal edits"),
+                        detail: String(localized: "Fix mistakes only and keep my words. Takes open with each fix marked, and say so when there's nothing to fix."))
     }
 }

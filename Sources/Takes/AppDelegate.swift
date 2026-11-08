@@ -145,21 +145,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let menu = NSMenu()
         menu.delegate = self
         if !store.settings.onboarding.finished && !monitor.allSet {
-            menu.addItem(item("Finish setting up Takes…", #selector(showSetup)))
+            menu.addItem(item(String(localized: "Finish setting up Takes…"), #selector(showSetup)))
             menu.addItem(.separator())
         }
-        let open = item("Open Takes", #selector(summon))
+        let open = item(String(localized: "Open Takes"), #selector(summon))
         let hotKey = store.settings.summonHotKey
         if let equivalent = hotKey.menuKeyEquivalent {
             open.keyEquivalent = equivalent.key
             open.keyEquivalentModifierMask = equivalent.modifiers
         } else {
-            open.title = "Open Takes   \(hotKey.display)"
+            open.title = String(localized: "Open Takes   \(hotKey.inline)")
         }
         menu.addItem(open)
 
-        let presets = NSMenuItem(title: "Presets", action: nil, keyEquivalent: "")
-        let presetMenu = NSMenu(title: "Presets")
+        let presets = NSMenuItem(title: String(localized: "Presets"), action: nil, keyEquivalent: "")
+        let presetMenu = NSMenu(title: String(localized: "Presets"))
         for preset in store.presets {
             let run = item(preset.name, #selector(runPreset(_:)))
             run.representedObject = preset.id
@@ -170,7 +170,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             presetMenu.addItem(run)
         }
         presetMenu.addItem(.separator())
-        presetMenu.addItem(item("Edit Presets…", #selector(openPresets)))
+        presetMenu.addItem(item(String(localized: "Edit Presets…"), #selector(openPresets)))
         presets.submenu = presetMenu
         menu.addItem(presets)
 
@@ -182,33 +182,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(modelItem)
 
         menu.addItem(.separator())
-        let settings = item("Settings…", #selector(openPresets))
+        let settings = item(String(localized: "Settings…"), #selector(openPresets))
         settings.keyEquivalent = ","
         settings.keyEquivalentModifierMask = .command
         menu.addItem(settings)
 
-        let check = NSMenuItem(title: "Check for Updates…", action: nil, keyEquivalent: "")
+        let check = NSMenuItem(title: String(localized: "Check for Updates…"), action: nil, keyEquivalent: "")
         if let updater = Updater.shared.controller {
             check.action = #selector(SPUStandardUpdaterController.checkForUpdates(_:))
             check.target = updater
         }
         check.keyEquivalentModifierMask = []
         menu.addItem(check)
-        menu.addItem(alternate(item("Support Takes…", #selector(showSponsors))))
-        menu.addItem(item("Report a Problem…", #selector(reportProblem)))
-        let about = item("About Takes", #selector(showAbout))
+        menu.addItem(alternate(item(String(localized: "Support Takes…"), #selector(showSponsors))))
+        menu.addItem(item(String(localized: "Report a Problem…"), #selector(reportProblem)))
+        let about = item(String(localized: "About Takes"), #selector(showAbout))
         about.keyEquivalentModifierMask = []
         menu.addItem(about)
-        menu.addItem(alternate(item("Show run log", #selector(showLog))))
+        menu.addItem(alternate(item(String(localized: "Show run log"), #selector(showLog))))
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Quit Takes", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(withTitle: String(localized: "Quit Takes"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         statusItem.menu = menu
     }
 
     @objc private func reportProblem() { ReportProblem.open() }
 
-    private let coachItem = NSMenuItem(title: "English Coach: off", action: nil, keyEquivalent: "")
-    private let modelItem = NSMenuItem(title: "Model", action: nil, keyEquivalent: "")
+    private let coachItem = NSMenuItem(title: String(localized: "English Coach: off"), action: nil, keyEquivalent: "")
+    private let modelItem = NSMenuItem(title: String(localized: "Model"), action: nil, keyEquivalent: "")
 
     /// The status rows read what's set now, so they're refreshed each time the menu opens.
     private func updateStatusRows() {
@@ -226,11 +226,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     nonisolated static func coachStatus(enabled: Bool, lessonsReady: Int) -> String {
-        guard enabled else { return "English Coach: off" }
+        guard enabled else { return String(localized: "English Coach: off") }
         switch lessonsReady {
-        case 0: return "English Coach: on"
-        case 1: return "English Coach: on · 1 lesson ready"
-        default: return "English Coach: on · \(lessonsReady) lessons ready"
+        case 0: return String(localized: "English Coach: on")
+        case 1: return String(localized: "English Coach: on · 1 lesson ready")
+        default: return String(localized: "English Coach: on · \(lessonsReady) lessons ready")
         }
     }
 
@@ -243,7 +243,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         case .provider: engine = Provider.current(settings).name; model = settings.providerModel
         case .local: engine = LocalServerKind.displayName(settings.localBaseURL); model = settings.localModel
         }
-        return model.isEmpty ? "Model: \(engine)" : "Model: \(engine) · \(model)"
+        return model.isEmpty ? String(localized: "Model: \(engine)") : String(localized: "Model: \(engine) · \(model)")
     }
 
     private func item(_ title: String, _ action: Selector) -> NSMenuItem {
@@ -264,21 +264,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let main = NSMenu()
         let appItem = NSMenuItem()
         let appMenu = NSMenu()
-        appMenu.addItem(withTitle: "Settings…", action: #selector(openPresets), keyEquivalent: ",").target = self
-        appMenu.addItem(withTitle: "Close Window", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
-        appMenu.addItem(withTitle: "Quit Takes", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appMenu.addItem(withTitle: String(localized: "Settings…"), action: #selector(openPresets), keyEquivalent: ",").target = self
+        appMenu.addItem(withTitle: String(localized: "Close Window"), action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
+        appMenu.addItem(withTitle: String(localized: "Quit Takes"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         appItem.submenu = appMenu
         main.addItem(appItem)
 
         let editItem = NSMenuItem()
-        let edit = NSMenu(title: "Edit")
-        edit.addItem(withTitle: "Undo", action: Selector(("undo:")), keyEquivalent: "z")
-        edit.addItem(withTitle: "Redo", action: Selector(("redo:")), keyEquivalent: "Z")
+        let edit = NSMenu(title: String(localized: "Edit"))
+        edit.addItem(withTitle: String(localized: "Undo"), action: Selector(("undo:")), keyEquivalent: "z")
+        edit.addItem(withTitle: String(localized: "Redo"), action: Selector(("redo:")), keyEquivalent: "Z")
         edit.addItem(.separator())
-        edit.addItem(withTitle: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
-        edit.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
-        edit.addItem(withTitle: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
-        edit.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        edit.addItem(withTitle: String(localized: "Cut"), action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        edit.addItem(withTitle: String(localized: "Copy"), action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        edit.addItem(withTitle: String(localized: "Paste"), action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        edit.addItem(withTitle: String(localized: "Select All"), action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
         editItem.submenu = edit
         main.addItem(editItem)
         return main

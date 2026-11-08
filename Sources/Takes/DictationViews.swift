@@ -27,13 +27,13 @@ struct DictationRow<Status: View, Trailing: View>: View {
                     .lineLimit(1)
                 LevelMeter(level: dictation.state == .recording ? dictation.level : 0)
                 Spacer(minLength: 0)
-                KeyHint(keys: ["↵"], label: "write takes")
+                KeyHint(keys: ["↵"], label: String(localized: "write takes", comment: "Key hint: ↵ writes the takes"))
                 MicButton(recording: true, action: onToggle)
             }
             .accessibilityElement(children: .contain)
             .accessibilityLabel(dictation.state == .recording ? "Listening" : "Finishing dictation")
         case .asking(explained: false):
-            DictationNote(icon: "mic", text: "Speak your draft. It's turned into text on this Mac and the audio never leaves it. macOS asks for access next.") {
+            DictationNote(icon: "mic", text: String(localized: "Speak your draft. It's turned into text on this Mac and the audio never leaves it. macOS asks for access next.")) {
                 Button { dictation.dismiss() } label: { HStack(spacing: 6) { Text("Not now"); Kbd("esc") } }
                     .buttonStyle(SecondaryButtonStyle(height: 28))
                 Button { dictation.continueAsking() } label: {
@@ -42,7 +42,7 @@ struct DictationRow<Status: View, Trailing: View>: View {
                 .buttonStyle(PrimaryButtonStyle(height: 28))
             }
         case .asking(explained: true):
-            DictationNote(icon: "mic", text: "Answer the macOS dialogs to turn on dictation.") {
+            DictationNote(icon: "mic", text: String(localized: "Answer the macOS dialogs to turn on dictation.")) {
                 ProgressView().controlSize(.small)
             }
         case .denied(let blocked):
@@ -51,7 +51,7 @@ struct DictationRow<Status: View, Trailing: View>: View {
                     HStack(spacing: 6) { Text("Open System Settings"); Text("↵").font(.system(size: 12)).opacity(0.85) }
                 }
                 .buttonStyle(PrimaryButtonStyle(height: 28))
-                KeyHint(keys: ["esc"], label: "close")
+                KeyHint(keys: ["esc"], label: String(localized: "close", comment: "Key hint: esc closes the note"))
             }
         case .unavailable(let reason):
             DictationNote(icon: "exclamationmark.bubble", text: Self.unavailableText(reason)) {
@@ -61,7 +61,7 @@ struct DictationRow<Status: View, Trailing: View>: View {
                     }
                     .buttonStyle(PrimaryButtonStyle(height: 28))
                 }
-                KeyHint(keys: ["esc"], label: "close")
+                KeyHint(keys: ["esc"], label: String(localized: "close", comment: "Key hint: esc closes the note"))
             }
         }
     }
@@ -69,20 +69,20 @@ struct DictationRow<Status: View, Trailing: View>: View {
     static func deniedText(_ blocked: Dictation.Blocked) -> String {
         switch blocked {
         case .microphone:
-            return "Microphone access is off. Turn on Takes in Privacy & Security › Microphone, then press ⌘D."
+            return String(localized: "Microphone access is off. Turn on Takes in Privacy & Security › Microphone, then press ⌘D.")
         case .speech:
-            return "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D."
+            return String(localized: "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D.")
         }
     }
 
     static func unavailableText(_ reason: Dictation.Unavailable) -> String {
         switch reason {
         case .language(let name):
-            return "No on-device speech for \(name) yet. Add it in Keyboard › Dictation, or pick another language in Settings."
+            return String(localized: "No on-device speech for \(name) yet. Add it in Keyboard › Dictation, or pick another language in Settings.")
         case .noMicrophone:
-            return "No microphone found. Connect one, then press ⌘D."
+            return String(localized: "No microphone found. Connect one, then press ⌘D.")
         case .failed(let message):
-            return "Dictation stopped: \(message) Press ⌘D to try again."
+            return String(localized: "Dictation stopped: \(message) Press ⌘D to try again.")
         }
     }
 }
@@ -182,11 +182,12 @@ struct DictationSettings: View {
     @State private var languages: [(id: String, name: String)] = []
 
     var body: some View {
-        FormSection("Dictation", footer: "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed.") {
-            FormRow("Speak your draft in the panel") { Kbd("⌘D") }
+        FormSection(String(localized: "Dictation"),
+                    footer: String(localized: "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed.")) {
+            FormRow(String(localized: "Speak your draft in the panel")) { Kbd("⌘D") }
             FormDivider()
-            FormRow("Language") {
-                MenuPicker(options: [(value: "", title: "Same as macOS · \(Dictation.displayName(Locale.current))")]
+            FormRow(String(localized: "Language")) {
+                MenuPicker(options: [(value: "", title: String(localized: "Same as macOS · \(Dictation.displayName(Locale.current))"))]
                                + languages.map { (value: $0.id, title: $0.name) },
                            selection: $store.settings.dictationLanguage)
             }

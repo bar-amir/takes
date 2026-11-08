@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes sluša samo dok diktirate nacrt (⌘D u ploči). Govor se pretvara u tekst na ovom Macu, a zvuk ga nikad ne napušta.";
+"NSSpeechRecognitionUsageDescription" = "Takes pretvara vaš izdiktirani nacrt u tekst na ovom Macu, samo pomoću prepoznavanja govora na uređaju. Ništa se ne šalje Appleu ni bilo kome drugome.";

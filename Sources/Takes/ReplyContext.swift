@@ -40,17 +40,16 @@ struct ReplyContext: Equatable {
     /// "42 words", or "1 line" style counts for the chip.
     var lengthLabel: String {
         let words = WordCounter.count(cleaned)
-        var label = "\(words) word\(words == 1 ? "" : "s")"
-        if wasTrimmed { label += ", trimmed" }
-        return label
+        if wasTrimmed { return words == 1 ? String(localized: "1 word, trimmed") : String(localized: "\(words) words, trimmed") }
+        return words == 1 ? String(localized: "1 word") : String(localized: "\(words) words")
     }
 
     /// Where it came from, for the chip. Typed context needs no label.
     var originLabel: String? {
         switch source {
         case .typed: return nil
-        case .clipboard: return "from the clipboard"
-        case .autoClipboard: return "copied just now"
+        case .clipboard: return String(localized: "from the clipboard")
+        case .autoClipboard: return String(localized: "copied just now")
         }
     }
 
@@ -279,7 +278,7 @@ extension PanelModel {
     func useClipboardAsContext() {
         guard screen == .compose else { return }
         guard let text = ClipboardWatch.currentText()?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else {
-            contextNotice = "The clipboard has no text. Copy the message first, or press ⌘J to paste it."
+            contextNotice = String(localized: "The clipboard has no text. Copy the message first, or press ⌘J to paste it.")
             return
         }
         contextNotice = nil

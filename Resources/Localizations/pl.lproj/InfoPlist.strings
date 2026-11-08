@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes słucha tylko wtedy, gdy dyktujesz szkic (⌘D w panelu). Mowa jest zamieniana na tekst na tym Macu, a dźwięk nigdy go nie opuszcza.";
+"NSSpeechRecognitionUsageDescription" = "Takes zamienia podyktowany szkic na tekst na tym Macu, korzystając wyłącznie z rozpoznawania mowy na urządzeniu. Nic nie jest wysyłane do Apple ani nikogo innego.";

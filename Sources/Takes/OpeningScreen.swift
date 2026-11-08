@@ -39,7 +39,7 @@ final class OpeningWindowController: NSObject {
     private func makeWindow() -> NSWindow {
         let window = OpeningWindow(contentRect: NSRect(origin: .zero, size: Self.size), styleMask: [.borderless],
                                    backing: .buffered, defer: false)
-        window.title = "Welcome to Takes"
+        window.title = String(localized: "Welcome to Takes")
         window.isReleasedWhenClosed = false
         window.isOpaque = false
         window.backgroundColor = .clear
@@ -65,6 +65,7 @@ struct OpeningView: View {
     var onStart: () -> Void
     var onClose: () -> Void = {}
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.layoutDirection) private var layoutDirection
 
     static let ink = Color(hex: "#171714")
     static let paper = Color(hex: "#F3EBDD")
@@ -80,13 +81,20 @@ struct OpeningView: View {
         ZStack(alignment: .topLeading) {
             photo
             VStack(alignment: .leading, spacing: 26) {
-                VStack(alignment: .leading, spacing: -6) {
-                    Text("WRITE IT ROUGH.")
-                    Text("PICK YOUR TAKE.")
+                // The headline stays in the photo's empty space, left of the cards: a smaller size for a language
+                // whose headline runs longer, or whose letters the condensed font doesn't have.
+                ViewThatFits(in: .horizontal) {
+                    ForEach([62, 54, 46, 40] as [CGFloat], id: \.self) { size in
+                        VStack(alignment: .leading, spacing: -6 * size / 62) {
+                            Text("WRITE IT ROUGH.")
+                            Text("PICK YOUR TAKE.")
+                        }
+                        .font(Self.headlineFont(size))
+                        .fixedSize()
+                    }
                 }
-                .font(Self.headlineFont(62))
+                .frame(maxWidth: 340)
                 .foregroundStyle(Self.ink)
-                .fixedSize()
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel("Write it rough. Pick your take.")
                 .accessibilityAddTraits(.isHeader)
@@ -115,9 +123,13 @@ struct OpeningView: View {
                 .keyboardShortcut(.defaultAction)
                 .accessibilityHint("Starts setting up Takes")
             }
+            // Right to left, the words still read and align from the right, but the block keeps its place on the
+            // photograph, which isn't mirrored.
+            .environment(\.layoutDirection, layoutDirection)
             .padding(.leading, 77)
             .padding(.top, 96)
         }
+        .environment(\.layoutDirection, .leftToRight)
         .frame(width: OpeningWindowController.size.width, height: OpeningWindowController.size.height)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .scaleEffect(state.leaving && !reduceMotion ? 0.94 : 1)

@@ -7,16 +7,16 @@ import Foundation
 enum SystemShortcuts {
     /// Names for the ids in com.apple.symbolichotkeys that use ordinary keys.
     static let names: [Int: String] = [
-        60: "Select the previous input source", 61: "Select next source in Input menu",
-        64: "Show Spotlight search", 65: "Show Finder search window",
-        32: "Mission Control", 33: "Application windows", 36: "Show Desktop",
-        79: "Move left a space", 81: "Move right a space", 118: "Switch to Desktop 1",
-        162: "Turn Dock hiding on/off", 7: "Move focus to the menu bar", 8: "Move focus to the Dock",
-        9: "Move focus to the active or next window", 10: "Move focus to the window toolbar",
-        11: "Move focus to the floating window", 27: "Move focus to next window",
-        28: "Save picture of screen as a file", 29: "Copy picture of screen to the clipboard",
-        30: "Save picture of selected area as a file", 31: "Copy picture of selected area to the clipboard",
-        184: "Screenshot and recording options", 98: "Show Help menu",
+        60: String(localized: "Select the previous input source"), 61: String(localized: "Select next source in Input menu"),
+        64: String(localized: "Show Spotlight search"), 65: String(localized: "Show Finder search window"),
+        32: String(localized: "Mission Control"), 33: String(localized: "Application windows"), 36: String(localized: "Show Desktop"),
+        79: String(localized: "Move left a space"), 81: String(localized: "Move right a space"), 118: String(localized: "Switch to Desktop 1"),
+        162: String(localized: "Turn Dock hiding on/off"), 7: String(localized: "Move focus to the menu bar"), 8: String(localized: "Move focus to the Dock"),
+        9: String(localized: "Move focus to the active or next window"), 10: String(localized: "Move focus to the window toolbar"),
+        11: String(localized: "Move focus to the floating window"), 27: String(localized: "Move focus to next window"),
+        28: String(localized: "Save picture of screen as a file"), 29: String(localized: "Copy picture of screen to the clipboard"),
+        30: String(localized: "Save picture of selected area as a file"), 31: String(localized: "Copy picture of selected area to the clipboard"),
+        184: String(localized: "Screenshot and recording options"), 98: String(localized: "Show Help menu"),
     ]
 
     /// The macOS shortcut that already uses `combo`, if one is turned on.
@@ -33,7 +33,7 @@ enum SystemShortcuts {
                   let parameters = value["parameters"] as? [Int], parameters.count >= 3,
                   parameters[1] == Int(combo.keyCode),
                   UInt(parameters[2]) & relevantFlags == flags else { continue }
-            return names[Int(id) ?? -1] ?? "macOS shortcut \(id)"
+            return names[Int(id) ?? -1] ?? String(localized: "macOS shortcut \(id)")
         }
         return nil
     }

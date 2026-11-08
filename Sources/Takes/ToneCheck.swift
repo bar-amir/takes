@@ -57,7 +57,7 @@ enum ToneCheck {
 
     /// The note as shown on a take card.
     static func label(_ tone: String) -> String {
-        tone.lowercased().hasPrefix("may ") ? tone.prefix(1).uppercased() + tone.dropFirst() : "May read as \(tone)"
+        tone.lowercased().hasPrefix("may ") ? tone.prefix(1).uppercased() + tone.dropFirst() : String(localized: "May read as \(tone)")
     }
 
     // MARK: Draft read
@@ -142,11 +142,11 @@ final class ToneReadModel: ObservableObject {
                 if let read = ToneCheck.parseRead(result.takes.joined(separator: "\n")) {
                     self.state = .done(read)
                 } else {
-                    self.state = .failed("Couldn't read the tone this time. Press ⌘T to try again.")
+                    self.state = .failed(String(localized: "Couldn't read the tone this time. Press ⌘T to try again."))
                 }
             } catch {
                 guard self.token == token, !(error is CancellationError) else { return }
-                self.state = .failed("Couldn't check the tone: \(error.localizedDescription)")
+                self.state = .failed(String(localized: "Couldn't check the tone: \(error.localizedDescription)"))
             }
         }
     }

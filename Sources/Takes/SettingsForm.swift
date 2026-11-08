@@ -236,6 +236,6 @@ func confirmDestructive(_ title: String, message: String, button: String) -> Boo
     alert.alertStyle = .warning
     let confirm = alert.addButton(withTitle: button)
     confirm.hasDestructiveAction = true
-    alert.addButton(withTitle: "Cancel")
+    alert.addButton(withTitle: String(localized: "Cancel"))
     return alert.runModal() == .alertFirstButtonReturn
 }

@@ -16,12 +16,12 @@ struct LocalEngineBadge: View {
                 let serverName = LocalServerKind.displayName(baseURL)
                 if let models = local.server(at: baseURL)?.models {
                     if models.isEmpty {
-                        StatusBadge(text: "\(serverName) · no models", good: false)
+                        StatusBadge(text: String(localized: "\(serverName) · no models"), good: false)
                     } else {
-                        StatusBadge(text: "\(serverName) · \(models.count) model\(models.count == 1 ? "" : "s")", good: true)
+                        StatusBadge(text: models.count == 1 ? String(localized: "\(serverName) · 1 model") : String(localized: "\(serverName) · \(models.count) models"), good: true)
                     }
                 } else {
-                    StatusBadge(text: "Not running", good: false)
+                    StatusBadge(text: String(localized: "Not running"), good: false)
                 }
             }
         }
@@ -50,11 +50,11 @@ struct LocalEngineSettings: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             if !local.checked {
-                hint("Looking for Ollama and LM Studio on this Mac…")
+                hint(String(localized: "Looking for Ollama and LM Studio on this Mac…"))
             } else if let models = current?.models {
                 if models.isEmpty { noModels } else { modelPicker(models) }
             } else if let other = local.running.first(where: { $0.baseURL != baseURL }) {
-                hint("\(serverName) isn't running at \(baseURL), but \(other.name) is.")
+                hint(String(localized: "\(serverName) isn't running at \(baseURL), but \(other.name) is."))
                 Button("Use \(other.name)") { use(other) }.buttonStyle(PrimaryButtonStyle(height: 30))
             } else {
                 notRunning
@@ -69,9 +69,9 @@ struct LocalEngineSettings: View {
         VStack(alignment: .leading, spacing: 10) {
             hint(kind == .ollama
                  ? (kind.appURL == nil && LocalServerKind.ollamaCommand != nil
-                    ? "Ollama isn't running. Start it with “ollama serve” in Terminal, then check again. LM Studio works too: start its local server."
-                    : "Ollama isn't running. Open it, or install it from ollama.com. LM Studio works too: start its local server.")
-                 : "LM Studio's server isn't running. In LM Studio, load a model and start the server, then check again.",
+                    ? String(localized: "Ollama isn't running. Start it with “ollama serve” in Terminal, then check again. LM Studio works too: start its local server.")
+                    : String(localized: "Ollama isn't running. Open it, or install it from ollama.com. LM Studio works too: start its local server."))
+                 : String(localized: "LM Studio's server isn't running. In LM Studio, load a model and start the server, then check again."),
                  warning: true)
             HStack(spacing: 8) {
                 if kind == .ollama, kind.appURL == nil, LocalServerKind.ollamaCommand != nil {
@@ -97,11 +97,11 @@ struct LocalEngineSettings: View {
     private var noModels: some View {
         VStack(alignment: .leading, spacing: 10) {
             if kind == .ollama {
-                hint("Ollama is running but has no models yet. Download one in Terminal, then check again. \(LocalServerKind.suggestedOllamaModel) is small (about 2 GB) and quick.",
+                hint(String(localized: "Ollama is running but has no models yet. Download one in Terminal, then check again. \(LocalServerKind.suggestedOllamaModel) is small (about 2 GB) and quick."),
                      warning: true)
                 copyButton("ollama pull \(LocalServerKind.suggestedOllamaModel)")
             } else {
-                hint("\(serverName) is running but has no model loaded. Download and load one there, then check again.", warning: true)
+                hint(String(localized: "\(serverName) is running but has no model loaded. Download and load one there, then check again."), warning: true)
             }
         }
     }
@@ -110,13 +110,13 @@ struct LocalEngineSettings: View {
         VStack(alignment: .leading, spacing: 10) {
             FlowLayout(spacing: 18) {
                 if local.running.count > 1 {
-                    LabeledMenu(label: "Server",
+                    LabeledMenu(label: String(localized: "Server"),
                                 options: local.running.map { (value: $0.baseURL, title: $0.name) },
                                 selection: Binding(get: { baseURL },
                                                    set: { url in if let server = local.server(at: url) { use(server) } }))
                 }
                 HStack(spacing: 10) {
-                    LabeledMenu(label: "Model",
+                    LabeledMenu(label: String(localized: "Model"),
                                 options: LocalModels.shared.modelOptions(at: baseURL, picked: store.settings.localModel)
                                     .map { (value: $0, title: LocalModelList.label($0)) },
                                 selection: Binding(get: { store.settings.localModel },
@@ -128,7 +128,8 @@ struct LocalEngineSettings: View {
                 }
             }
             if !store.settings.localModel.isEmpty, !models.contains(store.settings.localModel) {
-                hint("\(LocalModelList.label(store.settings.localModel)) isn't installed in \(serverName) any more. Pick another.", warning: true)
+                let label = LocalModelList.label(store.settings.localModel)
+                hint(String(localized: "\(label) isn't installed in \(serverName) any more. Pick another."), warning: true)
             }
             testResult
         }
@@ -141,10 +142,11 @@ struct LocalEngineSettings: View {
         case .running:
             HStack(spacing: 6) {
                 ProgressView().controlSize(.mini)
-                hint("Asking \(LocalModelList.label(store.settings.localModel))… the first run can take a while as it loads.")
+                let label = LocalModelList.label(store.settings.localModel)
+                hint(String(localized: "Asking \(label)… the first run can take a while as it loads."))
             }
         case .passed(let ms):
-            Text(String(format: "Works. Answered in %.1f s.", Double(ms) / 1000))
+            Text(String(format: NSLocalizedString("Works. Answered in %.1f s.", comment: ""), locale: .current, Double(ms) / 1000))
                 .font(.system(size: 12)).foregroundStyle(Theme.doText)
         case .failed(let message):
             hint(message, warning: true)
@@ -173,7 +175,7 @@ struct LocalEngineSettings: View {
                     Button("Save", action: saveAddress).buttonStyle(SecondaryButtonStyle(height: 30))
                     Button("Cancel") { editingAddress = false }.buttonStyle(SecondaryButtonStyle(height: 30))
                 }
-                hint(addressError ?? "Only addresses on this Mac work, such as localhost or 127.0.0.1.", warning: addressError != nil)
+                hint(addressError ?? String(localized: "Only addresses on this Mac work, such as localhost or 127.0.0.1."), warning: addressError != nil)
             }
         }
     }
@@ -205,7 +207,7 @@ struct LocalEngineSettings: View {
 
     private func saveAddress() {
         guard let url = LocalEndpoint.normalize(addressInput) else {
-            addressError = "That address isn't on this Mac. Use localhost or 127.0.0.1 with the server's port."
+            addressError = String(localized: "That address isn't on this Mac. Use localhost or 127.0.0.1 with the server's port.")
             return
         }
         store.settings.localBaseURL = url
@@ -232,8 +234,8 @@ struct LocalEngineModelNote: View {
 
     var body: some View {
         if store.settings.engine.usesOneModel {
-            let model = store.settings.oneModel.isEmpty ? "the model you pick" : LocalModelList.label(store.settings.oneModel)
-            let engine = store.settings.engine == .local ? "a local model" : store.settings.engine == .chatGPT ? "ChatGPT" : Provider.current(store.settings).name
+            let model = store.settings.oneModel.isEmpty ? String(localized: "the model you pick") : LocalModelList.label(store.settings.oneModel)
+            let engine = store.settings.engine == .local ? String(localized: "a local model") : store.settings.engine == .chatGPT ? "ChatGPT" : Provider.current(store.settings).name
             Text("While the engine is \(engine), every preset runs on \(model). The Claude model and effort here apply when you switch back to Claude.")
                 .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
         }

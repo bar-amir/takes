@@ -20,8 +20,8 @@ final class ClaudeInstaller: ObservableObject {
         /// The progress line under the button while it runs.
         var progress: String? {
             switch self {
-            case .downloading: return "Downloading Claude Code from Anthropic…"
-            case .settingUp: return "Setting up Claude Code…"
+            case .downloading: return String(localized: "Downloading Claude Code from Anthropic…")
+            case .settingUp: return String(localized: "Setting up Claude Code…")
             case .idle, .failed: return nil
             }
         }
@@ -47,10 +47,10 @@ final class ClaudeInstaller: ObservableObject {
             return true
         }
         let alert = NSAlert()
-        alert.messageText = "Install Claude Code?"
-        alert.informativeText = "Takes downloads Claude Code from Anthropic and installs it in your home folder. It takes about a minute and needs no password. Then Terminal opens so you can sign in to Claude."
-        alert.addButton(withTitle: "Install")
-        alert.addButton(withTitle: "Cancel")
+        alert.messageText = String(localized: "Install Claude Code?")
+        alert.informativeText = String(localized: "Takes downloads Claude Code from Anthropic and installs it in your home folder. It takes about a minute and needs no password. Then Terminal opens so you can sign in to Claude.")
+        alert.addButton(withTitle: String(localized: "Install"))
+        alert.addButton(withTitle: String(localized: "Cancel"))
         // Takes is a menu-bar app; unless it's active, the alert shows but can't be clicked.
         NSApp.activate(ignoringOtherApps: true)
         guard alert.runModal() == .alertFirstButtonReturn else { return false }
@@ -70,7 +70,7 @@ final class ClaudeInstaller: ObservableObject {
             return false
         }
         guard await ClaudeCodeEngine.locate() != nil else {
-            state = .failed("Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again.")
+            state = .failed(String(localized: "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again."))
             return false
         }
         state = .idle
@@ -127,7 +127,7 @@ final class ClaudeInstaller: ObservableObject {
     /// What to show when the install didn't work, or nil when it did.
     nonisolated static func failureMessage(status: Int32, output: String, timedOut: Bool) -> String? {
         if timedOut {
-            return "The download took too long, so Takes stopped it. Check your internet connection, then try again."
+            return String(localized: "The download took too long, so Takes stopped it. Check your internet connection, then try again.")
         }
         guard status != 0 else { return nil }
         let lower = output.lowercased()
@@ -135,16 +135,17 @@ final class ClaudeInstaller: ObservableObject {
         let offline = ["could not resolve host", "failed to connect", "couldn't connect", "network is unreachable",
                        "operation timed out", "connection timed out"]
         if [6, 7, 28, 35].contains(status) || offline.contains(where: lower.contains) {
-            return "Couldn't reach Anthropic. Check your internet connection, then try again."
+            return String(localized: "Couldn't reach Anthropic. Check your internet connection, then try again.")
         }
         if lower.contains("supported-countries") || lower.contains("not available in your region") {
-            return "Claude Code's download isn't available from here. Anthropic lists where it is at anthropic.com/supported-countries."
+            return String(localized: "Claude Code's download isn't available from here. Anthropic lists where it is at anthropic.com/supported-countries.")
         }
         if lower.contains("no space left") {
-            return "There isn't enough free space on this Mac to install Claude Code. Free some up, then try again."
+            return String(localized: "There isn't enough free space on this Mac to install Claude Code. Free some up, then try again.")
         }
-        let detail = lastLine(output).map { ": " + $0 + ($0.hasSuffix("…") ? "" : ".") } ?? "."
-        return "Couldn't install Claude Code" + detail + " Try again, or install it yourself."
+        guard let line = lastLine(output) else { return String(localized: "Couldn't install Claude Code. Try again, or install it yourself.") }
+        let detail = line + (line.hasSuffix("…") ? "" : ".")
+        return String(localized: "Couldn't install Claude Code: \(detail) Try again, or install it yourself.")
     }
 
     /// The installer's last line, without terminal colours, cut to a sentence's length.

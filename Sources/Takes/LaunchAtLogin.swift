@@ -19,11 +19,11 @@ enum LaunchAtLogin {
     /// from the disk image or Downloads without being moved), and when the user has blocked it in Settings.
     static func explain(_ error: Error) -> String {
         if AppLocation.needsMove {
-            return "Move Takes to Applications first; macOS doesn't keep login items for an app run from \(AppLocation.whereItRuns)."
+            return String(localized: "Move Takes to Applications first; macOS doesn't keep login items for an app run from \(AppLocation.whereItRuns).")
         }
         if SMAppService.mainApp.status == .requiresApproval {
-            return "Allow Takes under System Settings › General › Login Items."
+            return String(localized: "Allow Takes under System Settings › General › Login Items.")
         }
-        return "Couldn't set this: \(error.localizedDescription)"
+        return String(localized: "Couldn't set this: \(error.localizedDescription)")
     }
 }

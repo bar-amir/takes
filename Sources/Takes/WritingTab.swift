@@ -4,8 +4,8 @@ import SwiftUI
 struct WritingTab: View {
     var body: some View {
         SettingsPage {
-            FormSection("Rules for every preset",
-                        footer: "These apply on top of each preset's own Do and Avoid lists. Untick a rule to pause it.") {
+            FormSection(String(localized: "Rules for every preset"),
+                        footer: String(localized: "These apply on top of each preset's own Do and Avoid lists. Untick a rule to pause it.")) {
                 VoiceRulesEditor()
             }
             WritingLanguagesSection()
@@ -54,8 +54,8 @@ struct WritingLanguagesSection: View {
     @ObservedObject var store = Store.shared
 
     var body: some View {
-        FormSection("Languages you write in",
-                    footer: "Presets can reply in any of these, and Browse presets offers a translate preset for each.") {
+        FormSection(String(localized: "Languages you write in"),
+                    footer: String(localized: "Presets can reply in any of these, and Browse presets offers a translate preset for each.")) {
             HStack(alignment: .center, spacing: 12) {
                 LanguageChips(languages: Binding(get: { store.settings.writingLanguages },
                                                  set: { store.settings.languages = $0 }))

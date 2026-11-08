@@ -162,14 +162,16 @@ enum WordDiff {
     /// What VoiceOver reads for the "Changes" view: each change in words, then the new text.
     static func spoken(from old: String, to new: String) -> String {
         let fixes = fixes(from: old, to: new)
-        guard !fixes.isEmpty else { return "No changes. \(new)" }
-        let changes = fixes.map { fix in
-            if fix.removed.isEmpty { return "added \(fix.added)" }
-            if fix.added.isEmpty { return "removed \(fix.removed)" }
-            if fix.removed.lowercased() == fix.added.lowercased() { return "capitalised \(fix.added)" }
-            return "\(fix.removed) changed to \(fix.added)"
+        guard !fixes.isEmpty else { return String(localized: "No changes. \(new)") }
+        let changes = fixes.map { fix -> String in
+            if fix.removed.isEmpty { return String(localized: "added \(fix.added)") }
+            if fix.added.isEmpty { return String(localized: "removed \(fix.removed)") }
+            if fix.removed.lowercased() == fix.added.lowercased() { return String(localized: "capitalised \(fix.added)") }
+            return String(localized: "\(fix.removed) changed to \(fix.added)")
         }
-        return "\(fixes.count) change\(fixes.count == 1 ? "" : "s"): " + changes.joined(separator: "; ") + ". Result: \(new)"
+        let list = changes.joined(separator: "; ")
+        return fixes.count == 1 ? String(localized: "1 change: \(list). Result: \(new)")
+            : String(localized: "\(fixes.count) changes: \(list). Result: \(new)")
     }
 
     // MARK: Tokens

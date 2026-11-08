@@ -277,10 +277,10 @@ enum ChatGPTAuthError: LocalizedError, Equatable {
 
     var errorDescription: String? {
         switch self {
-        case .timedOut: "The browser sign-in didn't finish within 5 minutes. Try again."
-        case .denied: "Sign-in was cancelled in the browser. Try again when you're ready."
+        case .timedOut: String(localized: "The browser sign-in didn't finish within 5 minutes. Try again.")
+        case .denied: String(localized: "Sign-in was cancelled in the browser. Try again when you're ready.")
         case .failed(let message): message
-        case .signInAgain: "Sign in to ChatGPT again in Settings › Model."
+        case .signInAgain: String(localized: "Sign in to ChatGPT again in Settings › Model.")
         }
     }
 
@@ -327,7 +327,7 @@ struct ChatGPTAuthClient {
         let code = json?["error"] as? String ?? (json?["error"] as? [String: Any])?["code"] as? String
         if let code, ChatGPTAuthError.terminalRefreshCodes.contains(code) { throw ChatGPTAuthError.signInAgain }
         let detail = json?["error_description"] as? String ?? code ?? "HTTP \(status)"
-        throw ChatGPTAuthError.failed("ChatGPT sign-in failed: \(detail).")
+        throw ChatGPTAuthError.failed(String(localized: "ChatGPT sign-in failed: \(detail)."))
     }
 
     /// Checks the ID token's claims, and its signature when the issuer's keys can be fetched. The token came straight
@@ -465,9 +465,9 @@ actor ChatGPTTokens {
 
     /// A token allowed to use the plan. `forceRefresh` after the API refused the current one.
     func accessToken(forceRefresh: Bool = false, now: Date = Date()) async throws -> String {
-        guard let credentials = store.load() else { throw EngineError.failed("Sign in to ChatGPT in Settings › Model.") }
+        guard let credentials = store.load() else { throw EngineError.failed(String(localized: "Sign in to ChatGPT in Settings › Model.")) }
         guard credentials.sharing else {
-            throw EngineError.failed("Signed in, but plan usage wasn't allowed. Sign in again in Settings › Model and allow it.")
+            throw EngineError.failed(String(localized: "Signed in, but plan usage wasn't allowed. Sign in again in Settings › Model and allow it."))
         }
         guard forceRefresh || credentials.needsRefresh(now: now) else { return credentials.accessToken }
         return try await refresh(credentials).accessToken
@@ -613,19 +613,19 @@ final class ChatGPTCallbackServer: @unchecked Sendable {
             let target = parts.count > 1 ? String(parts[1]) : "/"
             let components = URLComponents(string: "http://127.0.0.1\(target)")
             guard parts.first == "GET", components?.path == ChatGPTOAuth.callbackPath else {
-                self.respond(connection, status: "404 Not Found", html: Self.page(title: "Not found", body: ""))
+                self.respond(connection, status: "404 Not Found", html: Self.page(title: String(localized: "Not found"), body: ""))
                 return
             }
             let items = components?.queryItems ?? []
             guard self.belongs(items) else {
                 self.respond(connection, status: "400 Bad Request",
-                             html: Self.page(title: "Not this sign-in", body: "Go back to Takes. You can close this tab."))
+                             html: Self.page(title: String(localized: "Not this sign-in"), body: String(localized: "Go back to Takes. You can close this tab.")))
                 return
             }
             let ok = self.accepts(items)
             self.respond(connection, status: "200 OK", html: ok
-                ? Self.page(title: "Signed in", body: "You can close this tab and go back to Takes.")
-                : Self.page(title: "Sign-in didn't finish", body: "Go back to Takes to try again. You can close this tab."))
+                ? Self.page(title: String(localized: "Signed in"), body: String(localized: "You can close this tab and go back to Takes."))
+                : Self.page(title: String(localized: "Sign-in didn't finish"), body: String(localized: "Go back to Takes to try again. You can close this tab.")))
             self.finish(.success(items))
         }
     }

@@ -16,7 +16,7 @@ struct ChatGPTEngine: TakesEngine {
     var session = URLSession.shared
 
     func run(_ request: EngineRequest, onUpdate: @escaping @Sendable ([String]) -> Void) async throws -> EngineResult {
-        guard !request.model.isEmpty else { throw EngineError.failed("Pick a ChatGPT model in Settings › Model.") }
+        guard !request.model.isEmpty else { throw EngineError.failed(String(localized: "Pick a ChatGPT model in Settings › Model.")) }
         let started = Date()
         let elapsedMs = { Int(Date().timeIntervalSince(started) * 1000) }
 
@@ -66,18 +66,18 @@ struct ChatGPTEngine: TakesEngine {
             try handle(parser.finish())
         } catch let error as URLError {
             if error.code == .cancelled { throw CancellationError() }
-            throw EngineError.failed("The connection to ChatGPT dropped. Try again.")
+            throw EngineError.failed(String(localized: "The connection to ChatGPT dropped. Try again."))
         }
 
         let takes = TakeSplitter.split(text, streaming: false)
         switch finished {
         case .completed?:
-            guard !takes.isEmpty else { throw EngineError.failed("ChatGPT returned no takes. Try again, or pick another model.") }
+            guard !takes.isEmpty else { throw EngineError.failed(String(localized: "ChatGPT returned no takes. Try again, or pick another model.")) }
         case .incomplete?:
-            guard !takes.isEmpty else { throw EngineError.failed("ChatGPT stopped early. Try again.") }
+            guard !takes.isEmpty else { throw EngineError.failed(String(localized: "ChatGPT stopped early. Try again.")) }
         default:
             // Only `response.completed` means success; a stream that just ends is a dropped connection.
-            throw EngineError.failed("The connection to ChatGPT dropped before the takes were done. Try again.")
+            throw EngineError.failed(String(localized: "The connection to ChatGPT dropped before the takes were done. Try again."))
         }
         return EngineResult(takes: takes, wallMs: elapsedMs(), firstTextMs: firstTextMs)
     }
@@ -91,7 +91,7 @@ struct ChatGPTEngine: TakesEngine {
                 throw EngineError.failed(ChatGPTAuthError.signInAgain.errorDescription!)
             }
         }
-        guard let http = response as? HTTPURLResponse else { throw EngineError.failed("No answer from ChatGPT.") }
+        guard let http = response as? HTTPURLResponse else { throw EngineError.failed(String(localized: "No answer from ChatGPT.")) }
         return (body, http)
     }
 
@@ -102,9 +102,9 @@ struct ChatGPTEngine: TakesEngine {
             switch error.code {
             case .cancelled: throw CancellationError()
             case .notConnectedToInternet, .networkConnectionLost, .cannotFindHost, .cannotConnectToHost, .dnsLookupFailed:
-                throw EngineError.failed("Couldn't reach ChatGPT. Check your internet connection and try again.")
-            case .timedOut: throw EngineError.failed("ChatGPT took too long to answer. Try again.")
-            default: throw EngineError.failed("Couldn't reach ChatGPT: \(error.localizedDescription)")
+                throw EngineError.failed(String(localized: "Couldn't reach ChatGPT. Check your internet connection and try again."))
+            case .timedOut: throw EngineError.failed(String(localized: "ChatGPT took too long to answer. Try again."))
+            default: throw EngineError.failed(String(localized: "Couldn't reach ChatGPT: \(error.localizedDescription)"))
             }
         }
     }
@@ -112,7 +112,7 @@ struct ChatGPTEngine: TakesEngine {
     /// The whole body: these five fields and nothing else (no temperature, token cap, metadata, user or system items).
     static func responsesRequest(baseURL: String, token: String, model: String, instructions: String, user: String) throws -> URLRequest {
         guard let url = URL(string: baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/")) + "/responses") else {
-            throw EngineError.failed("Bad ChatGPT address.")
+            throw EngineError.failed(String(localized: "Bad ChatGPT address."))
         }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -141,8 +141,8 @@ struct ChatGPTEngine: TakesEngine {
                                     status: status, requestID: requestID))
     }
 
-    static let usageLimitMessage = "You've used this week's ChatGPT allowance for Takes. Manage it in ChatGPT › Settings › Usage, or pick another engine."
-    static let unavailableMessage = "Your ChatGPT plan can't be used in Takes right now. Check ChatGPT › Settings › Usage."
+    static let usageLimitMessage = String(localized: "You've used this week's ChatGPT allowance for Takes. Manage it in ChatGPT › Settings › Usage, or pick another engine.")
+    static let unavailableMessage = String(localized: "Your ChatGPT plan can't be used in Takes right now. Check ChatGPT › Settings › Usage.")
 
     /// The plan's allowance is used up or can't be used: the fix is in ChatGPT's usage settings.
     static func limitError(code: String?) -> UsageLimitError? {
@@ -160,34 +160,34 @@ struct ChatGPTEngine: TakesEngine {
         switch code {
         case "subscription_sharing_usage_limit_exceeded": return usageLimitMessage
         case "subscription_sharing_usage_unavailable": return unavailableMessage
-        case "subscription_sharing_user_unavailable": return "ChatGPT can't take requests from Takes right now. Try again in a moment."
+        case "subscription_sharing_user_unavailable": return String(localized: "ChatGPT can't take requests from Takes right now. Try again in a moment.")
         case "subscription_sharing_user_not_eligible":
-            return "This ChatGPT account can't use its plan in other apps. Pick another engine in Settings › Model."
+            return String(localized: "This ChatGPT account can't use its plan in other apps. Pick another engine in Settings › Model.")
         case "subscription_sharing_invalid_user": return ChatGPTAuthError.signInAgain.errorDescription!
         case "chatpass_v2_scope_not_authorized", "chatpass_v2_invalid_authorization_context":
-            return "Plan usage wasn't allowed for Takes. Sign in again in Settings › Model and allow it."
+            return String(localized: "Plan usage wasn't allowed for Takes. Sign in again in Settings › Model and allow it.")
         case "model_not_found":
-            return "This model isn't available with your ChatGPT plan. Pick another in Settings › Model."
+            return String(localized: "This model isn't available with your ChatGPT plan. Pick another in Settings › Model.")
         case "subscription_sharing_unsupported_capability" where param == "model":
-            return "This model isn't available with your ChatGPT plan. Pick another in Settings › Model."
-        case "rate_limit_exceeded": return "ChatGPT is busy. Try again in a moment."
+            return String(localized: "This model isn't available with your ChatGPT plan. Pick another in Settings › Model.")
+        case "rate_limit_exceeded": return String(localized: "ChatGPT is busy. Try again in a moment.")
         default: break
         }
-        let detail = (message?.isEmpty == false ? message! : status.map { "HTTP \($0)" } ?? "unknown error")
-            + (requestID.map { " (request \($0))" } ?? "")
+        let base = message?.isEmpty == false ? message! : status.map { "HTTP \($0)" } ?? String(localized: "unknown error")
+        let detail = requestID.map { String(localized: "\(base) (request \($0))") } ?? base
         switch status {
         case 401?: return ChatGPTAuthError.signInAgain.errorDescription!
-        case 429?: return "ChatGPT is busy. Try again in a moment."
-        case 503?: return "ChatGPT plan usage isn't available right now. Try again in a moment, or pick another engine."
-        case 403?: return "ChatGPT refused the request: \(detail)"
-        default: return "ChatGPT error: \(detail)"
+        case 429?: return String(localized: "ChatGPT is busy. Try again in a moment.")
+        case 503?: return String(localized: "ChatGPT plan usage isn't available right now. Try again in a moment, or pick another engine.")
+        case 403?: return String(localized: "ChatGPT refused the request: \(detail)")
+        default: return String(localized: "ChatGPT error: \(detail)")
         }
     }
 
     /// The models this account may use, in the server's order.
     func models() async -> Result<[ChatGPTModelList.Entry], Error> {
         guard let url = URL(string: baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/")) + "/models") else {
-            return .failure(EngineError.failed("Bad ChatGPT address."))
+            return .failure(EngineError.failed(String(localized: "Bad ChatGPT address.")))
         }
         do {
             let (data, http) = try await authorized { token -> (Data, URLResponse) in
@@ -199,7 +199,7 @@ struct ChatGPTEngine: TakesEngine {
             guard http.statusCode == 200 else {
                 return .failure(Self.httpError(status: http.statusCode, body: data, requestID: http.value(forHTTPHeaderField: "x-request-id")))
             }
-            guard let entries = ChatGPTModelList.parse(data) else { return .failure(EngineError.failed("ChatGPT sent a model list Takes can't read.")) }
+            guard let entries = ChatGPTModelList.parse(data) else { return .failure(EngineError.failed(String(localized: "ChatGPT sent a model list Takes can't read."))) }
             return .success(entries)
         } catch {
             return .failure(error)
@@ -349,7 +349,7 @@ final class ChatGPTSignIn: ObservableObject {
         guard let credentials, let refreshToken = credentials.refreshToken else { return }
         Task {
             if await !Self.revoke(refreshToken, clientID: credentials.clientID) {
-                signOutNote = "Signed out on this Mac, but OpenAI didn't confirm it. You can also remove Takes in ChatGPT › Settings."
+                signOutNote = String(localized: "Signed out on this Mac, but OpenAI didn't confirm it. You can also remove Takes in ChatGPT › Settings.")
             }
         }
     }
@@ -377,11 +377,11 @@ final class ChatGPTSignIn: ObservableObject {
         switch attempt.parseCallback(try await server.waitForCallback(timeout: timeout)) {
         case .success(let value): callback = value
         case .failure(.denied): throw ChatGPTAuthError.denied
-        case .failure(.stateMismatch): throw ChatGPTAuthError.failed("The browser answered for a different sign-in. Try again.")
-        case .failure(.clientMismatch): throw ChatGPTAuthError.failed("OpenAI answered for a different copy of Takes. Try again.")
-        case .failure(.missingClientID): throw ChatGPTAuthError.failed("OpenAI didn't finish registering Takes. Try again.")
-        case .failure(.missingCode): throw ChatGPTAuthError.failed("The browser came back without a sign-in code. Try again.")
-        case .failure(.other(let message)): throw ChatGPTAuthError.failed("ChatGPT sign-in failed: \(message)")
+        case .failure(.stateMismatch): throw ChatGPTAuthError.failed(String(localized: "The browser answered for a different sign-in. Try again."))
+        case .failure(.clientMismatch): throw ChatGPTAuthError.failed(String(localized: "OpenAI answered for a different copy of Takes. Try again."))
+        case .failure(.missingClientID): throw ChatGPTAuthError.failed(String(localized: "OpenAI didn't finish registering Takes. Try again."))
+        case .failure(.missingCode): throw ChatGPTAuthError.failed(String(localized: "The browser came back without a sign-in code. Try again."))
+        case .failure(.other(let message)): throw ChatGPTAuthError.failed(String(localized: "ChatGPT sign-in failed: \(message)"))
         }
         // Saved before the exchange, so a failed exchange doesn't register Takes a second time.
         if registration?.clientID != callback.clientID { store.saveRegistration(ChatGPTRegistration(clientID: callback.clientID)) }
@@ -390,19 +390,21 @@ final class ChatGPTSignIn: ObservableObject {
         do {
             response = try await client.exchange(callback, for: attempt)
         } catch ChatGPTAuthError.signInAgain {
-            throw ChatGPTAuthError.failed("The sign-in code expired. Try again.")
+            throw ChatGPTAuthError.failed(String(localized: "The sign-in code expired. Try again."))
         }
         if response.scope == nil { response.scope = callback.scope }
-        guard let idToken = response.id_token else { throw ChatGPTAuthError.failed("OpenAI didn't say who signed in. Try again.") }
+        guard let idToken = response.id_token else { throw ChatGPTAuthError.failed(String(localized: "OpenAI didn't say who signed in. Try again.")) }
         let claims: ChatGPTIDToken.Claims
         switch await client.validate(idToken, nonce: attempt.nonce, clientID: callback.clientID) {
         case .success(let value): claims = value
-        case .failure(let problem): throw ChatGPTAuthError.failed("Takes couldn't verify the sign-in with OpenAI (\(problem)). Try again.")
+        case .failure(let problem):
+            let reason = String(describing: problem)
+            throw ChatGPTAuthError.failed(String(localized: "Takes couldn't verify the sign-in with OpenAI (\(reason)). Try again."))
         }
         // One account per Mac: the registration belongs to whoever first signed in with it.
         if let known = registration?.subject, registration?.clientID == callback.clientID, let subject = claims.sub, known != subject {
             store.saveRegistration(nil)
-            throw ChatGPTAuthError.failed("That's a different ChatGPT account from the one Takes was set up with. Try again to connect this one.")
+            throw ChatGPTAuthError.failed(String(localized: "That's a different ChatGPT account from the one Takes was set up with. Try again to connect this one."))
         }
         store.saveRegistration(ChatGPTRegistration(clientID: callback.clientID, subject: claims.sub))
         let credentials = ChatGPTCredentials(clientID: callback.clientID, response: response, claims: claims)
@@ -481,11 +483,11 @@ extension SetupMonitor {
     /// Ready when signed in, plan usage was granted, and a model is picked.
     static func chatGPTEngineStatus() async -> EngineStatus {
         let signIn = ChatGPTSignIn.shared
-        guard case .signedIn(_, let sharing) = signIn.state else { return .problem("Not signed in to ChatGPT") }
-        guard sharing else { return .problem("Plan usage not allowed") }
+        guard case .signedIn(_, let sharing) = signIn.state else { return .problem(String(localized: "Not signed in to ChatGPT")) }
+        guard sharing else { return .problem(String(localized: "Plan usage not allowed")) }
         if Store.shared.settings.chatGPTModel.isEmpty, !ChatGPTModels.shared.checked { await ChatGPTModels.shared.refresh() }
         let model = Store.shared.settings.chatGPTModel
-        guard !model.isEmpty else { return .problem("Pick a model") }
+        guard !model.isEmpty else { return .problem(String(localized: "Pick a model")) }
         return .ready("ChatGPT · \(ChatGPTModels.shared.label(for: model))")
     }
 }

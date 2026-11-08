@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes chỉ nghe khi bạn đọc bản nháp (⌘D trong bảng). Giọng nói của bạn được chuyển thành văn bản trên máy Mac này và âm thanh không bao giờ rời khỏi máy.";
+"NSSpeechRecognitionUsageDescription" = "Takes chuyển bản nháp bạn đọc thành văn bản trên máy Mac này, chỉ dùng nhận dạng giọng nói trên thiết bị. Không có gì được gửi đến Apple hay bất kỳ ai khác.";

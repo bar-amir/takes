@@ -13,6 +13,15 @@ import SwiftUI
 enum CoachGuide {
     enum Group: String, CaseIterable, Codable {
         case grammar = "Grammar", wordChoice = "Word choice", phrasing = "Natural phrasing"
+
+        /// The group's name on screen. The raw value is stored, so it stays in English.
+        var title: String {
+            switch self {
+            case .grammar: String(localized: "Grammar")
+            case .wordChoice: String(localized: "Word choice")
+            case .phrasing: String(localized: "Natural phrasing")
+            }
+        }
     }
 
     struct Pattern: Identifiable, Equatable {
@@ -33,7 +42,7 @@ enum CoachGuide {
     }
 
     static let patterns: [Pattern] = [
-        Pattern(id: "conditionals", group: .grammar, name: "Conditionals",
+        Pattern(id: "conditionals", group: .grammar, name: String(localized: "Conditionals"),
                 definition: "if-clauses: present after \"if\" for a real future (not \"will\"); past + would; had done + would have",
                 rule: "When the “if” part talks about the future, it still takes the present. Only the result gets “will”.",
                 example: "If you send it today, I’ll review it tomorrow.",
@@ -41,7 +50,7 @@ enum CoachGuide {
                             ("Imagined now", "If I had time, I would help.", "if + past, would"),
                             ("Imagined past", "If I had known, I would have called.", "if + had done, would have")],
                 firstLanguage: ["he": "Hebrew uses the future in both halves (אם תשלח… אבדוק), so “if you will send” feels natural."]),
-        Pattern(id: "presentPerfect", group: .grammar, name: "Present perfect vs past",
+        Pattern(id: "presentPerfect", group: .grammar, name: String(localized: "Present perfect vs past"),
                 definition: "have done / have been doing for since, for, already, yet, ever, so far; simple past for a finished time",
                 rule: "Use “have done” for something that runs up to now (since, for, already, yet). Use the simple past when you name a finished time (yesterday, last week).",
                 example: "I’ve been working on it since Monday. I finished the draft yesterday.",
@@ -49,7 +58,7 @@ enum CoachGuide {
                             ("Still going", "I’ve been waiting since 9.", "have been + doing"),
                             ("Finished time", "I sent it yesterday.", "past")],
                 firstLanguage: ["he": "Hebrew has no present perfect: “אני עובד כאן מאז 2020” becomes “I work here since 2020”."]),
-        Pattern(id: "articles", group: .grammar, name: "Articles (a / the)",
+        Pattern(id: "articles", group: .grammar, name: String(localized: "Articles (a / the)"),
                 definition: "missing or wrong a, an, the",
                 rule: "Singular countable nouns need “a” or “the”. Use “the” when the reader knows which one.",
                 example: "Can you send me the link to the dashboard?",
@@ -57,7 +66,7 @@ enum CoachGuide {
                             ("The one we both know", "The laptop is on my desk.", "the"),
                             ("In general, plural", "Laptops get hot.", "no article")],
                 firstLanguage: ["he": "Hebrew has “ה” for “the” but no word for “a”, and drops it where English needs one."]),
-        Pattern(id: "prepositions", group: .grammar, name: "Prepositions",
+        Pattern(id: "prepositions", group: .grammar, name: String(localized: "Prepositions"),
                 definition: "wrong or missing preposition (wait for, depend on, good at, in/on/at)",
                 rule: "Many verbs and adjectives come with a fixed preposition. Learn them as a pair, not word by word.",
                 example: "I’m waiting for your answer. It depends on the budget.",
@@ -65,24 +74,24 @@ enum CoachGuide {
                             ("depend", "depends on the budget", "on"),
                             ("good", "good at testing", "at")],
                 firstLanguage: ["he": "Translating ל / ב / על word by word gives “waiting to your answer” or “depends in”."]),
-        Pattern(id: "questions", group: .grammar, name: "Question word order",
+        Pattern(id: "questions", group: .grammar, name: String(localized: "Question word order"),
                 definition: "questions without inversion (\"You can send it?\"), or inversion in indirect questions (\"tell me where is it\")",
                 rule: "Direct questions put the helper verb first. Inside another sentence, keep normal order.",
                 example: "Can you send it? Can you tell me where it is?",
                 contrasts: [("Direct", "Where is the file?", "verb before subject"),
                             ("Indirect", "Do you know where the file is?", "subject before verb")],
                 firstLanguage: ["he": "Hebrew asks with intonation only (“אתה יכול לשלוח?”), so “You can send it?” sounds fine."]),
-        Pattern(id: "agreement", group: .grammar, name: "Agreement",
+        Pattern(id: "agreement", group: .grammar, name: String(localized: "Agreement"),
                 definition: "subject-verb or singular/plural agreement (he goes, everyone is, one of the files)",
                 rule: "The verb follows its subject: “he goes”, “everyone is”. After “one of the”, the noun is plural.",
                 example: "Everyone is on the call. One of the files is missing.",
                 firstLanguage: ["he": "“כולם” is plural in Hebrew, so “everyone are” feels right."]),
-        Pattern(id: "wordOrder", group: .grammar, name: "Word order",
+        Pattern(id: "wordOrder", group: .grammar, name: String(localized: "Word order"),
                 definition: "adverb or object in the wrong place (\"I like very much coffee\")",
                 rule: "Keep the verb and its object together; adverbs like “really” go before the verb or at the end.",
                 example: "I really like coffee. I like coffee a lot.",
                 firstLanguage: ["he": "Hebrew lets words move more freely (“אני אוהב מאוד קפה”)."]),
-        Pattern(id: "countable", group: .grammar, name: "Countable and uncountable",
+        Pattern(id: "countable", group: .grammar, name: String(localized: "Countable and uncountable"),
                 definition: "plural or \"a\" on uncountable nouns (informations, advices, feedbacks, an equipment); much/many, few/little",
                 rule: "Some nouns can’t be counted: information, advice, feedback, equipment, research. No plural, no “a”; count them with “a piece of” or “some”.",
                 example: "Thanks for the feedback. Can you share some information about the release?",
@@ -90,7 +99,7 @@ enum CoachGuide {
                             ("Countable", "two suggestions, a few comments", "-s, a / an"),
                             ("Amounts", "much time, many tickets", "much + uncountable, many + plural")],
                 firstLanguage: ["he": "“מידע” and “עצות” work like ordinary nouns in Hebrew, so “informations” and “advices” feel right."]),
-        Pattern(id: "gerundInfinitive", group: .grammar, name: "-ing or to + verb",
+        Pattern(id: "gerundInfinitive", group: .grammar, name: String(localized: "-ing or to + verb"),
                 definition: "wrong verb form after a verb or preposition (looking forward to hear, suggest to do, avoid to send, interested to join)",
                 rule: "After a preposition, use -ing (“looking forward to hearing”). Some verbs take -ing (suggest, avoid, finish, consider); others take to + verb (want, plan, decide).",
                 example: "I’m looking forward to hearing from you. I suggest moving the call.",
@@ -98,12 +107,12 @@ enum CoachGuide {
                             ("suggest, avoid, finish", "avoid sending it twice", "-ing"),
                             ("want, plan, decide", "we plan to ship Friday", "to + verb")],
                 firstLanguage: ["he": "Hebrew uses the infinitive (ל…) in all of these (מצפה לשמוע), so “looking forward to hear” slips in."]),
-        Pattern(id: "relativeClauses", group: .grammar, name: "Relative clauses",
+        Pattern(id: "relativeClauses", group: .grammar, name: String(localized: "Relative clauses"),
                 definition: "an extra pronoun inside a that/which/who clause (\"the file that I sent it\"), or the wrong relative word",
                 rule: "In a “that / which / who” clause, the relative word already stands for the thing. Don’t repeat it with “it”, “him” or “them”.",
                 example: "The file that I sent is the latest one. The person I spoke with agreed.",
                 firstLanguage: ["he": "Hebrew repeats the pronoun (“הקובץ ששלחתי אותו”), so “the file that I sent it” sounds complete."]),
-        Pattern(id: "timeExpressions", group: .grammar, name: "Time expressions",
+        Pattern(id: "timeExpressions", group: .grammar, name: String(localized: "Time expressions"),
                 definition: "time words translated literally (before two days, in the next week, until now I didn't, from Sunday)",
                 rule: "English says “two days ago” (not “before two days”), “next week” with no “in the”, and “so far” for up to now.",
                 example: "I sent it two days ago. Let’s meet next week. So far nobody has replied.",
@@ -111,7 +120,7 @@ enum CoachGuide {
                             ("The coming one", "next week, next Sunday", "no the, no in"),
                             ("Up to now", "so far, until now", "with have done")],
                 firstLanguage: ["he": "“לפני יומיים” and “בשבוע הבא” translate word by word into “before two days” and “in the next week”."]),
-        Pattern(id: "continuous", group: .grammar, name: "Simple or continuous",
+        Pattern(id: "continuous", group: .grammar, name: String(localized: "Simple or continuous"),
                 definition: "present simple for plans or things happening now (I come tomorrow, I work on it now), or continuous with state verbs (I am knowing, I am needing)",
                 rule: "Use “-ing” for what’s happening now and for fixed plans. Verbs for states (know, need, want, mean) stay simple.",
                 example: "I’m working on it now. I’m flying to Berlin on Monday. I know what you mean.",
@@ -119,17 +128,17 @@ enum CoachGuide {
                             ("Fixed plan", "We’re meeting at 3", "am / is / are + -ing"),
                             ("State", "I need the file", "simple")],
                 firstLanguage: ["he": "Hebrew has one present tense (“אני עובד על זה”), so English’s two present forms are easy to mix up."]),
-        Pattern(id: "comparatives", group: .grammar, name: "Comparisons",
+        Pattern(id: "comparatives", group: .grammar, name: String(localized: "Comparisons"),
                 definition: "double or wrong comparatives (more better, more easy, the most fast), wrong \"than\" / \"then\", \"as … as\"",
                 rule: "Short adjectives add -er / -est (faster, easiest); longer ones use more / most. Never both. Compare with “than”.",
                 example: "This version is faster than the last one, and easier to set up.",
                 firstLanguage: ["he": "Hebrew always adds a word (“יותר טוב”, “יותר מהיר”), so “more better” and “more fast” follow the same pattern."]),
-        Pattern(id: "modals", group: .grammar, name: "Can, should, must",
+        Pattern(id: "modals", group: .grammar, name: String(localized: "Can, should, must"),
                 definition: "modal verb forms (must to, can to, should to, could you to), or the wrong modal for the meaning",
                 rule: "After can, could, should, must, might and will, use the bare verb: no “to”, no -s.",
                 example: "You should check it first. Could you send me the link?",
                 firstLanguage: ["he": "Hebrew follows “צריך”, “יכול” and “חייב” with an infinitive (“צריך לבדוק”), which comes out as “should to check”."]),
-        Pattern(id: "collocations", group: .wordChoice, name: "Verb + noun pairs",
+        Pattern(id: "collocations", group: .wordChoice, name: String(localized: "Verb + noun pairs"),
                 definition: "wrong verb for a noun (do/make a mistake, take/make a decision, close/turn off the light)",
                 rule: "Some nouns pick their verb. You make a mistake, make a decision, take a break, turn off a light.",
                 example: "I made a mistake. Let’s take a short break.",
@@ -137,7 +146,7 @@ enum CoachGuide {
                             ("do", "do a favor, do research", "do"),
                             ("take", "take a break, take notes", "take")],
                 firstLanguage: ["he": "Hebrew uses “לעשות” for most of these (לעשות טעות), so “do a mistake” slips in."]),
-        Pattern(id: "falseFriends", group: .wordChoice, name: "False friends",
+        Pattern(id: "falseFriends", group: .wordChoice, name: String(localized: "False friends"),
                 definition: "a word that looks like a Hebrew or other loanword but means something else in English (actual, sympathetic, control)",
                 rule: "Some English words look like ones you know but mean something else. Check the meaning, not the sound.",
                 example: "The current version (not “the actual version”). She’s nice (not “sympathetic”).",
@@ -145,17 +154,17 @@ enum CoachGuide {
                             ("sympathetic", "feeling sorry for someone", "not “nice”"),
                             ("control", "be in charge of", "not “check”")],
                 firstLanguage: ["he": "“אקטואלי” means current and “סימפטי” means nice, so the English look-alikes mislead."]),
-        Pattern(id: "confusables", group: .wordChoice, name: "Easily confused words",
+        Pattern(id: "confusables", group: .wordChoice, name: String(localized: "Easily confused words"),
                 definition: "say/tell, borrow/lend, learn/teach, remind/remember, rise/raise and similar pairs",
                 rule: "You tell someone, but say something. You lend to someone and borrow from them.",
                 example: "Can you tell me when it’s ready? Could you lend me your charger?",
                 firstLanguage: ["he": "One Hebrew word covers both sides of some pairs (להגיד for say and tell)."]),
-        Pattern(id: "phrasalVerbs", group: .wordChoice, name: "Phrasal verbs",
+        Pattern(id: "phrasalVerbs", group: .wordChoice, name: String(localized: "Phrasal verbs"),
                 definition: "a missing or wrong particle (fill out the form, get back to me, figure out)",
                 rule: "Many everyday verbs come with a small word that changes the meaning: get back to, fill out, figure out.",
                 example: "I’ll get back to you tomorrow. Please fill out the form.",
                 firstLanguage: ["he": "Hebrew has no phrasal verbs, so the literal verb (“return to you”) comes out."]),
-        Pattern(id: "intensifiers", group: .wordChoice, name: "Too, very, so",
+        Pattern(id: "intensifiers", group: .wordChoice, name: String(localized: "Too, very, so"),
                 definition: "too used as very (it's too good), very with strong adjectives (very amazing), also/too/either in the wrong place",
                 rule: "“Too” means more than you want (“too late”). For praise use “very”, “really” or “so”. Strong words (amazing, huge) don’t take “very”.",
                 example: "The demo was really good. It’s too late to change it now.",
@@ -163,17 +172,17 @@ enum CoachGuide {
                             ("A lot", "really fast, so helpful", "very, really, so"),
                             ("Negative too", "I can’t either", "either, not too")],
                 firstLanguage: ["he": "“מדי” and “מאוד” blur in everyday Hebrew (“זה טוב מדי”), so “too good” can come out as praise."]),
-        Pattern(id: "fixedExpressions", group: .wordChoice, name: "Fixed expressions",
+        Pattern(id: "fixedExpressions", group: .wordChoice, name: String(localized: "Fixed expressions"),
                 definition: "a set phrase or idiom with a word changed (in the bottom line, on the other side, take it to the attention)",
                 rule: "Set phrases don’t change. Learn them whole: “the bottom line is”, “on the other hand”, “bring it to their attention”.",
                 example: "The bottom line is we need one more week. On the other hand, it’s safer.",
                 firstLanguage: ["he": "Hebrew set phrases (“בשורה התחתונה”, “מצד שני”) translate into almost-right English ones."]),
-        Pattern(id: "phrasing", group: .phrasing, name: "Natural phrasing",
+        Pattern(id: "phrasing", group: .phrasing, name: String(localized: "Natural phrasing"),
                 definition: "correct but not how a native speaker would say it, often a literal translation",
                 rule: "Some sentences are correct but sound translated. Native speakers usually have a shorter, set way to say it.",
                 example: "Any update on the report?",
                 firstLanguage: ["he": "Literal Hebrew idioms (“מה קורה עם הדוח?”) become “What’s with the report?”."]),
-        Pattern(id: "politeRequests", group: .phrasing, name: "Softening requests",
+        Pattern(id: "politeRequests", group: .phrasing, name: String(localized: "Softening requests"),
                 definition: "a request or disagreement so direct it may read as an order or rude in English (send me the file, you are wrong, I need it now) — only where the context isn't casual",
                 rule: "English usually softens a request with a question or a modal: “Could you…”, “Would you mind…”, “I think…”. Bare commands can read as orders.",
                 example: "Could you send me the file when you get a chance? I’m not sure that’s right.",
@@ -193,16 +202,16 @@ struct CoachSettings: Codable, Equatable {
         case off, focusOnly, anyRepeat
         var title: String {
             switch self {
-            case .off: "Off"
-            case .focusOnly: "Focus areas only"
-            case .anyRepeat: "Any repeat"
+            case .off: String(localized: "Off")
+            case .focusOnly: String(localized: "Focus areas only")
+            case .anyRepeat: String(localized: "Any repeat")
             }
         }
         var detail: String {
             switch self {
-            case .off: "No nudges. Notes still show with your takes."
-            case .focusOnly: "One line after paste, only when a focus area repeats."
-            case .anyRepeat: "One line after paste whenever any pattern shows up again."
+            case .off: String(localized: "No nudges. Notes still show with your takes.")
+            case .focusOnly: String(localized: "One line after paste, only when a focus area repeats.")
+            case .anyRepeat: String(localized: "One line after paste whenever any pattern shows up again.")
             }
         }
     }
@@ -613,11 +622,25 @@ final class CoachStore: ObservableObject {
         let candidates = findings.filter { settings.nudges == .anyRepeat || settings.focus.contains($0.pattern) }
         let ranked = candidates.map { ($0, sightings($0.pattern).count) }.filter { $0.1 >= 2 }.sorted { $0.1 > $1.1 }
         guard let (finding, count) = ranked.first else { return nil }
-        let lesson = count >= Self.lessonAt ? " · lesson ready" : ""
-        return "“\(finding.wrong)” → “\(finding.right)” · \(Self.ordinal(count)) time this month\(lesson)"
+        let wrong = finding.wrong, right = finding.right, nth = Self.ordinal(count)
+        return count >= Self.lessonAt
+            ? String(localized: "“\(wrong)” → “\(right)” · \(nth) time this month · lesson ready")
+            : String(localized: "“\(wrong)” → “\(right)” · \(nth) time this month")
     }
 
-    static func ordinal(_ n: Int) -> String {
+    /// "4th", in the language the app is shown in ("4.", "4e").
+    static func ordinal(_ n: Int) -> String { ordinal(n, in: Bundle.main.preferredLocalizations.first ?? "en") }
+
+    static func ordinal(_ n: Int, in language: String) -> String {
+        if !language.hasPrefix("en") {
+            let formatter = NumberFormatter()
+            // Where the system ordinal reads badly in the sentence ("ika4", "4.", "No. 1"), the translation
+            // carries the ordinal word and gets the plain number.
+            let plain = ["fa", "fil", "hi", "ms", "sw"].contains(String(language.prefix { $0 != "-" }))
+            formatter.numberStyle = plain ? .none : .ordinal
+            formatter.locale = Locale(identifier: language)
+            if let text = formatter.string(from: NSNumber(value: n)) { return text }
+        }
         let suffix = (11...13).contains(n % 100) ? "th" : ["th", "st", "nd", "rd"][n % 10 < 4 ? n % 10 : 0]
         return "\(n)\(suffix)"
     }
