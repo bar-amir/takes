@@ -50,7 +50,12 @@ final class OnboardingModel: ObservableObject {
     @Published var needsMove = false
     @Published var moveError: String?
     @Published var apiKeyInput = ""
-    @Published var copiedSignIn = false
+    /// Terminal was opened to sign in to Claude; the page says what to do there.
+    @Published var signInOpened = false
+    /// Installs Claude Code when it's missing. Its progress shows on the page and in the button.
+    var installer = ClaudeInstaller.shared {
+        didSet { observeInstaller() }
+    }
     @Published var chosenPresets: Set<String>
     /// The languages the user writes in, shown on the presets step. Adding one offers (and picks) its translate
     /// preset; removing one drops it.
@@ -86,13 +91,22 @@ final class OnboardingModel: ObservableObject {
     var recordPrivacyAccepted: () -> Void = {}
 
     private var subscriptions: Set<AnyCancellable> = []
+    private var installerSubscription: AnyCancellable?
 
     init(progress: OnboardingProgress = OnboardingProgress(), conditions: OnboardingConditions = OnboardingConditions()) {
         flow = OnboardingFlow(progress: progress, conditions: conditions)
         let languages = Languages.fromSystem()
         self.languages = languages
         chosenPresets = Set(OnboardingPresets.starters(languages: languages).map(\.name))
+        observeInstaller()
     }
+
+    private func observeInstaller() {
+        installerSubscription = installer.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() }
+    }
+
+    /// Claude Code isn't on this Mac, so Connect a model offers to install it.
+    var claudeMissing: Bool { engineStatus == .problem(SetupMonitor.claudeMissing) }
 
     var step: OnboardingStep { flow.step }
 
@@ -251,7 +265,10 @@ final class OnboardingModel: ObservableObject {
             if ChatGPTSignIn.shared.state == .signingIn { return "Waiting for the browser…" }
             return ChatGPTSignIn.shared.canUsePlan ? "Check again" : "Continue with ChatGPT"
         case .provider: return "Open Engine settings"
-        case .claudeCode: return engineStatus == .checking ? "Checking…" : "Open Terminal"
+        case .claudeCode:
+            if engineStatus == .checking { return "Checking…" }
+            if installer.state.isBusy { return "Installing…" }
+            return claudeMissing ? "Install Claude Code" : "Sign in to Claude"
         }
     }
 
@@ -277,7 +294,7 @@ final class OnboardingModel: ObservableObject {
             if engineKind == .apiKey { return !apiKeyInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
             if engineKind == .chatGPT { return ChatGPTSignIn.shared.state != .signingIn }
             if engineKind == .provider { return true }
-            return engineStatus != .checking
+            return engineStatus != .checking && !installer.state.isBusy
         case .personalize: return !chosenPresets.isEmpty
         case .practice: return practiceStage != .panelOpen
         default: return true
@@ -296,7 +313,8 @@ final class OnboardingModel: ObservableObject {
             else if engineKind == .local { checkLocalEngine() }
             else if engineKind == .chatGPT { ChatGPTSignIn.shared.canUsePlan ? checkChatGPTModels() : ChatGPTSignIn.shared.start() }
             else if engineKind == .provider { SettingsWindowController.shared.show(tab: .model) }
-            else { copySignInCommand() }
+            else if claudeMissing { installClaudeCode() }
+            else { openSignIn() }
         case .personalize:
             applyPresets()
             go { $0.next() }
@@ -347,11 +365,21 @@ final class OnboardingModel: ObservableObject {
     /// The hotkey chips on Make it yours: one click picks the combo.
     func pickHotKey(_ combo: KeyCombo) { Store.shared.settings.summonHotKey = combo }
 
-    func copySignInCommand() {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(ClaudeCodeEngine.signInCommand, forType: .string)
-        copiedSignIn = true
-        NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Utilities/Terminal.app"))
+    /// Opens Terminal running Claude Code's own sign-in. Nothing to type or paste; the page moves on once
+    /// `claude auth status` says signed in.
+    func openSignIn() {
+        ClaudeCodeEngine.openSignIn()
+        signInOpened = true
+    }
+
+    /// Installs Claude Code after the person confirms, then goes straight on to sign-in.
+    func installClaudeCode() {
+        Task { [weak self] in
+            guard let self, await installer.installAfterConfirming() else { return }
+            claudeInstalled = true
+            await SetupMonitor.shared.refreshEngine()
+            if !SetupMonitor.shared.engine.isReady { openSignIn() }
+        }
     }
 
     func saveAPIKey() {

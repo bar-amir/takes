@@ -60,8 +60,7 @@ final class OnboardingBugsTests: XCTestCase {
     // MARK: The sign-in command
 
     func testSignInCommandUsesThePathTakesFound() {
-        // Without a known path, the bare command.
-        XCTAssertTrue(ClaudeCodeEngine.signInCommand.hasSuffix("auth login"))
+        XCTAssertEqual(ClaudeCodeEngine.signInCommand(claudePath: "/Users/a/.local/bin/claude"), "'/Users/a/.local/bin/claude' auth login")
     }
 
     // MARK: Where Takes runs from

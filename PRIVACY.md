@@ -30,6 +30,7 @@ It goes **straight from your Mac** to that engine. Nothing goes through a server
 
 - **To whom:** Anthropic, under **your own** Claude account.
 - **How:** Takes runs the Claude Code you installed and signed in to, unmodified. You sign in through Anthropic's own flow; Takes never sees your Claude credentials.
+- **Installing:** if Claude Code isn't on your Mac and you press Install Claude Code, Takes runs Anthropic's official installer (`curl -fsSL https://claude.ai/install.sh | bash`), which downloads Claude Code from Anthropic. Nothing about you is sent. Sign-in then happens in Terminal, in Claude Code itself.
 - **Terms:** your Claude subscription and Anthropic's terms for it.
 - **Stored:** nothing new. Claude Code keeps its own sign-in; Takes doesn't read or copy it.
 - **Data use:** [Anthropic's privacy policy](https://www.anthropic.com/legal/privacy).
