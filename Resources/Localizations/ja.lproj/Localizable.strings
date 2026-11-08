@@ -73,7 +73,6 @@
 "+ Add" = "+ 追加";
 "+ Add language" = "+ 言語を追加";
 "+ App" = "+ アプリ";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing か to + 動詞";
 "1 change: %@. Result: %@" = "1件の変更: %@。結果: %@";
 "1 example of your voice" = "文体の例 1件";
@@ -91,6 +90,7 @@
 "a local model" = "ローカルモデル";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "付箋に書かれた雑な下書き、小さなキーボード、紙のカードに書かれた3つの洗練された案";
 "A model on this Mac" = "このMac上のモデル";
+"A nudge when you repeat one" = "同じミスを繰り返したときのひと言";
 "A sample chart: mistakes falling week by week" = "サンプルグラフ: 週ごとに減っていくミス";
 "About Takes" = "Takesについて";
 "Access allowed" = "アクセス許可済み";
@@ -215,7 +215,7 @@
 "Clear History" = "履歴を消去";
 "Clear History…" = "履歴を消去…";
 "Clear the coach’s data?" = "コーチのデータを消去しますか？";
-"Click in the box and press" = "ボックスをクリックして次を押す:";
+"Click in the box and press %@" = "ボックスをクリックして%@を押す";
 "Click this icon for presets, the coach and settings." = "このアイコンをクリックすると、プリセット、コーチ、設定を開けます。";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "クリックしてからショートカットを押してください。Escでキャンセル、⌫で消去します。";
 "Click, then press a shortcut. Esc cancels." = "クリックしてからショートカットを押してください。Escでキャンセルします。";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "案%lldをコピー";
 "Copy “%@”" = "「%@」をコピー";
 "Copy “claude auth login”" = "「claude auth login」をコピー";
+"Costs" = "費用";
 "Couldn't check the tone: %@" = "トーンをチェックできませんでした: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "`claude`コマンドが見つかりません。Claude Codeをインストールするか、設定 › モデルでAPIキーに切り替えてください。";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "%@に戻れませんでした。案%lldはクリップボードにあります: ⌘Vを押してください";
@@ -299,6 +300,7 @@
 "Duplicate" = "複製";
 "Duplicate, import or export" = "複製、読み込み、書き出し";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "英語の下書きごとに、エンジンの高速モデルで追加チェックを1回行います。約1,000トークンで、一般的な3案の実行に対して約40%増です。レッスンは内蔵ガイドからこのMac上で作られるので、費用はかかりません。";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "下書きの修正ごとに1行のルール付き：未来を表す“if”節は現在形。";
 "Easily confused words" = "間違えやすい単語";
 "Edit" = "編集";
 "edit" = "編集";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Claude Codeのインストール方法";
 "I understand" = "理解しました";
 "Import…" = "読み込む…";
-"in any text box." = "を押すだけ。";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "パネルでは、⌘Jで返信先の内容を追加し、⇧⌘Vでクリップボードを使います。コンテキストは履歴に保存されません。";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "OllamaまたはLM Studioでモデル（例: llama3.2）をインストールしてから、「再確認」を押してください。モデルはあとで設定で変更できます。";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "先にClaude Codeをインストールしてから戻ってきてください。このページは数秒ごとに再確認します。";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "履歴を30日間保存（このMacのみ）";
 "Keep at least one to continue." = "続けるには少なくとも1つ残してください。";
 "Keeping history" = "履歴の保存";
+"Keeps" = "保存";
 "Keeps the words so far" = "ここまでの言葉は残します";
 "kept" = "残す";
 "Kept on this Mac for 30 days" = "このMacに30日間保存";
@@ -447,6 +449,7 @@
 "Manage usage" = "使用量を管理";
 "Mastered" = "習得済み";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "3週間、1,000語あたり0.2回未満が続くと習得済みになります。";
+"Mastered and not tracked" = "習得済みと追跡対象外";
 "May read as %@" = "%@と受け取られるかも";
 "Medium" = "中";
 "Medium effort" = "推論レベル 中";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "ChatGPTにサインインしていません";
 "Not this sign-in" = "このサインインではありません";
 "Notes or a long thread into a short reply." = "メモや長いスレッドを短い返信に。";
+"Notes under your takes" = "案の下のメモ";
 "Nothing goes to the developer. No server, no tracking." = "開発者には何も送られません。サーバもトラッキングもありません。";
 "Nothing matches “%@”." = "「%@」に一致するものはありません。";
 "Nothing was pasted. %@" = "何も貼り付けていません。%@";
@@ -537,6 +541,7 @@
 "On" = "オン";
 "on" = "オン";
 "on this Mac" = "このMac上";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "ペーストの確認に1行追加。繰り返すミスのときだけ。";
 "One line after paste whenever any pattern shows up again." = "いずれかのパターンが再び現れるたびに、貼り付け後に1行表示します。";
 "One line after paste, only when a focus area repeats." = "重点分野が繰り返されたときだけ、貼り付け後に1行表示します。";
 "One thing left: %@." = "残りは1つ: %@。";
@@ -639,7 +644,6 @@
 "Presets" = "プリセット";
 "presets" = "プリセット";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "プリセットはこれらのどの言語でも返信できます。「プリセットを見る」には、言語ごとの翻訳プリセットがあります。";
-"Press" = "テキストボックスで";
 "Press %@ in any text box to start." = "どのテキストボックスでも%@を押して始めましょう。";
 "Press %@ in any text box." = "どのテキストボックスでも%@を押してください。";
 "Press %@ in any text field to start." = "どのテキストフィールドでも%@を押して始めましょう。";
@@ -730,6 +734,7 @@
 "Set up coach…" = "コーチを設定…";
 "Set up Takes" = "Takesを設定";
 "Set your server's address in Settings › Model." = "設定 › モデルでサーバのアドレスを設定してください。";
+"Settings" = "設定";
 "Settings for new presets" = "新規プリセットの設定";
 "Settings…" = "設定…";
 "Setup steps" = "設定ステップ";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "下書きを話してください。音声はこのMac上でテキストに変換されます。";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "音声はこのMac上でテキストに変換され、Macの外に出ることはありません。そのため、Macだけで認識できる言語のみ表示されます。";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "音声認識がオフです。プライバシーとセキュリティ › 音声認識でTakesをオンにしてから、⌘Dを押してください。";
+"Start coaching" = "コーチングを開始";
 "Start from a ready-made preset instead?" = "代わりに既製のプリセットから始めますか？";
 "Start using Takes" = "Takesを使い始める";
 "Start with" = "開始時の内容";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "ブラウザを待っています";
 "Waiting for the browser…" = "ブラウザを待っています…";
 "Warmer, same message." = "より温かく、内容はそのまま。";
+"Watches" = "監視";
 "Weekly counts: %@" = "週ごとの回数: %@";
 "Welcome to Takes" = "Takesへようこそ";
 "What should the coach focus on?" = "コーチに何を重点的に見てもらいますか？";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "ホットキーは現在ほかで使用中なので、下の「Takesを開く」を使ってください。";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "ホットキーと最初に使うプリセット。すべてあとで設定で変更できます。";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "OpenAI、Gemini、OpenRouter、Groq、Mistral、またはOpenAI互換サーバ用の自分のAPIキー。あなたのアカウントでプロバイダから請求されます。";
+"Your patterns · per 1,000 words" = "あなたのパターン · 1,000語あたり";
 "Your patterns, counts and lessons start over. The coach stays on." = "パターン、回数、レッスンがリセットされます。コーチはオンのままです。";
 "Your progress" = "あなたの進歩";
 "Your server" = "あなたのサーバ";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ 横ばい";
 "↓ 50% articles this month" = "↓ 今月の冠詞 50%";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld回チェック · レッスン無料";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

@@ -146,7 +146,7 @@ struct LocalEngineSettings: View {
                 hint(String(localized: "Asking \(label)… the first run can take a while as it loads."))
             }
         case .passed(let ms):
-            Text(String(format: NSLocalizedString("Works. Answered in %.1f s.", comment: ""), Double(ms) / 1000))
+            Text(String(format: NSLocalizedString("Works. Answered in %.1f s.", comment: ""), locale: .current, Double(ms) / 1000))
                 .font(.system(size: 12)).foregroundStyle(Theme.doText)
         case .failed(let message):
             hint(message, warning: true)

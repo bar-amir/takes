@@ -73,7 +73,6 @@
 "+ Add" = "+ Idagdag";
 "+ Add language" = "+ Magdagdag ng wika";
 "+ App" = "+ App";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing o to + verb";
 "1 change: %@. Result: %@" = "1 pagbabago: %@. Resulta: %@";
 "1 example of your voice" = "1 halimbawa ng boses mo";
@@ -91,6 +90,7 @@
 "a local model" = "isang lokal na modelo";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "Isang magulong draft sa sticky note, isang maliit na keyboard, at tatlong pulidong bersyon sa mga papel na card";
 "A model on this Mac" = "Isang modelo sa Mac na ito";
+"A nudge when you repeat one" = "Paalala kapag inulit mo ang mali";
 "A sample chart: mistakes falling week by week" = "Halimbawang chart: bumababa ang mga mali linggo-linggo";
 "About Takes" = "Tungkol sa Takes";
 "Access allowed" = "Pinayagan ang access";
@@ -215,7 +215,7 @@
 "Clear History" = "I-clear ang History";
 "Clear History…" = "I-clear ang History…";
 "Clear the coach’s data?" = "I-clear ang data ng coach?";
-"Click in the box and press" = "Mag-click sa box at pindutin ang";
+"Click in the box and press %@" = "Mag-click sa box at pindutin ang %@";
 "Click this icon for presets, the coach and settings." = "I-click ang icon na ito para sa mga preset, sa coach at sa settings.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Mag-click, saka pindutin ang shortcut. Kinakansela ng Esc, kini-clear ng ⌫.";
 "Click, then press a shortcut. Esc cancels." = "Mag-click, saka pindutin ang shortcut. Kinakansela ng Esc.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "Kopyahin ang bersyon %lld";
 "Copy “%@”" = "Kopyahin ang “%@”";
 "Copy “claude auth login”" = "Kopyahin ang “claude auth login”";
+"Costs" = "Gastos";
 "Couldn't check the tone: %@" = "Hindi masuri ang tono: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Hindi mahanap ang `claude` command. I-install ang Claude Code, o lumipat sa API key sa Settings › Modelo.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Hindi makabalik sa %1$@. Nasa clipboard ang bersyon %2$lld: pindutin ang ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "I-duplicate";
 "Duplicate, import or export" = "I-duplicate, i-import o i-export";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "Bawat English na draft ay may isang dagdag na pagsusuri sa mabilis na modelo ng engine mo: mga 1,000 token, mga 40% dagdag sa karaniwang takbo na may 3 bersyon. Binubuo ang mga aralin sa Mac na ito mula sa built-in na gabay, kaya walang bayad ang mga ito.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "Bawat ayos sa draft mo, may isang linyang tuntunin: present tense ang “if” na pang-hinaharap.";
 "Easily confused words" = "Mga salitang madaling pagkamalian";
 "Edit" = "I-edit";
 "edit" = "i-edit";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Paano i-install ang Claude Code";
 "I understand" = "Naiintindihan ko";
 "Import…" = "I-import…";
-"in any text box." = "sa anumang text box.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "Sa panel, idinadagdag ng ⌘J ang sinasagot mo at ginagamit ng ⇧⌘V ang clipboard. Hindi itinatago ang context sa history.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Mag-install ng modelo sa Ollama o LM Studio (halimbawa llama3.2), saka pindutin ang Tingnan ulit. Puwede kang pumili ng ibang modelo mamaya sa Settings.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "I-install muna ang Claude Code, saka bumalik. Tumitingin ulit ang page na ito bawat ilang segundo.";
@@ -402,6 +403,7 @@
 "Keep at least one to continue." = "Mag-iwan ng kahit isa para magpatuloy.";
 "Keeping history" = "Itinatago ang history";
 "Keeps the words so far" = "Pinapanatili ang mga salita sa ngayon";
+"Keeps" = "Imbak";
 "kept" = "itinago";
 "Kept on this Mac for 30 days" = "Itinatago sa Mac na ito nang 30 araw";
 "Key refused" = "Tinanggihan ang key";
@@ -445,6 +447,7 @@
 "Manage" = "Pamahalaan";
 "Manage ChatGPT plan usage" = "Pamahalaan ang paggamit ng ChatGPT plan";
 "Manage usage" = "Pamahalaan ang paggamit";
+"Mastered and not tracked" = "Natutunan at hindi sinusubaybayan";
 "Mastered" = "Kabisado na";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "Kabisado na pagkatapos ng 3 linggong wala pang 0.2 bawat 1,000 salita.";
 "May read as %@" = "Maaaring mabasa bilang %@";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "Hindi naka-sign in sa ChatGPT";
 "Not this sign-in" = "Hindi ang sign-in na ito";
 "Notes or a long thread into a short reply." = "Mga tala o mahabang thread na ginawang maikling sagot.";
+"Notes under your takes" = "Mga tala sa ilalim ng mga bersyon mo";
 "Nothing goes to the developer. No server, no tracking." = "Walang napupunta sa developer. Walang server, walang tracking.";
 "Nothing matches “%@”." = "Walang tumutugma sa “%@”.";
 "Nothing was pasted. %@" = "Walang na-paste. %@";
@@ -537,6 +541,7 @@
 "On" = "Naka-on";
 "on" = "naka-on";
 "on this Mac" = "sa Mac na ito";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "Isang dagdag na linya sa kumpirmasyon ng paste, para lang sa mga maling inuulit mo.";
 "One line after paste whenever any pattern shows up again." = "Isang linya pagkatapos mag-paste tuwing may pattern na lumabas ulit.";
 "One line after paste, only when a focus area repeats." = "Isang linya pagkatapos mag-paste, kapag umulit lang ang isang pokus na bahagi.";
 "One thing left: %@." = "Isa na lang ang natitira: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "Mga Preset";
 "presets" = "mga preset";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "Puwedeng sumagot ang mga preset sa alinman sa mga ito, at may translate preset para sa bawat isa sa Mag-browse ng mga preset.";
-"Press" = "Pindutin ang";
 "Press %@ in any text box to start." = "Pindutin ang %@ sa anumang text box para magsimula.";
 "Press %@ in any text box." = "Pindutin ang %@ sa anumang text box.";
 "Press %@ in any text field to start." = "Pindutin ang %@ sa anumang text field para magsimula.";
@@ -697,7 +701,7 @@
 "Run options" = "Mga opsyon sa takbo";
 "Run options: %@" = "Mga opsyon sa takbo: %@";
 "Run options: %@, changed for this run" = "Mga opsyon sa takbo: %@, binago para sa takbong ito";
-"Run with these settings" = "Patakbuhin gamit ang mga setting na ito";
+"Run with these settings" = "Patakbuhin";
 "Runs" = "Mga takbo";
 "Runs on this Mac with Ollama or LM Studio, so your drafts never leave it. Small models write plainer takes than Claude. It's free, but uses this Mac's memory and battery." = "Tumatakbo sa Mac na ito gamit ang Ollama o LM Studio, kaya hindi kailanman umaalis dito ang mga draft mo. Mas simple ang mga bersyong isinusulat ng maliliit na modelo kaysa kay Claude. Libre ito, pero gumagamit ng memory at baterya ng Mac na ito.";
 "Same as draft" = "Kapareho ng draft";
@@ -731,6 +735,7 @@
 "Set up Takes" = "I-set up ang Takes";
 "Set your server's address in Settings › Model." = "Itakda ang address ng server mo sa Settings › Modelo.";
 "Settings for new presets" = "Mga setting para sa bagong preset";
+"Settings" = "Settings";
 "Settings…" = "Settings…";
 "Setup steps" = "Mga hakbang sa setup";
 "Shift Command Delete" = "Shift Command Delete";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "Sabihin ang draft mo. Ginagawang text ang pananalita sa Mac na ito.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "Ginagawang text ang pananalita sa Mac na ito at hindi kailanman umaalis dito ang audio, kaya ang mga wikang kaya lang ng Mac mo nang mag-isa ang nakalista.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "Naka-off ang speech recognition. I-on ang Takes sa Privacy & Security › Speech Recognition, saka pindutin ang ⌘D.";
+"Start coaching" = "Simulan ang coaching";
 "Start from a ready-made preset instead?" = "Magsimula na lang sa isang handang preset?";
 "Start using Takes" = "Simulang gamitin ang Takes";
 "Start with" = "Magsimula sa";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "Hinihintay ang browser";
 "Waiting for the browser…" = "Hinihintay ang browser…";
 "Warmer, same message." = "Mas magiliw, parehong mensahe.";
+"Watches" = "Bantay";
 "Weekly counts: %@" = "Lingguhang bilang: %@";
 "Welcome to Takes" = "Maligayang pagdating sa Takes";
 "What should the coach focus on?" = "Saan dapat magpokus ang coach?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "Gamit na ngayon ang hotkey mo, kaya gamitin ang Buksan ang Takes sa ibaba.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "Ang hotkey mo, at ang mga preset na sisimulan mo. Mababago ang lahat ng ito mamaya sa Settings.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Sarili mong API key para sa OpenAI, Gemini, OpenRouter, Groq o Mistral, o anumang OpenAI-compatible na server. Sinisingil ng provider sa ilalim ng account mo.";
+"Your patterns · per 1,000 words" = "Mga pattern mo · bawat 1,000 salita";
 "Your patterns, counts and lessons start over. The coach stays on." = "Magsisimula ulit ang mga pattern, bilang at aralin mo. Mananatiling naka-on ang coach.";
 "Your progress" = "Ang progreso mo";
 "Your server" = "Ang server mo";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ matatag";
 "↓ 50% articles this month" = "↓ 50% article ngayong buwan";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld pagsusuri · libre ang mga aralin";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

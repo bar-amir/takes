@@ -73,7 +73,6 @@
 "+ Add" = "+ Adăugați";
 "+ Add language" = "+ Adăugați o limbă";
 "+ App" = "+ Aplicație";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing sau to + verb";
 "1 change: %@. Result: %@" = "1 modificare: %@. Rezultat: %@";
 "1 example of your voice" = "1 exemplu al stilului dvs.";
@@ -91,6 +90,7 @@
 "a local model" = "un model local";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "O ciornă dezordonată pe un post-it, o tastatură mică și trei variante îngrijite pe cartonașe";
 "A model on this Mac" = "Un model pe acest Mac";
+"A nudge when you repeat one" = "Un memento când repetați o greșeală";
 "A sample chart: mistakes falling week by week" = "Un grafic exemplu: greșelile scad săptămână de săptămână";
 "About Takes" = "Despre Takes";
 "Access allowed" = "Acces permis";
@@ -215,7 +215,7 @@
 "Clear History" = "Ștergeți istoricul";
 "Clear History…" = "Ștergeți istoricul…";
 "Clear the coach’s data?" = "Ștergeți datele antrenorului?";
-"Click in the box and press" = "Faceți clic în casetă și apăsați";
+"Click in the box and press %@" = "Faceți clic în casetă și apăsați %@";
 "Click this icon for presets, the coach and settings." = "Faceți clic pe această pictogramă pentru presetări, antrenor și configurări.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Faceți clic, apoi apăsați o scurtătură. Esc anulează, ⌫ șterge.";
 "Click, then press a shortcut. Esc cancels." = "Faceți clic, apoi apăsați o scurtătură. Esc anulează.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "Copiați varianta %lld";
 "Copy “%@”" = "Copiați „%@”";
 "Copy “claude auth login”" = "Copiați „claude auth login”";
+"Costs" = "Costă";
 "Couldn't check the tone: %@" = "Nu s-a putut verifica tonul: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Comanda `claude` nu a fost găsită. Instalați Claude Code sau treceți la o cheie API în Configurări › Model.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Nu s-a putut reveni la %@. Varianta %lld este în clipboard: apăsați ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "Duplicați";
 "Duplicate, import or export" = "Duplicați, importați sau exportați";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "Fiecare ciornă în engleză primește o verificare în plus pe modelul rapid al motorului: circa 1.000 de tokenuri, aproximativ 40% în plus față de o rulare tipică de 3 variante. Lecțiile se creează pe acest Mac dintr-un ghid integrat, deci nu costă nimic.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "Fiecare corectură din ciornă, cu o regulă de un rând: “if” la viitor cere prezentul.";
 "Easily confused words" = "Cuvinte ușor de confundat";
 "Edit" = "Editați";
 "edit" = "editare";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Cum instalați Claude Code";
 "I understand" = "Am înțeles";
 "Import…" = "Importați…";
-"in any text box." = "în orice casetă de text.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "În panou, ⌘J adaugă la ce răspundeți, iar ⇧⌘V folosește clipboardul. Contextul nu se păstrează în istoric.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Instalați un model în Ollama sau LM Studio (de exemplu llama3.2), apoi apăsați Verificați din nou. Puteți alege alt model mai târziu în Configurări.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "Instalați mai întâi Claude Code, apoi reveniți. Pagina verifică din nou la câteva secunde.";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "Păstrați istoricul 30 de zile, doar pe acest Mac";
 "Keep at least one to continue." = "Păstrați cel puțin una ca să continuați.";
 "Keeping history" = "Păstrarea istoricului";
+"Keeps" = "Păstrează";
 "Keeps the words so far" = "Păstrează cuvintele de până acum";
 "kept" = "păstrată";
 "Kept on this Mac for 30 days" = "Păstrat pe acest Mac 30 de zile";
@@ -447,6 +449,7 @@
 "Manage usage" = "Gestionați utilizarea";
 "Mastered" = "Stăpânit";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "Stăpânit după 3 săptămâni sub 0,2 la 1.000 de cuvinte.";
+"Mastered and not tracked" = "Stăpânite și neurmărite";
 "May read as %@" = "Poate părea %@";
 "Medium" = "Mediu";
 "Medium effort" = "Efort mediu";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "Neconectat la ChatGPT";
 "Not this sign-in" = "Nu această conectare";
 "Notes or a long thread into a short reply." = "Note sau un fir lung transformate într-un răspuns scurt.";
+"Notes under your takes" = "Note sub variantele dvs.";
 "Nothing goes to the developer. No server, no tracking." = "Nimic nu ajunge la dezvoltator. Niciun server, nicio urmărire.";
 "Nothing matches “%@”." = "Nimic nu corespunde cu „%@”.";
 "Nothing was pasted. %@" = "Nu s-a lipit nimic. %@";
@@ -537,6 +541,7 @@
 "On" = "Activat";
 "on" = "activat";
 "on this Mac" = "pe acest Mac";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "Un rând în plus în confirmarea lipirii, doar pentru greșelile repetate.";
 "One line after paste whenever any pattern shows up again." = "Un rând după lipire, de fiecare dată când un tipar reapare.";
 "One line after paste, only when a focus area repeats." = "Un rând după lipire, doar când se repetă un domeniu de focus.";
 "One thing left: %@." = "A mai rămas un lucru: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "Presetări";
 "presets" = "presetări";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "Presetările pot răspunde în oricare dintre acestea, iar Răsfoiți presetările oferă o presetare de traducere pentru fiecare.";
-"Press" = "Apăsați";
 "Press %@ in any text box to start." = "Apăsați %@ în orice casetă de text ca să începeți.";
 "Press %@ in any text box." = "Apăsați %@ în orice casetă de text.";
 "Press %@ in any text field to start." = "Apăsați %@ în orice câmp de text ca să începeți.";
@@ -730,6 +734,7 @@
 "Set up coach…" = "Configurați antrenorul…";
 "Set up Takes" = "Configurați Takes";
 "Set your server's address in Settings › Model." = "Setați adresa serverului în Configurări › Model.";
+"Settings" = "Configurări";
 "Settings for new presets" = "Configurări pentru presetări noi";
 "Settings…" = "Configurări…";
 "Setup steps" = "Pașii de configurare";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "Rostiți ciorna. Vorbirea e transformată în text pe acest Mac.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "Vorbirea e transformată în text pe acest Mac, iar sunetul nu-l părăsește niciodată, deci apar doar limbile pe care Mac-ul le poate procesa singur.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "Recunoașterea vocală este dezactivată. Activați Takes în Confidențialitate și securitate › Recunoaștere vocală, apoi apăsați ⌘D.";
+"Start coaching" = "Porniți antrenorul";
 "Start from a ready-made preset instead?" = "Porniți mai bine de la o presetare gata făcută?";
 "Start using Takes" = "Începeți să folosiți Takes";
 "Start with" = "Începeți cu";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "Se așteaptă browserul";
 "Waiting for the browser…" = "Se așteaptă browserul…";
 "Warmer, same message." = "Mai cald, același mesaj.";
+"Watches" = "Urmărește";
 "Weekly counts: %@" = "Numere săptămânale: %@";
 "Welcome to Takes" = "Bun venit în Takes";
 "What should the coach focus on?" = "Pe ce să se concentreze antrenorul?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "Tasta rapidă e ocupată acum, așa că folosiți Deschideți Takes de mai jos.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "Tasta rapidă și presetările cu care începeți. Totul se poate schimba mai târziu în Configurări.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Propria cheie API pentru OpenAI, Gemini, OpenRouter, Groq sau Mistral ori pentru orice server compatibil OpenAI. Facturată de furnizor în contul dvs.";
+"Your patterns · per 1,000 words" = "Tiparele dvs. · la 1.000 de cuvinte";
 "Your patterns, counts and lessons start over. The coach stays on." = "Tiparele, numerele și lecțiile încep de la zero. Antrenorul rămâne activat.";
 "Your progress" = "Progresul dvs.";
 "Your server" = "Serverul dvs.";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ stabil";
 "↓ 50% articles this month" = "↓ 50% articole luna aceasta";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld verificări · lecții gratuite";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

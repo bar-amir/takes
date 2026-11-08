@@ -73,7 +73,6 @@
 "+ Add" = "+ إضافة";
 "+ Add language" = "+ إضافة لغة";
 "+ App" = "+ تطبيق";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "‎-ing أو to + فعل";
 "1 change: %@. Result: %@" = "تغيير واحد: %@. النتيجة: %@";
 "1 example of your voice" = "مثال واحد على أسلوبك";
@@ -91,6 +90,7 @@
 "a local model" = "نموذج محلي";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "مسودة فوضوية على ورقة لاصقة، ولوحة مفاتيح صغيرة، وثلاث صيغ منقّحة على بطاقات ورقية";
 "A model on this Mac" = "نموذج على هذا الـ Mac";
+"A nudge when you repeat one" = "تنبيه عندما تكرر خطأً";
 "A sample chart: mistakes falling week by week" = "مخطط نموذجي: أخطاء تتناقص أسبوعًا بعد أسبوع";
 "About Takes" = "حول Takes";
 "Access allowed" = "تم السماح بالوصول";
@@ -215,7 +215,7 @@
 "Clear History" = "مسح السجل";
 "Clear History…" = "مسح السجل…";
 "Clear the coach’s data?" = "هل تريد مسح بيانات المدرب؟";
-"Click in the box and press" = "انقر في المربع واضغط";
+"Click in the box and press %@" = "انقر في المربع واضغط %@";
 "Click this icon for presets, the coach and settings." = "انقر على هذه الأيقونة للقوالب والمدرب والإعدادات.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "انقر، ثم اضغط اختصارًا. Esc يلغي، ⌫ يمسح.";
 "Click, then press a shortcut. Esc cancels." = "انقر، ثم اضغط اختصارًا. Esc يلغي.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "نسخ الصيغة %lld";
 "Copy “%@”" = "نسخ “%@”";
 "Copy “claude auth login”" = "نسخ “claude auth login”";
+"Costs" = "التكلفة";
 "Couldn't check the tone: %@" = "تعذّر فحص النبرة: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "تعذّر العثور على الأمر `claude`. ثبّت Claude Code، أو انتقل إلى مفتاح API في الإعدادات › النموذج.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "تعذّرت العودة إلى %@. الصيغة %lld في الحافظة: اضغط ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "تكرار";
 "Duplicate, import or export" = "تكرار أو استيراد أو تصدير";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "تخضع كل مسودة إنجليزية لفحص إضافي واحد على النموذج السريع لمحركك: نحو 1,000 رمز، أي قرابة 40% فوق تشغيل عادي من 3 صيغ. تُعدّ الدروس على هذا الـ Mac من دليل مدمج، فلا تكلّف شيئًا.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "كل تصحيح في مسودتك مع قاعدة من سطر واحد: “if” للمستقبل تأخذ المضارع.";
 "Easily confused words" = "كلمات يسهل الخلط بينها";
 "Edit" = "تحرير";
 "edit" = "تحرير";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "كيفية تثبيت Claude Code";
 "I understand" = "فهمت";
 "Import…" = "استيراد…";
-"in any text box." = "في أي مربع نص.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "في اللوحة، يضيف ⌘J ما ترد عليه ويستخدم ⇧⌘V الحافظة. لا يُحفظ السياق في السجل.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "ثبّت نموذجًا في Ollama أو LM Studio (مثل llama3.2)، ثم اضغط \"التحقق مرة أخرى\". يمكنك اختيار نموذج آخر لاحقًا في الإعدادات.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "ثبّت Claude Code أولًا، ثم عُد. تتحقق هذه الصفحة مجددًا كل بضع ثوانٍ.";
@@ -402,6 +403,7 @@
 "Keep at least one to continue." = "أبقِ واحدة على الأقل للمتابعة.";
 "Keeping history" = "الاحتفاظ بالسجل";
 "Keeps the words so far" = "يحتفظ بالكلمات حتى الآن";
+"Keeps" = "الحفظ";
 "kept" = "محفوظ";
 "Kept on this Mac for 30 days" = "محفوظ على هذا الـ Mac لمدة 30 يومًا";
 "Key refused" = "رُفض المفتاح";
@@ -445,6 +447,7 @@
 "Manage" = "إدارة";
 "Manage ChatGPT plan usage" = "إدارة استخدام خطة ChatGPT";
 "Manage usage" = "إدارة الاستخدام";
+"Mastered and not tracked" = "متقنة وغير متتبَّعة";
 "Mastered" = "متقَن";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "يُعدّ متقنًا بعد 3 أسابيع بأقل من 0.2 لكل 1,000 كلمة.";
 "May read as %@" = "قد تبدو %@";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "لم يتم تسجيل الدخول إلى ChatGPT";
 "Not this sign-in" = "ليس تسجيل الدخول هذا";
 "Notes or a long thread into a short reply." = "ملاحظات أو سلسلة رسائل طويلة إلى رد قصير.";
+"Notes under your takes" = "ملاحظات تحت صيغك";
 "Nothing goes to the developer. No server, no tracking." = "لا يصل شيء إلى المطوّر. لا خادم ولا تتبع.";
 "Nothing matches “%@”." = "لا شيء يطابق “%@”.";
 "Nothing was pasted. %@" = "لم يُلصق أي شيء. %@";
@@ -537,6 +541,7 @@
 "On" = "يعمل";
 "on" = "يعمل";
 "on this Mac" = "على هذا الـ Mac";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "سطر إضافي واحد في تأكيد اللصق، فقط للأخطاء التي تكررها.";
 "One line after paste whenever any pattern shows up again." = "سطر واحد بعد اللصق كلما ظهر أي نمط مجددًا.";
 "One line after paste, only when a focus area repeats." = "سطر واحد بعد اللصق، فقط عندما يتكرر مجال تركيز.";
 "One thing left: %@." = "بقي أمر واحد: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "القوالب";
 "presets" = "القوالب";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "يمكن للقوالب الرد بأي من هذه اللغات، ويقدّم \"تصفح القوالب\" قالب ترجمة لكل منها.";
-"Press" = "اضغط";
 "Press %@ in any text box to start." = "اضغط %@ في أي مربع نص للبدء.";
 "Press %@ in any text box." = "اضغط %@ في أي مربع نص.";
 "Press %@ in any text field to start." = "اضغط %@ في أي حقل نص للبدء.";
@@ -731,6 +735,7 @@
 "Set up Takes" = "إعداد Takes";
 "Set your server's address in Settings › Model." = "عيّن عنوان خادمك في الإعدادات › النموذج.";
 "Settings for new presets" = "إعدادات القوالب الجديدة";
+"Settings" = "الإعدادات";
 "Settings…" = "الإعدادات…";
 "Setup steps" = "خطوات الإعداد";
 "Shift Command Delete" = "Shift Command Delete";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "أملِ مسودتك. يتحول الكلام إلى نص على هذا الـ Mac.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "يتحول الكلام إلى نص على هذا الـ Mac ولا يغادره الصوت أبدًا، لذا لا تظهر إلا اللغات التي يستطيع جهاز Mac التعامل معها بنفسه.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "التعرّف على الكلام متوقف. فعّل Takes في الخصوصية والأمن › التعرّف على الكلام، ثم اضغط ⌘D.";
+"Start coaching" = "ابدأ التدريب";
 "Start from a ready-made preset instead?" = "هل تريد البدء بقالب جاهز بدلًا من ذلك؟";
 "Start using Takes" = "بدء استخدام Takes";
 "Start with" = "البدء بـ";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "في انتظار المتصفح";
 "Waiting for the browser…" = "في انتظار المتصفح…";
 "Warmer, same message." = "أكثر دفئًا، الرسالة نفسها.";
+"Watches" = "المراقبة";
 "Weekly counts: %@" = "الأعداد الأسبوعية: %@";
 "Welcome to Takes" = "مرحبًا بك في Takes";
 "What should the coach focus on?" = "على ماذا يجب أن يركز المدرب؟";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "مفتاح الاختصار مستخدَم الآن، لذا استخدم \"فتح Takes\" أدناه.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "مفتاح الاختصار، والقوالب التي تبدأ بها. يمكن تغيير كل ذلك لاحقًا في الإعدادات.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "مفتاح API خاص بك لـ OpenAI أو Gemini أو OpenRouter أو Groq أو Mistral، أو لأي خادم متوافق مع OpenAI. يتولى المزوّد الفوترة عبر حسابك.";
+"Your patterns · per 1,000 words" = "أنماطك · لكل 1,000 كلمة";
 "Your patterns, counts and lessons start over. The coach stays on." = "تبدأ أنماطك وأعدادك ودروسك من جديد. يظل المدرب يعمل.";
 "Your progress" = "تقدّمك";
 "Your server" = "خادمك";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ ثابت";
 "↓ 50% articles this month" = "↓ 50% أدوات التعريف هذا الشهر";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld فحوصات · الدروس مجانية";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

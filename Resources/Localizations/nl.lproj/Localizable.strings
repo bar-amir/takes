@@ -73,7 +73,6 @@
 "+ Add" = "+ Voeg toe";
 "+ Add language" = "+ Voeg taal toe";
 "+ App" = "+ App";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing of to + werkwoord";
 "1 change: %@. Result: %@" = "1 wijziging: %@. Resultaat: %@";
 "1 example of your voice" = "1 voorbeeld van je stijl";
@@ -91,6 +90,7 @@
 "a local model" = "een lokaal model";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "Een rommelig concept op een geeltje, een klein toetsenbord en drie verzorgde versies op kaartjes";
 "A model on this Mac" = "Een model op deze Mac";
+"A nudge when you repeat one" = "Een seintje als je een fout herhaalt";
 "A sample chart: mistakes falling week by week" = "Een voorbeeldgrafiek: fouten die week na week afnemen";
 "About Takes" = "Over Takes";
 "Access allowed" = "Toegang toegestaan";
@@ -215,7 +215,7 @@
 "Clear History" = "Wis geschiedenis";
 "Clear History…" = "Wis geschiedenis…";
 "Clear the coach’s data?" = "De gegevens van de coach wissen?";
-"Click in the box and press" = "Klik in het vak en druk op";
+"Click in the box and press %@" = "Klik in het vak en druk op %@";
 "Click this icon for presets, the coach and settings." = "Klik op dit symbool voor voorinstellingen, de coach en instellingen.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Klik en druk op een toetscombinatie. Esc annuleert, ⌫ wist.";
 "Click, then press a shortcut. Esc cancels." = "Klik en druk op een toetscombinatie. Esc annuleert.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "Kopieer versie %lld";
 "Copy “%@”" = "Kopieer ‘%@’";
 "Copy “claude auth login”" = "Kopieer ‘claude auth login’";
+"Costs" = "Kost";
 "Couldn't check the tone: %@" = "Kon de toon niet controleren: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Kan de opdracht `claude` niet vinden. Installeer Claude Code, of stap over op een API-sleutel in Instellingen › Model.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Kon niet terug naar %@. Versie %lld staat op het klembord: druk op ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "Dupliceer";
 "Duplicate, import or export" = "Dupliceer, importeer of exporteer";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "Elk Engels concept krijgt één extra controle met het snelle model van je engine: ongeveer 1.000 tokens, zo'n 40% bovenop een gewone ronde met 3 versies. Lessen worden op deze Mac samengesteld uit een ingebouwde gids en kosten dus niets.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "Elke correctie in je concept, met een regel van één zin: toekomstige “if” krijgt de tegenwoordige tijd.";
 "Easily confused words" = "Woorden die vaak verward worden";
 "Edit" = "Wijzig";
 "edit" = "wijzig";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Claude Code installeren";
 "I understand" = "Ik begrijp het";
 "Import…" = "Importeer…";
-"in any text box." = "in elk tekstvak.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "In het paneel voegt ⌘J toe waarop je reageert en gebruikt ⇧⌘V het klembord. Context wordt niet bewaard in de geschiedenis.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Installeer een model in Ollama of LM Studio (bijvoorbeeld llama3.2) en druk op ‘Controleer opnieuw’. Je kunt later een ander model kiezen in Instellingen.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "Installeer eerst Claude Code en kom dan terug. Deze pagina controleert om de paar seconden opnieuw.";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "Bewaar 30 dagen geschiedenis, alleen op deze Mac";
 "Keep at least one to continue." = "Houd er minstens één om door te gaan.";
 "Keeping history" = "Geschiedenis bewaren";
+"Keeps" = "Bewaart";
 "Keeps the words so far" = "Behoudt de woorden tot nu toe";
 "kept" = "behouden";
 "Kept on this Mac for 30 days" = "30 dagen bewaard op deze Mac";
@@ -447,6 +449,7 @@
 "Manage usage" = "Beheer gebruik";
 "Mastered" = "Onder de knie";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "Onder de knie na 3 weken onder 0,2 per 1.000 woorden.";
+"Mastered and not tracked" = "Onder de knie en niet gevolgd";
 "May read as %@" = "Kan overkomen als %@";
 "Medium" = "Gemiddeld";
 "Medium effort" = "Gemiddelde inspanning";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "Niet ingelogd bij ChatGPT";
 "Not this sign-in" = "Niet deze inlog";
 "Notes or a long thread into a short reply." = "Notities of een lange thread in een kort antwoord.";
+"Notes under your takes" = "Notities onder je versies";
 "Nothing goes to the developer. No server, no tracking." = "Niets gaat naar de ontwikkelaar. Geen server, geen tracking.";
 "Nothing matches “%@”." = "Niets komt overeen met ‘%@’.";
 "Nothing was pasted. %@" = "Er is niets geplakt. %@";
@@ -537,6 +541,7 @@
 "On" = "Aan";
 "on" = "aan";
 "on this Mac" = "op deze Mac";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "Eén extra regel in de plakbevestiging, alleen voor fouten die je blijft maken.";
 "One line after paste whenever any pattern shows up again." = "Eén regel na het plakken, telkens als een patroon terugkomt.";
 "One line after paste, only when a focus area repeats." = "Eén regel na het plakken, alleen als een focusgebied terugkomt.";
 "One thing left: %@." = "Nog één ding: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "Voorinstellingen";
 "presets" = "voorinstellingen";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "Voorinstellingen kunnen in al deze talen antwoorden, en ‘Bekijk voorinstellingen’ biedt voor elk een vertaalvoorinstelling.";
-"Press" = "Druk op";
 "Press %@ in any text box to start." = "Druk in een tekstvak op %@ om te beginnen.";
 "Press %@ in any text box." = "Druk in een tekstvak op %@.";
 "Press %@ in any text field to start." = "Druk in een tekstveld op %@ om te beginnen.";
@@ -697,7 +701,7 @@
 "Run options" = "Opties voor deze ronde";
 "Run options: %@" = "Opties voor deze ronde: %@";
 "Run options: %@, changed for this run" = "Opties voor deze ronde: %@, gewijzigd voor deze ronde";
-"Run with these settings" = "Voer uit met deze instellingen";
+"Run with these settings" = "Uitvoeren";
 "Runs" = "Rondes";
 "Runs on this Mac with Ollama or LM Studio, so your drafts never leave it. Small models write plainer takes than Claude. It's free, but uses this Mac's memory and battery." = "Draait op deze Mac met Ollama of LM Studio, dus je concepten verlaten hem nooit. Kleine modellen schrijven eenvoudigere versies dan Claude. Het is gratis, maar gebruikt het geheugen en de batterij van deze Mac.";
 "Same as draft" = "Zelfde als concept";
@@ -730,6 +734,7 @@
 "Set up coach…" = "Stel coach in…";
 "Set up Takes" = "Stel Takes in";
 "Set your server's address in Settings › Model." = "Stel het adres van je server in via Instellingen › Model.";
+"Settings" = "Instellingen";
 "Settings for new presets" = "Instellingen voor nieuwe voorinstellingen";
 "Settings…" = "Instellingen…";
 "Setup steps" = "Configuratiestappen";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "Spreek je concept in. Spraak wordt op deze Mac omgezet in tekst.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "Spraak wordt op deze Mac omgezet in tekst en de audio verlaat hem nooit. Daarom staan alleen talen in de lijst die je Mac zelf kan verwerken.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "Spraakherkenning staat uit. Zet Takes aan in Privacy en beveiliging › Spraakherkenning en druk op ⌘D.";
+"Start coaching" = "Start coaching";
 "Start from a ready-made preset instead?" = "Liever beginnen met een kant-en-klare voorinstelling?";
 "Start using Takes" = "Begin met Takes";
 "Start with" = "Begin met";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "Wachten op de browser";
 "Waiting for the browser…" = "Wachten op de browser…";
 "Warmer, same message." = "Warmer, zelfde boodschap.";
+"Watches" = "Volgt";
 "Weekly counts: %@" = "Aantallen per week: %@";
 "Welcome to Takes" = "Welkom bij Takes";
 "What should the coach focus on?" = "Waar moet de coach op letten?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "Je sneltoets is nu bezet, dus gebruik ‘Open Takes’ hieronder.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "Je sneltoets en de voorinstellingen waarmee je begint. Alles is later te wijzigen in Instellingen.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Je eigen API-sleutel voor OpenAI, Gemini, OpenRouter, Groq of Mistral, of een OpenAI-compatibele server. Gefactureerd door de aanbieder onder je account.";
+"Your patterns · per 1,000 words" = "Je patronen · per 1.000 woorden";
 "Your patterns, counts and lessons start over. The coach stays on." = "Je patronen, aantallen en lessen beginnen opnieuw. De coach blijft aan.";
 "Your progress" = "Je voortgang";
 "Your server" = "Je server";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ stabiel";
 "↓ 50% articles this month" = "↓ 50% lidwoorden deze maand";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld controles · lessen gratis";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

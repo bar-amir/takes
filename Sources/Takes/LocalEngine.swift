@@ -590,7 +590,7 @@ extension PanelModel {
     var runLabel: String {
         let takes = takeCount == 1 ? String(localized: "1 take") : String(localized: "\(takeCount) takes")
         return usesOneModel ? "\(takes) · \(Models.displayLabel(modelID)) \(store.settings.oneModelPlace)"
-            : "\(takes) · \(Models.label(modelID)) · \(effort.capitalized)"
+            : "\(takes) · \(Models.label(modelID)) · \(Models.effortLabel(effort))"
     }
 }
 

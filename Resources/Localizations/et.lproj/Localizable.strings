@@ -73,7 +73,6 @@
 "+ Add" = "+ Lisa";
 "+ Add language" = "+ Lisa keel";
 "+ App" = "+ Rakendus";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing või to + verb";
 "1 change: %@. Result: %@" = "1 muudatus: %@. Tulemus: %@";
 "1 example of your voice" = "1 näide teie stiilist";
@@ -91,6 +90,7 @@
 "a local model" = "kohalik mudel";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "Segane mustand märkmepaberil, väike klaviatuur ja kolm viimistletud varianti paberkaartidel";
 "A model on this Mac" = "Mudel selles Macis";
+"A nudge when you repeat one" = "Meeldetuletus, kui viga kordub";
 "A sample chart: mistakes falling week by week" = "Näidisgraafik: vead vähenevad nädal-nädalalt";
 "About Takes" = "Takesi teave";
 "Access allowed" = "Juurdepääs lubatud";
@@ -215,7 +215,7 @@
 "Clear History" = "Tühjenda ajalugu";
 "Clear History…" = "Tühjenda ajalugu…";
 "Clear the coach’s data?" = "Kas tühjendada treeneri andmed?";
-"Click in the box and press" = "Klõpsake väljal ja vajutage";
+"Click in the box and press %@" = "Klõpsake väljal ja vajutage %@";
 "Click this icon for presets, the coach and settings." = "Klõpsake seda ikooni, et näha eelseadistusi, treenerit ja seadeid.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Klõpsake ja vajutage otseteed. Esc tühistab, ⌫ tühjendab.";
 "Click, then press a shortcut. Esc cancels." = "Klõpsake ja vajutage otseteed. Esc tühistab.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "Kopeeri variant %lld";
 "Copy “%@”" = "Kopeeri “%@”";
 "Copy “claude auth login”" = "Kopeeri “claude auth login”";
+"Costs" = "Hind";
 "Couldn't check the tone: %@" = "Tooni ei saanud kontrollida: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Käsku `claude` ei leitud. Installige Claude Code või minge üle API-võtmele: Seaded › Mudel.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Rakendusse %@ ei saanud naasta. Variant %lld on lõikelaual: vajutage ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "Duplikeeri";
 "Duplicate, import or export" = "Duplikeeri, impordi või ekspordi";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "Iga ingliskeelne mustand saab teie mootori kiire mudeliga ühe lisakontrolli: umbes 1000 tokenit, ligikaudu 40% tavalisele 3 variandiga käivitusele lisaks. Õppetunnid pannakse kokku selles Macis sisseehitatud juhendist, seega on need tasuta.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "Iga parandus teie mustandis koos üherealise reegliga: tuleviku “if” võtab olevikuvormi.";
 "Easily confused words" = "Kergesti segiaetavad sõnad";
 "Edit" = "Muuda";
 "edit" = "muuda";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Kuidas installida Claude Code";
 "I understand" = "Saan aru";
 "Import…" = "Impordi…";
-"in any text box." = "mis tahes tekstiväljal.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "Paneelis lisab ⌘J sõnumi, millele vastate, ja ⇧⌘V kasutab lõikelauda. Konteksti ajalukku ei salvestata.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Installige mudel Ollamasse või LM Studiosse (näiteks llama3.2), seejärel vajutage Kontrolli uuesti. Teise mudeli saate hiljem valida Seadetes.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "Installige esmalt Claude Code ja tulge siis tagasi. See leht kontrollib iga paari sekundi järel uuesti.";
@@ -402,6 +403,7 @@
 "Keep at least one to continue." = "Jätkamiseks jätke alles vähemalt üks.";
 "Keeping history" = "Ajaloo säilitamine";
 "Keeps the words so far" = "Jätab seni öeldud sõnad alles";
+"Keeps" = "Säilitab";
 "kept" = "alles jäetud";
 "Kept on this Mac for 30 days" = "Hoitakse selles Macis 30 päeva";
 "Key refused" = "Võti lükati tagasi";
@@ -445,6 +447,7 @@
 "Manage" = "Halda";
 "Manage ChatGPT plan usage" = "Halda ChatGPT paketi kasutust";
 "Manage usage" = "Halda kasutust";
+"Mastered and not tracked" = "Omandatud ja jälgimata";
 "Mastered" = "Omandatud";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "Omandatud pärast 3 nädalat alla 0,2 korra 1000 sõna kohta.";
 "May read as %@" = "Võib mõjuda: %@";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "ChatGPT-sse pole sisse logitud";
 "Not this sign-in" = "Mitte see sisselogimine";
 "Notes or a long thread into a short reply." = "Märkmed või pikk lõim lühikeseks vastuseks.";
+"Notes under your takes" = "Märkused variantide all";
 "Nothing goes to the developer. No server, no tracking." = "Arendajale ei lähe midagi. Pole serverit ega jälgimist.";
 "Nothing matches “%@”." = "Otsingule “%@” ei vasta midagi.";
 "Nothing was pasted. %@" = "Midagi ei kleebitud. %@";
@@ -537,6 +541,7 @@
 "On" = "Sees";
 "on" = "sees";
 "on this Mac" = "selles Macis";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "Üks lisarida kleepimise kinnituses, ainult korduvate vigade korral.";
 "One line after paste whenever any pattern shows up again." = "Üks rida pärast kleepimist alati, kui mõni muster kordub.";
 "One line after paste, only when a focus area repeats." = "Üks rida pärast kleepimist ainult siis, kui fookusvaldkond kordub.";
 "One thing left: %@." = "Jäänud on üks asi: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "Eelseadistused";
 "presets" = "eelseadistused";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "Eelseadistused saavad vastata ükskõik millises neist ja Sirvi eelseadistusi pakub igaühe jaoks tõlke-eelseadistust.";
-"Press" = "Vajutage";
 "Press %@ in any text box to start." = "Alustamiseks vajutage mis tahes tekstiväljal %@.";
 "Press %@ in any text box." = "Vajutage mis tahes tekstiväljal %@.";
 "Press %@ in any text field to start." = "Alustamiseks vajutage mis tahes tekstiväljal %@.";
@@ -731,6 +735,7 @@
 "Set up Takes" = "Seadista Takes";
 "Set your server's address in Settings › Model." = "Määrake oma serveri aadress: Seaded › Mudel.";
 "Settings for new presets" = "Uute eelseadistuste seaded";
+"Settings" = "Seaded";
 "Settings…" = "Seaded…";
 "Setup steps" = "Seadistamise sammud";
 "Shift Command Delete" = "Shift Command Delete";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "Dikteerige oma mustand. Kõne muudetakse tekstiks selles Macis.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "Kõne muudetakse tekstiks selles Macis ja heli ei lahku sealt kunagi, seega on loendis ainult keeled, mida teie Mac ise oskab.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "Kõnetuvastus on väljas. Lülitage Takes sisse: Privaatsus ja turvalisus › Kõnetuvastus, seejärel vajutage ⌘D.";
+"Start coaching" = "Alusta treeningut";
 "Start from a ready-made preset instead?" = "Kas alustada hoopis valmis eelseadistusest?";
 "Start using Takes" = "Alusta Takesi kasutamist";
 "Start with" = "Algtekst";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "Brauseri ootamine";
 "Waiting for the browser…" = "Brauseri ootamine…";
 "Warmer, same message." = "Soojem, sama sõnum.";
+"Watches" = "Jälgib";
 "Weekly counts: %@" = "Nädala arvud: %@";
 "Welcome to Takes" = "Tere tulemast Takesi";
 "What should the coach focus on?" = "Millele peaks treener keskenduma?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "Teie kiirklahv on praegu hõivatud, seega kasutage allpool nuppu Ava Takes.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "Teie kiirklahv ja eelseadistused, millega alustate. Kõike saab hiljem Seadetes muuta.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Teie enda API-võti OpenAI, Gemini, OpenRouteri, Groqi või Mistrali jaoks või mis tahes OpenAI-ga ühilduva serveri jaoks. Arveldab teenusepakkuja teie konto all.";
+"Your patterns · per 1,000 words" = "Teie mustrid · 1000 sõna kohta";
 "Your patterns, counts and lessons start over. The coach stays on." = "Teie mustrid, arvud ja õppetunnid algavad otsast. Treener jääb sisse.";
 "Your progress" = "Teie edenemine";
 "Your server" = "Teie server";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ stabiilne";
 "↓ 50% articles this month" = "↓ 50% artiklid sel kuul";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld kontrolli · õppetunnid tasuta";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

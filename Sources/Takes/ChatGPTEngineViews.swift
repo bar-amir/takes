@@ -111,7 +111,7 @@ struct ChatGPTEngineSettings: View {
                 hint(String(localized: "Asking \(models.label(for: store.settings.chatGPTModel))…"))
             }
         case .passed(let ms):
-            Text(String(format: NSLocalizedString("Works. Answered in %.1f s.", comment: ""), Double(ms) / 1000))
+            Text(String(format: NSLocalizedString("Works. Answered in %.1f s.", comment: ""), locale: .current, Double(ms) / 1000))
                 .font(.system(size: 12)).foregroundStyle(Theme.doText)
         case .failed(let message):
             hint(message, warning: true)

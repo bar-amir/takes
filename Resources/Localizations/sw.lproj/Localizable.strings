@@ -73,7 +73,6 @@
 "+ Add" = "+ Ongeza";
 "+ Add language" = "+ Ongeza lugha";
 "+ App" = "+ Programu";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing au to + kitenzi";
 "1 change: %@. Result: %@" = "Badiliko 1: %@. Matokeo: %@";
 "1 example of your voice" = "Mfano 1 wa sauti yako";
@@ -91,6 +90,7 @@
 "a local model" = "modeli ya ndani";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "Rasimu chafu kwenye kikaratasi, kibodi ndogo, na matoleo matatu yaliyosafishwa kwenye kadi za karatasi";
 "A model on this Mac" = "Modeli kwenye Mac hii";
+"A nudge when you repeat one" = "Kikumbusho unaporudia kosa";
 "A sample chart: mistakes falling week by week" = "Chati ya mfano: makosa yakipungua wiki baada ya wiki";
 "About Takes" = "Kuhusu Takes";
 "Access allowed" = "Ufikiaji umeruhusiwa";
@@ -215,7 +215,7 @@
 "Clear History" = "Futa Historia";
 "Clear History…" = "Futa Historia…";
 "Clear the coach’s data?" = "Futa data ya kocha?";
-"Click in the box and press" = "Bofya kwenye kisanduku na ubonyeze";
+"Click in the box and press %@" = "Bofya kwenye kisanduku na ubonyeze %@";
 "Click this icon for presets, the coach and settings." = "Bofya aikoni hii kwa violezo, kocha na mipangilio.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Bofya, kisha bonyeza njia ya mkato. Esc hughairi, ⌫ hufuta.";
 "Click, then press a shortcut. Esc cancels." = "Bofya, kisha bonyeza njia ya mkato. Esc hughairi.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "Nakili toleo %lld";
 "Copy “%@”" = "Nakili “%@”";
 "Copy “claude auth login”" = "Nakili “claude auth login”";
+"Costs" = "Gharama";
 "Couldn't check the tone: %@" = "Imeshindwa kukagua toni: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Amri ya `claude` haikupatikana. Sakinisha Claude Code, au badili kwa ufunguo wa API katika Mipangilio › Modeli.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Imeshindwa kurudi kwa %1$@. Toleo %2$lld liko kwenye ubao wa kunakili: bonyeza ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "Rudufu";
 "Duplicate, import or export" = "Rudufu, leta au hamisha";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "Kila rasimu ya Kiingereza hupata ukaguzi mmoja wa ziada kwenye modeli ya haraka ya injini yako: takriban tokeni 1,000, karibu 40% juu ya uendeshaji wa kawaida wa matoleo 3. Masomo huandaliwa kwenye Mac hii kutoka mwongozo uliojengewa, kwa hivyo hayagharimu chochote.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "Kila marekebisho kwenye rasimu yako, na kanuni ya mstari mmoja: “if” ya wakati ujao hutumia wakati uliopo.";
 "Easily confused words" = "Maneno yanayochanganywa kwa urahisi";
 "Edit" = "Hariri";
 "edit" = "hariri";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Jinsi ya kusakinisha Claude Code";
 "I understand" = "Ninaelewa";
 "Import…" = "Leta…";
-"in any text box." = "katika kisanduku chochote cha maandishi.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "Katika paneli, ⌘J huongeza unachojibu na ⇧⌘V hutumia ubao wa kunakili. Muktadha hauhifadhiwi katika historia.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Sakinisha modeli katika Ollama au LM Studio (kwa mfano llama3.2), kisha bonyeza Angalia tena. Unaweza kuchagua modeli nyingine baadaye katika Mipangilio.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "Sakinisha Claude Code kwanza, kisha urudi. Ukurasa huu hukagua tena kila sekunde chache.";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "Hifadhi historia ya siku 30, kwenye Mac hii tu";
 "Keep at least one to continue." = "Bakiza angalau moja ili kuendelea.";
 "Keeping history" = "Inahifadhi historia";
+"Keeps" = "Huhifadhi";
 "Keeps the words so far" = "Hubakiza maneno hadi sasa";
 "kept" = "imehifadhiwa";
 "Kept on this Mac for 30 days" = "Huhifadhiwa kwenye Mac hii kwa siku 30";
@@ -447,6 +449,7 @@
 "Manage usage" = "Dhibiti matumizi";
 "Mastered" = "Imefahamika";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "Imefahamika baada ya wiki 3 chini ya 0.2 kwa maneno 1,000.";
+"Mastered and not tracked" = "Iliyofahamika na isiyofuatiliwa";
 "May read as %@" = "Huenda likasomeka kama %@";
 "Medium" = "Wastani";
 "Medium effort" = "Juhudi ya wastani";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "Hujaingia kwenye ChatGPT";
 "Not this sign-in" = "Si kuingia huku";
 "Notes or a long thread into a short reply." = "Madokezo au mazungumzo marefu kuwa jibu fupi.";
+"Notes under your takes" = "Madokezo chini ya matoleo yako";
 "Nothing goes to the developer. No server, no tracking." = "Hakuna kinachoenda kwa msanidi. Hakuna seva, hakuna ufuatiliaji.";
 "Nothing matches “%@”." = "Hakuna kinacholingana na “%@”.";
 "Nothing was pasted. %@" = "Hakuna kilichobandikwa. %@";
@@ -537,6 +541,7 @@
 "On" = "Imewashwa";
 "on" = "imewashwa";
 "on this Mac" = "kwenye Mac hii";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "Mstari mmoja wa ziada katika uthibitisho wa kubandika, kwa makosa unayorudia tu.";
 "One line after paste whenever any pattern shows up again." = "Mstari mmoja baada ya kubandika kila mtindo wowote unapojitokeza tena.";
 "One line after paste, only when a focus area repeats." = "Mstari mmoja baada ya kubandika, tu eneo la kuzingatia linaporudiwa.";
 "One thing left: %@." = "Limebaki jambo moja: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "Violezo";
 "presets" = "violezo";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "Violezo vinaweza kujibu kwa yoyote kati ya hizi, na Vinjari violezo hutoa kiolezo cha kutafsiri kwa kila moja.";
-"Press" = "Bonyeza";
 "Press %@ in any text box to start." = "Bonyeza %@ katika kisanduku chochote cha maandishi ili kuanza.";
 "Press %@ in any text box." = "Bonyeza %@ katika kisanduku chochote cha maandishi.";
 "Press %@ in any text field to start." = "Bonyeza %@ katika sehemu yoyote ya maandishi ili kuanza.";
@@ -730,6 +734,7 @@
 "Set up coach…" = "Sanidi kocha…";
 "Set up Takes" = "Sanidi Takes";
 "Set your server's address in Settings › Model." = "Weka anwani ya seva yako katika Mipangilio › Modeli.";
+"Settings" = "Mipangilio";
 "Settings for new presets" = "Mipangilio ya violezo vipya";
 "Settings…" = "Mipangilio…";
 "Setup steps" = "Hatua za kusanidi";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "Tamka rasimu yako. Sauti hubadilishwa kuwa maandishi kwenye Mac hii.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "Sauti hubadilishwa kuwa maandishi kwenye Mac hii na haiondoki kamwe, kwa hivyo lugha ambazo Mac yako inaweza peke yake tu ndizo zimeorodheshwa.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "Utambuzi wa sauti umezimwa. Washa Takes katika Privacy & Security › Speech Recognition, kisha bonyeza ⌘D.";
+"Start coaching" = "Washa kocha";
 "Start from a ready-made preset instead?" = "Anza na kiolezo kilicho tayari badala yake?";
 "Start using Takes" = "Anza kutumia Takes";
 "Start with" = "Anza na";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "Inasubiri kivinjari";
 "Waiting for the browser…" = "Inasubiri kivinjari…";
 "Warmer, same message." = "Kwa ukarimu zaidi, ujumbe uleule.";
+"Watches" = "Hufuatilia";
 "Weekly counts: %@" = "Hesabu za kila wiki: %@";
 "Welcome to Takes" = "Karibu Takes";
 "What should the coach focus on?" = "Kocha azingatie nini?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "Mkato wako mkuu umechukuliwa sasa, kwa hivyo tumia Fungua Takes hapa chini.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "Mkato wako mkuu, na violezo unavyoanza navyo. Vyote vinaweza kubadilika baadaye katika Mipangilio.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Ufunguo wako wa API wa OpenAI, Gemini, OpenRouter, Groq au Mistral, au seva yoyote inayooana na OpenAI. Hutozwa na mtoa huduma chini ya akaunti yako.";
+"Your patterns · per 1,000 words" = "Mitindo yako · kwa maneno 1,000";
 "Your patterns, counts and lessons start over. The coach stays on." = "Mitindo, hesabu na masomo yako yataanza upya. Kocha atabaki amewashwa.";
 "Your progress" = "Maendeleo yako";
 "Your server" = "Seva yako";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ thabiti";
 "↓ 50% articles this month" = "↓ 50% vibainishi mwezi huu";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · ukaguzi %lld · masomo bure";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

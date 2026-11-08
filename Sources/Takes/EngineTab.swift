@@ -49,7 +49,7 @@ struct ModelTab: View {
                 if let ms = store.settings.lastFirstTextMs {
                     FormDivider()
                     FormRow(String(localized: "Last run")) {
-                        Text(String(format: NSLocalizedString("First words after %.1f s", comment: ""), Double(ms) / 1000))
+                        Text(String(format: NSLocalizedString("First words after %.1f s", comment: ""), locale: .current, Double(ms) / 1000))
                             .font(.system(size: 12.5)).foregroundStyle(Theme.secondaryText)
                     }
                 }

@@ -73,7 +73,6 @@
 "+ Add" = "+ 추가";
 "+ Add language" = "+ 언어 추가";
 "+ App" = "+ 앱";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing 또는 to + 동사";
 "1 change: %@. Result: %@" = "변경 1개: %@. 결과: %@";
 "1 example of your voice" = "내 문체 예시 1개";
@@ -91,6 +90,7 @@
 "a local model" = "로컬 모델";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "포스트잇에 적힌 엉성한 초안, 작은 키보드, 종이 카드에 적힌 다듬어진 버전 3개";
 "A model on this Mac" = "이 Mac의 모델";
+"A nudge when you repeat one" = "같은 실수를 반복할 때 알림";
 "A sample chart: mistakes falling week by week" = "샘플 차트: 주마다 줄어드는 실수";
 "About Takes" = "Takes에 관하여";
 "Access allowed" = "접근 허용됨";
@@ -215,7 +215,7 @@
 "Clear History" = "기록 지우기";
 "Clear History…" = "기록 지우기…";
 "Clear the coach’s data?" = "코치 데이터를 지우겠습니까?";
-"Click in the box and press" = "상자를 클릭하고 다음을 누르세요:";
+"Click in the box and press %@" = "상자를 클릭하고 %@ 키를 누르세요";
 "Click this icon for presets, the coach and settings." = "이 아이콘을 클릭하면 프리셋, 코치, 설정을 열 수 있습니다.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "클릭한 다음 단축키를 누르세요. Esc는 취소, ⌫는 지우기.";
 "Click, then press a shortcut. Esc cancels." = "클릭한 다음 단축키를 누르세요. Esc는 취소.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "버전 %lld 복사";
 "Copy “%@”" = "“%@” 복사";
 "Copy “claude auth login”" = "“claude auth login” 복사";
+"Costs" = "비용";
 "Couldn't check the tone: %@" = "어조를 확인할 수 없습니다: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "`claude` 명령어를 찾을 수 없습니다. Claude Code를 설치하거나 설정 › 모델에서 API 키로 전환하세요.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "%@(으)로 돌아갈 수 없습니다. 버전 %lld이(가) 클립보드에 있습니다. ⌘V를 누르세요";
@@ -299,6 +300,7 @@
 "Duplicate" = "복제";
 "Duplicate, import or export" = "복제, 가져오기 또는 내보내기";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "영어 초안마다 엔진의 빠른 모델로 추가 확인을 한 번 합니다. 약 1,000토큰으로, 일반적인 버전 3개 실행보다 약 40% 더 사용합니다. 레슨은 기본 가이드를 바탕으로 이 Mac에서 만들어지므로 비용이 들지 않습니다.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "초안의 수정마다 한 줄 규칙: 미래를 뜻하는 “if” 뒤에는 현재형.";
 "Easily confused words" = "헷갈리기 쉬운 단어";
 "Edit" = "편집";
 "edit" = "편집";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Claude Code 설치 방법";
 "I understand" = "이해했습니다";
 "Import…" = "가져오기…";
-"in any text box." = "을(를) 누르세요.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "패널에서 ⌘J는 답장할 내용을 추가하고 ⇧⌘V는 클립보드를 사용합니다. 맥락은 기록에 보관되지 않습니다.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Ollama 또는 LM Studio에서 모델(예: llama3.2)을 설치한 다음 ‘다시 확인’을 누르세요. 나중에 설정에서 다른 모델을 선택할 수 있습니다.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "먼저 Claude Code를 설치한 다음 돌아오세요. 이 페이지는 몇 초마다 다시 확인합니다.";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "기록을 30일간 보관(이 Mac에만)";
 "Keep at least one to continue." = "계속하려면 하나 이상 남겨두세요.";
 "Keeping history" = "기록 보관";
+"Keeps" = "보관";
 "Keeps the words so far" = "지금까지의 단어는 유지됩니다";
 "kept" = "유지";
 "Kept on this Mac for 30 days" = "이 Mac에 30일간 보관";
@@ -447,6 +449,7 @@
 "Manage usage" = "사용량 관리";
 "Mastered" = "익힘";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "3주 동안 1,000단어당 0.2회 미만이면 익힌 것으로 표시됩니다.";
+"Mastered and not tracked" = "익힘 및 추적 안 함";
 "May read as %@" = "%@(으)로 읽힐 수 있음";
 "Medium" = "중간";
 "Medium effort" = "추론 수준 중간";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "ChatGPT에 로그인하지 않음";
 "Not this sign-in" = "이 로그인이 아닙니다";
 "Notes or a long thread into a short reply." = "메모나 긴 스레드를 짧은 답장으로.";
+"Notes under your takes" = "버전 아래의 메모";
 "Nothing goes to the developer. No server, no tracking." = "개발자에게는 아무것도 전송되지 않습니다. 서버도 추적도 없습니다.";
 "Nothing matches “%@”." = "“%@”와(과) 일치하는 항목이 없습니다.";
 "Nothing was pasted. %@" = "아무것도 붙여넣지 않았습니다. %@";
@@ -537,6 +541,7 @@
 "On" = "켬";
 "on" = "켬";
 "on this Mac" = "이 Mac에서";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "붙여넣기 확인에 한 줄 추가, 반복되는 실수에만.";
 "One line after paste whenever any pattern shows up again." = "어떤 패턴이든 다시 나타나면 붙여넣은 후 한 줄로 알려줍니다.";
 "One line after paste, only when a focus area repeats." = "집중 영역이 반복될 때만 붙여넣은 후 한 줄로 알려줍니다.";
 "One thing left: %@." = "하나 남았습니다: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "프리셋";
 "presets" = "프리셋";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "프리셋은 이 중 어떤 언어로든 답장할 수 있으며, ‘프리셋 둘러보기’에서 언어별 번역 프리셋을 제공합니다.";
-"Press" = "텍스트 상자에서";
 "Press %@ in any text box to start." = "아무 텍스트 상자에서나 %@을(를) 눌러 시작하세요.";
 "Press %@ in any text box." = "아무 텍스트 상자에서나 %@을(를) 누르세요.";
 "Press %@ in any text field to start." = "아무 텍스트 필드에서나 %@을(를) 눌러 시작하세요.";
@@ -730,6 +734,7 @@
 "Set up coach…" = "코치 설정…";
 "Set up Takes" = "Takes 설정";
 "Set your server's address in Settings › Model." = "설정 › 모델에서 서버 주소를 설정하세요.";
+"Settings" = "설정";
 "Settings for new presets" = "새 프리셋 설정";
 "Settings…" = "설정…";
 "Setup steps" = "설정 단계";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "초안을 말하세요. 음성은 이 Mac에서 텍스트로 변환됩니다.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "음성은 이 Mac에서 텍스트로 변환되며 오디오는 Mac 밖으로 나가지 않습니다. 따라서 Mac에서 자체적으로 처리할 수 있는 언어만 표시됩니다.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "음성 인식이 꺼져 있습니다. 개인정보 보호 및 보안 › 음성 인식에서 Takes를 켠 다음 ⌘D를 누르세요.";
+"Start coaching" = "코칭 시작";
 "Start from a ready-made preset instead?" = "대신 기본 제공 프리셋으로 시작하겠습니까?";
 "Start using Takes" = "Takes 사용 시작하기";
 "Start with" = "시작 내용";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "브라우저 대기 중";
 "Waiting for the browser…" = "브라우저 대기 중…";
 "Warmer, same message." = "더 따뜻하게, 내용은 그대로.";
+"Watches" = "관찰";
 "Weekly counts: %@" = "주별 횟수: %@";
 "Welcome to Takes" = "Takes에 오신 것을 환영합니다";
 "What should the coach focus on?" = "코치가 무엇에 집중할까요?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "지금은 단축키가 사용 중이므로 아래의 ‘Takes 열기’를 사용하세요.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "단축키와 처음 사용할 프리셋. 모두 나중에 설정에서 변경할 수 있습니다.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "OpenAI, Gemini, OpenRouter, Groq, Mistral 또는 OpenAI 호환 서버용 내 API 키. 내 계정으로 제공업체에서 청구합니다.";
+"Your patterns · per 1,000 words" = "내 패턴 · 1,000단어당";
 "Your patterns, counts and lessons start over. The coach stays on." = "패턴, 횟수, 레슨이 처음부터 다시 시작됩니다. 코치는 켜진 상태로 유지됩니다.";
 "Your progress" = "내 진척도";
 "Your server" = "내 서버";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ 변화 없음";
 "↓ 50% articles this month" = "↓ 이번 달 관사 50%";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · 확인 %lld회 · 레슨 무료";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

@@ -634,7 +634,10 @@ final class CoachStore: ObservableObject {
     static func ordinal(_ n: Int, in language: String) -> String {
         if !language.hasPrefix("en") {
             let formatter = NumberFormatter()
-            formatter.numberStyle = .ordinal
+            // Where the system ordinal reads badly in the sentence ("ika4", "4.", "No. 1"), the translation
+            // carries the ordinal word and gets the plain number.
+            let plain = ["fa", "fil", "hi", "ms", "sw"].contains(String(language.prefix { $0 != "-" }))
+            formatter.numberStyle = plain ? .none : .ordinal
             formatter.locale = Locale(identifier: language)
             if let text = formatter.string(from: NSNumber(value: n)) { return text }
         }

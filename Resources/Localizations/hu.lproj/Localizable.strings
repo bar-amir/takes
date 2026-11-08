@@ -73,7 +73,6 @@
 "+ Add" = "+ Hozzáadás";
 "+ Add language" = "+ Nyelv hozzáadása";
 "+ App" = "+ App";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing vagy to + ige";
 "1 change: %@. Result: %@" = "1 módosítás: %@. Eredmény: %@";
 "1 example of your voice" = "1 példa az Ön stílusára";
@@ -91,6 +90,7 @@
 "a local model" = "helyi modell";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "Egy kusza piszkozat egy öntapadós cetlin, egy kis billentyűzet és három kidolgozott változat papírkártyákon";
 "A model on this Mac" = "Modell ezen a Macen";
+"A nudge when you repeat one" = "Jelzés, ha megismétel egy hibát";
 "A sample chart: mistakes falling week by week" = "Mintadiagram: hétről hétre fogyó hibák";
 "About Takes" = "A Takes névjegye";
 "Access allowed" = "Hozzáférés engedélyezve";
@@ -215,7 +215,7 @@
 "Clear History" = "Előzmények törlése";
 "Clear History…" = "Előzmények törlése…";
 "Clear the coach’s data?" = "Törli az edző adatait?";
-"Click in the box and press" = "Kattintson a mezőbe, és nyomja meg:";
+"Click in the box and press %@" = "Kattintson a mezőbe, és nyomja meg: %@";
 "Click this icon for presets, the coach and settings." = "Kattintson erre az ikonra a sablonokhoz, az edzőhöz és a beállításokhoz.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Kattintson, majd nyomjon le egy billentyűparancsot. Az Esc megszakít, a ⌫ töröl.";
 "Click, then press a shortcut. Esc cancels." = "Kattintson, majd nyomjon le egy billentyűparancsot. Az Esc megszakít.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "%lld. változat másolása";
 "Copy “%@”" = "„%@” másolása";
 "Copy “claude auth login”" = "„claude auth login” másolása";
+"Costs" = "Költség";
 "Couldn't check the tone: %@" = "Nem sikerült ellenőrizni a hangnemet: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "A `claude` parancs nem található. Telepítse a Claude Code-ot, vagy váltson API-kulcsra a Beállítások › Modell lapon.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Nem sikerült visszatérni ide: %@. A(z) %lld. változat a vágólapon van: nyomja meg a ⌘V billentyűt";
@@ -299,6 +300,7 @@
 "Duplicate" = "Duplikálás";
 "Duplicate, import or export" = "Duplikálás, importálás vagy exportálás";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "Minden angol piszkozat kap egy extra ellenőrzést a motorja gyors modelljén: kb. 1000 token, nagyjából 40% egy szokásos 3 változatos futtatáson felül. A leckék ezen a Macen készülnek egy beépített útmutatóból, így semmibe sem kerülnek.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "Minden javítás a piszkozatban, egysoros szabállyal: jövőre utaló “if” után jelen idő áll.";
 "Easily confused words" = "Könnyen összetéveszthető szavak";
 "Edit" = "Szerkesztés";
 "edit" = "szerkesztés";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "A Claude Code telepítése";
 "I understand" = "Értem";
 "Import…" = "Importálás…";
-"in any text box." = "bármelyik szövegmezőben.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "A panelen a ⌘J hozzáadja, mire válaszol, a ⇧⌘V pedig a vágólapot használja. A kontextus nem kerül az előzményekbe.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Telepítsen egy modellt az Ollamában vagy az LM Studióban (például llama3.2), majd nyomja meg az Újbóli ellenőrzés gombot. Később másik modellt is választhat a Beállításokban.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "Előbb telepítse a Claude Code-ot, majd térjen vissza. Ez az oldal néhány másodpercenként újra ellenőriz.";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "30 napnyi előzmény megőrzése, csak ezen a Macen";
 "Keep at least one to continue." = "A folytatáshoz tartson meg legalább egyet.";
 "Keeping history" = "Előzmények megőrzése";
+"Keeps" = "Tárol";
 "Keeps the words so far" = "Megtartja az eddigi szavakat";
 "kept" = "megtartva";
 "Kept on this Mac for 30 days" = "Ezen a Macen tárolva 30 napig";
@@ -447,6 +449,7 @@
 "Manage usage" = "Használat kezelése";
 "Mastered" = "Elsajátítva";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "Elsajátítva 3 hét után, ha 1000 szóra 0,2 alatt marad.";
+"Mastered and not tracked" = "Elsajátított és nem követett";
 "May read as %@" = "Így hathat: %@";
 "Medium" = "Közepes";
 "Medium effort" = "Közepes erőfeszítés";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "Nincs bejelentkezve a ChatGPT-be";
 "Not this sign-in" = "Nem ez a bejelentkezés";
 "Notes or a long thread into a short reply." = "Jegyzetekből vagy hosszú szálból rövid válasz.";
+"Notes under your takes" = "Megjegyzések a változatok alatt";
 "Nothing goes to the developer. No server, no tracking." = "Semmi sem jut el a fejlesztőhöz. Nincs szerver, nincs követés.";
 "Nothing matches “%@”." = "Semmi sem felel meg ennek: „%@”.";
 "Nothing was pasted. %@" = "Semmi sem lett beillesztve. %@";
@@ -537,6 +541,7 @@
 "On" = "Be";
 "on" = "be";
 "on this Mac" = "ezen a Macen";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "Egy extra sor a beillesztés visszaigazolásában, csak a visszatérő hibáknál.";
 "One line after paste whenever any pattern shows up again." = "Egy sor beillesztés után, valahányszor bármely minta újra előjön.";
 "One line after paste, only when a focus area repeats." = "Egy sor beillesztés után, csak ha egy fókuszterület ismétlődik.";
 "One thing left: %@." = "Egy dolog van hátra: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "Sablonok";
 "presets" = "sablonok";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "A sablonok ezek bármelyikén válaszolhatnak, a Sablonok böngészése pedig mindegyikhez kínál fordítósablont.";
-"Press" = "Nyomja meg:";
 "Press %@ in any text box to start." = "A kezdéshez nyomja meg ezt bármelyik szövegmezőben: %@.";
 "Press %@ in any text box." = "Nyomja meg ezt bármelyik szövegmezőben: %@.";
 "Press %@ in any text field to start." = "A kezdéshez nyomja meg ezt bármelyik szövegmezőben: %@.";
@@ -697,7 +701,7 @@
 "Run options" = "Futtatási beállítások";
 "Run options: %@" = "Futtatási beállítások: %@";
 "Run options: %@, changed for this run" = "Futtatási beállítások: %@, ennél a futtatásnál módosítva";
-"Run with these settings" = "Futtatás ezekkel a beállításokkal";
+"Run with these settings" = "Futtatás";
 "Runs" = "Futtatások";
 "Runs on this Mac with Ollama or LM Studio, so your drafts never leave it. Small models write plainer takes than Claude. It's free, but uses this Mac's memory and battery." = "Ezen a Macen fut az Ollamával vagy az LM Studióval, így a piszkozatai sosem hagyják el. A kis modellek egyszerűbb változatokat írnak, mint a Claude. Ingyenes, de a Mac memóriáját és akkumulátorát használja.";
 "Same as draft" = "Mint a piszkozat";
@@ -730,6 +734,7 @@
 "Set up coach…" = "Az edző beállítása…";
 "Set up Takes" = "A Takes beállítása";
 "Set your server's address in Settings › Model." = "Adja meg a szervere címét a Beállítások › Modell lapon.";
+"Settings" = "Beállítások";
 "Settings for new presets" = "Új sablonok beállításai";
 "Settings…" = "Beállítások…";
 "Setup steps" = "Beállítási lépések";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "Mondja el a piszkozatát. A beszéd ezen a Macen alakul szöveggé.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "A beszéd ezen a Macen alakul szöveggé, és a hang sosem hagyja el, ezért csak azok a nyelvek szerepelnek, amelyeket a Mac önállóan kezel.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "A beszédfelismerés ki van kapcsolva. Kapcsolja be a Takest az Adatvédelem és biztonság › Beszédfelismerés részben, majd nyomja meg a ⌘D billentyűt.";
+"Start coaching" = "Edzés indítása";
 "Start from a ready-made preset instead?" = "Inkább egy kész sablonból indulna?";
 "Start using Takes" = "A Takes használatának megkezdése";
 "Start with" = "Kezdő sablon";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "Várakozás a böngészőre";
 "Waiting for the browser…" = "Várakozás a böngészőre…";
 "Warmer, same message." = "Melegebb, ugyanaz az üzenet.";
+"Watches" = "Figyel";
 "Weekly counts: %@" = "Heti számok: %@";
 "Welcome to Takes" = "Üdvözli a Takes";
 "What should the coach focus on?" = "Mire összpontosítson az edző?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "A gyorsbillentyűje most foglalt, ezért használja a lenti Takes megnyitása gombot.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "A gyorsbillentyű és a kezdő sablonok. Később mindez módosítható a Beállításokban.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Saját API-kulcs az OpenAI, Gemini, OpenRouter, Groq vagy Mistral szolgáltatáshoz, vagy bármely OpenAI-kompatibilis szerverhez. A szolgáltató számlázza a fiókja alatt.";
+"Your patterns · per 1,000 words" = "Mintái · 1000 szavanként";
 "Your patterns, counts and lessons start over. The coach stays on." = "A mintái, számai és leckéi újraindulnak. Az edző bekapcsolva marad.";
 "Your progress" = "Az Ön fejlődése";
 "Your server" = "Saját szerver";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ stabil";
 "↓ 50% articles this month" = "↓ 50% névelő ebben a hónapban";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld ellenőrzés · a leckék ingyenesek";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

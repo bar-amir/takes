@@ -73,7 +73,6 @@
 "+ Add" = "+ Thêm";
 "+ Add language" = "+ Thêm ngôn ngữ";
 "+ App" = "+ Ứng dụng";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing hay to + động từ";
 "1 change: %@. Result: %@" = "1 thay đổi: %@. Kết quả: %@";
 "1 example of your voice" = "1 ví dụ giọng văn của bạn";
@@ -91,6 +90,7 @@
 "a local model" = "một mô hình cục bộ";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "Một bản nháp lộn xộn trên giấy nhớ, một bàn phím nhỏ và ba phương án trau chuốt trên thẻ giấy";
 "A model on this Mac" = "Mô hình trên máy Mac này";
+"A nudge when you repeat one" = "Lời nhắc khi bạn lặp lại lỗi";
 "A sample chart: mistakes falling week by week" = "Biểu đồ mẫu: lỗi giảm dần theo tuần";
 "About Takes" = "Giới thiệu về Takes";
 "Access allowed" = "Đã cho phép truy cập";
@@ -215,7 +215,7 @@
 "Clear History" = "Xóa lịch sử";
 "Clear History…" = "Xóa lịch sử…";
 "Clear the coach’s data?" = "Xóa dữ liệu của gia sư?";
-"Click in the box and press" = "Bấm vào ô và nhấn";
+"Click in the box and press %@" = "Bấm vào ô và nhấn %@";
 "Click this icon for presets, the coach and settings." = "Bấm biểu tượng này để xem mẫu, gia sư và cài đặt.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Bấm, rồi nhấn phím tắt. Esc để hủy, ⌫ để xóa.";
 "Click, then press a shortcut. Esc cancels." = "Bấm, rồi nhấn phím tắt. Esc để hủy.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "Sao chép phương án %lld";
 "Copy “%@”" = "Sao chép “%@”";
 "Copy “claude auth login”" = "Sao chép “claude auth login”";
+"Costs" = "Chi phí";
 "Couldn't check the tone: %@" = "Không thể kiểm tra giọng điệu: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Không tìm thấy lệnh `claude`. Hãy cài Claude Code, hoặc chuyển sang khóa API trong Cài đặt › Mô hình.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Không thể quay lại %@. Phương án %lld đang ở bộ nhớ tạm: nhấn ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "Nhân bản";
 "Duplicate, import or export" = "Nhân bản, nhập hoặc xuất";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "Mỗi bản nháp tiếng Anh được kiểm tra thêm một lần bằng mô hình nhanh của công cụ: khoảng 1.000 token, tức thêm khoảng 40% so với một lần chạy 3 phương án thông thường. Bài học được tạo trên máy Mac này từ hướng dẫn có sẵn, nên không tốn gì.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "Mỗi chỗ sửa trong bản nháp, kèm quy tắc một dòng: “if” nói về tương lai dùng thì hiện tại.";
 "Easily confused words" = "Từ dễ nhầm lẫn";
 "Edit" = "Sửa";
 "edit" = "sửa";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Cách cài Claude Code";
 "I understand" = "Tôi hiểu";
 "Import…" = "Nhập…";
-"in any text box." = "trong bất kỳ ô văn bản nào.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "Trong bảng, ⌘J thêm nội dung bạn đang trả lời và ⇧⌘V dùng bộ nhớ tạm. Ngữ cảnh không được lưu vào lịch sử.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Cài một mô hình trong Ollama hoặc LM Studio (ví dụ llama3.2), rồi nhấn Kiểm tra lại. Bạn có thể chọn mô hình khác sau trong Cài đặt.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "Hãy cài Claude Code trước, rồi quay lại. Trang này tự kiểm tra lại sau mỗi vài giây.";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "Giữ lịch sử 30 ngày, chỉ trên máy Mac này";
 "Keep at least one to continue." = "Hãy giữ ít nhất một mục để tiếp tục.";
 "Keeping history" = "Lưu lịch sử";
+"Keeps" = "Lưu giữ";
 "Keeps the words so far" = "Giữ lại phần đã nói";
 "kept" = "đã giữ";
 "Kept on this Mac for 30 days" = "Lưu trên máy Mac này trong 30 ngày";
@@ -447,6 +449,7 @@
 "Manage usage" = "Quản lý mức dùng";
 "Mastered" = "Đã thành thạo";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "Thành thạo sau 3 tuần dưới 0,2 lỗi mỗi 1.000 từ.";
+"Mastered and not tracked" = "Đã thành thạo và không theo dõi";
 "May read as %@" = "Có thể nghe %@";
 "Medium" = "Trung bình";
 "Medium effort" = "Mức nỗ lực trung bình";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "Chưa đăng nhập ChatGPT";
 "Not this sign-in" = "Không phải lần đăng nhập này";
 "Notes or a long thread into a short reply." = "Biến ghi chú hay chuỗi tin dài thành câu trả lời ngắn.";
+"Notes under your takes" = "Ghi chú dưới các phương án";
 "Nothing goes to the developer. No server, no tracking." = "Không có gì gửi đến nhà phát triển. Không máy chủ, không theo dõi.";
 "Nothing matches “%@”." = "Không có gì khớp “%@”.";
 "Nothing was pasted. %@" = "Không dán gì. %@";
@@ -537,6 +541,7 @@
 "On" = "Bật";
 "on" = "bật";
 "on this Mac" = "trên máy Mac này";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "Thêm một dòng trong thông báo xác nhận dán, chỉ cho lỗi bạn hay lặp lại.";
 "One line after paste whenever any pattern shows up again." = "Một dòng sau khi dán mỗi khi một lỗi xuất hiện lại.";
 "One line after paste, only when a focus area repeats." = "Một dòng sau khi dán, chỉ khi lĩnh vực trọng tâm lặp lại.";
 "One thing left: %@." = "Còn một mục: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "Mẫu";
 "presets" = "mẫu";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "Mẫu có thể trả lời bằng bất kỳ ngôn ngữ nào trong số này, và Duyệt mẫu có sẵn mẫu dịch cho từng ngôn ngữ.";
-"Press" = "Nhấn";
 "Press %@ in any text box to start." = "Nhấn %@ trong bất kỳ ô văn bản nào để bắt đầu.";
 "Press %@ in any text box." = "Nhấn %@ trong bất kỳ ô văn bản nào.";
 "Press %@ in any text field to start." = "Nhấn %@ trong bất kỳ trường văn bản nào để bắt đầu.";
@@ -730,6 +734,7 @@
 "Set up coach…" = "Thiết lập gia sư…";
 "Set up Takes" = "Thiết lập Takes";
 "Set your server's address in Settings › Model." = "Hãy đặt địa chỉ máy chủ trong Cài đặt › Mô hình.";
+"Settings" = "Cài đặt";
 "Settings for new presets" = "Cài đặt cho mẫu mới";
 "Settings…" = "Cài đặt…";
 "Setup steps" = "Các bước thiết lập";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "Đọc bản nháp của bạn. Giọng nói được chuyển thành văn bản trên máy Mac này.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "Giọng nói được chuyển thành văn bản trên máy Mac này và âm thanh không bao giờ rời khỏi máy, nên chỉ liệt kê những ngôn ngữ mà máy Mac tự xử lý được.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "Nhận dạng giọng nói đang tắt. Hãy bật Takes trong Quyền riêng tư & Bảo mật › Nhận dạng giọng nói, rồi nhấn ⌘D.";
+"Start coaching" = "Bật gia sư";
 "Start from a ready-made preset instead?" = "Bắt đầu từ một mẫu có sẵn?";
 "Start using Takes" = "Bắt đầu dùng Takes";
 "Start with" = "Bắt đầu với";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "Đang chờ trình duyệt";
 "Waiting for the browser…" = "Đang chờ trình duyệt…";
 "Warmer, same message." = "Ấm áp hơn, cùng nội dung.";
+"Watches" = "Theo dõi";
 "Weekly counts: %@" = "Số lần theo tuần: %@";
 "Welcome to Takes" = "Chào mừng đến với Takes";
 "What should the coach focus on?" = "Gia sư nên tập trung vào điều gì?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "Phím tắt của bạn hiện đang bị dùng, hãy dùng Mở Takes bên dưới.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "Phím tắt của bạn và các mẫu để bắt đầu. Mọi thứ đều có thể đổi sau trong Cài đặt.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Khóa API của riêng bạn cho OpenAI, Gemini, OpenRouter, Groq hoặc Mistral, hoặc bất kỳ máy chủ tương thích OpenAI nào. Nhà cung cấp tính phí dưới tài khoản của bạn.";
+"Your patterns · per 1,000 words" = "Mẫu lỗi của bạn · mỗi 1.000 từ";
 "Your patterns, counts and lessons start over. The coach stays on." = "Các lỗi lặp lại, số đếm và bài học của bạn sẽ bắt đầu lại. Gia sư vẫn bật.";
 "Your progress" = "Tiến bộ của bạn";
 "Your server" = "Máy chủ của bạn";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ ổn định";
 "↓ 50% articles this month" = "↓ 50% lỗi mạo từ tháng này";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld lần kiểm tra · bài học miễn phí";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

@@ -73,7 +73,6 @@
 "+ Add" = "+ Lägg till";
 "+ Add language" = "+ Lägg till språk";
 "+ App" = "+ App";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing eller to + verb";
 "1 change: %@. Result: %@" = "1 ändring: %@. Resultat: %@";
 "1 example of your voice" = "1 exempel på din stil";
@@ -91,6 +90,7 @@
 "a local model" = "en lokal modell";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "Ett rörigt utkast på en gul lapp, ett litet tangentbord och tre putsade versioner på papperskort";
 "A model on this Mac" = "En modell på den här datorn";
+"A nudge when you repeat one" = "En knuff när du upprepar ett misstag";
 "A sample chart: mistakes falling week by week" = "Ett exempeldiagram: misstag som minskar vecka för vecka";
 "About Takes" = "Om Takes";
 "Access allowed" = "Åtkomst tillåten";
@@ -215,7 +215,7 @@
 "Clear History" = "Rensa historik";
 "Clear History…" = "Rensa historik…";
 "Clear the coach’s data?" = "Rensa coachens data?";
-"Click in the box and press" = "Klicka i rutan och tryck på";
+"Click in the box and press %@" = "Klicka i rutan och tryck på %@";
 "Click this icon for presets, the coach and settings." = "Klicka på den här symbolen för förinställningar, coachen och inställningar.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Klicka och tryck på ett kortkommando. Esc avbryter, ⌫ rensar.";
 "Click, then press a shortcut. Esc cancels." = "Klicka och tryck på ett kortkommando. Esc avbryter.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "Kopiera version %lld";
 "Copy “%@”" = "Kopiera ”%@”";
 "Copy “claude auth login”" = "Kopiera ”claude auth login”";
+"Costs" = "Kostar";
 "Couldn't check the tone: %@" = "Kunde inte kontrollera tonen: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Hittade inte kommandot `claude`. Installera Claude Code, eller byt till en API-nyckel i Inställningar › Modell.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Kunde inte gå tillbaka till %@. Version %lld finns i urklipp: tryck på ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "Duplicera";
 "Duplicate, import or export" = "Duplicera, importera eller exportera";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "Varje engelskt utkast får en extra kontroll med motorns snabba modell: cirka 1 000 tokens, ungefär 40 % utöver en vanlig körning med 3 versioner. Lektionerna sätts ihop på den här datorn från en inbyggd guide, så de kostar ingenting.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "Varje rättelse i ditt utkast, med en regel på en rad: “if” om framtiden tar presens.";
 "Easily confused words" = "Ord som ofta förväxlas";
 "Edit" = "Redigera";
 "edit" = "redigera";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Så installerar du Claude Code";
 "I understand" = "Jag förstår";
 "Import…" = "Importera…";
-"in any text box." = "i valfri textruta.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "I panelen lägger ⌘J till det du svarar på och ⇧⌘V använder urklipp. Sammanhanget sparas inte i historiken.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Installera en modell i Ollama eller LM Studio (till exempel llama3.2) och tryck sedan på Kontrollera igen. Du kan välja en annan modell senare i Inställningar.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "Installera Claude Code först och kom sedan tillbaka. Sidan kontrollerar igen med några sekunders mellanrum.";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "Spara 30 dagars historik, bara på den här datorn";
 "Keep at least one to continue." = "Behåll minst en för att fortsätta.";
 "Keeping history" = "Spara historik";
+"Keeps" = "Sparar";
 "Keeps the words so far" = "Behåller orden hittills";
 "kept" = "behålls";
 "Kept on this Mac for 30 days" = "Sparas på den här datorn i 30 dagar";
@@ -447,6 +449,7 @@
 "Manage usage" = "Hantera användning";
 "Mastered" = "Behärskat";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "Behärskat efter 3 veckor under 0,2 per 1 000 ord.";
+"Mastered and not tracked" = "Behärskat och ej bevakat";
 "May read as %@" = "Kan uppfattas som %@";
 "Medium" = "Medel";
 "Medium effort" = "Medelhög ansträngning";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "Inte inloggad på ChatGPT";
 "Not this sign-in" = "Inte den här inloggningen";
 "Notes or a long thread into a short reply." = "Anteckningar eller en lång tråd blir ett kort svar.";
+"Notes under your takes" = "Anteckningar under dina versioner";
 "Nothing goes to the developer. No server, no tracking." = "Inget skickas till utvecklaren. Ingen server, ingen spårning.";
 "Nothing matches “%@”." = "Inget matchar ”%@”.";
 "Nothing was pasted. %@" = "Inget klistrades in. %@";
@@ -537,6 +541,7 @@
 "On" = "På";
 "on" = "på";
 "on this Mac" = "på den här datorn";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "En extra rad i inklistringsbekräftelsen, bara för misstag du upprepar.";
 "One line after paste whenever any pattern shows up again." = "En rad efter inklistring varje gång ett mönster dyker upp igen.";
 "One line after paste, only when a focus area repeats." = "En rad efter inklistring, bara när ett fokusområde upprepas.";
 "One thing left: %@." = "En sak kvar: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "Förinställningar";
 "presets" = "förinställningar";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "Förinställningar kan svara på alla dessa, och Bläddra bland förinställningar erbjuder en översättningsförinställning för varje.";
-"Press" = "Tryck på";
 "Press %@ in any text box to start." = "Tryck på %@ i valfri textruta för att börja.";
 "Press %@ in any text box." = "Tryck på %@ i valfri textruta.";
 "Press %@ in any text field to start." = "Tryck på %@ i valfritt textfält för att börja.";
@@ -697,7 +701,7 @@
 "Run options" = "Körningsalternativ";
 "Run options: %@" = "Körningsalternativ: %@";
 "Run options: %@, changed for this run" = "Körningsalternativ: %@, ändrat för den här körningen";
-"Run with these settings" = "Kör med de här inställningarna";
+"Run with these settings" = "Kör";
 "Runs" = "Körningar";
 "Runs on this Mac with Ollama or LM Studio, so your drafts never leave it. Small models write plainer takes than Claude. It's free, but uses this Mac's memory and battery." = "Körs på den här datorn med Ollama eller LM Studio, så dina utkast lämnar den aldrig. Små modeller skriver enklare versioner än Claude. Det är gratis, men använder datorns minne och batteri.";
 "Same as draft" = "Samma som utkastet";
@@ -730,6 +734,7 @@
 "Set up coach…" = "Ställ in coachen…";
 "Set up Takes" = "Ställ in Takes";
 "Set your server's address in Settings › Model." = "Ange serverns adress i Inställningar › Modell.";
+"Settings" = "Inställningar";
 "Settings for new presets" = "Inställningar för nya förinställningar";
 "Settings…" = "Inställningar…";
 "Setup steps" = "Inställningssteg";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "Tala in ditt utkast. Talet blir text på den här datorn.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "Talet blir text på den här datorn och ljudet lämnar den aldrig, så bara språk som din Mac klarar själv visas.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "Taligenkänning är av. Slå på Takes under Integritet och säkerhet › Taligenkänning och tryck sedan på ⌘D.";
+"Start coaching" = "Starta coachen";
 "Start from a ready-made preset instead?" = "Börja med en färdig förinställning i stället?";
 "Start using Takes" = "Börja använda Takes";
 "Start with" = "Börja med";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "Väntar på webbläsaren";
 "Waiting for the browser…" = "Väntar på webbläsaren…";
 "Warmer, same message." = "Varmare, samma budskap.";
+"Watches" = "Bevakar";
 "Weekly counts: %@" = "Antal per vecka: %@";
 "Welcome to Takes" = "Välkommen till Takes";
 "What should the coach focus on?" = "Vad ska coachen fokusera på?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "Snabbtangenten är upptagen just nu, så använd Öppna Takes nedan.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "Din snabbtangent och förinställningarna du börjar med. Allt kan ändras senare i Inställningar.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Din egen API-nyckel för OpenAI, Gemini, OpenRouter, Groq eller Mistral, eller en OpenAI-kompatibel server. Faktureras av leverantören under ditt konto.";
+"Your patterns · per 1,000 words" = "Dina mönster · per 1 000 ord";
 "Your patterns, counts and lessons start over. The coach stays on." = "Dina mönster, antal och lektioner börjar om. Coachen förblir på.";
 "Your progress" = "Dina framsteg";
 "Your server" = "Din server";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ stabilt";
 "↓ 50% articles this month" = "↓ 50 % artiklar den här månaden";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld kontroller · lektioner gratis";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

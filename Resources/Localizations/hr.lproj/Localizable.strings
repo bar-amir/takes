@@ -73,7 +73,6 @@
 "+ Add" = "+ Dodaj";
 "+ Add language" = "+ Dodaj jezik";
 "+ App" = "+ Aplikacija";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing ili to + glagol";
 "1 change: %@. Result: %@" = "1 izmjena: %@. Rezultat: %@";
 "1 example of your voice" = "1 primjer vašeg stila";
@@ -91,6 +90,7 @@
 "a local model" = "lokalni model";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "Neuredan nacrt na samoljepljivom papiriću, mala tipkovnica i tri uredne varijante na papirnatim karticama";
 "A model on this Mac" = "Model na ovom Macu";
+"A nudge when you repeat one" = "Podsjetnik kad ponovite grešku";
 "A sample chart: mistakes falling week by week" = "Primjer grafikona: pogreške padaju iz tjedna u tjedan";
 "About Takes" = "O aplikaciji Takes";
 "Access allowed" = "Pristup dopušten";
@@ -215,7 +215,7 @@
 "Clear History" = "Očisti povijest";
 "Clear History…" = "Očisti povijest…";
 "Clear the coach’s data?" = "Očistiti podatke trenera?";
-"Click in the box and press" = "Kliknite u polje i pritisnite";
+"Click in the box and press %@" = "Kliknite u polje i pritisnite %@";
 "Click this icon for presets, the coach and settings." = "Kliknite ovu ikonu za predloške, trenera i postavke.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Kliknite, zatim pritisnite prečac. Esc otkazuje, ⌫ briše.";
 "Click, then press a shortcut. Esc cancels." = "Kliknite, zatim pritisnite prečac. Esc otkazuje.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "Kopiraj varijantu %lld";
 "Copy “%@”" = "Kopiraj „%@”";
 "Copy “claude auth login”" = "Kopiraj „claude auth login”";
+"Costs" = "Košta";
 "Couldn't check the tone: %@" = "Provjera tona nije uspjela: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Naredba `claude` nije pronađena. Instalirajte Claude Code ili prijeđite na API ključ u Postavkama › Model.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Povratak u %@ nije uspio. Varijanta %lld je u međuspremniku: pritisnite ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "Dupliciraj";
 "Duplicate, import or export" = "Dupliciraj, uvezi ili izvezi";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "Svaki engleski nacrt dobiva jednu dodatnu provjeru na brzom modelu vašeg servisa: oko 1.000 tokena, otprilike 40 % više od uobičajenog pokretanja s 3 varijante. Lekcije se sastavljaju na ovom Macu iz ugrađenog vodiča, pa ne koštaju ništa.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "Svaki ispravak u nacrtu, uz pravilo u jednom retku: buduće “if” traži prezent.";
 "Easily confused words" = "Riječi koje se lako zamijene";
 "Edit" = "Uredi";
 "edit" = "uredi";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Kako instalirati Claude Code";
 "I understand" = "Razumijem";
 "Import…" = "Uvezi…";
-"in any text box." = "u bilo kojem tekstnom polju.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "U ploči ⌘J dodaje ono na što odgovarate, a ⇧⌘V koristi međuspremnik. Kontekst se ne sprema u povijest.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Instalirajte model u Ollami ili LM Studiju (npr. llama3.2), zatim pritisnite Provjeri ponovno. Drugi model možete odabrati kasnije u Postavkama.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "Najprije instalirajte Claude Code, zatim se vratite. Ova stranica ponovno provjerava svakih nekoliko sekundi.";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "Čuvaj 30 dana povijesti, samo na ovom Macu";
 "Keep at least one to continue." = "Zadržite barem jedan za nastavak.";
 "Keeping history" = "Čuvanje povijesti";
+"Keeps" = "Čuva";
 "Keeps the words so far" = "Zadržava dosad izgovorene riječi";
 "kept" = "zadržano";
 "Kept on this Mac for 30 days" = "Čuva se na ovom Macu 30 dana";
@@ -447,6 +449,7 @@
 "Manage usage" = "Upravljaj potrošnjom";
 "Mastered" = "Svladano";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "Svladano nakon 3 tjedna ispod 0,2 na 1.000 riječi.";
+"Mastered and not tracked" = "Svladano i ne prati se";
 "May read as %@" = "Može djelovati %@";
 "Medium" = "Srednji";
 "Medium effort" = "Srednji trud";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "Niste prijavljeni u ChatGPT";
 "Not this sign-in" = "Nije ova prijava";
 "Notes or a long thread into a short reply." = "Bilješke ili duga rasprava u kratak odgovor.";
+"Notes under your takes" = "Bilješke ispod vaših varijanti";
 "Nothing goes to the developer. No server, no tracking." = "Ništa ne ide razvojnom programeru. Bez poslužitelja, bez praćenja.";
 "Nothing matches “%@”." = "Ništa ne odgovara upitu „%@”.";
 "Nothing was pasted. %@" = "Ništa nije zalijepljeno. %@";
@@ -537,6 +541,7 @@
 "On" = "Uključeno";
 "on" = "uključeno";
 "on this Mac" = "na ovom Macu";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "Jedan dodatni redak u potvrdi lijepljenja, samo za greške koje ponavljate.";
 "One line after paste whenever any pattern shows up again." = "Jedan redak nakon lijepljenja kad god se neki obrazac ponovi.";
 "One line after paste, only when a focus area repeats." = "Jedan redak nakon lijepljenja, samo kad se ponovi područje fokusa.";
 "One thing left: %@." = "Preostala je još jedna stvar: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "Predlošci";
 "presets" = "predlošci";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "Predlošci mogu odgovarati na bilo kojem od ovih jezika, a Pregledaj predloške nudi predložak za prijevod za svaki.";
-"Press" = "Pritisnite";
 "Press %@ in any text box to start." = "Pritisnite %@ u bilo kojem tekstnom polju za početak.";
 "Press %@ in any text box." = "Pritisnite %@ u bilo kojem tekstnom polju.";
 "Press %@ in any text field to start." = "Pritisnite %@ u bilo kojem tekstnom polju za početak.";
@@ -730,6 +734,7 @@
 "Set up coach…" = "Postavi trenera…";
 "Set up Takes" = "Postavljanje aplikacije Takes";
 "Set your server's address in Settings › Model." = "Postavite adresu poslužitelja u Postavkama › Model.";
+"Settings" = "Postavke";
 "Settings for new presets" = "Postavke za nove predloške";
 "Settings…" = "Postavke…";
 "Setup steps" = "Koraci postavljanja";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "Izgovorite nacrt. Govor se pretvara u tekst na ovom Macu.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "Govor se pretvara u tekst na ovom Macu i zvuk ga nikad ne napušta, pa su navedeni samo jezici koje vaš Mac može sam obraditi.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "Prepoznavanje govora je isključeno. Uključite Takes u Privatnost i sigurnost › Prepoznavanje govora, zatim pritisnite ⌘D.";
+"Start coaching" = "Započni treniranje";
 "Start from a ready-made preset instead?" = "Želite li radije krenuti od gotovog predloška?";
 "Start using Takes" = "Počni koristiti Takes";
 "Start with" = "Pokreni s";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "Čekam preglednik";
 "Waiting for the browser…" = "Čekam preglednik…";
 "Warmer, same message." = "Toplije, ista poruka.";
+"Watches" = "Prati";
 "Weekly counts: %@" = "Tjedni brojevi: %@";
 "Welcome to Takes" = "Dobro došli u Takes";
 "What should the coach focus on?" = "Na što bi se trener trebao usredotočiti?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "Vaš je prečac trenutačno zauzet, pa koristite Otvori Takes ispod.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "Vaš prečac i predlošci s kojima počinjete. Sve se može promijeniti kasnije u Postavkama.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Vaš vlastiti API ključ za OpenAI, Gemini, OpenRouter, Groq ili Mistral, ili bilo koji poslužitelj kompatibilan s OpenAI-jem. Naplaćuje pružatelj pod vašim računom.";
+"Your patterns · per 1,000 words" = "Vaši obrasci · na 1.000 riječi";
 "Your patterns, counts and lessons start over. The coach stays on." = "Vaši obrasci, brojevi i lekcije kreću ispočetka. Trener ostaje uključen.";
 "Your progress" = "Vaš napredak";
 "Your server" = "Vaš poslužitelj";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ stabilno";
 "↓ 50% articles this month" = "↓ 50 % članova ovaj mjesec";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · provjera: %lld · lekcije besplatne";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

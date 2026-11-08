@@ -247,6 +247,7 @@ private struct BigKeysMini: View {
     let combo: KeyCombo
     var body: some View {
         HStack(spacing: 3) { ForEach(Array(BigKeys.parts(combo.display).enumerated()), id: \.offset) { Kbd($0.element) } }
+            .environment(\.layoutDirection, .leftToRight)
     }
 }
 
@@ -627,8 +628,7 @@ private struct PracticeStep: View {
                                                                    lineWidth: stage == .pasted ? 1.5 : 1))
             VStack(alignment: .leading, spacing: 10) {
                 row(1, done: stage != .write, current: stage == .write) {
-                    HStack(spacing: 4) {
-                        Text("Click in the box and press")
+                    KeysSentence(sentence: String(localized: "Click in the box and press \(KeysSentence<EmptyView>.marker)")) {
                         BigKeysMini(combo: model.hotKey)
                     }
                 }

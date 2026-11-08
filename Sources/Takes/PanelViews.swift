@@ -185,7 +185,8 @@ struct ComposeView: View {
             }
             if layout.overflow > 0 {
                 Button(action: model.openPicker) {
-                    HStack(spacing: 4) { Text("+\(layout.overflow)"); Kbd("⇥") }
+                    HStack(spacing: 4) { Text(verbatim: "\u{200E}+\(layout.overflow.formatted())"); Kbd("⇥") }
+                        .environment(\.layoutDirection, .leftToRight)
                         .padding(.horizontal, 6)
                         .frame(height: 30)
                 }
@@ -347,16 +348,24 @@ private struct RunOptionsPopover: View {
             }
         }
         .padding(Spacing.inner)
-        .frame(width: 344)
+        .frame(width: 292 + Self.labelWidth)
         .background(RoundedRectangle(cornerRadius: 12).fill(Theme.surface).shadow(color: .black.opacity(0.16), radius: 18, y: 8))
         .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Theme.controlBorder))
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Run options")
     }
 
+    /// Wide enough for the longest label in the language the app is shown in ("Ansträngning", "Abonnement").
+    private static let labelWidth: CGFloat = {
+        let labels = [String(localized: "Takes", comment: "Run options: number of takes"), String(localized: "Model"),
+                      String(localized: "Effort"), String(localized: "Plan", comment: "Run options: the ChatGPT plan in use")]
+        let font = NSFont.systemFont(ofSize: 13)
+        return max(52, labels.map { ceil(($0 as NSString).size(withAttributes: [.font: font]).width) + 2 }.max() ?? 52)
+    }()
+
     private func row<Content: View>(_ label: String, @ViewBuilder _ content: () -> Content) -> some View {
         HStack(spacing: Spacing.item) {
-            Text(label).font(.system(size: 13)).foregroundStyle(Theme.secondaryText).frame(width: 52, alignment: .leading)
+            Text(label).font(.system(size: 13)).foregroundStyle(Theme.secondaryText).lineLimit(1).frame(width: Self.labelWidth, alignment: .leading)
             content()
             Spacer(minLength: 0)
         }
@@ -440,13 +449,10 @@ struct PresetPickerView: View {
             }
             }
             Rule()
-            HStack(spacing: Spacing.item) {
-                Button { model.onOpenSettings(.presets, true) } label: {
-                    HStack(spacing: 6) { Text("New preset"); Kbd("⌘N") }.frame(maxWidth: .infinity)
-                }
-                Button { model.onOpenSettings(.presets, false) } label: {
-                    HStack(spacing: 6) { Text("Edit presets"); Kbd("⌘,") }.frame(maxWidth: .infinity)
-                }
+            // Side by side while both labels fit on one line; stacked in languages with longer words.
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: Spacing.item) { newPresetButton; editPresetsButton }
+                VStack(spacing: Spacing.inner) { newPresetButton; editPresetsButton }
             }
             .buttonStyle(SecondaryButtonStyle(height: 34))
             .padding(Spacing.gutter / 2)
@@ -460,6 +466,17 @@ struct PresetPickerView: View {
                 }
             }
         )
+    }
+    private var newPresetButton: some View {
+        Button { model.onOpenSettings(.presets, true) } label: {
+            HStack(spacing: 6) { Text("New preset"); Kbd("⌘N") }.fixedSize().frame(maxWidth: .infinity)
+        }
+    }
+
+    private var editPresetsButton: some View {
+        Button { model.onOpenSettings(.presets, false) } label: {
+            HStack(spacing: 6) { Text("Edit presets"); Kbd("⌘,") }.fixedSize().frame(maxWidth: .infinity)
+        }
     }
 
     private func sectionTitle(_ text: String) -> some View {
@@ -577,6 +594,7 @@ struct LimitNotice: View {
 // MARK: - Takes
 
 struct TakesView: View {
+    @Environment(\.layoutDirection) private var layoutDirection
     @ObservedObject var model: PanelModel
     @FocusState private var gridFocused: Bool
     @State private var refineFocus = 0
@@ -627,8 +645,9 @@ struct TakesView: View {
                 .focusable()
                 .focusEffectDisabled()
                 .focused($gridFocused)
-                .onKeyPress(.leftArrow) { move(-1); return .handled }
-                .onKeyPress(.rightArrow) { move(1); return .handled }
+                // The cards run right to left in right-to-left languages, so the arrows follow what's on screen.
+                .onKeyPress(.leftArrow) { move(layoutDirection == .rightToLeft ? 1 : -1); return .handled }
+                .onKeyPress(.rightArrow) { move(layoutDirection == .rightToLeft ? -1 : 1); return .handled }
                 .onKeyPress(.upArrow) { move(-3); return .handled }
                 .onKeyPress(.downArrow) { move(3); return .handled }
                 .onKeyPress(.return) { model.pasteSelected(); return .handled }
@@ -755,17 +774,18 @@ struct TakesView: View {
 
     private var footer: some View {
         HStack(spacing: Spacing.section) {
-            HStack(spacing: Spacing.section) {
-                KeyHint(keys: ["←", "→"], label: String(localized: "move", comment: "Key hint: arrows move between takes"))
-                if !model.showsFixes { KeyHint(keys: ["⌥"], label: String(localized: "changes", comment: "Key hint: ⌥ shows each take's changes")) }
-                KeyHint(keys: ["⌘", "C"], label: String(localized: "copy", comment: "Key hint: ⌘C copies the take"))
-                KeyHint(keys: ["esc"], label: String(localized: "back", comment: "Key hint: esc goes back"))
+            // The paste button keeps its whole label; where that's tight (the one-take panel, long words) the
+            // hints drop from the end.
+            ViewThatFits(in: .horizontal) {
+                keyHints(4)
+                keyHints(3)
+                keyHints(2)
+                keyHints(1)
             }
-            .fixedSize()
             Spacer(minLength: 0)
             if model.running {
                 TimelineView(.periodic(from: model.startedAt, by: 0.1)) { context in
-                    Text(String(format: NSLocalizedString("Writing… %.1f s", comment: ""), context.date.timeIntervalSince(model.startedAt)))
+                    Text(String(format: NSLocalizedString("Writing… %.1f s", comment: ""), locale: .current, context.date.timeIntervalSince(model.startedAt)))
                         .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).monospacedDigit()
                 }
             } else if !model.timing.isEmpty {
@@ -782,10 +802,23 @@ struct TakesView: View {
                 }
             }
             .buttonStyle(PrimaryButtonStyle(height: Spacing.control))
+            .fixedSize()
             .disabled(!model.isFinished(model.selected))
         }
         .padding(.horizontal, Spacing.gutter)
         .padding(.vertical, Spacing.bar)
+    }
+
+    private func keyHints(_ count: Int) -> some View {
+        var hints: [KeyHint] = [KeyHint(keys: ["←", "→"], label: String(localized: "move", comment: "Key hint: arrows move between takes"))]
+        if !model.showsFixes { hints.append(KeyHint(keys: ["⌥"], label: String(localized: "changes", comment: "Key hint: ⌥ shows each take's changes"))) }
+        hints.append(KeyHint(keys: ["⌘", "C"], label: String(localized: "copy", comment: "Key hint: ⌘C copies the take")))
+        hints.append(KeyHint(keys: ["esc"], label: String(localized: "back", comment: "Key hint: esc goes back")))
+        let shown = Array(hints.prefix(count))
+        return HStack(spacing: Spacing.section) {
+            ForEach(shown.indices, id: \.self) { shown[$0] }
+        }
+        .fixedSize()
     }
 
     private var shortcuts: some View {
@@ -828,7 +861,7 @@ private struct TakeCard: View {
                 Spacer(minLength: 0)
                 if !finished && hasText { ProgressView().controlSize(.mini) }
                 if index < 5 {
-                    Text("⌘\(index + 1)").font(.mono(10.5)).foregroundStyle(Theme.tertiaryText)
+                    Text(verbatim: "\u{200E}⌘\(index + 1)").font(.mono(10.5)).foregroundStyle(Theme.tertiaryText)
                 }
             }
 
@@ -851,6 +884,7 @@ private struct TakeCard: View {
             .lineSpacing(4)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, minHeight: 72, maxHeight: .infinity, alignment: .topLeading)
+            .environment(\.layoutDirection, ContentDirection.layout(model.takes[index]))
             TakeToneLine(model: model, index: index)
         }
         .padding(Spacing.section)

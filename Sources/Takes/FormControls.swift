@@ -204,6 +204,8 @@ struct PanelPositionPicker: View {
                 }
             }
             .frame(width: screen.width, height: screen.height)
+            // A map of the physical screen: left stays left in right-to-left languages.
+            .environment(\.layoutDirection, .leftToRight)
             Text(selection.label).font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
         }
         .padding(.vertical, 10)

@@ -30,6 +30,11 @@ SWIFTUI_CALLS = {"Text", "Button", "Toggle", "Label", "Picker", "TextField", "Se
 SWIFTUI_MODIFIERS = {"help", "accessibilityLabel", "accessibilityHint", "accessibilityValue", "navigationTitle",
                      "alert", "confirmationDialog", "accessibilityAction"}
 
+# The app's own helpers whose first parameter is a LocalizedStringKey, by file.
+LOCAL_KEY_CALLS: dict[str, set[str]] = {
+    "EnglishCoachViews.swift": {"tile", "caption", "column", "group"},
+}
+
 # Interpolated expressions that aren't Strings, by file: "File.swift:expression" -> specifier.
 INT_INTERPOLATIONS: dict[str, str] = {
     "AppDelegate.swift:lessonsReady": "%lld",
@@ -241,7 +246,8 @@ def classify(literal, frame, before, after, label, src, stack):
         comment = re.match(r',\s*comment:\s*"((?:[^"\\]|\\.)*)"', after)
         yield literal, (comment.group(1) or None) if comment else None
     elif frame.commas == 0 and label is None and (
-            (not frame.dotted and frame.name in SWIFTUI_CALLS) or (frame.dotted and frame.name in SWIFTUI_MODIFIERS)):
+            (not frame.dotted and frame.name in SWIFTUI_CALLS) or (frame.dotted and frame.name in SWIFTUI_MODIFIERS)
+            or (not frame.dotted and frame.name in LOCAL_KEY_CALLS.get(literal.file, set()))):
         # The literal itself, or a branch of a ternary between literals. Not "a" + b, x ?? "a", or f("a").
         if before.endswith(("+", "??")) or after.startswith(("+", "??", ".")):
             return

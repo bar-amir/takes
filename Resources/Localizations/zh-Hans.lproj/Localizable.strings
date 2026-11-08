@@ -73,7 +73,6 @@
 "+ Add" = "+ 添加";
 "+ Add language" = "+ 添加语言";
 "+ App" = "+ App";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing 还是 to + 动词";
 "1 change: %@. Result: %@" = "1 处更改：%@。结果：%@";
 "1 example of your voice" = "1 个文风示例";
@@ -91,6 +90,7 @@
 "a local model" = "本地模型";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "便利贴上的潦草草稿、一个小键盘，以及纸卡上的三个润色版本";
 "A model on this Mac" = "这台 Mac 上的模型";
+"A nudge when you repeat one" = "重复犯错时的提醒";
 "A sample chart: mistakes falling week by week" = "示例图表：错误逐周减少";
 "About Takes" = "关于 Takes";
 "Access allowed" = "已允许访问";
@@ -215,7 +215,7 @@
 "Clear History" = "清除历史记录";
 "Clear History…" = "清除历史记录…";
 "Clear the coach’s data?" = "清除教练的数据？";
-"Click in the box and press" = "点按文本框并按下";
+"Click in the box and press %@" = "点按文本框并按下 %@";
 "Click this icon for presets, the coach and settings." = "点按此图标可使用预设、教练和设置。";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "点按，然后按下快捷键。按 Esc 取消，按 ⌫ 清除。";
 "Click, then press a shortcut. Esc cancels." = "点按，然后按下快捷键。按 Esc 取消。";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "拷贝版本 %lld";
 "Copy “%@”" = "拷贝“%@”";
 "Copy “claude auth login”" = "拷贝“claude auth login”";
+"Costs" = "费用";
 "Couldn't check the tone: %@" = "无法检查语气：%@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "找不到 `claude` 命令。请安装 Claude Code，或在“设置 › 模型”中改用 API 密钥。";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "无法返回 %@。版本 %lld 已在剪贴板上：请按 ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "复制";
 "Duplicate, import or export" = "复制、导入或导出";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "每篇英语草稿会在你引擎的快速模型上额外检查一次：约 1,000 个 token，大约比一次典型的 3 个版本运行多 40％。课程在这台 Mac 上根据内置指南生成，因此不产生费用。";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "草稿中的每处修改，附一行规则：表示将来的 “if” 从句用一般现在时。";
 "Easily confused words" = "易混淆词";
 "Edit" = "编辑";
 "edit" = "编辑";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "如何安装 Claude Code";
 "I understand" = "我明白";
 "Import…" = "导入…";
-"in any text box." = "在任意文本框中。";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "在面板中，⌘J 会添加你要回复的内容，⇧⌘V 会使用剪贴板内容。上下文不会保存在历史记录中。";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "在 Ollama 或 LM Studio 中安装一个模型（例如 llama3.2），然后按“再次检查”。你之后可以在“设置”中另选模型。";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "请先安装 Claude Code，然后回到这里。此页面每隔几秒会重新检查。";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "保留 30 天的历史记录，仅存储在这台 Mac 上";
 "Keep at least one to continue." = "至少保留一个才能继续。";
 "Keeping history" = "保留历史记录";
+"Keeps" = "保留";
 "Keeps the words so far" = "保留目前已有的文字";
 "kept" = "已保留";
 "Kept on this Mac for 30 days" = "在这台 Mac 上保留 30 天";
@@ -447,6 +449,7 @@
 "Manage usage" = "管理用量";
 "Mastered" = "已掌握";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "连续 3 周每 1,000 个单词低于 0.2 次后即为已掌握。";
+"Mastered and not tracked" = "已掌握和不跟踪";
 "May read as %@" = "可能显得%@";
 "Medium" = "中";
 "Medium effort" = "中强度";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "未登录 ChatGPT";
 "Not this sign-in" = "不是这次登录";
 "Notes or a long thread into a short reply." = "把笔记或长对话变成简短回复。";
+"Notes under your takes" = "版本下方的笔记";
 "Nothing goes to the developer. No server, no tracking." = "不会向开发者发送任何内容。没有服务器，也不追踪。";
 "Nothing matches “%@”." = "没有与“%@”匹配的内容。";
 "Nothing was pasted. %@" = "未粘贴任何内容。%@";
@@ -537,6 +541,7 @@
 "On" = "开启";
 "on" = "开";
 "on this Mac" = "在这台 Mac 上";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "粘贴确认中多出一行，仅针对你反复犯的错误。";
 "One line after paste whenever any pattern shows up again." = "每当任何模式再次出现时，在粘贴后显示一行提示。";
 "One line after paste, only when a focus area repeats." = "仅当重点领域重复出现时，在粘贴后显示一行提示。";
 "One thing left: %@." = "还剩一项：%@。";
@@ -639,7 +644,6 @@
 "Presets" = "预设";
 "presets" = "预设";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "预设可以用其中任何一种语言回复，“浏览预设”为每种语言都提供一个翻译预设。";
-"Press" = "按下";
 "Press %@ in any text box to start." = "在任意文本框中按 %@ 开始。";
 "Press %@ in any text box." = "在任意文本框中按 %@。";
 "Press %@ in any text field to start." = "在任意文本栏中按 %@ 开始。";
@@ -730,6 +734,7 @@
 "Set up coach…" = "设置教练…";
 "Set up Takes" = "设置 Takes";
 "Set your server's address in Settings › Model." = "请在“设置 › 模型”中设置你的服务器地址。";
+"Settings" = "设置";
 "Settings for new presets" = "新预设的设置";
 "Settings…" = "设置…";
 "Setup steps" = "设置步骤";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "说出你的草稿。语音会在这台 Mac 上转换为文本。";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "语音在这台 Mac 上转换为文本，音频绝不会离开这台 Mac，因此只列出你的 Mac 本身支持的语言。";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "语音识别已关闭。请在“隐私与安全性 › 语音识别”中开启 Takes，然后按 ⌘D。";
+"Start coaching" = "开始辅导";
 "Start from a ready-made preset instead?" = "改为从现成的预设开始？";
 "Start using Takes" = "开始使用 Takes";
 "Start with" = "起始预设";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "正在等待浏览器";
 "Waiting for the browser…" = "正在等待浏览器…";
 "Warmer, same message." = "更温和，意思不变。";
+"Watches" = "监测";
 "Weekly counts: %@" = "每周次数：%@";
 "Welcome to Takes" = "欢迎使用 Takes";
 "What should the coach focus on?" = "教练应该关注什么？";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "你的快捷键目前已被占用，请使用下方的“打开 Takes”。";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "你的快捷键，以及起始预设。所有这些之后都可以在“设置”中更改。";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "你自己的 OpenAI、Gemini、OpenRouter、Groq 或 Mistral API 密钥，或任何兼容 OpenAI 的服务器。由提供商通过你的账户计费。";
+"Your patterns · per 1,000 words" = "你的模式 · 每 1,000 词";
 "Your patterns, counts and lessons start over. The coach stays on." = "你的模式、计数和课程会重新开始。教练保持开启。";
 "Your progress" = "你的进步";
 "Your server" = "你的服务器";
@@ -1021,10 +1029,9 @@
 "· checking your English" = "· 正在检查你的英语";
 "· how you want to sound, tracked as tips" = "· 你想要的语气，以建议的形式记录";
 "“%@” could be %@" = "“%@”可以改为%@";
-"“%@” → “%@” · %@ time this month" = "“%@” → “%@” · 本月第 %@ 次";
-"“%@” → “%@” · %@ time this month · lesson ready" = "“%@” → “%@” · 本月第 %@ 次 · 课程已就绪";
+"“%@” → “%@” · %@ time this month" = "“%@” → “%@” · 本月%@次";
+"“%@” → “%@” · %@ time this month · lesson ready" = "“%@” → “%@” · 本月%@次 · 课程已就绪";
 "→ steady" = "→ 持平";
 "↓ 50% articles this month" = "↓ 本月冠词错误减少 50％";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld 次检查 · 课程免费";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

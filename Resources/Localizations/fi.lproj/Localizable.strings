@@ -73,7 +73,6 @@
 "+ Add" = "+ Lisää";
 "+ Add language" = "+ Lisää kieli";
 "+ App" = "+ Appi";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing vai to + verbi";
 "1 change: %@. Result: %@" = "1 muutos: %@. Tulos: %@";
 "1 example of your voice" = "1 esimerkki tyylistäsi";
@@ -91,6 +90,7 @@
 "a local model" = "paikallinen malli";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "Sotkuinen luonnos muistilapulla, pieni näppäimistö ja kolme viimeisteltyä versiota paperikorteilla";
 "A model on this Mac" = "Malli tässä Macissa";
+"A nudge when you repeat one" = "Muistutus, kun toistat virheen";
 "A sample chart: mistakes falling week by week" = "Esimerkkikaavio: virheet vähenevät viikko viikolta";
 "About Takes" = "Tietoja Takesista";
 "Access allowed" = "Pääsy sallittu";
@@ -215,7 +215,7 @@
 "Clear History" = "Tyhjennä historia";
 "Clear History…" = "Tyhjennä historia…";
 "Clear the coach’s data?" = "Tyhjennetäänkö valmentajan tiedot?";
-"Click in the box and press" = "Klikkaa kenttää ja paina";
+"Click in the box and press %@" = "Klikkaa kenttää ja paina %@";
 "Click this icon for presets, the coach and settings." = "Klikkaa tätä kuvaketta, niin näet esiasetukset, valmentajan ja asetukset.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Klikkaa ja paina oikotietä. Esc kumoaa, ⌫ tyhjentää.";
 "Click, then press a shortcut. Esc cancels." = "Klikkaa ja paina oikotietä. Esc kumoaa.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "Kopioi versio %lld";
 "Copy “%@”" = "Kopioi “%@”";
 "Copy “claude auth login”" = "Kopioi “claude auth login”";
+"Costs" = "Hinta";
 "Couldn't check the tone: %@" = "Sävyä ei voitu tarkistaa: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Komentoa `claude` ei löytynyt. Asenna Claude Code tai vaihda API-avaimeen kohdassa Asetukset › Malli.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Paluu kohteeseen %@ ei onnistunut. Versio %lld on leikepöydällä: paina ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "Monista";
 "Duplicate, import or export" = "Monista, tuo tai vie";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "Jokainen englanninkielinen luonnos saa yhden lisätarkistuksen moottorisi nopealla mallilla: noin 1 000 tokenia, suunnilleen 40 % tavallisen 3 version ajon päälle. Oppitunnit kootaan tässä Macissa sisäisestä oppaasta, joten ne eivät maksa mitään.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "Jokainen luonnoksesi korjaus ja yhden rivin sääntö: tulevaa ilmaiseva “if” saa preesensin.";
 "Easily confused words" = "Helposti sekoitettavat sanat";
 "Edit" = "Muokkaa";
 "edit" = "muokkaa";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Claude Coden asentaminen";
 "I understand" = "Ymmärrän";
 "Import…" = "Tuo…";
-"in any text box." = "missä tahansa tekstikentässä.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "Paneelissa ⌘J lisää viestin, johon vastaat, ja ⇧⌘V käyttää leikepöytää. Kontekstia ei tallenneta historiaan.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Asenna malli Ollamaan tai LM Studioon (esimerkiksi llama3.2) ja paina sitten Tarkista uudelleen. Voit valita toisen mallin myöhemmin Asetuksissa.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "Asenna ensin Claude Code ja palaa sitten. Tämä sivu tarkistaa uudelleen muutaman sekunnin välein.";
@@ -402,6 +403,7 @@
 "Keep at least one to continue." = "Jätä vähintään yksi jatkaaksesi.";
 "Keeping history" = "Historian tallennus";
 "Keeps the words so far" = "Säilyttää tähänastiset sanat";
+"Keeps" = "Tallentaa";
 "kept" = "säilytetty";
 "Kept on this Mac for 30 days" = "Säilytetään tässä Macissa 30 päivää";
 "Key refused" = "Avain hylättiin";
@@ -445,6 +447,7 @@
 "Manage" = "Hallitse";
 "Manage ChatGPT plan usage" = "Hallitse ChatGPT-tilauksen käyttöä";
 "Manage usage" = "Hallitse käyttöä";
+"Mastered and not tracked" = "Hallitut ja seuraamattomat";
 "Mastered" = "Hallittu";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "Hallittu, kun 3 viikkoa alle 0,2 kertaa 1 000 sanaa kohden.";
 "May read as %@" = "Voi kuulostaa: %@";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "Ei kirjauduttu ChatGPT:hen";
 "Not this sign-in" = "Ei tämä kirjautuminen";
 "Notes or a long thread into a short reply." = "Muistiinpanot tai pitkä ketju lyhyeksi vastaukseksi.";
+"Notes under your takes" = "Huomiot versioiden alla";
 "Nothing goes to the developer. No server, no tracking." = "Mitään ei lähetetä kehittäjälle. Ei palvelinta, ei seurantaa.";
 "Nothing matches “%@”." = "Mikään ei vastaa hakua “%@”.";
 "Nothing was pasted. %@" = "Mitään ei liitetty. %@";
@@ -537,6 +541,7 @@
 "On" = "Päällä";
 "on" = "päällä";
 "on this Mac" = "tässä Macissa";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "Yksi lisärivi liittämisen vahvistukseen, vain toistuvista virheistä.";
 "One line after paste whenever any pattern shows up again." = "Yksi rivi liittämisen jälkeen aina, kun jokin kaava toistuu.";
 "One line after paste, only when a focus area repeats." = "Yksi rivi liittämisen jälkeen vain, kun painopistealue toistuu.";
 "One thing left: %@." = "Yksi asia jäljellä: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "Esiasetukset";
 "presets" = "esiasetukset";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "Esiasetukset voivat vastata millä tahansa näistä, ja Selaa esiasetuksia tarjoaa käännösesiasetuksen jokaiselle.";
-"Press" = "Paina";
 "Press %@ in any text box to start." = "Aloita painamalla %@ missä tahansa tekstikentässä.";
 "Press %@ in any text box." = "Paina %@ missä tahansa tekstikentässä.";
 "Press %@ in any text field to start." = "Aloita painamalla %@ missä tahansa tekstikentässä.";
@@ -731,6 +735,7 @@
 "Set up Takes" = "Ota Takes käyttöön";
 "Set your server's address in Settings › Model." = "Aseta palvelimesi osoite kohdassa Asetukset › Malli.";
 "Settings for new presets" = "Uusien esiasetusten asetukset";
+"Settings" = "Asetukset";
 "Settings…" = "Asetukset…";
 "Setup steps" = "Käyttöönoton vaiheet";
 "Shift Command Delete" = "Vaihto-Komento-Poisto";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "Sanele luonnoksesi. Puhe muutetaan tekstiksi tässä Macissa.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "Puhe muutetaan tekstiksi tässä Macissa, eikä ääni koskaan lähde siitä, joten luettelossa ovat vain kielet, joita Macisi osaa itse.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "Puheentunnistus on pois päältä. Laita Takes päälle kohdassa Tietosuoja ja turvallisuus › Puheentunnistus ja paina sitten ⌘D.";
+"Start coaching" = "Aloita valmennus";
 "Start from a ready-made preset instead?" = "Aloitetaanko sen sijaan valmiista esiasetuksesta?";
 "Start using Takes" = "Aloita Takesin käyttö";
 "Start with" = "Aloitusteksti";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "Odotetaan selainta";
 "Waiting for the browser…" = "Odotetaan selainta…";
 "Warmer, same message." = "Lämpimämpi, sama viesti.";
+"Watches" = "Seuraa";
 "Weekly counts: %@" = "Viikkomäärät: %@";
 "Welcome to Takes" = "Tervetuloa Takesiin";
 "What should the coach focus on?" = "Mihin valmentajan pitäisi keskittyä?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "Pikanäppäimesi on nyt varattu, joten käytä alla olevaa Avaa Takes -painiketta.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "Pikanäppäimesi ja esiasetukset, joilla aloitat. Kaikkea voi muuttaa myöhemmin Asetuksissa.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Oma API-avaimesi OpenAI:lle, Geminille, OpenRouterille, Groqille tai Mistralille, tai mille tahansa OpenAI-yhteensopivalle palvelimelle. Palveluntarjoaja laskuttaa tiliäsi.";
+"Your patterns · per 1,000 words" = "Kaavasi · 1 000 sanaa kohden";
 "Your patterns, counts and lessons start over. The coach stays on." = "Kaavasi, määrät ja oppitunnit alkavat alusta. Valmentaja pysyy päällä.";
 "Your progress" = "Edistymisesi";
 "Your server" = "Oma palvelimesi";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ vakaa";
 "↓ 50% articles this month" = "↓ 50 % artikkelit tässä kuussa";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld tarkistusta · oppitunnit ilmaisia";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

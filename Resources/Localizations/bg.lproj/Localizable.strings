@@ -73,7 +73,6 @@
 "+ Add" = "+ Добави";
 "+ Add language" = "+ Добави език";
 "+ App" = "+ Програма";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing или to + глагол";
 "1 change: %@. Result: %@" = "1 промяна: %@. Резултат: %@";
 "1 example of your voice" = "1 пример за стила ви";
@@ -91,6 +90,7 @@
 "a local model" = "локален модел";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "Разхвърляна чернова на лепящо листче, малка клавиатура и три изгладени варианта на хартиени картички";
 "A model on this Mac" = "Модел на този Mac";
+"A nudge when you repeat one" = "Напомняне, когато повторите грешка";
 "A sample chart: mistakes falling week by week" = "Примерна графика: грешките намаляват седмица след седмица";
 "About Takes" = "Относно Takes";
 "Access allowed" = "Достъпът е разрешен";
@@ -215,7 +215,7 @@
 "Clear History" = "Изчисти историята";
 "Clear History…" = "Изчисти историята…";
 "Clear the coach’s data?" = "Да се изчистят ли данните на треньора?";
-"Click in the box and press" = "Щракнете в полето и натиснете";
+"Click in the box and press %@" = "Щракнете в полето и натиснете %@";
 "Click this icon for presets, the coach and settings." = "Щракнете тази икона за шаблони, треньора и настройки.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Щракнете и натиснете комбинация. Esc отменя, ⌫ изчиства.";
 "Click, then press a shortcut. Esc cancels." = "Щракнете и натиснете комбинация. Esc отменя.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "Копирай вариант %lld";
 "Copy “%@”" = "Копирай „%@“";
 "Copy “claude auth login”" = "Копирай „claude auth login“";
+"Costs" = "Цена";
 "Couldn't check the tone: %@" = "Тонът не можа да се провери: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Командата `claude` не е намерена. Инсталирайте Claude Code или превключете на API ключ в Настройки › Модел.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Не можа да се върне към %@. Вариант %lld е в клипборда: натиснете ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "Дублирай";
 "Duplicate, import or export" = "Дублиране, импорт или експорт";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "Всяка английска чернова получава една допълнителна проверка с бързия модел на двигателя ви: около 1000 токена, приблизително 40% отгоре при типично пускане с 3 варианта. Уроците се съставят на този Mac от вградено ръководство, затова не струват нищо.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "Всяка поправка в черновата ви с правило от един ред: бъдещо “if” иска сегашно време.";
 "Easily confused words" = "Лесно объркващи се думи";
 "Edit" = "Редактирай";
 "edit" = "редактирай";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Как да инсталирате Claude Code";
 "I understand" = "Разбирам";
 "Import…" = "Импортирай…";
-"in any text box." = "във всяко текстово поле.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "В панела ⌘J добавя на какво отговаряте, а ⇧⌘V използва клипборда. Контекстът не се пази в историята.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Инсталирайте модел в Ollama или LM Studio (например llama3.2) и натиснете „Провери пак“. Можете да изберете друг модел по-късно в Настройки.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "Първо инсталирайте Claude Code, след това се върнете. Тази страница проверява отново на няколко секунди.";
@@ -402,6 +403,7 @@
 "Keep at least one to continue." = "Запазете поне един, за да продължите.";
 "Keeping history" = "Пазене на история";
 "Keeps the words so far" = "Запазва казаното досега";
+"Keeps" = "Пази";
 "kept" = "запазен";
 "Kept on this Mac for 30 days" = "Пази се на този Mac за 30 дни";
 "Key refused" = "Ключът е отхвърлен";
@@ -445,6 +447,7 @@
 "Manage" = "Управление";
 "Manage ChatGPT plan usage" = "Управление на използването на плана за ChatGPT";
 "Manage usage" = "Управление на използването";
+"Mastered and not tracked" = "Усвоени и неследени";
 "Mastered" = "Усвоено";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "Усвоено след 3 седмици под 0,2 на 1000 думи.";
 "May read as %@" = "Може да звучи %@";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "Не сте влезли в ChatGPT";
 "Not this sign-in" = "Не това влизане";
 "Notes or a long thread into a short reply." = "Бележки или дълга нишка в кратък отговор.";
+"Notes under your takes" = "Бележки под вариантите";
 "Nothing goes to the developer. No server, no tracking." = "Нищо не отива при разработчика. Без сървър, без проследяване.";
 "Nothing matches “%@”." = "Нищо не съвпада с „%@“.";
 "Nothing was pasted. %@" = "Нищо не е поставено. %@";
@@ -537,6 +541,7 @@
 "On" = "Вкл.";
 "on" = "вкл.";
 "on this Mac" = "на този Mac";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "Един допълнителен ред в потвърждението за поставяне, само за грешки, които повтаряте.";
 "One line after paste whenever any pattern shows up again." = "Един ред след поставяне, когато някоя закономерност се появи отново.";
 "One line after paste, only when a focus area repeats." = "Един ред след поставяне, само когато се повтори област за фокус.";
 "One thing left: %@." = "Остава едно нещо: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "Шаблони";
 "presets" = "шаблони";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "Шаблоните могат да отговарят на всеки от тези езици, а „Разгледай шаблони“ предлага шаблон за превод за всеки.";
-"Press" = "Натиснете";
 "Press %@ in any text box to start." = "Натиснете %@ във всяко текстово поле, за да започнете.";
 "Press %@ in any text box." = "Натиснете %@ във всяко текстово поле.";
 "Press %@ in any text field to start." = "Натиснете %@ във всяко текстово поле, за да започнете.";
@@ -731,6 +735,7 @@
 "Set up Takes" = "Настройване на Takes";
 "Set your server's address in Settings › Model." = "Задайте адреса на сървъра си в Настройки › Модел.";
 "Settings for new presets" = "Настройки за нови шаблони";
+"Settings" = "Настройки";
 "Settings…" = "Настройки…";
 "Setup steps" = "Стъпки за настройване";
 "Shift Command Delete" = "Shift Command Delete";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "Изговорете черновата си. Речта се превръща в текст на този Mac.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "Речта се превръща в текст на този Mac и аудиото никога не го напуска, затова се показват само езиците, с които вашият Mac се справя сам.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "Разпознаването на реч е изключено. Включете Takes в Поверителност и сигурност › Разпознаване на реч, след което натиснете ⌘D.";
+"Start coaching" = "Започни обучението";
 "Start from a ready-made preset instead?" = "Да започнете ли от готов шаблон?";
 "Start using Takes" = "Започнете да използвате Takes";
 "Start with" = "Начало с";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "Изчакване на браузъра";
 "Waiting for the browser…" = "Изчакване на браузъра…";
 "Warmer, same message." = "По-топло, същото послание.";
+"Watches" = "Следи";
 "Weekly counts: %@" = "Седмични бройки: %@";
 "Welcome to Takes" = "Добре дошли в Takes";
 "What should the coach focus on?" = "Върху какво да се фокусира треньорът?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "Бързият ви клавиш в момента е зает, затова използвайте „Отвори Takes“ по-долу.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "Бързият ви клавиш и шаблоните, с които започвате. Всичко може да се промени по-късно в Настройки.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Вашият собствен API ключ за OpenAI, Gemini, OpenRouter, Groq или Mistral, или за всеки сървър, съвместим с OpenAI. Таксува доставчикът под вашия акаунт.";
+"Your patterns · per 1,000 words" = "Вашите закономерности · на 1000 думи";
 "Your patterns, counts and lessons start over. The coach stays on." = "Закономерностите, бройките и уроците ви започват отначало. Треньорът остава включен.";
 "Your progress" = "Вашият напредък";
 "Your server" = "Вашият сървър";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ стабилно";
 "↓ 50% articles this month" = "↓ 50% членове този месец";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld проверки · уроците са безплатни";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

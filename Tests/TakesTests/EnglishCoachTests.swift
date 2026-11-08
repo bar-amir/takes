@@ -176,6 +176,8 @@ final class EnglishCoachTests: XCTestCase {
         XCTAssertEqual([1, 2, 3, 4, 11, 12, 13, 21, 22, 101].map(CoachStore.ordinal),
                        ["1st", "2nd", "3rd", "4th", "11th", "12th", "13th", "21st", "22nd", "101st"])
         XCTAssertEqual(CoachStore.ordinal(4, in: "fr"), "4e")
+        XCTAssertEqual(CoachStore.ordinal(4, in: "fil"), "4")
+        XCTAssertEqual(CoachStore.ordinal(4, in: "fa"), "۴")
     }
 
     func testMasteredNeedsALessonAndEnoughWords() {

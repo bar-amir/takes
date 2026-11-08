@@ -73,7 +73,6 @@
 "+ Add" = "+ Добавить";
 "+ Add language" = "+ Добавить язык";
 "+ App" = "+ Программа";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing или to + глагол";
 "1 change: %@. Result: %@" = "1 изменение: %@. Итог: %@";
 "1 example of your voice" = "1 пример вашего стиля";
@@ -91,6 +90,7 @@
 "a local model" = "локальная модель";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "Неряшливый черновик на стикере, маленькая клавиатура и три отшлифованных варианта на бумажных карточках";
 "A model on this Mac" = "Модель на этом Mac";
+"A nudge when you repeat one" = "Напоминание при повторе ошибки";
 "A sample chart: mistakes falling week by week" = "Пример графика: ошибок становится меньше с каждой неделей";
 "About Takes" = "О программе Takes";
 "Access allowed" = "Доступ разрешен";
@@ -215,7 +215,7 @@
 "Clear History" = "Очистить историю";
 "Clear History…" = "Очистить историю…";
 "Clear the coach’s data?" = "Очистить данные тренера?";
-"Click in the box and press" = "Нажмите в поле и нажмите";
+"Click in the box and press %@" = "Щёлкните в поле и нажмите %@";
 "Click this icon for presets, the coach and settings." = "Нажмите этот значок, чтобы открыть пресеты, тренера и настройки.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Нажмите, затем введите сочетание. Esc — отмена, ⌫ — очистить.";
 "Click, then press a shortcut. Esc cancels." = "Нажмите, затем введите сочетание. Esc — отмена.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "Скопировать вариант %lld";
 "Copy “%@”" = "Скопировать «%@»";
 "Copy “claude auth login”" = "Скопировать «claude auth login»";
+"Costs" = "Стоит";
 "Couldn't check the tone: %@" = "Не удалось проверить тон: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Команда `claude` не найдена. Установите Claude Code или перейдите на ключ API в разделе «Настройки › Модель».";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Не удалось вернуться в %@. Вариант %lld в буфере обмена: нажмите ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "Дублировать";
 "Duplicate, import or export" = "Дублировать, импортировать или экспортировать";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "Каждый английский черновик получает одну дополнительную проверку на быстрой модели вашего движка: около 1000 токенов, примерно на 40% больше обычного запуска с 3 вариантами. Уроки составляются на этом Mac по встроенному руководству, поэтому ничего не стоят.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "Каждая правка в черновике с правилом в одну строку: “if” о будущем требует настоящего времени.";
 "Easily confused words" = "Легко путаемые слова";
 "Edit" = "Правка";
 "edit" = "изменить";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Как установить Claude Code";
 "I understand" = "Понятно";
 "Import…" = "Импортировать…";
-"in any text box." = "в любом текстовом поле.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "В панели ⌘J добавляет то, на что вы отвечаете, а ⇧⌘V использует буфер обмена. Контекст не сохраняется в истории.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Установите модель в Ollama или LM Studio (например, llama3.2), затем нажмите «Проверить снова». Другую модель можно выбрать позже в Настройках.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "Сначала установите Claude Code, затем вернитесь. Эта страница проверяет снова каждые несколько секунд.";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "Хранить историю 30 дней, только на этом Mac";
 "Keep at least one to continue." = "Оставьте хотя бы один, чтобы продолжить.";
 "Keeping history" = "Хранение истории";
+"Keeps" = "Хранит";
 "Keeps the words so far" = "Сохраняет уже сказанное";
 "kept" = "оставлен";
 "Kept on this Mac for 30 days" = "Хранится на этом Mac 30 дней";
@@ -447,6 +449,7 @@
 "Manage usage" = "Управлять расходом";
 "Mastered" = "Освоено";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "Считается освоенным после 3 недель с частотой ниже 0,2 на 1000 слов.";
+"Mastered and not tracked" = "Освоенные и не отслеживаемые";
 "May read as %@" = "Может звучать как %@";
 "Medium" = "Среднее";
 "Medium effort" = "Среднее усилие";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "Вход в ChatGPT не выполнен";
 "Not this sign-in" = "Это не тот вход";
 "Notes or a long thread into a short reply." = "Заметки или длинная переписка — в короткий ответ.";
+"Notes under your takes" = "Заметки под вариантами";
 "Nothing goes to the developer. No server, no tracking." = "Разработчик ничего не получает. Ни сервера, ни отслеживания.";
 "Nothing matches “%@”." = "Ничего не найдено по запросу «%@».";
 "Nothing was pasted. %@" = "Ничего не вставлено. %@";
@@ -537,6 +541,7 @@
 "On" = "Вкл.";
 "on" = "вкл.";
 "on this Mac" = "на этом Mac";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "Одна строка в подтверждении вставки, только для повторяющихся ошибок.";
 "One line after paste whenever any pattern shows up again." = "Одна строка после вставки, когда любой шаблон встречается снова.";
 "One line after paste, only when a focus area repeats." = "Одна строка после вставки, только когда повторяется область фокуса.";
 "One thing left: %@." = "Осталось одно: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "Пресеты";
 "presets" = "пресеты";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "Пресеты могут отвечать на любом из них, а в «Обзоре пресетов» есть пресет перевода для каждого.";
-"Press" = "Нажмите";
 "Press %@ in any text box to start." = "Нажмите %@ в любом текстовом поле, чтобы начать.";
 "Press %@ in any text box." = "Нажмите %@ в любом текстовом поле.";
 "Press %@ in any text field to start." = "Нажмите %@ в любом текстовом поле, чтобы начать.";
@@ -697,7 +701,7 @@
 "Run options" = "Параметры запуска";
 "Run options: %@" = "Параметры запуска: %@";
 "Run options: %@, changed for this run" = "Параметры запуска: %@, изменены для этого запуска";
-"Run with these settings" = "Запустить с этими настройками";
+"Run with these settings" = "Запустить";
 "Runs" = "Запуски";
 "Runs on this Mac with Ollama or LM Studio, so your drafts never leave it. Small models write plainer takes than Claude. It's free, but uses this Mac's memory and battery." = "Работает на этом Mac через Ollama или LM Studio, поэтому черновики его не покидают. Небольшие модели пишут варианты проще, чем Claude. Бесплатно, но расходует память и заряд этого Mac.";
 "Same as draft" = "Как в черновике";
@@ -730,6 +734,7 @@
 "Set up coach…" = "Настроить тренера…";
 "Set up Takes" = "Настройка Takes";
 "Set your server's address in Settings › Model." = "Укажите адрес сервера в разделе «Настройки › Модель».";
+"Settings" = "Настройки";
 "Settings for new presets" = "Настройки для новых пресетов";
 "Settings…" = "Настройки…";
 "Setup steps" = "Шаги настройки";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "Продиктуйте черновик. Речь преобразуется в текст на этом Mac.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "Речь преобразуется в текст на этом Mac, и аудио его не покидает, поэтому показаны только языки, с которыми Mac справляется сам.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "Распознавание речи выключено. Включите Takes в разделе «Конфиденциальность и безопасность › Распознавание речи», затем нажмите ⌘D.";
+"Start coaching" = "Включить тренера";
 "Start from a ready-made preset instead?" = "Начать с готового пресета?";
 "Start using Takes" = "Начать работу с Takes";
 "Start with" = "Начать с";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "Ожидание браузера";
 "Waiting for the browser…" = "Ожидание браузера…";
 "Warmer, same message." = "Теплее, суть та же.";
+"Watches" = "Следит";
 "Weekly counts: %@" = "Число за неделю: %@";
 "Welcome to Takes" = "Добро пожаловать в Takes";
 "What should the coach focus on?" = "На чем тренеру сосредоточиться?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "Ваша горячая клавиша сейчас занята, поэтому используйте «Открыть Takes» ниже.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "Горячая клавиша и стартовые пресеты. Все это можно изменить позже в Настройках.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Ваш собственный ключ API для OpenAI, Gemini, OpenRouter, Groq или Mistral либо любого сервера, совместимого с OpenAI. Счет выставляет поставщик на ваш аккаунт.";
+"Your patterns · per 1,000 words" = "Ваши шаблоны · на 1 000 слов";
 "Your patterns, counts and lessons start over. The coach stays on." = "Ваши шаблоны, счетчики и уроки начнутся заново. Тренер останется включенным.";
 "Your progress" = "Ваш прогресс";
 "Your server" = "Ваш сервер";
@@ -1021,10 +1029,9 @@
 "· checking your English" = "· проверка английского";
 "· how you want to sound, tracked as tips" = "· как вы хотите звучать, отслеживается в виде советов";
 "“%@” could be %@" = "«%@» может быть %@";
-"“%@” → “%@” · %@ time this month" = "“%@” → “%@” · %@ раз в этом месяце";
-"“%@” → “%@” · %@ time this month · lesson ready" = "“%@” → “%@” · %@ раз в этом месяце · урок готов";
+"“%@” → “%@” · %@ time this month" = "“%@” → “%@” · %@-й раз в этом месяце";
+"“%@” → “%@” · %@ time this month · lesson ready" = "“%@” → “%@” · %@-й раз в этом месяце · урок готов";
 "→ steady" = "→ стабильно";
 "↓ 50% articles this month" = "↓ 50% артиклей в этом месяце";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · проверок: %lld · уроки бесплатны";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

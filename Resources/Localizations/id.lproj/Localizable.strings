@@ -73,7 +73,6 @@
 "+ Add" = "+ Tambah";
 "+ Add language" = "+ Tambah bahasa";
 "+ App" = "+ App";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing or to + verb";
 "1 change: %@. Result: %@" = "1 perubahan: %@. Hasil: %@";
 "1 example of your voice" = "1 contoh gaya Anda";
@@ -91,6 +90,7 @@
 "a local model" = "model lokal";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "Draf berantakan di kertas tempel, papan ketik kecil, dan tiga versi rapi di atas kartu kertas";
 "A model on this Mac" = "Model di Mac ini";
+"A nudge when you repeat one" = "Pengingat saat Anda mengulang kesalahan";
 "A sample chart: mistakes falling week by week" = "Contoh bagan: kesalahan berkurang dari minggu ke minggu";
 "About Takes" = "Tentang Takes";
 "Access allowed" = "Akses diizinkan";
@@ -215,7 +215,7 @@
 "Clear History" = "Hapus Riwayat";
 "Clear History…" = "Hapus Riwayat…";
 "Clear the coach’s data?" = "Hapus data pelatih?";
-"Click in the box and press" = "Klik di kotak dan tekan";
+"Click in the box and press %@" = "Klik di kotak dan tekan %@";
 "Click this icon for presets, the coach and settings." = "Klik ikon ini untuk preset, pelatih, dan pengaturan.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Klik, lalu tekan pintasan. Esc membatalkan, ⌫ menghapus.";
 "Click, then press a shortcut. Esc cancels." = "Klik, lalu tekan pintasan. Esc membatalkan.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "Salin versi %lld";
 "Copy “%@”" = "Salin “%@”";
 "Copy “claude auth login”" = "Salin “claude auth login”";
+"Costs" = "Biaya";
 "Couldn't check the tone: %@" = "Tidak dapat memeriksa nada: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Perintah `claude` tidak ditemukan. Instal Claude Code, atau beralih ke kunci API di Pengaturan › Model.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Tidak dapat kembali ke %@. Versi %lld ada di papan klip: tekan ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "Duplikat";
 "Duplicate, import or export" = "Duplikat, impor, atau ekspor";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "Setiap draf bahasa Inggris mendapat satu pemeriksaan tambahan di model cepat mesin Anda: sekitar 1.000 token, kira-kira 40% di atas proses 3 versi biasa. Pelajaran disusun di Mac ini dari panduan bawaan, jadi gratis.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "Setiap perbaikan di draf Anda, dengan aturan satu baris: “if” untuk masa depan memakai present tense.";
 "Easily confused words" = "Kata yang mudah tertukar";
 "Edit" = "Edit";
 "edit" = "edit";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Cara menginstal Claude Code";
 "I understand" = "Saya mengerti";
 "Import…" = "Impor…";
-"in any text box." = "di kotak teks mana pun.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "Di panel, ⌘J menambahkan pesan yang Anda balas dan ⇧⌘V memakai papan klip. Konteks tidak disimpan di riwayat.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Instal model di Ollama atau LM Studio (misalnya llama3.2), lalu tekan Periksa lagi. Anda dapat memilih model lain nanti di Pengaturan.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "Instal Claude Code dulu, lalu kembali. Halaman ini memeriksa lagi setiap beberapa detik.";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "Simpan riwayat 30 hari, hanya di Mac ini";
 "Keep at least one to continue." = "Pertahankan setidaknya satu untuk melanjutkan.";
 "Keeping history" = "Menyimpan riwayat";
+"Keeps" = "Menyimpan";
 "Keeps the words so far" = "Mempertahankan kata-kata sejauh ini";
 "kept" = "dipertahankan";
 "Kept on this Mac for 30 days" = "Disimpan di Mac ini selama 30 hari";
@@ -447,6 +449,7 @@
 "Manage usage" = "Kelola penggunaan";
 "Mastered" = "Dikuasai";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "Dikuasai setelah 3 minggu di bawah 0,2 per 1.000 kata.";
+"Mastered and not tracked" = "Dikuasai dan tidak dilacak";
 "May read as %@" = "Mungkin terkesan %@";
 "Medium" = "Sedang";
 "Medium effort" = "Upaya sedang";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "Belum masuk ke ChatGPT";
 "Not this sign-in" = "Bukan akun ini";
 "Notes or a long thread into a short reply." = "Catatan atau utas panjang menjadi balasan singkat.";
+"Notes under your takes" = "Catatan di bawah versi Anda";
 "Nothing goes to the developer. No server, no tracking." = "Tidak ada yang dikirim ke pengembang. Tanpa server, tanpa pelacakan.";
 "Nothing matches “%@”." = "Tidak ada yang cocok dengan “%@”.";
 "Nothing was pasted. %@" = "Tidak ada yang ditempel. %@";
@@ -537,6 +541,7 @@
 "On" = "Nyala";
 "on" = "nyala";
 "on this Mac" = "di Mac ini";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "Satu baris tambahan di konfirmasi tempel, hanya untuk kesalahan yang terus berulang.";
 "One line after paste whenever any pattern shows up again." = "Satu baris setelah menempel setiap kali pola apa pun muncul lagi.";
 "One line after paste, only when a focus area repeats." = "Satu baris setelah menempel, hanya saat area fokus berulang.";
 "One thing left: %@." = "Satu hal lagi: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "Preset";
 "presets" = "preset";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "Preset dapat membalas dalam bahasa mana pun dari ini, dan Jelajahi preset menawarkan preset terjemahan untuk masing-masing.";
-"Press" = "Tekan";
 "Press %@ in any text box to start." = "Tekan %@ di kotak teks mana pun untuk memulai.";
 "Press %@ in any text box." = "Tekan %@ di kotak teks mana pun.";
 "Press %@ in any text field to start." = "Tekan %@ di bidang teks mana pun untuk memulai.";
@@ -697,7 +701,7 @@
 "Run options" = "Opsi proses";
 "Run options: %@" = "Opsi proses: %@";
 "Run options: %@, changed for this run" = "Opsi proses: %@, diubah untuk proses ini";
-"Run with these settings" = "Jalankan dengan pengaturan ini";
+"Run with these settings" = "Jalankan";
 "Runs" = "Proses";
 "Runs on this Mac with Ollama or LM Studio, so your drafts never leave it. Small models write plainer takes than Claude. It's free, but uses this Mac's memory and battery." = "Berjalan di Mac ini dengan Ollama atau LM Studio, jadi draf Anda tidak pernah keluar. Model kecil menulis versi yang lebih sederhana daripada Claude. Gratis, tetapi memakai memori dan baterai Mac ini.";
 "Same as draft" = "Sama dengan draf";
@@ -730,6 +734,7 @@
 "Set up coach…" = "Siapkan pelatih…";
 "Set up Takes" = "Siapkan Takes";
 "Set your server's address in Settings › Model." = "Atur alamat server Anda di Pengaturan › Model.";
+"Settings" = "Pengaturan";
 "Settings for new presets" = "Pengaturan untuk preset baru";
 "Settings…" = "Pengaturan…";
 "Setup steps" = "Langkah pengaturan";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "Ucapkan draf Anda. Ucapan diubah menjadi teks di Mac ini.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "Ucapan diubah menjadi teks di Mac ini dan audionya tidak pernah keluar dari Mac, jadi hanya bahasa yang dapat ditangani Mac Anda sendiri yang dicantumkan.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "Pengenalan ucapan mati. Nyalakan Takes di Privasi & Keamanan › Pengenalan Ucapan, lalu tekan ⌘D.";
+"Start coaching" = "Mulai pelatihan";
 "Start from a ready-made preset instead?" = "Mulai dari preset siap pakai saja?";
 "Start using Takes" = "Mulai gunakan Takes";
 "Start with" = "Mulai dengan";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "Menunggu browser";
 "Waiting for the browser…" = "Menunggu browser…";
 "Warmer, same message." = "Lebih hangat, pesan yang sama.";
+"Watches" = "Memantau";
 "Weekly counts: %@" = "Hitungan mingguan: %@";
 "Welcome to Takes" = "Selamat datang di Takes";
 "What should the coach focus on?" = "Apa fokus pelatih?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "Tombol pintas Anda sedang dipakai, jadi gunakan Buka Takes di bawah.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "Tombol pintas Anda, dan preset awal Anda. Semuanya dapat diubah nanti di Pengaturan.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Kunci API Anda sendiri untuk OpenAI, Gemini, OpenRouter, Groq, atau Mistral, atau server apa pun yang kompatibel dengan OpenAI. Ditagih oleh penyedia dengan akun Anda.";
+"Your patterns · per 1,000 words" = "Pola Anda · per 1.000 kata";
 "Your patterns, counts and lessons start over. The coach stays on." = "Pola, hitungan, dan pelajaran Anda dimulai dari awal. Pelatih tetap menyala.";
 "Your progress" = "Kemajuan Anda";
 "Your server" = "Server Anda";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ stabil";
 "↓ 50% articles this month" = "↓ 50% artikel bulan ini";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld pemeriksaan · pelajaran gratis";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

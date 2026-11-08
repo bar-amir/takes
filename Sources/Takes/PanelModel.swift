@@ -359,7 +359,7 @@ final class PanelModel: ObservableObject {
         running = false
         takes = result.takes
         selected = min(selected, max(takes.count - 1, 0))
-        let seconds = { (ms: Int) in String(format: NSLocalizedString("%.1f s", comment: "Seconds"), Double(ms) / 1000) }
+        let seconds = { (ms: Int) in String(format: NSLocalizedString("%.1f s", comment: "Seconds"), locale: .current, Double(ms) / 1000) }
         timing = [result.firstTextMs.map { String(localized: "first words \(seconds($0))") }, String(localized: "all takes \(seconds(result.wallMs))")]
             .compactMap { $0 }.joined(separator: " · ")
         store.settings.lastFirstTextMs = result.firstTextMs

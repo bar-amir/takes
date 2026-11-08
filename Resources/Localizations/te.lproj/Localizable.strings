@@ -73,7 +73,6 @@
 "+ Add" = "+ జోడించు";
 "+ Add language" = "+ భాష జోడించు";
 "+ App" = "+ యాప్";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing లేదా to + క్రియ";
 "1 change: %@. Result: %@" = "1 మార్పు: %@. ఫలితం: %@";
 "1 example of your voice" = "మీ శైలికి 1 ఉదాహరణ";
@@ -91,6 +90,7 @@
 "a local model" = "ఒక లోకల్ మోడల్";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "స్టిక్కీ నోట్‌పై గజిబిజి డ్రాఫ్ట్, చిన్న కీబోర్డ్, కాగితపు కార్డులపై మూడు మెరుగైన రూపాలు";
 "A model on this Mac" = "ఈ Macలో ఒక మోడల్";
+"A nudge when you repeat one" = "తప్పు మళ్లీ చేస్తే ఒక గుర్తుచేత";
 "A sample chart: mistakes falling week by week" = "నమూనా చార్ట్: వారం వారం తగ్గుతున్న తప్పులు";
 "About Takes" = "Takes గురించి";
 "Access allowed" = "యాక్సెస్ అనుమతించబడింది";
@@ -215,7 +215,7 @@
 "Clear History" = "చరిత్రను క్లియర్ చేయి";
 "Clear History…" = "చరిత్రను క్లియర్ చేయి…";
 "Clear the coach’s data?" = "కోచ్ డేటాను క్లియర్ చేయాలా?";
-"Click in the box and press" = "బాక్స్‌లో క్లిక్ చేసి నొక్కండి";
+"Click in the box and press %@" = "బాక్స్‌లో క్లిక్ చేసి %@ నొక్కండి";
 "Click this icon for presets, the coach and settings." = "ప్రీసెట్‌లు, కోచ్, సెట్టింగ్‌ల కోసం ఈ ఐకాన్‌ను క్లిక్ చేయండి.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "క్లిక్ చేసి, ఒక షార్ట్‌కట్ నొక్కండి. Esc రద్దు చేస్తుంది, ⌫ క్లియర్ చేస్తుంది.";
 "Click, then press a shortcut. Esc cancels." = "క్లిక్ చేసి, ఒక షార్ట్‌కట్ నొక్కండి. Esc రద్దు చేస్తుంది.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "రూపం %lld కాపీ చేయి";
 "Copy “%@”" = "“%@” కాపీ చేయి";
 "Copy “claude auth login”" = "“claude auth login” కాపీ చేయి";
+"Costs" = "ఖర్చు";
 "Couldn't check the tone: %@" = "టోన్‌ను తనిఖీ చేయలేకపోయింది: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "`claude` కమాండ్ కనిపించలేదు. Claude Code ఇన్‌స్టాల్ చేయండి, లేదా సెట్టింగ్‌లు › మోడల్‌లో API కీకి మారండి.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "%@ కు తిరిగి వెళ్లలేకపోయింది. రూపం %lld క్లిప్‌బోర్డ్‌లో ఉంది: ⌘V నొక్కండి";
@@ -299,6 +300,7 @@
 "Duplicate" = "నకలు చేయి";
 "Duplicate, import or export" = "నకలు, ఇంపోర్ట్ లేదా ఎక్స్‌పోర్ట్";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "ప్రతి ఇంగ్లీష్ డ్రాఫ్ట్‌కు మీ ఇంజిన్ వేగవంతమైన మోడల్‌పై ఒక అదనపు తనిఖీ: సుమారు 1,000 టోకెన్‌లు, సాధారణ 3-రూపాల రన్‌పై సుమారు 40% అదనం. పాఠాలు అంతర్నిర్మిత గైడ్ నుండి ఈ Macలోనే తయారవుతాయి, కాబట్టి ఖర్చు ఉండదు.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "మీ డ్రాఫ్ట్‌లోని ప్రతి సవరణకు ఒక్క వాక్య నియమం: భవిష్యత్ “if” వర్తమాన కాలం తీసుకుంటుంది.";
 "Easily confused words" = "సులభంగా గందరగోళపడే పదాలు";
 "Edit" = "సవరించు";
 "edit" = "సవరించు";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Claude Code ఎలా ఇన్‌స్టాల్ చేయాలి";
 "I understand" = "అర్థమైంది";
 "Import…" = "ఇంపోర్ట్…";
-"in any text box." = "నొక్కండి.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "ప్యానెల్‌లో, ⌘J మీరు జవాబిస్తున్నదాన్ని జోడిస్తుంది, ⇧⌘V క్లిప్‌బోర్డ్‌ను వాడుతుంది. సందర్భం చరిత్రలో ఉంచబడదు.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Ollama లేదా LM Studioలో ఒక మోడల్ ఇన్‌స్టాల్ చేసి (ఉదాహరణకు llama3.2), మళ్లీ తనిఖీ చేయి నొక్కండి. తర్వాత సెట్టింగ్‌లలో మరో మోడల్ ఎంచుకోవచ్చు.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "ముందుగా Claude Code ఇన్‌స్టాల్ చేసి తిరిగి రండి. ఈ పేజీ ప్రతి కొన్ని సెకన్లకు మళ్లీ తనిఖీ చేస్తుంది.";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "30 రోజుల చరిత్రను ఈ Macలో మాత్రమే ఉంచు";
 "Keep at least one to continue." = "కొనసాగడానికి కనీసం ఒకటి ఉంచండి.";
 "Keeping history" = "చరిత్ర ఉంచడం";
+"Keeps" = "ఉంచుతుంది";
 "Keeps the words so far" = "ఇప్పటివరకు ఉన్న పదాలు ఉంచుతుంది";
 "kept" = "ఉంచబడింది";
 "Kept on this Mac for 30 days" = "ఈ Macలో 30 రోజులు ఉంచబడుతుంది";
@@ -447,6 +449,7 @@
 "Manage usage" = "వినియోగాన్ని నిర్వహించు";
 "Mastered" = "నేర్చుకున్నారు";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "3 వారాలు 1,000 పదాలకు 0.2 కంటే తక్కువ ఉంటే నేర్చుకున్నట్టు.";
+"Mastered and not tracked" = "నేర్చుకున్నవి, ట్రాక్ చేయనివి";
 "May read as %@" = "%@ గా అనిపించవచ్చు";
 "Medium" = "మధ్యస్థం";
 "Medium effort" = "మధ్యస్థ ప్రయత్నం";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "ChatGPTలో సైన్ ఇన్ కాలేదు";
 "Not this sign-in" = "ఈ సైన్-ఇన్ కాదు";
 "Notes or a long thread into a short reply." = "నోట్స్ లేదా పొడవైన థ్రెడ్‌ను చిన్న జవాబుగా.";
+"Notes under your takes" = "మీ రూపాల కింద గమనికలు";
 "Nothing goes to the developer. No server, no tracking." = "డెవలపర్‌కు ఏదీ వెళ్లదు. సర్వర్ లేదు, ట్రాకింగ్ లేదు.";
 "Nothing matches “%@”." = "“%@” కు ఏదీ సరిపోలేదు.";
 "Nothing was pasted. %@" = "ఏదీ పేస్ట్ కాలేదు. %@";
@@ -537,6 +541,7 @@
 "On" = "ఆన్";
 "on" = "ఆన్";
 "on this Mac" = "ఈ Macలో";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "మీరు పదే పదే చేసే తప్పులకు మాత్రమే, పేస్ట్ నిర్ధారణలో ఒక అదనపు లైన్.";
 "One line after paste whenever any pattern shows up again." = "ఏ ధోరణి మళ్లీ కనిపించినా పేస్ట్ తర్వాత ఒక లైన్.";
 "One line after paste, only when a focus area repeats." = "దృష్టి అంశం మళ్లీ వచ్చినప్పుడు మాత్రమే, పేస్ట్ తర్వాత ఒక లైన్.";
 "One thing left: %@." = "ఇంకా ఒక్కటే మిగిలింది: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "ప్రీసెట్‌లు";
 "presets" = "ప్రీసెట్‌లు";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "ప్రీసెట్‌లు వీటిలో దేనిలోనైనా జవాబివ్వగలవు, ప్రీసెట్‌లు చూడు ప్రతి భాషకూ ఒక అనువాద ప్రీసెట్ అందిస్తుంది.";
-"Press" = "ఏ టెక్స్ట్ బాక్స్‌లోనైనా";
 "Press %@ in any text box to start." = "ప్రారంభించడానికి ఏ టెక్స్ట్ బాక్స్‌లోనైనా %@ నొక్కండి.";
 "Press %@ in any text box." = "ఏ టెక్స్ట్ బాక్స్‌లోనైనా %@ నొక్కండి.";
 "Press %@ in any text field to start." = "ప్రారంభించడానికి ఏ టెక్స్ట్ ఫీల్డ్‌లోనైనా %@ నొక్కండి.";
@@ -730,6 +734,7 @@
 "Set up coach…" = "కోచ్ సెటప్ చేయి…";
 "Set up Takes" = "Takes సెటప్ చేయి";
 "Set your server's address in Settings › Model." = "సెట్టింగ్‌లు › మోడల్‌లో మీ సర్వర్ చిరునామా సెట్ చేయండి.";
+"Settings" = "సెట్టింగ్‌లు";
 "Settings for new presets" = "కొత్త ప్రీసెట్‌లకు సెట్టింగ్‌లు";
 "Settings…" = "సెట్టింగ్‌లు…";
 "Setup steps" = "సెటప్ దశలు";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "మీ డ్రాఫ్ట్‌ను మాట్లాడండి. మాట ఈ Macలోనే టెక్స్ట్‌గా మారుతుంది.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "మాట ఈ Macలోనే టెక్స్ట్‌గా మారుతుంది, ఆడియో ఎప్పుడూ బయటికి వెళ్లదు; అందుకే మీ Mac సొంతంగా చేయగల భాషలు మాత్రమే జాబితాలో ఉన్నాయి.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "ప్రసంగ గుర్తింపు ఆఫ్‌లో ఉంది. Privacy & Security › Speech Recognitionలో Takesను ఆన్ చేసి, ⌘D నొక్కండి.";
+"Start coaching" = "కోచింగ్ ప్రారంభించు";
 "Start from a ready-made preset instead?" = "బదులుగా సిద్ధమైన ప్రీసెట్‌తో మొదలుపెట్టాలా?";
 "Start using Takes" = "Takes వాడటం ప్రారంభించు";
 "Start with" = "మొదట ఇవి";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "బ్రౌజర్ కోసం వేచి ఉంది";
 "Waiting for the browser…" = "బ్రౌజర్ కోసం వేచి ఉంది…";
 "Warmer, same message." = "మరింత ఆప్యాయంగా, అదే సందేశం.";
+"Watches" = "గమనిస్తుంది";
 "Weekly counts: %@" = "వారపు లెక్కలు: %@";
 "Welcome to Takes" = "Takesకు స్వాగతం";
 "What should the coach focus on?" = "కోచ్ దేనిపై దృష్టి పెట్టాలి?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "మీ హాట్‌కీ ప్రస్తుతం వాడుకలో ఉంది, కాబట్టి కింది Takes తెరువు వాడండి.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "మీ హాట్‌కీ, మీరు మొదలుపెట్టే ప్రీసెట్‌లు. అన్నీ తర్వాత సెట్టింగ్‌లలో మార్చవచ్చు.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "OpenAI, Gemini, OpenRouter, Groq లేదా Mistral కోసం మీ సొంత API కీ, లేదా ఏదైనా OpenAI-అనుకూల సర్వర్. మీ ఖాతా కింద ప్రొవైడర్ బిల్ చేస్తారు.";
+"Your patterns · per 1,000 words" = "మీ ధోరణులు · ప్రతి 1,000 పదాలకు";
 "Your patterns, counts and lessons start over. The coach stays on." = "మీ ధోరణులు, లెక్కలు, పాఠాలు మళ్లీ మొదలవుతాయి. కోచ్ ఆన్‌లోనే ఉంటుంది.";
 "Your progress" = "మీ పురోగతి";
 "Your server" = "మీ సర్వర్";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ స్థిరంగా";
 "↓ 50% articles this month" = "↓ ఈ నెల ఆర్టికల్స్ 50%";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld తనిఖీలు · పాఠాలు ఉచితం";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

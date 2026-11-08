@@ -73,7 +73,6 @@
 "+ Add" = "+ Adicionar";
 "+ Add language" = "+ Adicionar idioma";
 "+ App" = "+ App";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing ou to + verbo";
 "1 change: %@. Result: %@" = "1 alteração: %@. Resultado: %@";
 "1 example of your voice" = "1 exemplo do seu estilo";
@@ -91,6 +90,7 @@
 "a local model" = "um modelo local";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "Um rascunho bagunçado num post-it, um teclado pequeno e três versões caprichadas em cartões de papel";
 "A model on this Mac" = "Um modelo neste Mac";
+"A nudge when you repeat one" = "Um lembrete quando você repete um erro";
 "A sample chart: mistakes falling week by week" = "Um gráfico de exemplo: erros caindo semana a semana";
 "About Takes" = "Sobre o Takes";
 "Access allowed" = "Acesso permitido";
@@ -215,7 +215,7 @@
 "Clear History" = "Limpar Histórico";
 "Clear History…" = "Limpar Histórico…";
 "Clear the coach’s data?" = "Limpar os dados do tutor?";
-"Click in the box and press" = "Clique na caixa e pressione";
+"Click in the box and press %@" = "Clique na caixa e pressione %@";
 "Click this icon for presets, the coach and settings." = "Clique neste ícone para ver predefinições, o tutor e os ajustes.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Clique e pressione um atalho. Esc cancela, ⌫ limpa.";
 "Click, then press a shortcut. Esc cancels." = "Clique e pressione um atalho. Esc cancela.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "Copiar versão %lld";
 "Copy “%@”" = "Copiar “%@”";
 "Copy “claude auth login”" = "Copiar “claude auth login”";
+"Costs" = "Custa";
 "Couldn't check the tone: %@" = "Não foi possível verificar o tom: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Não foi possível encontrar o comando `claude`. Instale o Claude Code ou mude para uma chave de API em Ajustes › Modelo.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Não foi possível voltar para %@. A versão %lld está na área de transferência: pressione ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "Duplicar";
 "Duplicate, import or export" = "Duplicar, importar ou exportar";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "Cada rascunho em inglês recebe uma verificação extra no modelo rápido do seu mecanismo: cerca de 1.000 tokens, uns 40% a mais sobre uma execução típica de 3 versões. As lições são montadas neste Mac a partir de um guia integrado, então não custam nada.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "Cada correção no seu rascunho, com uma regra de uma linha: “if” no futuro pede o presente.";
 "Easily confused words" = "Palavras que se confundem facilmente";
 "Edit" = "Editar";
 "edit" = "editar";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Como instalar o Claude Code";
 "I understand" = "Entendo";
 "Import…" = "Importar…";
-"in any text box." = "em qualquer caixa de texto.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "No painel, ⌘J adiciona aquilo a que você está respondendo e ⇧⌘V usa a área de transferência. O contexto não fica no histórico.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Instale um modelo no Ollama ou no LM Studio (por exemplo, llama3.2) e pressione Verificar de novo. Você pode escolher outro modelo depois em Ajustes.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "Instale o Claude Code primeiro e depois volte. Esta página verifica de novo a cada poucos segundos.";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "Manter 30 dias de histórico, só neste Mac";
 "Keep at least one to continue." = "Mantenha pelo menos uma para continuar.";
 "Keeping history" = "Manter histórico";
+"Keeps" = "Guarda";
 "Keeps the words so far" = "Mantém as palavras até agora";
 "kept" = "mantida";
 "Kept on this Mac for 30 days" = "Guardado neste Mac por 30 dias";
@@ -447,6 +449,7 @@
 "Manage usage" = "Gerenciar uso";
 "Mastered" = "Dominado";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "Dominado após 3 semanas abaixo de 0,2 por 1.000 palavras.";
+"Mastered and not tracked" = "Dominados e não acompanhados";
 "May read as %@" = "Pode soar %@";
 "Medium" = "Médio";
 "Medium effort" = "Esforço médio";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "Sem sessão iniciada no ChatGPT";
 "Not this sign-in" = "Este início de sessão não";
 "Notes or a long thread into a short reply." = "Notas ou uma conversa longa numa resposta curta.";
+"Notes under your takes" = "Notas abaixo das suas versões";
 "Nothing goes to the developer. No server, no tracking." = "Nada vai para o desenvolvedor. Sem servidor, sem rastreamento.";
 "Nothing matches “%@”." = "Nada corresponde a “%@”.";
 "Nothing was pasted. %@" = "Nada foi colado. %@";
@@ -537,6 +541,7 @@
 "On" = "Ativado";
 "on" = "ativado";
 "on this Mac" = "neste Mac";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "Uma linha extra na confirmação de colagem, só para erros que você repete.";
 "One line after paste whenever any pattern shows up again." = "Uma linha após colar sempre que qualquer padrão reaparecer.";
 "One line after paste, only when a focus area repeats." = "Uma linha após colar, só quando uma área de foco se repete.";
 "One thing left: %@." = "Falta um item: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "Predefinições";
 "presets" = "predefinições";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "As predefinições podem responder em qualquer um destes, e Ver predefinições oferece uma predefinição de tradução para cada um.";
-"Press" = "Pressione";
 "Press %@ in any text box to start." = "Pressione %@ em qualquer caixa de texto para começar.";
 "Press %@ in any text box." = "Pressione %@ em qualquer caixa de texto.";
 "Press %@ in any text field to start." = "Pressione %@ em qualquer campo de texto para começar.";
@@ -730,6 +734,7 @@
 "Set up coach…" = "Configurar o tutor…";
 "Set up Takes" = "Configurar o Takes";
 "Set your server's address in Settings › Model." = "Defina o endereço do seu servidor em Ajustes › Modelo.";
+"Settings" = "Ajustes";
 "Settings for new presets" = "Ajustes para novas predefinições";
 "Settings…" = "Ajustes…";
 "Setup steps" = "Etapas da configuração";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "Dite seu rascunho. A fala é convertida em texto neste Mac.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "A fala é convertida em texto neste Mac e o áudio nunca sai dele, então só aparecem os idiomas que o seu Mac reconhece sozinho.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "O reconhecimento de fala está desativado. Ative o Takes em Privacidade e Segurança › Reconhecimento de Fala e pressione ⌘D.";
+"Start coaching" = "Iniciar tutoria";
 "Start from a ready-made preset instead?" = "Começar com uma predefinição pronta?";
 "Start using Takes" = "Começar a usar o Takes";
 "Start with" = "Começar com";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "Aguardando o navegador";
 "Waiting for the browser…" = "Aguardando o navegador…";
 "Warmer, same message." = "Mais caloroso, mesma mensagem.";
+"Watches" = "Observa";
 "Weekly counts: %@" = "Contagens semanais: %@";
 "Welcome to Takes" = "Bem-vindo ao Takes";
 "What should the coach focus on?" = "Em que o tutor deve se concentrar?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "Seu atalho está em uso agora, então use Abrir o Takes abaixo.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "Seu atalho e as predefinições com que você começa. Tudo isso pode mudar depois em Ajustes.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Sua própria chave de API para OpenAI, Gemini, OpenRouter, Groq ou Mistral, ou qualquer servidor compatível com OpenAI. Cobrada pelo provedor na sua conta.";
+"Your patterns · per 1,000 words" = "Seus padrões · por 1.000 palavras";
 "Your patterns, counts and lessons start over. The coach stays on." = "Seus padrões, contagens e lições recomeçam do zero. O tutor continua ativado.";
 "Your progress" = "Seu progresso";
 "Your server" = "Seu servidor";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ estável";
 "↓ 50% articles this month" = "↓ 50% artigos este mês";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld verificações · lições grátis";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

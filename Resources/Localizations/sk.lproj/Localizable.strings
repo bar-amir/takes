@@ -73,7 +73,6 @@
 "+ Add" = "+ Pridať";
 "+ Add language" = "+ Pridať jazyk";
 "+ App" = "+ Aplikácia";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing alebo to + sloveso";
 "1 change: %@. Result: %@" = "1 zmena: %@. Výsledok: %@";
 "1 example of your voice" = "1 príklad vášho štýlu";
@@ -91,6 +90,7 @@
 "a local model" = "lokálny model";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "Neupravený koncept na samolepiacom lístku, malá klávesnica a tri vyladené verzie na papierových kartičkách";
 "A model on this Mac" = "Model na tomto Macu";
+"A nudge when you repeat one" = "Pripomienka, keď chybu zopakujete";
 "A sample chart: mistakes falling week by week" = "Ukážkový graf: chyby klesajú týždeň po týždni";
 "About Takes" = "O aplikácii Takes";
 "Access allowed" = "Prístup povolený";
@@ -215,7 +215,7 @@
 "Clear History" = "Vymazať históriu";
 "Clear History…" = "Vymazať históriu…";
 "Clear the coach’s data?" = "Vymazať údaje trénera?";
-"Click in the box and press" = "Kliknite do poľa a stlačte";
+"Click in the box and press %@" = "Kliknite do poľa a stlačte %@";
 "Click this icon for presets, the coach and settings." = "Kliknutím na túto ikonu otvoríte predvoľby, trénera a nastavenia.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Kliknite a stlačte skratku. Esc ruší, ⌫ vymaže.";
 "Click, then press a shortcut. Esc cancels." = "Kliknite a stlačte skratku. Esc ruší.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "Kopírovať verziu %lld";
 "Copy “%@”" = "Kopírovať „%@“";
 "Copy “claude auth login”" = "Kopírovať „claude auth login“";
+"Costs" = "Stojí";
 "Couldn't check the tone: %@" = "Tón sa nepodarilo skontrolovať: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Príkaz `claude` sa nenašiel. Nainštalujte Claude Code alebo prejdite na API kľúč v okne Nastavenia › Model.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Nepodarilo sa vrátiť do %@. Verzia %lld je v schránke: stlačte ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "Duplikovať";
 "Duplicate, import or export" = "Duplikovať, importovať alebo exportovať";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "Každý anglický koncept dostane jednu kontrolu navyše na rýchlom modeli vášho nástroja: asi 1 000 tokenov, zhruba o 40 % viac oproti bežnému spusteniu s 3 verziami. Lekcie sa zostavujú na tomto Macu zo vstavanej príručky, takže nič nestoja.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "Každá oprava v koncepte s pravidlom na jeden riadok: “if” o budúcnosti má prítomný čas.";
 "Easily confused words" = "Ľahko zameniteľné slová";
 "Edit" = "Upraviť";
 "edit" = "upraviť";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Ako nainštalovať Claude Code";
 "I understand" = "Rozumiem";
 "Import…" = "Importovať…";
-"in any text box." = "v ľubovoľnom textovom poli.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "V paneli ⌘J pridá, na čo odpovedáte, a ⇧⌘V použije schránku. Kontext sa v histórii neuchováva.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Nainštalujte model v Ollama alebo LM Studio (napríklad llama3.2) a stlačte Skontrolovať znova. Iný model môžete neskôr vybrať v Nastaveniach.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "Najprv nainštalujte Claude Code a potom sa vráťte. Táto stránka to každých pár sekúnd skontroluje znova.";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "Uchovávať históriu 30 dní, len na tomto Macu";
 "Keep at least one to continue." = "Ak chcete pokračovať, ponechajte aspoň jednu.";
 "Keeping history" = "Uchováva sa história";
+"Keeps" = "Uchováva";
 "Keeps the words so far" = "Zachová doterajšie slová";
 "kept" = "ponechané";
 "Kept on this Mac for 30 days" = "Uchováva sa na tomto Macu 30 dní";
@@ -447,6 +449,7 @@
 "Manage usage" = "Spravovať využitie";
 "Mastered" = "Zvládnuté";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "Zvládnuté po 3 týždňoch pod 0,2 na 1 000 slov.";
+"Mastered and not tracked" = "Zvládnuté a nesledované";
 "May read as %@" = "Môže pôsobiť %@";
 "Medium" = "Stredné";
 "Medium effort" = "Stredné úsilie";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "Nie ste prihlásení do ChatGPT";
 "Not this sign-in" = "Toto prihlásenie nesedí";
 "Notes or a long thread into a short reply." = "Poznámky alebo dlhá konverzácia na krátku odpoveď.";
+"Notes under your takes" = "Poznámky pod vašimi verziami";
 "Nothing goes to the developer. No server, no tracking." = "Vývojárovi nejde nič. Žiadny server, žiadne sledovanie.";
 "Nothing matches “%@”." = "Nič nezodpovedá „%@“.";
 "Nothing was pasted. %@" = "Nič sa nevložilo. %@";
@@ -537,6 +541,7 @@
 "On" = "Zapnuté";
 "on" = "zapnuté";
 "on this Mac" = "na tomto Macu";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "Jeden riadok navyše v potvrdení vloženia, len pri opakovaných chybách.";
 "One line after paste whenever any pattern shows up again." = "Jeden riadok po vložení vždy, keď sa niektorý vzor znova objaví.";
 "One line after paste, only when a focus area repeats." = "Jeden riadok po vložení, iba keď sa zopakuje oblasť zamerania.";
 "One thing left: %@." = "Zostáva jedna vec: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "Predvoľby";
 "presets" = "predvoľby";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "Predvoľby môžu odpovedať v ktoromkoľvek z nich a Prehliadať predvoľby ponúka pre každý predvoľbu na preklad.";
-"Press" = "Stlačte";
 "Press %@ in any text box to start." = "Začnite stlačením %@ v ľubovoľnom textovom poli.";
 "Press %@ in any text box." = "Stlačte %@ v ľubovoľnom textovom poli.";
 "Press %@ in any text field to start." = "Začnite stlačením %@ v ľubovoľnom textovom poli.";
@@ -697,7 +701,7 @@
 "Run options" = "Možnosti spustenia";
 "Run options: %@" = "Možnosti spustenia: %@";
 "Run options: %@, changed for this run" = "Možnosti spustenia: %@, zmenené pre toto spustenie";
-"Run with these settings" = "Spustiť s týmito nastaveniami";
+"Run with these settings" = "Spustiť";
 "Runs" = "Spustenia";
 "Runs on this Mac with Ollama or LM Studio, so your drafts never leave it. Small models write plainer takes than Claude. It's free, but uses this Mac's memory and battery." = "Beží na tomto Macu s Ollama alebo LM Studio, takže vaše koncepty ho nikdy neopustia. Malé modely píšu jednoduchšie verzie ako Claude. Je to zadarmo, ale využíva pamäť a batériu tohto Macu.";
 "Same as draft" = "Ako koncept";
@@ -730,6 +734,7 @@
 "Set up coach…" = "Nastaviť trénera…";
 "Set up Takes" = "Nastaviť Takes";
 "Set your server's address in Settings › Model." = "Nastavte adresu servera v okne Nastavenia › Model.";
+"Settings" = "Nastavenia";
 "Settings for new presets" = "Nastavenia pre nové predvoľby";
 "Settings…" = "Nastavenia…";
 "Setup steps" = "Kroky nastavenia";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "Nadiktujte koncept. Reč sa prevedie na text na tomto Macu.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "Reč sa prevedie na text na tomto Macu a zvuk ho nikdy neopustí, preto sú uvedené len jazyky, ktoré Mac zvládne sám.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "Rozpoznávanie reči je vypnuté. Zapnite Takes v Súkromie a bezpečnosť › Rozpoznávanie reči a stlačte ⌘D.";
+"Start coaching" = "Zapnúť trénera";
 "Start from a ready-made preset instead?" = "Začať radšej s hotovou predvoľbou?";
 "Start using Takes" = "Začať používať Takes";
 "Start with" = "Začať s";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "Čaká sa na prehliadač";
 "Waiting for the browser…" = "Čaká sa na prehliadač…";
 "Warmer, same message." = "Vrelejšie, rovnaká správa.";
+"Watches" = "Sleduje";
 "Weekly counts: %@" = "Týždenné počty: %@";
 "Welcome to Takes" = "Vitajte v Takes";
 "What should the coach focus on?" = "Na čo sa má tréner zamerať?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "Vaša klávesová skratka je teraz obsadená, použite preto Otvoriť Takes nižšie.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "Vaša klávesová skratka a predvoľby na začiatok. Všetko môžete neskôr zmeniť v Nastaveniach.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Váš vlastný API kľúč pre OpenAI, Gemini, OpenRouter, Groq alebo Mistral, alebo akýkoľvek server kompatibilný s OpenAI. Účtuje poskytovateľ na váš účet.";
+"Your patterns · per 1,000 words" = "Vaše vzory · na 1 000 slov";
 "Your patterns, counts and lessons start over. The coach stays on." = "Vaše vzory, počty a lekcie sa začnú odznova. Tréner zostane zapnutý.";
 "Your progress" = "Váš pokrok";
 "Your server" = "Váš server";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ stabilne";
 "↓ 50% articles this month" = "↓ 50 % členov tento mesiac";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · kontroly: %lld · lekcie zadarmo";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

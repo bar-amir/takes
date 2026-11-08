@@ -73,7 +73,6 @@
 "+ Add" = "+ شامل کریں";
 "+ Add language" = "+ زبان شامل کریں";
 "+ App" = "+ ایپ";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing یا to + فعل";
 "1 change: %@. Result: %@" = "1 تبدیلی: %@۔ نتیجہ: %@";
 "1 example of your voice" = "آپ کے اسلوب کی 1 مثال";
@@ -91,6 +90,7 @@
 "a local model" = "ایک لوکل ماڈل";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "چپکنے والے نوٹ پر ایک بکھرا ڈرافٹ، ایک چھوٹا کی بورڈ، اور کاغذ کے کارڈز پر تین نکھرے متبادل";
 "A model on this Mac" = "اس Mac پر ایک ماڈل";
+"A nudge when you repeat one" = "غلطی دہرانے پر یاد دہانی";
 "A sample chart: mistakes falling week by week" = "ایک نمونہ چارٹ: ہفتہ بہ ہفتہ کم ہوتی غلطیاں";
 "About Takes" = "Takes کے بارے میں";
 "Access allowed" = "رسائی کی اجازت ہے";
@@ -215,7 +215,7 @@
 "Clear History" = "ہسٹری صاف کریں";
 "Clear History…" = "ہسٹری صاف کریں…";
 "Clear the coach’s data?" = "کوچ کا ڈیٹا صاف کریں؟";
-"Click in the box and press" = "باکس میں کلک کریں اور دبائیں";
+"Click in the box and press %@" = "باکس میں کلک کریں اور %@ دبائیں";
 "Click this icon for presets, the coach and settings." = "پری سیٹس، کوچ اور سیٹنگز کے لیے اس آئیکن پر کلک کریں۔";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "کلک کریں، پھر کوئی شارٹ کٹ دبائیں۔ Esc منسوخ کرتا ہے، ⌫ صاف کرتا ہے۔";
 "Click, then press a shortcut. Esc cancels." = "کلک کریں، پھر کوئی شارٹ کٹ دبائیں۔ Esc منسوخ کرتا ہے۔";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "متبادل %lld کاپی کریں";
 "Copy “%@”" = "“%@” کاپی کریں";
 "Copy “claude auth login”" = "“claude auth login” کاپی کریں";
+"Costs" = "لاگت";
 "Couldn't check the tone: %@" = "لہجہ چیک نہیں ہو سکا: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "`claude` کمانڈ نہیں ملی۔ Claude Code انسٹال کریں، یا سیٹنگز › ماڈل میں API کی پر سوئچ کریں۔";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "%1$@ پر واپس نہیں جا سکے۔ متبادل %2$lld کلپ بورڈ پر ہے: ⌘V دبائیں";
@@ -299,6 +300,7 @@
 "Duplicate" = "ڈپلیکیٹ کریں";
 "Duplicate, import or export" = "ڈپلیکیٹ، امپورٹ یا ایکسپورٹ کریں";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "ہر انگریزی ڈرافٹ کی آپ کے انجن کے تیز ماڈل پر ایک اضافی جانچ ہوتی ہے: تقریباً 1,000 ٹوکنز، یعنی عام 3 متبادل والے رن سے تقریباً 40% زیادہ۔ اسباق اسی Mac پر ایک بلٹ اِن گائیڈ سے تیار ہوتے ہیں، اس لیے ان کا کوئی خرچ نہیں۔";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "آپ کے ڈرافٹ کی ہر اصلاح، ایک سطری اصول کے ساتھ: مستقبل والے “if” کے ساتھ حال کا صیغہ آتا ہے۔";
 "Easily confused words" = "آسانی سے الجھنے والے الفاظ";
 "Edit" = "ترمیم کریں";
 "edit" = "ترمیم";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Claude Code کیسے انسٹال کریں";
 "I understand" = "میں نے سمجھ لیا";
 "Import…" = "امپورٹ کریں…";
-"in any text box." = "کسی بھی ٹیکسٹ باکس میں۔";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "پینل میں، ⌘J وہ شامل کرتا ہے جس کا آپ جواب دے رہے ہیں اور ⇧⌘V کلپ بورڈ استعمال کرتا ہے۔ سیاق و سباق ہسٹری میں نہیں رکھا جاتا۔";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Ollama یا LM Studio میں کوئی ماڈل انسٹال کریں (مثلاً llama3.2)، پھر “دوبارہ چیک کریں” دبائیں۔ آپ بعد میں سیٹنگز میں دوسرا ماڈل منتخب کر سکتے ہیں۔";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "پہلے Claude Code انسٹال کریں، پھر واپس آئیں۔ یہ صفحہ ہر چند سیکنڈ میں دوبارہ چیک کرتا ہے۔";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "30 دنوں کی ہسٹری رکھیں، صرف اس Mac پر";
 "Keep at least one to continue." = "جاری رکھنے کے لیے کم از کم ایک رکھیں۔";
 "Keeping history" = "ہسٹری رکھی جا رہی ہے";
+"Keeps" = "محفوظ";
 "Keeps the words so far" = "اب تک کے الفاظ رکھتا ہے";
 "kept" = "رکھا گیا";
 "Kept on this Mac for 30 days" = "اس Mac پر 30 دن تک رکھا جاتا ہے";
@@ -447,6 +449,7 @@
 "Manage usage" = "استعمال منظم کریں";
 "Mastered" = "سیکھ لیا";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "3 ہفتے تک ہر 1,000 الفاظ پر 0.2 سے کم رہنے پر سیکھا ہوا مانا جاتا ہے۔";
+"Mastered and not tracked" = "سیکھے ہوئے اور غیر ٹریک شدہ";
 "May read as %@" = "%@ لگ سکتا ہے";
 "Medium" = "درمیانہ";
 "Medium effort" = "درمیانی کوشش";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "ChatGPT میں سائن اِن نہیں";
 "Not this sign-in" = "یہ سائن اِن نہیں";
 "Notes or a long thread into a short reply." = "نوٹس یا لمبی گفتگو سے ایک مختصر جواب۔";
+"Notes under your takes" = "آپ کے متبادل کے نیچے نوٹس";
 "Nothing goes to the developer. No server, no tracking." = "ڈیولپر کو کچھ نہیں جاتا۔ کوئی سرور نہیں، کوئی ٹریکنگ نہیں۔";
 "Nothing matches “%@”." = "“%@” سے کچھ میل نہیں کھاتا۔";
 "Nothing was pasted. %@" = "کچھ پیسٹ نہیں ہوا۔ %@";
@@ -537,6 +541,7 @@
 "On" = "آن";
 "on" = "آن";
 "on this Mac" = "اس Mac پر";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "پیسٹ کی تصدیق میں ایک اضافی سطر، صرف ان غلطیوں کے لیے جو آپ بار بار کرتے ہیں۔";
 "One line after paste whenever any pattern shows up again." = "کوئی بھی پیٹرن دوبارہ نظر آنے پر پیسٹ کے بعد ایک سطر۔";
 "One line after paste, only when a focus area repeats." = "پیسٹ کے بعد ایک سطر، صرف جب کوئی فوکس کا شعبہ دہرایا جائے۔";
 "One thing left: %@." = "ایک چیز باقی ہے: %@۔";
@@ -639,7 +644,6 @@
 "Presets" = "پری سیٹس";
 "presets" = "پری سیٹس";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "پری سیٹس ان میں سے کسی بھی زبان میں جواب دے سکتے ہیں، اور “پری سیٹس دیکھیں” ہر زبان کے لیے ایک ترجمے کا پری سیٹ دیتا ہے۔";
-"Press" = "دبائیں";
 "Press %@ in any text box to start." = "شروع کرنے کے لیے کسی بھی ٹیکسٹ باکس میں %@ دبائیں۔";
 "Press %@ in any text box." = "کسی بھی ٹیکسٹ باکس میں %@ دبائیں۔";
 "Press %@ in any text field to start." = "شروع کرنے کے لیے کسی بھی ٹیکسٹ فیلڈ میں %@ دبائیں۔";
@@ -730,6 +734,7 @@
 "Set up coach…" = "کوچ سیٹ اپ کریں…";
 "Set up Takes" = "Takes سیٹ اپ کریں";
 "Set your server's address in Settings › Model." = "سیٹنگز › ماڈل میں اپنے سرور کا پتہ سیٹ کریں۔";
+"Settings" = "سیٹنگز";
 "Settings for new presets" = "نئے پری سیٹس کی سیٹنگز";
 "Settings…" = "سیٹنگز…";
 "Setup steps" = "سیٹ اپ کے مراحل";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "اپنا ڈرافٹ بولیں۔ آواز کو اسی Mac پر ٹیکسٹ میں بدلا جاتا ہے۔";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "آواز کو اسی Mac پر ٹیکسٹ میں بدلا جاتا ہے اور آڈیو کبھی باہر نہیں جاتی، اس لیے صرف وہی زبانیں دکھائی گئی ہیں جو آپ کا Mac خود سمجھ سکتا ہے۔";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "اسپیچ ریکگنیشن بند ہے۔ رازداری اور سیکیورٹی › اسپیچ ریکگنیشن میں Takes آن کریں، پھر ⌘D دبائیں۔";
+"Start coaching" = "کوچنگ شروع کریں";
 "Start from a ready-made preset instead?" = "اس کے بجائے کسی تیار پری سیٹ سے شروع کریں؟";
 "Start using Takes" = "Takes استعمال کرنا شروع کریں";
 "Start with" = "اس سے شروع کریں";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "براؤزر کا انتظار";
 "Waiting for the browser…" = "براؤزر کا انتظار…";
 "Warmer, same message." = "زیادہ گرم جوشی، وہی پیغام۔";
+"Watches" = "نگرانی";
 "Weekly counts: %@" = "ہفتہ وار تعداد: %@";
 "Welcome to Takes" = "Takes میں خوش آمدید";
 "What should the coach focus on?" = "کوچ کس پر توجہ دے؟";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "آپ کی ہاٹ کی ابھی استعمال میں ہے، اس لیے نیچے “Takes کھولیں” استعمال کریں۔";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "آپ کی ہاٹ کی، اور وہ پری سیٹس جن سے آپ شروع کرتے ہیں۔ یہ سب بعد میں سیٹنگز میں بدلا جا سکتا ہے۔";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "OpenAI، Gemini، OpenRouter، Groq یا Mistral، یا کسی بھی OpenAI سے مطابقت رکھنے والے سرور کے لیے آپ کی اپنی API کی۔ آپ کے اکاؤنٹ پر فراہم کنندہ کی طرف سے بل۔";
+"Your patterns · per 1,000 words" = "آپ کے پیٹرن · فی 1,000 الفاظ";
 "Your patterns, counts and lessons start over. The coach stays on." = "آپ کے پیٹرنز، تعداد اور اسباق نئے سرے سے شروع ہوں گے۔ کوچ آن رہے گا۔";
 "Your progress" = "آپ کی پیش رفت";
 "Your server" = "آپ کا سرور";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ مستحکم";
 "↓ 50% articles this month" = "↓ اس مہینے آرٹیکلز میں 50%";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld جانچ · اسباق مفت";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

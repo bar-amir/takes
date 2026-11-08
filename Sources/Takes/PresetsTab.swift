@@ -103,7 +103,7 @@ struct PresetsTab: View {
                     .lineLimit(1)
                 Spacer(minLength: 4)
                 if index < 9 {
-                    Text("⌘\(index + 1)").font(.system(size: 11))
+                    Text(verbatim: "\u{200E}⌘\(index + 1)").font(.system(size: 11))
                         .foregroundStyle(selected ? Theme.onAccent.opacity(0.7) : Theme.tertiaryText)
                 }
             }

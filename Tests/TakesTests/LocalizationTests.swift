@@ -1,5 +1,6 @@
 import Foundation
 import XCTest
+@testable import Takes
 
 /// Every translation in `Resources/Localizations` must load, and each translated string must take the same values
 /// (%@, %lld, in any order) as its English key, or the app would show the wrong value or crash when formatting it.
@@ -61,5 +62,12 @@ final class LocalizationTests: XCTestCase {
             found[index] = length + type
         }
         return found
+    }
+
+    func testContentDirectionFollowsTheFirstLetter() {
+        XCTAssertTrue(ContentDirection.isRightToLeft("שלום, can you send it?"))
+        XCTAssertTrue(ContentDirection.isRightToLeft("3 مرحبا"))
+        XCTAssertFalse(ContentDirection.isRightToLeft("Thursday works, תודה"))
+        XCTAssertFalse(ContentDirection.isRightToLeft(""))
     }
 }

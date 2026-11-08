@@ -73,7 +73,6 @@
 "+ Add" = "+ Προσθήκη";
 "+ Add language" = "+ Προσθήκη γλώσσας";
 "+ App" = "+ Εφαρμογή";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing ή to + ρήμα";
 "1 change: %@. Result: %@" = "1 αλλαγή: %@. Αποτέλεσμα: %@";
 "1 example of your voice" = "1 παράδειγμα του ύφους σας";
@@ -91,6 +90,7 @@
 "a local model" = "ένα τοπικό μοντέλο";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "Ένα πρόχειρο προσχέδιο σε αυτοκόλλητο χαρτάκι, ένα μικρό πληκτρολόγιο και τρεις φροντισμένες εκδοχές σε χάρτινες κάρτες";
 "A model on this Mac" = "Ένα μοντέλο σε αυτό το Mac";
+"A nudge when you repeat one" = "Υπενθύμιση όταν επαναλαμβάνετε ένα λάθος";
 "A sample chart: mistakes falling week by week" = "Δείγμα γραφήματος: τα λάθη μειώνονται εβδομάδα με την εβδομάδα";
 "About Takes" = "Σχετικά με το Takes";
 "Access allowed" = "Η πρόσβαση επιτράπηκε";
@@ -215,7 +215,7 @@
 "Clear History" = "Διαγραφή ιστορικού";
 "Clear History…" = "Διαγραφή ιστορικού…";
 "Clear the coach’s data?" = "Διαγραφή των δεδομένων του προπονητή;";
-"Click in the box and press" = "Κάντε κλικ στο πλαίσιο και πατήστε";
+"Click in the box and press %@" = "Κάντε κλικ στο πλαίσιο και πατήστε %@";
 "Click this icon for presets, the coach and settings." = "Κάντε κλικ σε αυτό το εικονίδιο για πρότυπα, τον προπονητή και ρυθμίσεις.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Κάντε κλικ και πατήστε μια συντόμευση. Το Esc ακυρώνει, το ⌫ διαγράφει.";
 "Click, then press a shortcut. Esc cancels." = "Κάντε κλικ και πατήστε μια συντόμευση. Το Esc ακυρώνει.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "Αντιγραφή εκδοχής %lld";
 "Copy “%@”" = "Αντιγραφή «%@»";
 "Copy “claude auth login”" = "Αντιγραφή «claude auth login»";
+"Costs" = "Κόστος";
 "Couldn't check the tone: %@" = "Δεν ήταν δυνατός ο έλεγχος του τόνου: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Δεν βρέθηκε η εντολή `claude`. Εγκαταστήστε το Claude Code ή χρησιμοποιήστε κλειδί API στις Ρυθμίσεις › Μοντέλο.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Δεν ήταν δυνατή η επιστροφή στο %@. Η εκδοχή %lld είναι στο πρόχειρο: πατήστε ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "Αντίγραφο";
 "Duplicate, import or export" = "Αντίγραφο, εισαγωγή ή εξαγωγή";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "Κάθε αγγλικό προσχέδιο περνά έναν επιπλέον έλεγχο στο γρήγορο μοντέλο της μηχανής σας: περίπου 1.000 token, δηλαδή περίπου 40% πάνω από μια τυπική εκτέλεση 3 εκδοχών. Τα μαθήματα δημιουργούνται σε αυτό το Mac από ενσωματωμένο οδηγό, οπότε δεν κοστίζουν τίποτα.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "Κάθε διόρθωση στο προσχέδιό σας, με κανόνα μίας γραμμής: το μελλοντικό “if” παίρνει ενεστώτα.";
 "Easily confused words" = "Λέξεις που μπερδεύονται εύκολα";
 "Edit" = "Επεξεργασία";
 "edit" = "επεξεργασία";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Πώς να εγκαταστήσετε το Claude Code";
 "I understand" = "Κατανοώ";
 "Import…" = "Εισαγωγή…";
-"in any text box." = "σε οποιοδήποτε πεδίο κειμένου.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "Στο πλαίσιο, το ⌘J προσθέτει σε τι απαντάτε και το ⇧⌘V χρησιμοποιεί το πρόχειρο. Το περιεχόμενο αυτό δεν κρατιέται στο ιστορικό.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Εγκαταστήστε ένα μοντέλο στο Ollama ή στο LM Studio (π.χ. llama3.2) και πατήστε «Έλεγχος ξανά». Μπορείτε να επιλέξετε άλλο μοντέλο αργότερα στις Ρυθμίσεις.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "Εγκαταστήστε πρώτα το Claude Code και επιστρέψτε. Αυτή η σελίδα ελέγχει ξανά κάθε λίγα δευτερόλεπτα.";
@@ -402,6 +403,7 @@
 "Keep at least one to continue." = "Κρατήστε τουλάχιστον ένα για να συνεχίσετε.";
 "Keeping history" = "Διατήρηση ιστορικού";
 "Keeps the words so far" = "Κρατά τις λέξεις μέχρι τώρα";
+"Keeps" = "Κρατά";
 "kept" = "διατηρείται";
 "Kept on this Mac for 30 days" = "Διατηρείται σε αυτό το Mac για 30 ημέρες";
 "Key refused" = "Το κλειδί απορρίφθηκε";
@@ -445,6 +447,7 @@
 "Manage" = "Διαχείριση";
 "Manage ChatGPT plan usage" = "Διαχείριση χρήσης του πλάνου ChatGPT";
 "Manage usage" = "Διαχείριση χρήσης";
+"Mastered and not tracked" = "Κατακτημένα και εκτός παρακολούθησης";
 "Mastered" = "Κατακτήθηκε";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "Κατακτάται μετά από 3 εβδομάδες κάτω από 0,2 ανά 1.000 λέξεις.";
 "May read as %@" = "Μπορεί να ακουστεί %@";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "Δεν έχετε συνδεθεί στο ChatGPT";
 "Not this sign-in" = "Όχι αυτή η σύνδεση";
 "Notes or a long thread into a short reply." = "Σημειώσεις ή μια μεγάλη συζήτηση σε σύντομη απάντηση.";
+"Notes under your takes" = "Σημειώσεις κάτω από τις εκδοχές";
 "Nothing goes to the developer. No server, no tracking." = "Τίποτα δεν πηγαίνει στον δημιουργό. Κανένας διακομιστής, καμία παρακολούθηση.";
 "Nothing matches “%@”." = "Τίποτα δεν ταιριάζει με «%@».";
 "Nothing was pasted. %@" = "Δεν επικολλήθηκε τίποτα. %@";
@@ -537,6 +541,7 @@
 "On" = "Ενεργό";
 "on" = "ενεργό";
 "on this Mac" = "σε αυτό το Mac";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "Μία επιπλέον γραμμή στην επιβεβαίωση επικόλλησης, μόνο για λάθη που επαναλαμβάνετε.";
 "One line after paste whenever any pattern shows up again." = "Μία γραμμή μετά την επικόλληση όποτε εμφανιστεί ξανά οποιοδήποτε μοτίβο.";
 "One line after paste, only when a focus area repeats." = "Μία γραμμή μετά την επικόλληση, μόνο όταν επαναλαμβάνεται ένας τομέας εστίασης.";
 "One thing left: %@." = "Απομένει ένα: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "Πρότυπα";
 "presets" = "πρότυπα";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "Τα πρότυπα μπορούν να απαντούν σε οποιαδήποτε από αυτές, και η «Περιήγηση στα πρότυπα» προσφέρει ένα πρότυπο μετάφρασης για καθεμία.";
-"Press" = "Πατήστε";
 "Press %@ in any text box to start." = "Πατήστε %@ σε οποιοδήποτε πεδίο κειμένου για να ξεκινήσετε.";
 "Press %@ in any text box." = "Πατήστε %@ σε οποιοδήποτε πεδίο κειμένου.";
 "Press %@ in any text field to start." = "Πατήστε %@ σε οποιοδήποτε πεδίο κειμένου για να ξεκινήσετε.";
@@ -697,7 +701,7 @@
 "Run options" = "Επιλογές εκτέλεσης";
 "Run options: %@" = "Επιλογές εκτέλεσης: %@";
 "Run options: %@, changed for this run" = "Επιλογές εκτέλεσης: %@, άλλαξαν για αυτή την εκτέλεση";
-"Run with these settings" = "Εκτέλεση με αυτές τις ρυθμίσεις";
+"Run with these settings" = "Εκτέλεση";
 "Runs" = "Εκτελέσεις";
 "Runs on this Mac with Ollama or LM Studio, so your drafts never leave it. Small models write plainer takes than Claude. It's free, but uses this Mac's memory and battery." = "Εκτελείται σε αυτό το Mac με Ollama ή LM Studio, ώστε τα προσχέδιά σας να μη φεύγουν ποτέ από αυτό. Τα μικρά μοντέλα γράφουν πιο απλές εκδοχές από το Claude. Είναι δωρεάν, αλλά χρησιμοποιεί τη μνήμη και την μπαταρία αυτού του Mac.";
 "Same as draft" = "Όπως το προσχέδιο";
@@ -731,6 +735,7 @@
 "Set up Takes" = "Ρύθμιση του Takes";
 "Set your server's address in Settings › Model." = "Ορίστε τη διεύθυνση του διακομιστή σας στις Ρυθμίσεις › Μοντέλο.";
 "Settings for new presets" = "Ρυθμίσεις για νέα πρότυπα";
+"Settings" = "Ρυθμίσεις";
 "Settings…" = "Ρυθμίσεις…";
 "Setup steps" = "Βήματα ρύθμισης";
 "Shift Command Delete" = "Shift Command Delete";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "Υπαγορεύστε το προσχέδιό σας. Η ομιλία μετατρέπεται σε κείμενο σε αυτό το Mac.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "Η ομιλία μετατρέπεται σε κείμενο σε αυτό το Mac και ο ήχος δεν φεύγει ποτέ από αυτό, γι’ αυτό εμφανίζονται μόνο γλώσσες που το Mac σας υποστηρίζει μόνο του.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "Η αναγνώριση ομιλίας είναι ανενεργή. Ενεργοποιήστε το Takes στο Απόρρητο και ασφάλεια › Αναγνώριση ομιλίας και πατήστε ⌘D.";
+"Start coaching" = "Έναρξη καθοδήγησης";
 "Start from a ready-made preset instead?" = "Να ξεκινήσετε από ένα έτοιμο πρότυπο;";
 "Start using Takes" = "Ξεκινήστε να χρησιμοποιείτε το Takes";
 "Start with" = "Έναρξη με";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "Αναμονή για το πρόγραμμα περιήγησης";
 "Waiting for the browser…" = "Αναμονή για το πρόγραμμα περιήγησης…";
 "Warmer, same message." = "Πιο ζεστό, ίδιο μήνυμα.";
+"Watches" = "Ελέγχει";
 "Weekly counts: %@" = "Εβδομαδιαίες μετρήσεις: %@";
 "Welcome to Takes" = "Καλώς ορίσατε στο Takes";
 "What should the coach focus on?" = "Σε τι να εστιάσει ο προπονητής;";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "Το πλήκτρο συντόμευσής σας χρησιμοποιείται τώρα, οπότε χρησιμοποιήστε το «Άνοιγμα Takes» παρακάτω.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "Το πλήκτρο συντόμευσής σας και τα πρότυπα με τα οποία ξεκινάτε. Όλα αλλάζουν αργότερα στις Ρυθμίσεις.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Το δικό σας κλειδί API για OpenAI, Gemini, OpenRouter, Groq ή Mistral, ή για οποιονδήποτε διακομιστή συμβατό με OpenAI. Χρεώνεται από τον πάροχο στον λογαριασμό σας.";
+"Your patterns · per 1,000 words" = "Τα μοτίβα σας · ανά 1.000 λέξεις";
 "Your patterns, counts and lessons start over. The coach stays on." = "Τα μοτίβα, οι μετρήσεις και τα μαθήματά σας ξεκινούν από την αρχή. Ο προπονητής μένει ενεργός.";
 "Your progress" = "Η πρόοδός σας";
 "Your server" = "Ο διακομιστής σας";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ σταθερό";
 "↓ 50% articles this month" = "↓ 50% άρθρα αυτόν τον μήνα";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld έλεγχοι · δωρεάν μαθήματα";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

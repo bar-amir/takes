@@ -73,7 +73,6 @@
 "+ Add" = "+ เพิ่ม";
 "+ Add language" = "+ เพิ่มภาษา";
 "+ App" = "+ แอป";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing หรือ to + กริยา";
 "1 change: %@. Result: %@" = "1 การเปลี่ยนแปลง: %@ ผลลัพธ์: %@";
 "1 example of your voice" = "ตัวอย่างสไตล์ของคุณ 1 รายการ";
@@ -91,6 +90,7 @@
 "a local model" = "โมเดลในเครื่อง";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "ฉบับร่างยุ่งๆ บนกระดาษโน้ต แป้นพิมพ์เล็กๆ และข้อความที่ขัดเกลาแล้วสามแบบบนการ์ดกระดาษ";
 "A model on this Mac" = "โมเดลบน Mac เครื่องนี้";
+"A nudge when you repeat one" = "คำเตือนเมื่อคุณทำผิดซ้ำ";
 "A sample chart: mistakes falling week by week" = "แผนภูมิตัวอย่าง: ข้อผิดพลาดลดลงทุกสัปดาห์";
 "About Takes" = "เกี่ยวกับ Takes";
 "Access allowed" = "อนุญาตการเข้าถึงแล้ว";
@@ -215,7 +215,7 @@
 "Clear History" = "ล้างประวัติ";
 "Clear History…" = "ล้างประวัติ…";
 "Clear the coach’s data?" = "ล้างข้อมูลของโค้ชใช่ไหม";
-"Click in the box and press" = "คลิกในช่องแล้วกด";
+"Click in the box and press %@" = "คลิกในช่องแล้วกด %@";
 "Click this icon for presets, the coach and settings." = "คลิกไอคอนนี้เพื่อดูพรีเซ็ต โค้ช และการตั้งค่า";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "คลิก แล้วกดปุ่มลัด Esc ยกเลิก ⌫ ล้าง";
 "Click, then press a shortcut. Esc cancels." = "คลิก แล้วกดปุ่มลัด Esc ยกเลิก";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "คัดลอกแบบที่ %lld";
 "Copy “%@”" = "คัดลอก “%@”";
 "Copy “claude auth login”" = "คัดลอก “claude auth login”";
+"Costs" = "ค่าใช้จ่าย";
 "Couldn't check the tone: %@" = "ตรวจน้ำเสียงไม่ได้: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "ไม่พบคำสั่ง `claude` ติดตั้ง Claude Code หรือเปลี่ยนไปใช้คีย์ API ในการตั้งค่า › โมเดล";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "กลับไปที่ %@ ไม่ได้ แบบที่ %lld อยู่ในคลิปบอร์ด: กด ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "ทำสำเนา";
 "Duplicate, import or export" = "ทำสำเนา นำเข้า หรือส่งออก";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "ฉบับร่างภาษาอังกฤษแต่ละฉบับจะถูกตรวจเพิ่มหนึ่งครั้งด้วยโมเดลแบบเร็วของเอนจินคุณ: ประมาณ 1,000 โทเค็น หรือราว 40% เพิ่มจากการเขียน 3 แบบตามปกติ บทเรียนสร้างบน Mac เครื่องนี้จากคู่มือในตัว จึงไม่มีค่าใช้จ่าย";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "ทุกจุดที่แก้ในฉบับร่าง พร้อมกฎหนึ่งบรรทัด: “if” ที่พูดถึงอนาคตใช้ปัจจุบันกาล";
 "Easily confused words" = "คำที่สับสนง่าย";
 "Edit" = "แก้ไข";
 "edit" = "แก้ไข";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "วิธีติดตั้ง Claude Code";
 "I understand" = "ฉันเข้าใจ";
 "Import…" = "นำเข้า…";
-"in any text box." = "ในช่องข้อความใดก็ได้";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "ในแผง ⌘J เพิ่มข้อความที่คุณกำลังตอบ และ ⇧⌘V ใช้คลิปบอร์ด บริบทจะไม่ถูกเก็บในประวัติ";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "ติดตั้งโมเดลใน Ollama หรือ LM Studio (เช่น llama3.2) แล้วกดตรวจสอบอีกครั้ง คุณเลือกโมเดลอื่นได้ภายหลังในการตั้งค่า";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "ติดตั้ง Claude Code ก่อน แล้วกลับมาที่นี่ หน้านี้จะตรวจสอบใหม่ทุกๆ ไม่กี่วินาที";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "เก็บประวัติ 30 วัน บน Mac เครื่องนี้เท่านั้น";
 "Keep at least one to continue." = "เก็บไว้อย่างน้อยหนึ่งรายการเพื่อดำเนินการต่อ";
 "Keeping history" = "การเก็บประวัติ";
+"Keeps" = "เก็บ";
 "Keeps the words so far" = "เก็บคำที่พูดไว้จนถึงตอนนี้";
 "kept" = "เก็บไว้";
 "Kept on this Mac for 30 days" = "เก็บไว้บน Mac เครื่องนี้ 30 วัน";
@@ -447,6 +449,7 @@
 "Manage usage" = "จัดการการใช้งาน";
 "Mastered" = "เชี่ยวชาญแล้ว";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "เชี่ยวชาญเมื่อต่ำกว่า 0.2 ครั้งต่อ 1,000 คำติดต่อกัน 3 สัปดาห์";
+"Mastered and not tracked" = "เชี่ยวชาญแล้วและไม่ติดตาม";
 "May read as %@" = "อาจดู%@";
 "Medium" = "ปานกลาง";
 "Medium effort" = "ความพยายามปานกลาง";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "ยังไม่ได้ลงชื่อเข้า ChatGPT";
 "Not this sign-in" = "ไม่ใช่การลงชื่อเข้านี้";
 "Notes or a long thread into a short reply." = "บันทึกหรือเธรดยาวๆ ให้เป็นคำตอบสั้นๆ";
+"Notes under your takes" = "บันทึกใต้แต่ละแบบ";
 "Nothing goes to the developer. No server, no tracking." = "ไม่มีอะไรส่งไปยังผู้พัฒนา ไม่มีเซิร์ฟเวอร์ ไม่มีการติดตาม";
 "Nothing matches “%@”." = "ไม่มีรายการที่ตรงกับ “%@”";
 "Nothing was pasted. %@" = "ไม่มีการวาง %@";
@@ -537,6 +541,7 @@
 "On" = "เปิด";
 "on" = "เปิด";
 "on this Mac" = "บน Mac เครื่องนี้";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "เพิ่มหนึ่งบรรทัดในข้อความยืนยันการวาง เฉพาะข้อผิดพลาดที่คุณทำซ้ำ";
 "One line after paste whenever any pattern shows up again." = "หนึ่งบรรทัดหลังวาง ทุกครั้งที่รูปแบบใดๆ ปรากฏซ้ำ";
 "One line after paste, only when a focus area repeats." = "หนึ่งบรรทัดหลังวาง เฉพาะเมื่อด้านที่เน้นเกิดซ้ำ";
 "One thing left: %@." = "เหลืออีกหนึ่งอย่าง: %@";
@@ -639,7 +644,6 @@
 "Presets" = "พรีเซ็ต";
 "presets" = "พรีเซ็ต";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "พรีเซ็ตตอบเป็นภาษาใดก็ได้ในนี้ และ เรียกดูพรีเซ็ต มีพรีเซ็ตแปลสำหรับแต่ละภาษา";
-"Press" = "กด";
 "Press %@ in any text box to start." = "กด %@ ในช่องข้อความใดก็ได้เพื่อเริ่ม";
 "Press %@ in any text box." = "กด %@ ในช่องข้อความใดก็ได้";
 "Press %@ in any text field to start." = "กด %@ ในช่องข้อความใดก็ได้เพื่อเริ่ม";
@@ -730,6 +734,7 @@
 "Set up coach…" = "ตั้งค่าโค้ช…";
 "Set up Takes" = "ตั้งค่า Takes";
 "Set your server's address in Settings › Model." = "ตั้งที่อยู่เซิร์ฟเวอร์ของคุณในการตั้งค่า › โมเดล";
+"Settings" = "การตั้งค่า";
 "Settings for new presets" = "การตั้งค่าสำหรับพรีเซ็ตใหม่";
 "Settings…" = "การตั้งค่า…";
 "Setup steps" = "ขั้นตอนการตั้งค่า";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "พูดฉบับร่างของคุณ เสียงพูดจะถูกแปลงเป็นข้อความบน Mac เครื่องนี้";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "เสียงพูดจะถูกแปลงเป็นข้อความบน Mac เครื่องนี้และไม่ออกจากเครื่อง จึงแสดงเฉพาะภาษาที่ Mac ของคุณรองรับได้เอง";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "การรู้จำเสียงพูดปิดอยู่ เปิด Takes ในความเป็นส่วนตัวและความปลอดภัย › การรู้จำเสียงพูด แล้วกด ⌘D";
+"Start coaching" = "เริ่มโค้ช";
 "Start from a ready-made preset instead?" = "เริ่มจากพรีเซ็ตสำเร็จรูปแทนไหม";
 "Start using Takes" = "เริ่มใช้ Takes";
 "Start with" = "เริ่มด้วย";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "กำลังรอเบราว์เซอร์";
 "Waiting for the browser…" = "กำลังรอเบราว์เซอร์…";
 "Warmer, same message." = "อบอุ่นขึ้น ใจความเดิม";
+"Watches" = "เฝ้าดู";
 "Weekly counts: %@" = "จำนวนรายสัปดาห์: %@";
 "Welcome to Takes" = "ยินดีต้อนรับสู่ Takes";
 "What should the coach focus on?" = "โค้ชควรเน้นเรื่องอะไร";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "ปุ่มลัดของคุณถูกใช้อยู่ตอนนี้ ให้ใช้ เปิด Takes ด้านล่างแทน";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "ปุ่มลัดของคุณ และพรีเซ็ตที่ใช้เริ่มต้น ทั้งหมดเปลี่ยนได้ภายหลังในการตั้งค่า";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "คีย์ API ของคุณเองสำหรับ OpenAI, Gemini, OpenRouter, Groq หรือ Mistral หรือเซิร์ฟเวอร์ใดก็ได้ที่เข้ากันได้กับ OpenAI เรียกเก็บโดยผู้ให้บริการภายใต้บัญชีของคุณ";
+"Your patterns · per 1,000 words" = "รูปแบบของคุณ · ต่อ 1,000 คำ";
 "Your patterns, counts and lessons start over. The coach stays on." = "รูปแบบ จำนวนครั้ง และบทเรียนของคุณจะเริ่มใหม่ โค้ชยังเปิดอยู่";
 "Your progress" = "ความคืบหน้าของคุณ";
 "Your server" = "เซิร์ฟเวอร์ของคุณ";
@@ -1021,10 +1029,9 @@
 "· checking your English" = "· กำลังตรวจภาษาอังกฤษของคุณ";
 "· how you want to sound, tracked as tips" = "· น้ำเสียงที่คุณต้องการ ติดตามเป็นคำแนะนำ";
 "“%@” could be %@" = "“%@” อาจเป็น %@";
-"“%@” → “%@” · %@ time this month" = "“%@” → “%@” · ครั้ง%@ในเดือนนี้";
-"“%@” → “%@” · %@ time this month · lesson ready" = "“%@” → “%@” · ครั้ง%@ในเดือนนี้ · บทเรียนพร้อมแล้ว";
+"“%@” → “%@” · %@ time this month" = "“%@” → “%@” · ครั้ง%@ ในเดือนนี้";
+"“%@” → “%@” · %@ time this month · lesson ready" = "“%@” → “%@” · ครั้ง%@ ในเดือนนี้ · บทเรียนพร้อมแล้ว";
 "→ steady" = "→ คงที่";
 "↓ 50% articles this month" = "↓ 50% คำนำหน้านามเดือนนี้";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · ตรวจ %lld ครั้ง · บทเรียนฟรี";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

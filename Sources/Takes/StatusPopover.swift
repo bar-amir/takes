@@ -82,12 +82,20 @@ struct StatusPopoverView: View {
             }
             VStack(alignment: .leading, spacing: 4) {
                 if !isWelcome { Text("No window needed.") }
-                HStack(spacing: 4) {
-                    Text("Press")
-                    ForEach(Array(BigKeys.parts(hotKey.display).enumerated()), id: \.offset) { Kbd($0.element) }
-                    Text("in any text box.")
+                // One sentence, with the shortcut where the translation puts it: keycaps when it fits on a line,
+                // otherwise wrapping text with the shortcut in bold.
+                let sentence = String(localized: "Press \(KeysSentence<EmptyView>.marker) in any text box.")
+                let pieces = sentence.components(separatedBy: KeysSentence<EmptyView>.marker)
+                let before = pieces.first ?? "", after = pieces.count > 1 ? pieces[1] : ""
+                ViewThatFits(in: .horizontal) {
+                    KeysSentence(sentence: sentence) {
+                        HStack(spacing: 4) { ForEach(Array(BigKeys.parts(hotKey.display).enumerated()), id: \.offset) { Kbd($0.element) } }
+                            .environment(\.layoutDirection, .leftToRight)
+                    }
+                    .fixedSize()
+                    (Text(verbatim: before) + Text(verbatim: hotKey.display).fontWeight(.semibold) + Text(verbatim: after))
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                .lineLimit(1)
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel("Press \(hotKey.display) in any text box.")
                 Text(isWelcome ? "Click this icon for presets, the coach and settings." : "Or click this icon for presets, the coach and settings.")

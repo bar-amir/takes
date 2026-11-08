@@ -73,7 +73,6 @@
 "+ Add" = "+ சேர்";
 "+ Add language" = "+ மொழியைச் சேர்";
 "+ App" = "+ ஆப்";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing அல்லது to + வினை";
 "1 change: %@. Result: %@" = "1 மாற்றம்: %@. முடிவு: %@";
 "1 example of your voice" = "உங்கள் நடைக்கு 1 எடுத்துக்காட்டு";
@@ -91,6 +90,7 @@
 "a local model" = "ஒரு லோக்கல் மாடல்";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "ஒட்டுக் குறிப்பில் ஒரு குழப்பமான வரைவு, ஒரு சிறிய விசைப்பலகை, காகித அட்டைகளில் மூன்று செம்மையான வடிவங்கள்";
 "A model on this Mac" = "இந்த Mac-இல் ஒரு மாடல்";
+"A nudge when you repeat one" = "பிழையை மீண்டும் செய்தால் ஒரு நினைவூட்டல்";
 "A sample chart: mistakes falling week by week" = "ஒரு மாதிரி விளக்கப்படம்: வாரந்தோறும் குறையும் பிழைகள்";
 "About Takes" = "Takes பற்றி";
 "Access allowed" = "அணுகல் அனுமதிக்கப்பட்டது";
@@ -215,7 +215,7 @@
 "Clear History" = "வரலாற்றை அழி";
 "Clear History…" = "வரலாற்றை அழி…";
 "Clear the coach’s data?" = "பயிற்சியாளரின் தரவை அழிக்கவா?";
-"Click in the box and press" = "பெட்டியில் கிளிக் செய்து அழுத்தவும்";
+"Click in the box and press %@" = "பெட்டியில் கிளிக் செய்து %@ அழுத்தவும்";
 "Click this icon for presets, the coach and settings." = "முன்னமைவுகள், பயிற்சியாளர், அமைப்புகளுக்கு இந்த ஐகானைக் கிளிக் செய்யவும்.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "கிளிக் செய்து, குறுக்குவிசையை அழுத்தவும். Esc ரத்துசெய்யும், ⌫ அழிக்கும்.";
 "Click, then press a shortcut. Esc cancels." = "கிளிக் செய்து, குறுக்குவிசையை அழுத்தவும். Esc ரத்துசெய்யும்.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "வடிவம் %lld ஐ நகலெடு";
 "Copy “%@”" = "“%@” ஐ நகலெடு";
 "Copy “claude auth login”" = "“claude auth login” ஐ நகலெடு";
+"Costs" = "செலவு";
 "Couldn't check the tone: %@" = "தொனியைச் சரிபார்க்க முடியவில்லை: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "`claude` கட்டளை கிடைக்கவில்லை. Claude Code-ஐ நிறுவவும், அல்லது அமைப்புகள் › மாடல் இல் API சாவிக்கு மாறவும்.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "%@ க்குத் திரும்ப முடியவில்லை. வடிவம் %lld கிளிப்போர்டில் உள்ளது: ⌘V அழுத்தவும்";
@@ -299,6 +300,7 @@
 "Duplicate" = "நகலாக்கு";
 "Duplicate, import or export" = "நகலாக்கு, இறக்குமதி அல்லது ஏற்றுமதி";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "ஒவ்வொரு ஆங்கில வரைவும் உங்கள் எஞ்சினின் விரைவு மாடலில் ஒரு கூடுதல் சரிபார்ப்பைப் பெறும்: சுமார் 1,000 டோக்கன்கள், வழக்கமான 3-வடிவ இயக்கத்தின் மேல் சுமார் 40%. பாடங்கள் உள்ளமைந்த வழிகாட்டியிலிருந்து இந்த Mac-இலேயே உருவாக்கப்படுவதால் செலவில்லை.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "உங்கள் வரைவின் ஒவ்வொரு திருத்தமும் ஒரு வரி விதியுடன்: எதிர்கால “if” நிகழ்காலத்தை எடுக்கும்.";
 "Easily confused words" = "எளிதில் குழம்பும் சொற்கள்";
 "Edit" = "திருத்து";
 "edit" = "திருத்து";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Claude Code-ஐ நிறுவுவது எப்படி";
 "I understand" = "புரிந்துகொண்டேன்";
 "Import…" = "இறக்குமதி…";
-"in any text box." = "அழுத்தவும்.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "பேனலில், ⌘J நீங்கள் பதிலளிப்பதைச் சேர்க்கும், ⇧⌘V கிளிப்போர்டைப் பயன்படுத்தும். சூழல் வரலாற்றில் வைக்கப்படாது.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Ollama அல்லது LM Studio இல் ஒரு மாடலை நிறுவி (உதாரணமாக llama3.2), மீண்டும் சரிபார் அழுத்தவும். பின்னர் அமைப்புகளில் வேறு மாடலைத் தேர்ந்தெடுக்கலாம்.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "முதலில் Claude Code-ஐ நிறுவிவிட்டுத் திரும்பவும். இந்தப் பக்கம் சில வினாடிகளுக்கு ஒருமுறை மீண்டும் சரிபார்க்கும்.";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "30 நாள் வரலாற்றை இந்த Mac-இல் மட்டும் வைத்திரு";
 "Keep at least one to continue." = "தொடர குறைந்தது ஒன்றை வைத்திருக்கவும்.";
 "Keeping history" = "வரலாறு வைத்தல்";
+"Keeps" = "சேமிப்பது";
 "Keeps the words so far" = "இதுவரையிலான சொற்களை வைத்திருக்கும்";
 "kept" = "வைக்கப்பட்டது";
 "Kept on this Mac for 30 days" = "இந்த Mac-இல் 30 நாட்கள் வைக்கப்படும்";
@@ -447,6 +449,7 @@
 "Manage usage" = "பயன்பாட்டை நிர்வகி";
 "Mastered" = "தேர்ச்சி பெற்றது";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "1,000 சொற்களுக்கு 0.2 க்குக் கீழ் 3 வாரங்கள் இருந்தால் தேர்ச்சி.";
+"Mastered and not tracked" = "தேர்ச்சி பெற்றவை, கண்காணிக்கப்படாதவை";
 "May read as %@" = "%@ ஆகத் தோன்றலாம்";
 "Medium" = "நடுத்தரம்";
 "Medium effort" = "நடுத்தர முயற்சி";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "ChatGPT இல் உள்நுழையவில்லை";
 "Not this sign-in" = "இந்த உள்நுழைவு அல்ல";
 "Notes or a long thread into a short reply." = "குறிப்புகள் அல்லது நீண்ட உரையாடலை ஒரு சிறு பதிலாக.";
+"Notes under your takes" = "உங்கள் வடிவங்களின் கீழ் குறிப்புகள்";
 "Nothing goes to the developer. No server, no tracking." = "டெவலப்பருக்கு எதுவும் செல்லாது. சர்வர் இல்லை, கண்காணிப்பு இல்லை.";
 "Nothing matches “%@”." = "“%@” உடன் எதுவும் பொருந்தவில்லை.";
 "Nothing was pasted. %@" = "எதுவும் ஒட்டப்படவில்லை. %@";
@@ -537,6 +541,7 @@
 "On" = "இயக்கம்";
 "on" = "இயக்கம்";
 "on this Mac" = "இந்த Mac-இல்";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "நீங்கள் தொடர்ந்து செய்யும் பிழைகளுக்கு மட்டும், ஒட்டல் உறுதிப்படுத்தலில் ஒரு கூடுதல் வரி.";
 "One line after paste whenever any pattern shows up again." = "எந்தப் போக்கும் மீண்டும் தோன்றும்போதெல்லாம் ஒட்டிய பின் ஒரு வரி.";
 "One line after paste, only when a focus area repeats." = "கவனப் பகுதி மீண்டும் வரும்போது மட்டும், ஒட்டிய பின் ஒரு வரி.";
 "One thing left: %@." = "ஒன்று மட்டும் மீதம்: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "முன்னமைவுகள்";
 "presets" = "முன்னமைவுகள்";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "முன்னமைவுகள் இவற்றில் எதிலும் பதிலளிக்கலாம்; முன்னமைவுகளைப் பார் ஒவ்வொன்றுக்கும் ஒரு மொழிபெயர்ப்பு முன்னமைவை வழங்கும்.";
-"Press" = "எந்த உரைப் பெட்டியிலும்";
 "Press %@ in any text box to start." = "தொடங்க எந்த உரைப் பெட்டியிலும் %@ அழுத்தவும்.";
 "Press %@ in any text box." = "எந்த உரைப் பெட்டியிலும் %@ அழுத்தவும்.";
 "Press %@ in any text field to start." = "தொடங்க எந்த உரைப் புலத்திலும் %@ அழுத்தவும்.";
@@ -730,6 +734,7 @@
 "Set up coach…" = "பயிற்சியாளரை அமை…";
 "Set up Takes" = "Takes ஐ அமை";
 "Set your server's address in Settings › Model." = "அமைப்புகள் › மாடல் இல் உங்கள் சர்வர் முகவரியை அமைக்கவும்.";
+"Settings" = "அமைப்புகள்";
 "Settings for new presets" = "புதிய முன்னமைவுகளுக்கான அமைப்புகள்";
 "Settings…" = "அமைப்புகள்…";
 "Setup steps" = "அமைப்புப் படிகள்";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "உங்கள் வரைவைப் பேசுங்கள். பேச்சு இந்த Mac-இலேயே உரையாக மாற்றப்படும்.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "பேச்சு இந்த Mac-இலேயே உரையாக மாற்றப்படுகிறது, ஆடியோ ஒருபோதும் வெளியேறாது; எனவே உங்கள் Mac தானாகக் கையாளக்கூடிய மொழிகள் மட்டுமே பட்டியலில் உள்ளன.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "பேச்சு அறிதல் முடக்கத்தில் உள்ளது. Privacy & Security › Speech Recognition இல் Takes-ஐ இயக்கி, ⌘D அழுத்தவும்.";
+"Start coaching" = "பயிற்சியைத் தொடங்கு";
 "Start from a ready-made preset instead?" = "பதிலாக ஒரு தயார் முன்னமைவிலிருந்து தொடங்கவா?";
 "Start using Takes" = "Takes ஐப் பயன்படுத்தத் தொடங்கு";
 "Start with" = "தொடக்கத்தில்";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "உலாவிக்குக் காத்திருக்கிறது";
 "Waiting for the browser…" = "உலாவிக்குக் காத்திருக்கிறது…";
 "Warmer, same message." = "இன்னும் அன்பாக, அதே செய்தி.";
+"Watches" = "கவனிப்பது";
 "Weekly counts: %@" = "வாராந்திர எண்ணிக்கை: %@";
 "Welcome to Takes" = "Takes க்கு வரவேற்கிறோம்";
 "What should the coach focus on?" = "பயிற்சியாளர் எதில் கவனம் செலுத்த வேண்டும்?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "உங்கள் ஹாட்கீ இப்போது பயன்பாட்டில் உள்ளது, எனவே கீழே உள்ள Takes ஐத் திற என்பதைப் பயன்படுத்தவும்.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "உங்கள் ஹாட்கீ, நீங்கள் தொடங்கும் முன்னமைவுகள். அனைத்தையும் பின்னர் அமைப்புகளில் மாற்றலாம்.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "OpenAI, Gemini, OpenRouter, Groq அல்லது Mistral க்கான உங்கள் சொந்த API சாவி, அல்லது OpenAI-இணக்கமான எந்த சர்வரும். உங்கள் கணக்கின் கீழ் வழங்குநர் கட்டணம் விதிப்பார்.";
+"Your patterns · per 1,000 words" = "உங்கள் போக்குகள் · 1,000 சொற்களுக்கு";
 "Your patterns, counts and lessons start over. The coach stays on." = "உங்கள் போக்குகள், எண்ணிக்கைகள், பாடங்கள் மீண்டும் தொடங்கும். பயிற்சியாளர் இயக்கத்தில் இருக்கும்.";
 "Your progress" = "உங்கள் முன்னேற்றம்";
 "Your server" = "உங்கள் சர்வர்";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ நிலையாக";
 "↓ 50% articles this month" = "↓ இந்த மாதம் ஆர்ட்டிகிள்கள் 50%";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld சரிபார்ப்புகள் · பாடங்கள் இலவசம்";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

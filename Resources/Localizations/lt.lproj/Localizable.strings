@@ -73,7 +73,6 @@
 "+ Add" = "+ Pridėti";
 "+ Add language" = "+ Pridėti kalbą";
 "+ App" = "+ Programa";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing ar to + veiksmažodis";
 "1 change: %@. Result: %@" = "1 pakeitimas: %@. Rezultatas: %@";
 "1 example of your voice" = "1 jūsų stiliaus pavyzdys";
@@ -91,6 +90,7 @@
 "a local model" = "vietinis modelis";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "Netvarkingas juodraštis ant lipnaus lapelio, maža klaviatūra ir trys nušlifuoti variantai ant popierinių kortelių";
 "A model on this Mac" = "Modelis šiame Mac";
+"A nudge when you repeat one" = "Priminimas, kai kartojate klaidą";
 "A sample chart: mistakes falling week by week" = "Pavyzdinė diagrama: klaidų kas savaitę mažėja";
 "About Takes" = "Apie Takes";
 "Access allowed" = "Prieiga leista";
@@ -215,7 +215,7 @@
 "Clear History" = "Išvalyti istoriją";
 "Clear History…" = "Išvalyti istoriją…";
 "Clear the coach’s data?" = "Išvalyti trenerio duomenis?";
-"Click in the box and press" = "Spustelėkite laukelį ir paspauskite";
+"Click in the box and press %@" = "Spustelėkite laukelį ir paspauskite %@";
 "Click this icon for presets, the coach and settings." = "Spustelėkite šią piktogramą, kad pasiektumėte šablonus, trenerį ir nustatymus.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Spustelėkite, tada paspauskite klavišų derinį. Esc atšaukia, ⌫ išvalo.";
 "Click, then press a shortcut. Esc cancels." = "Spustelėkite, tada paspauskite klavišų derinį. Esc atšaukia.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "Kopijuoti variantą %lld";
 "Copy “%@”" = "Kopijuoti „%@“";
 "Copy “claude auth login”" = "Kopijuoti „claude auth login“";
+"Costs" = "Kainuoja";
 "Couldn't check the tone: %@" = "Nepavyko patikrinti tono: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Nepavyko rasti komandos `claude`. Įdiekite Claude Code arba pereikite prie API rakto skiltyje Nustatymai › Modelis.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Nepavyko grįžti į %@. Variantas %lld yra iškarpinėje: paspauskite ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "Dubliuoti";
 "Duplicate, import or export" = "Dubliuoti, importuoti ar eksportuoti";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "Kiekvienas angliškas juodraštis papildomai patikrinamas greituoju jūsų variklio modeliu: apie 1 000 žetonų, maždaug 40 % daugiau nei įprastas 3 variantų paleidimas. Pamokos sudaromos šiame Mac iš integruoto vadovo, todėl nieko nekainuoja.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "Kiekvienas juodraščio taisymas su vienos eilutės taisykle: būsimajame “if” vartojamas esamasis laikas.";
 "Easily confused words" = "Lengvai painiojami žodžiai";
 "Edit" = "Redaguoti";
 "edit" = "redaguoti";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Kaip įdiegti Claude Code";
 "I understand" = "Suprantu";
 "Import…" = "Importuoti…";
-"in any text box." = "bet kuriame teksto lauke.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "Skydelyje ⌘J prideda, į ką atsakote, o ⇧⌘V naudoja iškarpinę. Kontekstas istorijoje nesaugomas.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Įdiekite modelį per Ollama ar LM Studio (pvz., llama3.2), tada paspauskite „Tikrinti dar kartą“. Kitą modelį vėliau galėsite pasirinkti nustatymuose.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "Pirmiausia įdiekite Claude Code, tada grįžkite. Šis puslapis tikrina kas kelias sekundes.";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "Laikyti 30 dienų istoriją, tik šiame Mac";
 "Keep at least one to continue." = "Kad galėtumėte tęsti, palikite bent vieną.";
 "Keeping history" = "Istorijos saugojimas";
+"Keeps" = "Saugo";
 "Keeps the words so far" = "Palieka iki šiol pasakytus žodžius";
 "kept" = "saugoma";
 "Kept on this Mac for 30 days" = "Laikoma šiame Mac 30 dienų";
@@ -447,6 +449,7 @@
 "Manage usage" = "Tvarkyti naudojimą";
 "Mastered" = "Įvaldyta";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "Įvaldyta po 3 savaičių, kai mažiau nei 0,2 per 1 000 žodžių.";
+"Mastered and not tracked" = "Įvaldyta ir nesekama";
 "May read as %@" = "Gali pasirodyti %@";
 "Medium" = "Vidutinės";
 "Medium effort" = "Vidutinės pastangos";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "Neprisijungta prie ChatGPT";
 "Not this sign-in" = "Ne šis prisijungimas";
 "Notes or a long thread into a short reply." = "Užrašai ar ilga gija – į trumpą atsakymą.";
+"Notes under your takes" = "Pastabos po jūsų variantais";
 "Nothing goes to the developer. No server, no tracking." = "Kūrėjui niekas nesiunčiama. Jokio serverio, jokio sekimo.";
 "Nothing matches “%@”." = "Niekas neatitinka „%@“.";
 "Nothing was pasted. %@" = "Nieko neįklijuota. %@";
@@ -537,6 +541,7 @@
 "On" = "Įjungta";
 "on" = "įj.";
 "on this Mac" = "šiame Mac";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "Viena papildoma eilutė įklijavimo patvirtinime, tik kartojamoms klaidoms.";
 "One line after paste whenever any pattern shows up again." = "Viena eilutė įklijavus, kai tik pasikartoja bet koks dėsningumas.";
 "One line after paste, only when a focus area repeats." = "Viena eilutė įklijavus, tik kai pasikartoja dėmesio sritis.";
 "One thing left: %@." = "Liko vienas dalykas: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "Šablonai";
 "presets" = "šablonai";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "Šablonai gali atsakyti bet kuria iš šių kalbų, o „Naršyti šablonus“ siūlo vertimo šabloną kiekvienai.";
-"Press" = "Paspauskite";
 "Press %@ in any text box to start." = "Paspauskite %@ bet kuriame teksto lauke, kad pradėtumėte.";
 "Press %@ in any text box." = "Paspauskite %@ bet kuriame teksto lauke.";
 "Press %@ in any text field to start." = "Paspauskite %@ bet kuriame teksto lauke, kad pradėtumėte.";
@@ -730,6 +734,7 @@
 "Set up coach…" = "Nustatyti trenerį…";
 "Set up Takes" = "Nustatyti Takes";
 "Set your server's address in Settings › Model." = "Nustatykite serverio adresą skiltyje Nustatymai › Modelis.";
+"Settings" = "Nustatymai";
 "Settings for new presets" = "Naujų šablonų nustatymai";
 "Settings…" = "Nustatymai…";
 "Setup steps" = "Sąrankos žingsniai";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "Padiktuokite juodraštį. Kalba paverčiama tekstu šiame Mac.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "Kalba paverčiama tekstu šiame Mac, o garsas niekur neišeina, todėl rodomos tik kalbos, kurias jūsų Mac atpažįsta pats.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "Kalbos atpažinimas išjungtas. Įjunkite Takes skiltyje Privatumas ir saugumas › Kalbos atpažinimas, tada paspauskite ⌘D.";
+"Start coaching" = "Pradėti mokymą";
 "Start from a ready-made preset instead?" = "Gal pradėti nuo paruošto šablono?";
 "Start using Takes" = "Pradėti naudoti Takes";
 "Start with" = "Pradėti nuo";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "Laukiama naršyklės";
 "Waiting for the browser…" = "Laukiama naršyklės…";
 "Warmer, same message." = "Šilčiau, ta pati žinia.";
+"Watches" = "Stebi";
 "Weekly counts: %@" = "Savaitiniai skaičiai: %@";
 "Welcome to Takes" = "Sveiki atvykę į Takes";
 "What should the coach focus on?" = "Kam treneris turėtų skirti dėmesį?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "Jūsų spartusis klavišas šiuo metu užimtas, todėl naudokite toliau esantį „Atidaryti Takes“.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "Jūsų spartusis klavišas ir pradiniai šablonai. Visa tai vėliau galėsite pakeisti nustatymuose.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Jūsų API raktas OpenAI, Gemini, OpenRouter, Groq ar Mistral arba bet kuriam su OpenAI suderinamam serveriui. Sąskaitą išrašo teikėjas jūsų paskyrai.";
+"Your patterns · per 1,000 words" = "Jūsų dėsningumai · per 1 000 žodžių";
 "Your patterns, counts and lessons start over. The coach stays on." = "Jūsų dėsningumai, skaičiai ir pamokos pradedami iš naujo. Treneris lieka įjungtas.";
 "Your progress" = "Jūsų pažanga";
 "Your server" = "Jūsų serveris";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ stabiliai";
 "↓ 50% articles this month" = "↓ 50 % artikelių šį mėnesį";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · patikrinimų: %lld · pamokos nemokamos";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

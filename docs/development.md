@@ -44,7 +44,9 @@ The UI is translated into the languages in `Resources/Localizations`, one `<lang
 - Text given to SwiftUI as a literal (`Text("…")`, `Button("…")`, `.help("…")`) is translated already. Any other text shown to people, such as a `String` passed to the app's own components, an error message or a menu item, goes through `String(localized: "…")`. Prompts, logs and anything saved or compared stay as they are.
 - After changing UI text, run `scripts/localization.py extract` to update `en.lproj`, then `scripts/localization.py check` to see what each language is missing. `scripts/localization.py missing de` prints the English entries German doesn't have yet. Until a string is translated, the English shows.
 - Interpolated Strings become `%@` and Ints `%lld`; add new Int interpolations to `INT_INTERPOLATIONS` in the script. Translations must keep the same specifiers (in any order, as `%1$@`), and `LocalizationTests` fails if they don't.
-- To see a language, run `build/Takes.app/Contents/MacOS/Takes --snapshot <folder> -AppleLanguages '(de)'`.
+- A helper of the app's own that takes a `LocalizedStringKey` (like the coach's `tile("…")`) translates at runtime but isn't extracted until it's listed in `LOCAL_KEY_CALLS` in the script.
+- A sentence with keycaps in it is one string with `KeysSentence.marker` where the keys go (`"Press \(KeysSentence<EmptyView>.marker) in any text box."`), so each language can put the words around them in its own order.
+- To see a language, run `build/Takes.app/Contents/MacOS/Takes --snapshot <folder> -AppleLanguages '(de)'`. For Arabic, Hebrew, Persian and Urdu add `-AppleTextDirection YES` to get the mirrored right-to-left layout.
 
 ## How it calls the model
 

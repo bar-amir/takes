@@ -73,7 +73,6 @@
 "+ Add" = "+ Pievienot";
 "+ Add language" = "+ Pievienot valodu";
 "+ App" = "+ Lietotne";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing vai to + darbības vārds";
 "1 change: %@. Result: %@" = "1 izmaiņa: %@. Rezultāts: %@";
 "1 example of your voice" = "1 jūsu stila piemērs";
@@ -91,6 +90,7 @@
 "a local model" = "lokāls modelis";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "Nekārtīgs melnraksts uz līmlapiņas, maza tastatūra un trīs nopulēti varianti uz papīra kartītēm";
 "A model on this Mac" = "Modelis šajā Mac datorā";
+"A nudge when you repeat one" = "Atgādinājums, kad atkārtojat kļūdu";
 "A sample chart: mistakes falling week by week" = "Parauga diagramma: kļūdas sarūk nedēļu pēc nedēļas";
 "About Takes" = "Par Takes";
 "Access allowed" = "Piekļuve atļauta";
@@ -215,7 +215,7 @@
 "Clear History" = "Notīrīt vēsturi";
 "Clear History…" = "Notīrīt vēsturi…";
 "Clear the coach’s data?" = "Notīrīt trenera datus?";
-"Click in the box and press" = "Noklikšķiniet laukā un nospiediet";
+"Click in the box and press %@" = "Noklikšķiniet laukā un nospiediet %@";
 "Click this icon for presets, the coach and settings." = "Noklikšķiniet uz šīs ikonas, lai atvērtu sagataves, treneri un iestatījumus.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Noklikšķiniet, pēc tam nospiediet taustiņu kombināciju. Esc atceļ, ⌫ notīra.";
 "Click, then press a shortcut. Esc cancels." = "Noklikšķiniet, pēc tam nospiediet taustiņu kombināciju. Esc atceļ.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "Kopēt variantu %lld";
 "Copy “%@”" = "Kopēt “%@”";
 "Copy “claude auth login”" = "Kopēt “claude auth login”";
+"Costs" = "Maksā";
 "Couldn't check the tone: %@" = "Neizdevās pārbaudīt toni: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Neizdevās atrast komandu `claude`. Instalējiet Claude Code vai pārejiet uz API atslēgu sadaļā Iestatījumi › Modelis.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Neizdevās atgriezties pie %@. Variants %lld ir starpliktuvē: nospiediet ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "Dublēt";
 "Duplicate, import or export" = "Dublēt, importēt vai eksportēt";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "Katrs angļu melnraksts tiek vēlreiz pārbaudīts ar jūsu dzinēja ātro modeli: apmēram 1000 marķieru, aptuveni 40% papildus parastai 3 variantu palaišanai. Nodarbības tiek sagatavotas šajā Mac datorā no iebūvēta ceļveža, tāpēc tās neko nemaksā.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "Katrs labojums melnrakstā ar vienas rindas likumu: nākotnes “if” prasa tagadni.";
 "Easily confused words" = "Viegli sajaucami vārdi";
 "Edit" = "Rediģēt";
 "edit" = "rediģēt";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Kā instalēt Claude Code";
 "I understand" = "Saprotu";
 "Import…" = "Importēt…";
-"in any text box." = "jebkurā teksta laukā.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "Panelī ⌘J pievieno, uz ko atbildat, un ⇧⌘V izmanto starpliktuvi. Konteksts vēsturē netiek glabāts.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Instalējiet modeli Ollama vai LM Studio (piemēram, llama3.2), pēc tam nospiediet “Pārbaudīt vēlreiz”. Citu modeli vēlāk varat izvēlēties iestatījumos.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "Vispirms instalējiet Claude Code, tad atgriezieties. Šī lapa pārbauda ik pēc dažām sekundēm.";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "Glabāt 30 dienu vēsturi, tikai šajā Mac datorā";
 "Keep at least one to continue." = "Lai turpinātu, paturiet vismaz vienu.";
 "Keeping history" = "Vēstures glabāšana";
+"Keeps" = "Glabā";
 "Keeps the words so far" = "Saglabā līdz šim teiktos vārdus";
 "kept" = "saglabāts";
 "Kept on this Mac for 30 days" = "Glabāts šajā Mac datorā 30 dienas";
@@ -447,6 +449,7 @@
 "Manage usage" = "Pārvaldīt lietojumu";
 "Mastered" = "Apgūts";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "Apgūts pēc 3 nedēļām ar mazāk nekā 0,2 uz 1000 vārdiem.";
+"Mastered and not tracked" = "Apgūtie un neizsekotie";
 "May read as %@" = "Var šķist %@";
 "Medium" = "Vidēja";
 "Medium effort" = "Vidēja piepūle";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "Nav pierakstīts ChatGPT";
 "Not this sign-in" = "Ne šī pierakstīšanās";
 "Notes or a long thread into a short reply." = "Piezīmes vai garš pavediens – īsā atbildē.";
+"Notes under your takes" = "Piezīmes zem jūsu variantiem";
 "Nothing goes to the developer. No server, no tracking." = "Izstrādātājam nekas netiek sūtīts. Nav servera, nav izsekošanas.";
 "Nothing matches “%@”." = "Nekas neatbilst “%@”.";
 "Nothing was pasted. %@" = "Nekas netika ielīmēts. %@";
@@ -537,6 +541,7 @@
 "On" = "Ieslēgts";
 "on" = "iesl.";
 "on this Mac" = "šajā Mac datorā";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "Viena papildu rinda ielīmēšanas apstiprinājumā, tikai atkārtotām kļūdām.";
 "One line after paste whenever any pattern shows up again." = "Viena rinda pēc ielīmēšanas, kad vien kāds paraugs atkārtojas.";
 "One line after paste, only when a focus area repeats." = "Viena rinda pēc ielīmēšanas, tikai kad atkārtojas uzmanības joma.";
 "One thing left: %@." = "Atlicis viens: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "Sagataves";
 "presets" = "sagataves";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "Sagataves var atbildēt jebkurā no šīm valodām, un “Pārlūkot sagataves” piedāvā tulkošanas sagatavi katrai.";
-"Press" = "Nospiediet";
 "Press %@ in any text box to start." = "Nospiediet %@ jebkurā teksta laukā, lai sāktu.";
 "Press %@ in any text box." = "Nospiediet %@ jebkurā teksta laukā.";
 "Press %@ in any text field to start." = "Nospiediet %@ jebkurā teksta laukā, lai sāktu.";
@@ -730,6 +734,7 @@
 "Set up coach…" = "Iestatīt treneri…";
 "Set up Takes" = "Iestatīt Takes";
 "Set your server's address in Settings › Model." = "Iestatiet servera adresi sadaļā Iestatījumi › Modelis.";
+"Settings" = "Iestatījumi";
 "Settings for new presets" = "Iestatījumi jaunām sagatavēm";
 "Settings…" = "Iestatījumi…";
 "Setup steps" = "Iestatīšanas darbības";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "Nodiktējiet melnrakstu. Runa tiek pārvērsta tekstā šajā Mac datorā.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "Runa tiek pārvērsta tekstā šajā Mac datorā, un audio to nekad neatstāj, tāpēc ir uzskaitītas tikai valodas, ko jūsu Mac atpazīst pats.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "Runas atpazīšana ir izslēgta. Ieslēdziet Takes sadaļā Privātums un drošība › Runas atpazīšana, pēc tam nospiediet ⌘D.";
+"Start coaching" = "Sākt treniņu";
 "Start from a ready-made preset instead?" = "Varbūt sākt ar gatavu sagatavi?";
 "Start using Takes" = "Sākt lietot Takes";
 "Start with" = "Sākt ar";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "Gaida pārlūku";
 "Waiting for the browser…" = "Gaida pārlūku…";
 "Warmer, same message." = "Siltāk, tā pati doma.";
+"Watches" = "Vēro";
 "Weekly counts: %@" = "Iknedēļas skaits: %@";
 "Welcome to Takes" = "Laipni lūdzam Takes";
 "What should the coach focus on?" = "Kam trenerim pievērst uzmanību?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "Jūsu īsinājumtaustiņš pašlaik ir aizņemts, tāpēc izmantojiet “Atvērt Takes” zemāk.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "Jūsu īsinājumtaustiņš un sākuma sagataves. To visu vēlāk var mainīt iestatījumos.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Jūsu API atslēga OpenAI, Gemini, OpenRouter, Groq vai Mistral, vai jebkuram ar OpenAI saderīgam serverim. Rēķinu izraksta pakalpojumu sniedzējs jūsu kontam.";
+"Your patterns · per 1,000 words" = "Jūsu paraugi · uz 1000 vārdiem";
 "Your patterns, counts and lessons start over. The coach stays on." = "Jūsu paraugi, skaits un nodarbības sākas no jauna. Treneris paliek ieslēgts.";
 "Your progress" = "Jūsu progress";
 "Your server" = "Jūsu serveris";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ stabili";
 "↓ 50% articles this month" = "↓ 50% artikulu šomēnes";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld pārbaudes · nodarbības bez maksas";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

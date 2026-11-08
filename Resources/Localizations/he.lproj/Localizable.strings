@@ -73,7 +73,6 @@
 "+ Add" = "+ הוסף";
 "+ Add language" = "+ הוסף שפה";
 "+ App" = "+ יישום";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "‎-ing או to + פועל";
 "1 change: %@. Result: %@" = "שינוי אחד: %@. התוצאה: %@";
 "1 example of your voice" = "דוגמה אחת לסגנון שלך";
@@ -91,6 +90,7 @@
 "a local model" = "מודל מקומי";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "טיוטה מבולגנת על פתק דביק, מקלדת קטנה ושלוש גרסאות מלוטשות על כרטיסי נייר";
 "A model on this Mac" = "מודל ב-Mac הזה";
+"A nudge when you repeat one" = "תזכורת כשטעות חוזרת";
 "A sample chart: mistakes falling week by week" = "תרשים לדוגמה: טעויות שיורדות משבוע לשבוע";
 "About Takes" = "אודות Takes";
 "Access allowed" = "הגישה ניתנה";
@@ -215,7 +215,7 @@
 "Clear History" = "נקה היסטוריה";
 "Clear History…" = "נקה היסטוריה…";
 "Clear the coach’s data?" = "לנקות את נתוני המאמן?";
-"Click in the box and press" = "לחץ בתיבה והקש";
+"Click in the box and press %@" = "לחץ בתיבה והקש %@";
 "Click this icon for presets, the coach and settings." = "לחץ על הצלמית הזו לתבניות, למאמן ולהגדרות.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "לחץ, ואז הקש קיצור. Esc מבטל, ⌫ מנקה.";
 "Click, then press a shortcut. Esc cancels." = "לחץ, ואז הקש קיצור. Esc מבטל.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "העתק גרסה %lld";
 "Copy “%@”" = "העתק את “%@”";
 "Copy “claude auth login”" = "העתק את “claude auth login”";
+"Costs" = "עלות";
 "Couldn't check the tone: %@" = "לא ניתן היה לבדוק את הטון: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "הפקודה `claude` לא נמצאה. התקן את Claude Code, או עבור למפתח API בהגדרות › מודל.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "לא ניתן היה לחזור אל %@. גרסה %lld נמצאת בלוח: הקש ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "שכפל";
 "Duplicate, import or export" = "שכפול, ייבוא או ייצוא";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "כל טיוטה באנגלית עוברת בדיקה נוספת אחת במודל המהיר של המנוע שלך: כ-1,000 טוקנים, בערך 40% מעל הפעלה רגילה של 3 גרסאות. השיעורים נבנים ב-Mac הזה ממדריך מובנה, כך שהם לא עולים כלום.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "כל תיקון בטיוטה שלך, עם כלל בשורה אחת: “if” בעתיד מקבל זמן הווה.";
 "Easily confused words" = "מילים שקל לבלבל ביניהן";
 "Edit" = "ערוך";
 "edit" = "עריכה";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "איך להתקין את Claude Code";
 "I understand" = "הבנתי";
 "Import…" = "ייבא…";
-"in any text box." = "בכל תיבת טקסט.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "בחלונית, ⌘J מוסיף את מה שאתה עונה עליו ו-⇧⌘V משתמש בלוח. ההקשר לא נשמר בהיסטוריה.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "התקן מודל ב-Ollama או ב-LM Studio (למשל llama3.2), ואז הקש ״בדוק שוב״. אפשר לבחור מודל אחר מאוחר יותר בהגדרות.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "התקן קודם את Claude Code, ואז חזור. הדף הזה בודק שוב כל כמה שניות.";
@@ -402,6 +403,7 @@
 "Keep at least one to continue." = "השאר לפחות אחת כדי להמשיך.";
 "Keeping history" = "שמירת היסטוריה";
 "Keeps the words so far" = "שומר את המילים עד עכשיו";
+"Keeps" = "שומר";
 "kept" = "נשמר";
 "Kept on this Mac for 30 days" = "נשמר ב-Mac הזה למשך 30 יום";
 "Key refused" = "המפתח נדחה";
@@ -445,6 +447,7 @@
 "Manage" = "ניהול";
 "Manage ChatGPT plan usage" = "נהל את השימוש בתוכנית ChatGPT";
 "Manage usage" = "נהל שימוש";
+"Mastered and not tracked" = "נלמדו ולא במעקב";
 "Mastered" = "נשלט";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "נחשב נשלט אחרי 3 שבועות מתחת ל-0.2 לכל 1,000 מילים.";
 "May read as %@" = "עלולה להישמע %@";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "לא מחובר ל-ChatGPT";
 "Not this sign-in" = "לא ההתחברות הזו";
 "Notes or a long thread into a short reply." = "הערות או שרשור ארוך לתשובה קצרה.";
+"Notes under your takes" = "הערות מתחת לגרסאות";
 "Nothing goes to the developer. No server, no tracking." = "שום דבר לא נשלח למפתח. אין שרת, אין מעקב.";
 "Nothing matches “%@”." = "אין התאמה ל-“%@”.";
 "Nothing was pasted. %@" = "שום דבר לא הודבק. %@";
@@ -537,6 +541,7 @@
 "On" = "פועל";
 "on" = "פועל";
 "on this Mac" = "ב-Mac הזה";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "שורה נוספת באישור ההדבקה, רק לטעויות שחוזרות אצלך.";
 "One line after paste whenever any pattern shows up again." = "שורה אחת אחרי ההדבקה בכל פעם שדפוס כלשהו חוזר.";
 "One line after paste, only when a focus area repeats." = "שורה אחת אחרי ההדבקה, רק כשתחום מיקוד חוזר.";
 "One thing left: %@." = "נותר דבר אחד: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "תבניות";
 "presets" = "תבניות";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "תבניות יכולות לענות בכל אחת מהשפות האלה, ו״עיין בתבניות״ מציע תבנית תרגום לכל אחת.";
-"Press" = "הקש";
 "Press %@ in any text box to start." = "הקש %@ בכל תיבת טקסט כדי להתחיל.";
 "Press %@ in any text box." = "הקש %@ בכל תיבת טקסט.";
 "Press %@ in any text field to start." = "הקש %@ בכל שדה טקסט כדי להתחיל.";
@@ -731,6 +735,7 @@
 "Set up Takes" = "הגדרת Takes";
 "Set your server's address in Settings › Model." = "הגדר את כתובת השרת שלך בהגדרות › מודל.";
 "Settings for new presets" = "הגדרות לתבניות חדשות";
+"Settings" = "הגדרות";
 "Settings…" = "הגדרות…";
 "Setup steps" = "שלבי ההגדרה";
 "Shift Command Delete" = "Shift Command Delete";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "הכתב את הטיוטה שלך. הדיבור הופך לטקסט ב-Mac הזה.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "הדיבור הופך לטקסט ב-Mac הזה והשמע אף פעם לא יוצא ממנו, ולכן מוצגות רק שפות שה-Mac שלך יודע לזהות בעצמו.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "זיהוי הדיבור כבוי. הפעל את Takes ב״פרטיות ואבטחה › זיהוי דיבור״, ואז הקש ⌘D.";
+"Start coaching" = "התחל אימון";
 "Start from a ready-made preset instead?" = "להתחיל מתבנית מוכנה במקום זאת?";
 "Start using Takes" = "התחל להשתמש ב-Takes";
 "Start with" = "התחל עם";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "ממתין לדפדפן";
 "Waiting for the browser…" = "ממתין לדפדפן…";
 "Warmer, same message." = "חם יותר, אותו מסר.";
+"Watches" = "בודק";
 "Weekly counts: %@" = "ספירות שבועיות: %@";
 "Welcome to Takes" = "ברוכים הבאים ל-Takes";
 "What should the coach focus on?" = "במה המאמן צריך להתמקד?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "קיצור המקשים שלך תפוס כרגע, אז השתמש ב״פתח את Takes״ שלמטה.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "קיצור המקשים שלך, והתבניות שאיתן תתחיל. אפשר לשנות הכול מאוחר יותר בהגדרות.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "מפתח API משלך ל-OpenAI, ‏Gemini, ‏OpenRouter, ‏Groq או Mistral, או לכל שרת תואם OpenAI. החיוב על ידי הספק תחת החשבון שלך.";
+"Your patterns · per 1,000 words" = "הדפוסים שלך · לכל 1,000 מילים";
 "Your patterns, counts and lessons start over. The coach stays on." = "הדפוסים, הספירות והשיעורים שלך מתחילים מחדש. המאמן נשאר פועל.";
 "Your progress" = "ההתקדמות שלך";
 "Your server" = "השרת שלך";
@@ -1021,10 +1029,9 @@
 "· checking your English" = "· בודק את האנגלית שלך";
 "· how you want to sound, tracked as tips" = "· איך אתה רוצה להישמע, במעקב כטיפים";
 "“%@” could be %@" = "“%@” יכול להיות %@";
-"“%@” → “%@” · %@ time this month" = "“%@” → “%@” · פעם %@ החודש";
-"“%@” → “%@” · %@ time this month · lesson ready" = "“%@” → “%@” · פעם %@ החודש · שיעור מוכן";
+"“%@” → “%@” · %@ time this month" = "“%@” → “%@” · הפעם ה-%@ החודש";
+"“%@” → “%@” · %@ time this month · lesson ready" = "“%@” → “%@” · הפעם ה-%@ החודש · שיעור מוכן";
 "→ steady" = "→ יציב";
 "↓ 50% articles this month" = "↓ 50% יידוע החודש";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld בדיקות · שיעורים בחינם";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

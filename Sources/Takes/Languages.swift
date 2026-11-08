@@ -38,6 +38,12 @@ enum Languages {
         return name
     }
 
+    /// The coach's first-language choices, named and sorted in the UI language.
+    static var firstLanguageOptions: [(value: String, title: String)] {
+        common.filter { $0 != "en" }.map { (value: $0, title: displayName($0)) }
+            .sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending }
+    }
+
     /// Offered by "Add language" and "Other language": widely written languages, sorted by English name.
     static let common: [String] = ["ar", "zh", "cs", "da", "nl", "en", "fi", "fr", "de", "el", "he", "hi", "hu", "id", "it",
                                    "ja", "ko", "nb", "fa", "pl", "pt", "ro", "ru", "es", "sv", "th", "tr", "uk", "vi"]

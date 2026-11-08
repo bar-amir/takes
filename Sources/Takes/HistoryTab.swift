@@ -75,7 +75,9 @@ struct HistoryTab: View {
         }
         var result: [(title: String, entries: [HistoryEntry])] = []
         for entry in entries {
-            let title = Self.dayFormat.string(from: entry.date)
+            // "aujourd’hui", "tänään": a section header starts with a capital in every language.
+            let day = Self.dayFormat.string(from: entry.date)
+            let title = day.prefix(1).uppercased(with: .current) + day.dropFirst()
             if result.last?.title == title { result[result.count - 1].entries.append(entry) } else { result.append((title, [entry])) }
         }
         return result

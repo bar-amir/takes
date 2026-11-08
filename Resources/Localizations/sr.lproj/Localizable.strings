@@ -73,7 +73,6 @@
 "+ Add" = "+ Додај";
 "+ Add language" = "+ Додај језик";
 "+ App" = "+ Апликација";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing или to + глагол";
 "1 change: %@. Result: %@" = "1 измена: %@. Резултат: %@";
 "1 example of your voice" = "1 пример вашег стила";
@@ -91,6 +90,7 @@
 "a local model" = "локални модел";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "Неуредан нацрт на самолепљивом папирићу, мала тастатура и три уредне варијанте на папирним картицама";
 "A model on this Mac" = "Модел на овом Mac-у";
+"A nudge when you repeat one" = "Подсетник кад поновите грешку";
 "A sample chart: mistakes falling week by week" = "Пример графикона: грешке опадају из недеље у недељу";
 "About Takes" = "О апликацији Takes";
 "Access allowed" = "Приступ дозвољен";
@@ -215,7 +215,7 @@
 "Clear History" = "Обриши историју";
 "Clear History…" = "Обриши историју…";
 "Clear the coach’s data?" = "Обрисати податке тренера?";
-"Click in the box and press" = "Кликните у поље и притисните";
+"Click in the box and press %@" = "Кликните у поље и притисните %@";
 "Click this icon for presets, the coach and settings." = "Кликните ову икону за шаблоне, тренера и подешавања.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Кликните, па притисните пречицу. Esc отказује, ⌫ брише.";
 "Click, then press a shortcut. Esc cancels." = "Кликните, па притисните пречицу. Esc отказује.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "Копирај варијанту %lld";
 "Copy “%@”" = "Копирај „%@”";
 "Copy “claude auth login”" = "Копирај „claude auth login”";
+"Costs" = "Кошта";
 "Couldn't check the tone: %@" = "Провера тона није успела: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Команда `claude` није пронађена. Инсталирајте Claude Code или пређите на API кључ у Подешавањима › Модел.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Повратак у %@ није успео. Варијанта %lld је у клипборду: притисните ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "Дуплирај";
 "Duplicate, import or export" = "Дуплирај, увези или извези";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "Сваки енглески нацрт добија једну додатну проверу на брзом моделу вашег сервиса: око 1.000 токена, отприлике 40% више од уобичајеног покретања са 3 варијанте. Лекције се састављају на овом Mac-у из уграђеног водича, па ништа не коштају.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "Свака исправка у нацрту, уз правило у једном реду: “if” за будућност тражи садашње време.";
 "Easily confused words" = "Речи које се лако мешају";
 "Edit" = "Уреди";
 "edit" = "уреди";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Како да инсталирате Claude Code";
 "I understand" = "Разумем";
 "Import…" = "Увези…";
-"in any text box." = "у било ком текстуалном пољу.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "У панелу ⌘J додаје оно на шта одговарате, а ⇧⌘V користи клипборд. Контекст се не чува у историји.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Инсталирајте модел у Ollama или LM Studio (нпр. llama3.2), па притисните Провери поново. Други модел можете изабрати касније у Подешавањима.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "Прво инсталирајте Claude Code, па се вратите. Ова страница поново проверава на сваких неколико секунди.";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "Чувај 30 дана историје, само на овом Mac-у";
 "Keep at least one to continue." = "Задржите бар један да бисте наставили.";
 "Keeping history" = "Чување историје";
+"Keeps" = "Чува";
 "Keeps the words so far" = "Задржава досад изговорене речи";
 "kept" = "задржано";
 "Kept on this Mac for 30 days" = "Чува се на овом Mac-у 30 дана";
@@ -447,6 +449,7 @@
 "Manage usage" = "Управљај потрошњом";
 "Mastered" = "Савладано";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "Савладано након 3 недеље испод 0,2 на 1.000 речи.";
+"Mastered and not tracked" = "Савладани и непраћени";
 "May read as %@" = "Може деловати %@";
 "Medium" = "Средњи";
 "Medium effort" = "Средњи труд";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "Нисте пријављени на ChatGPT";
 "Not this sign-in" = "Није ова пријава";
 "Notes or a long thread into a short reply." = "Белешке или дуга преписка у кратак одговор.";
+"Notes under your takes" = "Белешке испод ваших варијанти";
 "Nothing goes to the developer. No server, no tracking." = "Ништа не иде програмеру. Без сервера, без праћења.";
 "Nothing matches “%@”." = "Ништа не одговара упиту „%@”.";
 "Nothing was pasted. %@" = "Ништа није налепљено. %@";
@@ -537,6 +541,7 @@
 "On" = "Укључено";
 "on" = "укључено";
 "on this Mac" = "на овом Mac-у";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "Један ред више у потврди налепљивања, само за грешке које понављате.";
 "One line after paste whenever any pattern shows up again." = "Један ред после налепљивања кад год се неки образац понови.";
 "One line after paste, only when a focus area repeats." = "Један ред после налепљивања, само кад се понови област фокуса.";
 "One thing left: %@." = "Остала је још једна ствар: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "Шаблони";
 "presets" = "шаблони";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "Шаблони могу да одговарају на било ком од ових језика, а Прегледај шаблоне нуди шаблон за превод за сваки.";
-"Press" = "Притисните";
 "Press %@ in any text box to start." = "Притисните %@ у било ком текстуалном пољу да бисте почели.";
 "Press %@ in any text box." = "Притисните %@ у било ком текстуалном пољу.";
 "Press %@ in any text field to start." = "Притисните %@ у било ком текстуалном пољу да бисте почели.";
@@ -697,7 +701,7 @@
 "Run options" = "Опције покретања";
 "Run options: %@" = "Опције покретања: %@";
 "Run options: %@, changed for this run" = "Опције покретања: %@, промењено за ово покретање";
-"Run with these settings" = "Покрени са овим подешавањима";
+"Run with these settings" = "Покрени";
 "Runs" = "Покретања";
 "Runs on this Mac with Ollama or LM Studio, so your drafts never leave it. Small models write plainer takes than Claude. It's free, but uses this Mac's memory and battery." = "Ради на овом Mac-у са Ollama или LM Studio, па ваши нацрти никад не напуштају Mac. Мали модели пишу једноставније варијанте од Claude-а. Бесплатно је, али троши меморију и батерију овог Mac-а.";
 "Same as draft" = "Исти као нацрт";
@@ -730,6 +734,7 @@
 "Set up coach…" = "Подеси тренера…";
 "Set up Takes" = "Подешавање апликације Takes";
 "Set your server's address in Settings › Model." = "Подесите адресу сервера у Подешавањима › Модел.";
+"Settings" = "Подешавања";
 "Settings for new presets" = "Подешавања за нове шаблоне";
 "Settings…" = "Подешавања…";
 "Setup steps" = "Кораци подешавања";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "Изговорите нацрт. Говор се претвара у текст на овом Mac-у.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "Говор се претвара у текст на овом Mac-у и звук га никад не напушта, па су наведени само језици које ваш Mac може сам да обради.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "Препознавање говора је искључено. Укључите Takes у Приватност и безбедност › Препознавање говора, па притисните ⌘D.";
+"Start coaching" = "Укључи тренера";
 "Start from a ready-made preset instead?" = "Желите ли радије да почнете од готовог шаблона?";
 "Start using Takes" = "Почни да користиш Takes";
 "Start with" = "Покрени са";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "Чекам прегледач";
 "Waiting for the browser…" = "Чекам прегледач…";
 "Warmer, same message." = "Топлије, иста порука.";
+"Watches" = "Прати";
 "Weekly counts: %@" = "Недељни бројеви: %@";
 "Welcome to Takes" = "Добро дошли у Takes";
 "What should the coach focus on?" = "На шта тренер треба да се усредсреди?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "Ваша пречица је тренутно заузета, па користите Отвори Takes испод.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "Ваша пречица и шаблони са којима почињете. Све може да се промени касније у Подешавањима.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Ваш сопствени API кључ за OpenAI, Gemini, OpenRouter, Groq или Mistral, или било који сервер компатибилан са OpenAI-јем. Наплаћује добављач под вашим налогом.";
+"Your patterns · per 1,000 words" = "Ваши обрасци · на 1.000 речи";
 "Your patterns, counts and lessons start over. The coach stays on." = "Ваши обрасци, бројеви и лекције почињу из почетка. Тренер остаје укључен.";
 "Your progress" = "Ваш напредак";
 "Your server" = "Ваш сервер";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ стабилно";
 "↓ 50% articles this month" = "↓ 50% чланова овог месеца";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · провера: %lld · лекције бесплатне";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

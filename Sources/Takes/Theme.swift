@@ -193,7 +193,8 @@ struct Kbd: View {
     init(_ text: String) { self.text = text }
 
     var body: some View {
-        Text(text)
+        // The mark keeps "⌘1" from turning into "1⌘" in right-to-left languages.
+        Text(verbatim: "\u{200E}" + text)
             .font(.system(size: 11, weight: .semibold))
             .foregroundStyle(Theme.controlText)
             .padding(.horizontal, 6)
@@ -208,6 +209,24 @@ struct Kbd: View {
     }
 }
 
+/// A translated sentence with keycaps where the translation puts the shortcut. The sentence is built with
+/// `KeysSentence.marker` in place of the keys ("Press \(KeysSentence.marker) in any text box."), so each language
+/// orders the words around them.
+struct KeysSentence<Keys: View>: View {
+    static var marker: String { "\u{FFFC}" }
+    let sentence: String
+    @ViewBuilder var keys: Keys
+
+    var body: some View {
+        let pieces = sentence.components(separatedBy: "\u{FFFC}").map { $0.trimmingCharacters(in: .whitespaces) }
+        HStack(spacing: 4) {
+            if let first = pieces.first, !first.isEmpty { Text(verbatim: first) }
+            keys
+            if pieces.count > 1, !pieces[1].isEmpty { Text(verbatim: pieces[1]) }
+        }
+    }
+}
+
 /// "⇥ presets"-style hint: keycaps followed by a label.
 struct KeyHint: View {
     let keys: [String]
@@ -215,7 +234,8 @@ struct KeyHint: View {
 
     var body: some View {
         HStack(spacing: 3) {
-            ForEach(keys, id: \.self) { Kbd($0) }
+            // Shortcuts read left to right in every language, as in macOS menus.
+            HStack(spacing: 3) { ForEach(keys, id: \.self) { Kbd($0) } }.environment(\.layoutDirection, .leftToRight)
             Text(label).font(.system(size: 12)).foregroundStyle(Theme.secondaryText).padding(.leading, 2)
         }
     }
@@ -330,4 +350,21 @@ struct FlowLayout: Layout {
         }
         return rows
     }
+}
+
+/// The direction a piece of the person's own text runs in, from its first letter: a Hebrew draft reads right to
+/// left and an English take left to right, whatever language the app is shown in.
+enum ContentDirection {
+    static func isRightToLeft(_ text: String) -> Bool {
+        for scalar in text.unicodeScalars where scalar.properties.isAlphabetic {
+            switch scalar.value {
+            case 0x0590...0x08FF, 0xFB1D...0xFDFF, 0xFE70...0xFEFF: return true
+            default: return false
+            }
+        }
+        return false
+    }
+
+    static func layout(_ text: String) -> LayoutDirection { isRightToLeft(text) ? .rightToLeft : .leftToRight }
+    static func writing(_ text: String) -> NSWritingDirection { isRightToLeft(text) ? .rightToLeft : .leftToRight }
 }

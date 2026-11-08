@@ -73,7 +73,6 @@
 "+ Add" = "+ Додати";
 "+ Add language" = "+ Додати мову";
 "+ App" = "+ Програма";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing або to + дієслово";
 "1 change: %@. Result: %@" = "1 зміна: %@. Результат: %@";
 "1 example of your voice" = "1 приклад вашого стилю";
@@ -91,6 +90,7 @@
 "a local model" = "локальна модель";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "Неохайна чернетка на стікері, маленька клавіатура і три відшліфовані варіанти на паперових картках";
 "A model on this Mac" = "Модель на цьому Mac";
+"A nudge when you repeat one" = "Нагадування, коли помилка повторюється";
 "A sample chart: mistakes falling week by week" = "Приклад графіка: помилок меншає щотижня";
 "About Takes" = "Про Takes";
 "Access allowed" = "Доступ дозволено";
@@ -215,7 +215,7 @@
 "Clear History" = "Очистити історію";
 "Clear History…" = "Очистити історію…";
 "Clear the coach’s data?" = "Очистити дані тренера?";
-"Click in the box and press" = "Клацніть у полі й натисніть";
+"Click in the box and press %@" = "Клацніть у полі й натисніть %@";
 "Click this icon for presets, the coach and settings." = "Клацніть цей значок, щоб відкрити пресети, тренера й параметри.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Клацніть, потім натисніть скорочення. Esc — скасувати, ⌫ — очистити.";
 "Click, then press a shortcut. Esc cancels." = "Клацніть, потім натисніть скорочення. Esc — скасувати.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "Скопіювати варіант %lld";
 "Copy “%@”" = "Скопіювати «%@»";
 "Copy “claude auth login”" = "Скопіювати «claude auth login»";
+"Costs" = "Коштує";
 "Couldn't check the tone: %@" = "Не вдалося перевірити тон: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Команду `claude` не знайдено. Установіть Claude Code або перейдіть на ключ API в розділі «Параметри › Модель».";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Не вдалося повернутися в %@. Варіант %lld у буфері обміну: натисніть ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "Дублювати";
 "Duplicate, import or export" = "Дублювати, імпортувати чи експортувати";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "Кожна англійська чернетка отримує одну додаткову перевірку на швидкій моделі вашого рушія: близько 1000 токенів, приблизно на 40% більше за звичайний запуск із 3 варіантами. Уроки складаються на цьому Mac за вбудованим посібником, тож нічого не коштують.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "Кожне виправлення в чернетці з правилом в один рядок: “if” про майбутнє вимагає теперішнього часу.";
 "Easily confused words" = "Слова, які легко сплутати";
 "Edit" = "Редагувати";
 "edit" = "змінити";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Як установити Claude Code";
 "I understand" = "Зрозуміло";
 "Import…" = "Імпортувати…";
-"in any text box." = "у будь-якому текстовому полі.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "На панелі ⌘J додає те, на що ви відповідаєте, а ⇧⌘V використовує буфер обміну. Контекст не зберігається в історії.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Установіть модель в Ollama або LM Studio (наприклад, llama3.2), потім натисніть «Перевірити знову». Іншу модель можна вибрати пізніше в Параметрах.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "Спершу встановіть Claude Code, потім поверніться. Ця сторінка перевіряє знову кожні кілька секунд.";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "Зберігати історію 30 днів, лише на цьому Mac";
 "Keep at least one to continue." = "Залиште хоча б один, щоб продовжити.";
 "Keeping history" = "Збереження історії";
+"Keeps" = "Зберігає";
 "Keeps the words so far" = "Зберігає вже сказане";
 "kept" = "залишено";
 "Kept on this Mac for 30 days" = "Зберігається на цьому Mac 30 днів";
@@ -447,6 +449,7 @@
 "Manage usage" = "Керувати витратами";
 "Mastered" = "Засвоєно";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "Вважається засвоєним після 3 тижнів із частотою нижче 0,2 на 1000 слів.";
+"Mastered and not tracked" = "Засвоєні й не відстежувані";
 "May read as %@" = "Може звучати як %@";
 "Medium" = "Середнє";
 "Medium effort" = "Середнє зусилля";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "Вхід у ChatGPT не виконано";
 "Not this sign-in" = "Це не той вхід";
 "Notes or a long thread into a short reply." = "Нотатки чи довге листування — у коротку відповідь.";
+"Notes under your takes" = "Нотатки під варіантами";
 "Nothing goes to the developer. No server, no tracking." = "Розробник нічого не отримує. Ні сервера, ні відстеження.";
 "Nothing matches “%@”." = "Нічого не знайдено за запитом «%@».";
 "Nothing was pasted. %@" = "Нічого не вставлено. %@";
@@ -537,6 +541,7 @@
 "On" = "Увімк.";
 "on" = "увімк.";
 "on this Mac" = "на цьому Mac";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "Один додатковий рядок у підтвердженні вставлення, лише для повторюваних помилок.";
 "One line after paste whenever any pattern shows up again." = "Один рядок після вставлення, коли будь-який шаблон трапляється знову.";
 "One line after paste, only when a focus area repeats." = "Один рядок після вставлення, лише коли повторюється область фокусу.";
 "One thing left: %@." = "Залишилося одне: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "Пресети";
 "presets" = "пресети";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "Пресети можуть відповідати будь-якою з них, а в «Огляді пресетів» є пресет перекладу для кожної.";
-"Press" = "Натисніть";
 "Press %@ in any text box to start." = "Натисніть %@ у будь-якому текстовому полі, щоб почати.";
 "Press %@ in any text box." = "Натисніть %@ у будь-якому текстовому полі.";
 "Press %@ in any text field to start." = "Натисніть %@ у будь-якому текстовому полі, щоб почати.";
@@ -697,7 +701,7 @@
 "Run options" = "Параметри запуску";
 "Run options: %@" = "Параметри запуску: %@";
 "Run options: %@, changed for this run" = "Параметри запуску: %@, змінено для цього запуску";
-"Run with these settings" = "Запустити з цими параметрами";
+"Run with these settings" = "Запустити";
 "Runs" = "Запуски";
 "Runs on this Mac with Ollama or LM Studio, so your drafts never leave it. Small models write plainer takes than Claude. It's free, but uses this Mac's memory and battery." = "Працює на цьому Mac через Ollama або LM Studio, тож чернетки його не залишають. Невеликі моделі пишуть варіанти простіше, ніж Claude. Безкоштовно, але витрачає пам’ять і заряд цього Mac.";
 "Same as draft" = "Як у чернетці";
@@ -730,6 +734,7 @@
 "Set up coach…" = "Налаштувати тренера…";
 "Set up Takes" = "Налаштування Takes";
 "Set your server's address in Settings › Model." = "Вкажіть адресу сервера в розділі «Параметри › Модель».";
+"Settings" = "Параметри";
 "Settings for new presets" = "Параметри для нових пресетів";
 "Settings…" = "Параметри…";
 "Setup steps" = "Кроки налаштування";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "Продиктуйте чернетку. Мовлення перетворюється на текст на цьому Mac.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "Мовлення перетворюється на текст на цьому Mac, і аудіо його не залишає, тож показано лише мови, з якими Mac справляється сам.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "Розпізнавання мовлення вимкнено. Увімкніть Takes у розділі «Приватність і безпека › Розпізнавання мовлення», потім натисніть ⌘D.";
+"Start coaching" = "Увімкнути тренера";
 "Start from a ready-made preset instead?" = "Почати з готового пресета?";
 "Start using Takes" = "Почати роботу з Takes";
 "Start with" = "Почати з";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "Очікування браузера";
 "Waiting for the browser…" = "Очікування браузера…";
 "Warmer, same message." = "Тепліше, суть та сама.";
+"Watches" = "Стежить";
 "Weekly counts: %@" = "Кількість за тиждень: %@";
 "Welcome to Takes" = "Вітаємо в Takes";
 "What should the coach focus on?" = "На чому тренеру зосередитися?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "Ваша гаряча клавіша зараз зайнята, тож скористайтеся «Відкрити Takes» нижче.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "Гаряча клавіша й початкові пресети. Усе це можна змінити пізніше в Параметрах.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Ваш власний ключ API для OpenAI, Gemini, OpenRouter, Groq чи Mistral або будь-якого сервера, сумісного з OpenAI. Рахунок виставляє постачальник на ваш обліковий запис.";
+"Your patterns · per 1,000 words" = "Ваші шаблони · на 1 000 слів";
 "Your patterns, counts and lessons start over. The coach stays on." = "Ваші шаблони, лічильники й уроки почнуться заново. Тренер залишиться ввімкненим.";
 "Your progress" = "Ваш прогрес";
 "Your server" = "Ваш сервер";
@@ -1021,10 +1029,9 @@
 "· checking your English" = "· перевірка англійської";
 "· how you want to sound, tracked as tips" = "· як ви хочете звучати, відстежується як поради";
 "“%@” could be %@" = "«%@» може бути %@";
-"“%@” → “%@” · %@ time this month" = "“%@” → “%@” · %@ раз цього місяця";
-"“%@” → “%@” · %@ time this month · lesson ready" = "“%@” → “%@” · %@ раз цього місяця · урок готовий";
+"“%@” → “%@” · %@ time this month" = "“%@” → “%@” · %@-й раз цього місяця";
+"“%@” → “%@” · %@ time this month · lesson ready" = "“%@” → “%@” · %@-й раз цього місяця · урок готовий";
 "→ steady" = "→ стабільно";
 "↓ 50% articles this month" = "↓ 50% артиклів цього місяця";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · перевірок: %lld · уроки безкоштовні";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

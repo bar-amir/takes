@@ -73,7 +73,6 @@
 "+ Add" = "+ Legg til";
 "+ Add language" = "+ Legg til språk";
 "+ App" = "+ App";
-"+%lld" = "+%lld";
 "-ing or to + verb" = "-ing eller to + verb";
 "1 change: %@. Result: %@" = "1 endring: %@. Resultat: %@";
 "1 example of your voice" = "1 eksempel på stilen din";
@@ -91,6 +90,7 @@
 "a local model" = "en lokal modell";
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "Et rotete utkast på en gul lapp, et lite tastatur og tre pene versjoner på papirkort";
 "A model on this Mac" = "En modell på denne Macen";
+"A nudge when you repeat one" = "Et lite dytt når du gjentar en feil";
 "A sample chart: mistakes falling week by week" = "Et eksempeldiagram: feil som faller uke for uke";
 "About Takes" = "Om Takes";
 "Access allowed" = "Tilgang tillatt";
@@ -215,7 +215,7 @@
 "Clear History" = "Tøm historikk";
 "Clear History…" = "Tøm historikk…";
 "Clear the coach’s data?" = "Vil du tømme coachens data?";
-"Click in the box and press" = "Klikk i feltet og trykk på";
+"Click in the box and press %@" = "Klikk i feltet og trykk på %@";
 "Click this icon for presets, the coach and settings." = "Klikk på dette symbolet for maler, coachen og innstillinger.";
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Klikk, og trykk deretter på en snarvei. Esc avbryter, ⌫ tømmer.";
 "Click, then press a shortcut. Esc cancels." = "Klikk, og trykk deretter på en snarvei. Esc avbryter.";
@@ -253,6 +253,7 @@
 "Copy take %lld" = "Kopier versjon %lld";
 "Copy “%@”" = "Kopier «%@»";
 "Copy “claude auth login”" = "Kopier «claude auth login»";
+"Costs" = "Koster";
 "Couldn't check the tone: %@" = "Kunne ikke sjekke tonen: %@";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Fant ikke kommandoen `claude`. Installer Claude Code, eller bytt til en API-nøkkel i Innstillinger › Modell.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Kom ikke tilbake til %@. Versjon %lld ligger på utklippstavlen: trykk på ⌘V";
@@ -299,6 +300,7 @@
 "Duplicate" = "Dupliser";
 "Duplicate, import or export" = "Dupliser, importer eller eksporter";
 "Each English draft gets one extra check on your engine’s quick model: about 1,000 tokens, roughly 40% on top of a typical 3-take run. Lessons are put together on this Mac from a built-in guide, so they cost nothing." = "Hvert engelske utkast får én ekstra sjekk med den raske modellen til motoren din: rundt 1000 tokens, omtrent 40 % i tillegg til en vanlig kjøring med 3 versjoner. Leksjoner settes sammen på denne Macen fra en innebygd guide, så de koster ingenting.";
+"Each fix in your draft, with a one-line rule: future “if” takes the present tense." = "Hver rettelse i utkastet, med en regel på én linje: fremtidig “if” tar presens.";
 "Easily confused words" = "Ord som lett forveksles";
 "Edit" = "Rediger";
 "edit" = "rediger";
@@ -387,7 +389,6 @@
 "How to install Claude Code" = "Slik installerer du Claude Code";
 "I understand" = "Jeg forstår";
 "Import…" = "Importer…";
-"in any text box." = "i hvilket som helst tekstfelt.";
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "I panelet legger ⌘J til det du svarer på, og ⇧⌘V bruker utklippstavlen. Kontekst lagres ikke i historikken.";
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Installer en modell i Ollama eller LM Studio (for eksempel llama3.2), og trykk så på Sjekk igjen. Du kan velge en annen modell senere i Innstillinger.";
 "Install Claude Code first, then come back. This page checks again every few seconds." = "Installer Claude Code først, og kom så tilbake. Denne siden sjekker på nytt med noen sekunders mellomrom.";
@@ -401,6 +402,7 @@
 "Keep 30 days of history, on this Mac only" = "Behold 30 dager med historikk, bare på denne Macen";
 "Keep at least one to continue." = "Behold minst én for å fortsette.";
 "Keeping history" = "Historikk lagres";
+"Keeps" = "Lagrer";
 "Keeps the words so far" = "Beholder ordene så langt";
 "kept" = "beholdt";
 "Kept on this Mac for 30 days" = "Lagres på denne Macen i 30 dager";
@@ -447,6 +449,7 @@
 "Manage usage" = "Administrer bruk";
 "Mastered" = "Mestret";
 "Mastered after 3 weeks under 0.2 per 1,000 words." = "Mestret etter 3 uker under 0,2 per 1000 ord.";
+"Mastered and not tracked" = "Mestret og ikke fulgt";
 "May read as %@" = "Kan virke %@";
 "Medium" = "Middels";
 "Medium effort" = "Middels innsats";
@@ -520,6 +523,7 @@
 "Not signed in to ChatGPT" = "Ikke pålogget ChatGPT";
 "Not this sign-in" = "Ikke denne påloggingen";
 "Notes or a long thread into a short reply." = "Notater eller en lang tråd til et kort svar.";
+"Notes under your takes" = "Notater under versjonene dine";
 "Nothing goes to the developer. No server, no tracking." = "Ingenting sendes til utvikleren. Ingen tjener, ingen sporing.";
 "Nothing matches “%@”." = "Ingenting samsvarer med «%@».";
 "Nothing was pasted. %@" = "Ingenting ble limt inn. %@";
@@ -537,6 +541,7 @@
 "On" = "På";
 "on" = "på";
 "on this Mac" = "på denne Macen";
+"One extra line in the paste confirmation, only for mistakes you keep making." = "Én ekstra linje i innlimingsbekreftelsen, bare for feil du stadig gjør.";
 "One line after paste whenever any pattern shows up again." = "Én linje etter innliming hver gang et mønster dukker opp igjen.";
 "One line after paste, only when a focus area repeats." = "Én linje etter innliming, bare når et fokusområde gjentas.";
 "One thing left: %@." = "Én ting gjenstår: %@.";
@@ -639,7 +644,6 @@
 "Presets" = "Maler";
 "presets" = "maler";
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "Maler kan svare på alle disse, og Se maler tilbyr en oversettelsesmal for hvert.";
-"Press" = "Trykk på";
 "Press %@ in any text box to start." = "Trykk på %@ i et tekstfelt for å starte.";
 "Press %@ in any text box." = "Trykk på %@ i et tekstfelt.";
 "Press %@ in any text field to start." = "Trykk på %@ i et tekstfelt for å starte.";
@@ -730,6 +734,7 @@
 "Set up coach…" = "Sett opp coach…";
 "Set up Takes" = "Sett opp Takes";
 "Set your server's address in Settings › Model." = "Angi adressen til tjeneren din i Innstillinger › Modell.";
+"Settings" = "Innstillinger";
 "Settings for new presets" = "Innstillinger for nye maler";
 "Settings…" = "Innstillinger…";
 "Setup steps" = "Oppsettstrinn";
@@ -781,6 +786,7 @@
 "Speak your draft. Speech is turned into text on this Mac." = "Si utkastet ditt. Tale gjøres om til tekst på denne Macen.";
 "Speech is turned into text on this Mac and the audio never leaves it, so only languages your Mac can do on its own are listed." = "Tale gjøres om til tekst på denne Macen, og lyden forlater den aldri, så bare språk Macen klarer på egen hånd, vises.";
 "Speech recognition is off. Turn on Takes in Privacy & Security › Speech Recognition, then press ⌘D." = "Talegjenkjenning er slått av. Slå på Takes i Personvern og sikkerhet › Talegjenkjenning, og trykk så på ⌘D.";
+"Start coaching" = "Start coaching";
 "Start from a ready-made preset instead?" = "Vil du starte med en ferdig mal i stedet?";
 "Start using Takes" = "Begynn å bruke Takes";
 "Start with" = "Start med";
@@ -945,6 +951,7 @@
 "Waiting for the browser" = "Venter på nettleseren";
 "Waiting for the browser…" = "Venter på nettleseren…";
 "Warmer, same message." = "Varmere, samme budskap.";
+"Watches" = "Følger";
 "Weekly counts: %@" = "Antall per uke: %@";
 "Welcome to Takes" = "Velkommen til Takes";
 "What should the coach focus on?" = "Hva skal coachen fokusere på?";
@@ -1010,6 +1017,7 @@
 "Your hotkey is taken right now, so use Open Takes below." = "Hurtigtasten din er opptatt akkurat nå, så bruk Åpne Takes nedenfor.";
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "Hurtigtasten din og malene du starter med. Alt kan endres senere i Innstillinger.";
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Din egen API-nøkkel for OpenAI, Gemini, OpenRouter, Groq eller Mistral, eller en hvilken som helst OpenAI-kompatibel tjener. Faktureres av leverandøren under kontoen din.";
+"Your patterns · per 1,000 words" = "Mønstrene dine · per 1000 ord";
 "Your patterns, counts and lessons start over. The coach stays on." = "Mønstrene, tellingene og leksjonene dine starter på nytt. Coachen forblir på.";
 "Your progress" = "Fremgangen din";
 "Your server" = "Tjeneren din";
@@ -1026,5 +1034,4 @@
 "→ steady" = "→ stabil";
 "↓ 50% articles this month" = "↓ 50% artikler denne måneden";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld sjekker · leksjoner gratis";
-"⌘%lld" = "⌘%lld";
 "⌘Z" = "⌘Z";

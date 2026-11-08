@@ -265,6 +265,7 @@ struct DraftStrip: View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Your draft").font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.tertiaryText)
             MarkedDraftText(text: draft, marks: marks)
+                .environment(\.layoutDirection, ContentDirection.layout(draft))
                 .accessibilityLabel(draft)
                 .accessibilityHint(run.findings.isEmpty ? "" : run.findings.map { String(localized: "\($0.wrong) to \($0.right)") }.joined(separator: "; "))
         }
@@ -311,7 +312,6 @@ struct MarkedDraftText: NSViewRepresentable {
         view.textContainer?.widthTracksTextView = true
         view.isVerticallyResizable = false
         view.isHorizontallyResizable = false
-        view.baseWritingDirection = .natural
         view.setContentHuggingPriority(.defaultLow, for: .horizontal)
         update(view)
         return view
@@ -329,7 +329,8 @@ struct MarkedDraftText: NSViewRepresentable {
 
     private func update(_ view: TipTextView) {
         let paragraph = NSMutableParagraphStyle()
-        paragraph.baseWritingDirection = .natural
+        paragraph.baseWritingDirection = ContentDirection.writing(text)
+        paragraph.alignment = ContentDirection.isRightToLeft(text) ? .right : .left
         paragraph.lineBreakMode = .byWordWrapping
         let string = NSMutableAttributedString(string: text, attributes: [
             .font: NSFont.systemFont(ofSize: fontSize), .foregroundColor: NSColor(Theme.text), .paragraphStyle: paragraph,
@@ -751,7 +752,7 @@ struct CoachSetupView: View {
                     .keyboardShortcut(.cancelAction)
                 Button { next() } label: {
                     HStack(spacing: 6) {
-                        Text(step < 3 ? "Continue" : (editing ? "Save" : "Start coaching"))
+                        Text(step < 3 ? "Continue" : editing ? "Save" : "Start coaching")
                         Text("↵").font(.system(size: 12)).opacity(0.85)
                     }
                 }
@@ -857,7 +858,7 @@ struct CoachSetupView: View {
     private var languageStep: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: Spacing.inner) {
-                MenuPicker(options: Languages.common.filter { $0 != "en" }.map { ($0, Languages.englishName($0)) },
+                MenuPicker(options: Languages.firstLanguageOptions,
                            selection: Binding(get: { draft.firstLanguage.isEmpty ? "he" : draft.firstLanguage }, set: { draft.firstLanguage = $0 }))
                 Button("Skip") {
                     draft.firstLanguage = ""
@@ -873,7 +874,7 @@ struct CoachSetupView: View {
     private var firstLanguageNote: String {
         let code = draft.firstLanguage.isEmpty ? "he" : draft.firstLanguage
         return CoachGuide.patterns.contains { $0.firstLanguage[code] != nil }
-            ? String(localized: "Lessons explain why a mistake feels right in \(Languages.englishName(code)).")
+            ? String(localized: "Lessons explain why a mistake feels right in \(Languages.displayName(code)).")
             : String(localized: "Lessons have notes for Hebrew so far; other languages get the rule and your own examples.")
     }
 
@@ -1047,7 +1048,7 @@ struct CoachOverviewView: View {
                     row {
                         Text("First language")
                         Spacer()
-                        MenuPicker(options: [("", String(localized: "None"))] + Languages.common.filter { $0 != "en" }.map { ($0, Languages.englishName($0)) },
+                        MenuPicker(options: [("", String(localized: "None"))] + Languages.firstLanguageOptions,
                                    selection: $store.settings.coach.firstLanguage)
                     }
                     RowDivider()
@@ -1130,15 +1131,15 @@ struct CoachOverviewView: View {
             }
             Spacer(minLength: Spacing.item)
             CoachSparkline(values: stat.weekly, color: trendColor(stat)).frame(width: 48, height: 18)
-            Text(String(format: "%.1f", stat.rate)).font(.system(size: 13, weight: .bold)).monospacedDigit().frame(width: 30, alignment: .trailing)
+            Text(stat.rate.formatted(.number.precision(.fractionLength(1)))).font(.system(size: 13, weight: .bold)).monospacedDigit().lineLimit(1).frame(width: 36, alignment: .trailing)
             Text(trendLabel(stat)).font(.system(size: 11.5)).foregroundStyle(trendColor(stat)).frame(width: 52, alignment: .leading)
             if stat.count >= CoachStore.lessonAt || coach.data.lessonsRead[stat.id] != nil {
                 Button("Lesson") { open(stat.id) }.buttonStyle(SecondaryButtonStyle(height: 26)).fixedSize()
-                    .frame(width: 112, alignment: .trailing)
+                    .frame(width: 136, alignment: .trailing)
             } else {
                 Text("lesson after \(CoachStore.lessonAt - stat.count) more")
                     .font(.system(size: 11.5)).foregroundStyle(Theme.secondaryText).lineLimit(1).fixedSize()
-                    .frame(width: 112, alignment: .trailing)
+                    .frame(width: 136, alignment: .trailing)
                     .help("A lesson is put together once a pattern shows up \(CoachStore.lessonAt) times.")
             }
         }
@@ -1161,7 +1162,7 @@ struct CoachOverviewView: View {
     }
 
     static func compact(_ n: Int) -> String {
-        n >= 1000 ? String(format: n >= 10_000 ? "%.0fk" : "%.1fk", Double(n) / 1000) : "\(n)"
+        n >= 1000 ? String(format: n >= 10_000 ? "%.0fk" : "%.1fk", locale: .current, Double(n) / 1000) : "\(n)"
     }
 }
 
