@@ -138,7 +138,8 @@ struct InstantToast: View {
 
     /// The paste toast's key cap, for a dark background.
     private func key(_ text: String) -> some View {
-        Text(text)
+        // The mark keeps "⌃⌥2" from turning into "2⌃⌥" in right-to-left languages.
+        Text(verbatim: "\u{200E}" + text)
             .font(.system(size: 11, weight: .semibold))
             .padding(.horizontal, 5)
             .padding(.vertical, 1)
@@ -156,7 +157,7 @@ struct InstantModeSection: View {
         VStack(alignment: .leading, spacing: 10) {
             PresetOptionRow(isOn: $preset.writesInstantly, title: String(localized: "Write and paste right away"),
                             detail: hasHotKey
-                                ? String(localized: "\(preset.hotKey!.display) writes 1 take and pastes it, without opening the panel. Esc cancels while it writes, ⌘Z undoes the paste. An empty text box opens the panel instead. You won't see the take before it's pasted, so read it before you send.")
+                                ? String(localized: "\(preset.hotKey!.inline) writes 1 take and pastes it, without opening the panel. Esc cancels while it writes, ⌘Z undoes the paste. An empty text box opens the panel instead. You won't see the take before it's pasted, so read it before you send.")
                                 : String(localized: "This preset's own hotkey would write 1 take and paste it, without opening the panel. It needs a hotkey of its own first."),
                             enabled: hasHotKey)
             if !hasHotKey {

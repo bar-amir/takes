@@ -235,6 +235,8 @@ struct BigKeys: View {
                     )
             }
         }
+        // Shortcuts read left to right in every language, as in macOS menus.
+        .environment(\.layoutDirection, .leftToRight)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Hotkey \(combo.display)")
     }
@@ -321,7 +323,7 @@ private struct EngineStep: View {
                         HStack(spacing: 4) {
                             Text(model.showOtherEngines ? "Other ways to connect" : "Other ways to connect: \(otherSummary(order.dropFirst()))")
                                 .lineLimit(1)
-                            Image(systemName: "chevron.right")
+                            Image(systemName: "chevron.forward")
                                 .font(.system(size: 10, weight: .semibold))
                                 .rotationEffect(.degrees(model.showOtherEngines ? 90 : 0))
                         }
@@ -360,9 +362,9 @@ private struct EngineStep: View {
     /// Where the text goes, naming who gets it for the picked engine.
     private var privacy: some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text("WHERE YOUR TEXT GOES").font(.mono(10.5, bold: true)).tracking(0.6).foregroundStyle(Theme.tertiaryText)
+            Text("WHERE YOUR TEXT GOES").font(.mono(10.5, bold: true)).tracking(Font.labelSpacing(0.6)).foregroundStyle(Theme.tertiaryText)
             if let recipient = SetupMonitor.recipient(for: settings) {
-                line("arrow.up.right", Text("Your draft and preset go from this Mac to \(Text(recipient).bold()), under your account."))
+                line("arrow.up.forward", Text("Your draft and preset go from this Mac to \(Text(recipient).bold()), under your account."))
             } else {
                 line("lock", Text("\(Text("Nothing leaves this Mac.").bold()) Your draft goes to the model server running on it."))
             }
@@ -715,7 +717,7 @@ private struct DoneStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            StepHeader(title: String(localized: "You're set"), subtitle: String(localized: "Press \(model.hotKey.display) in any text box to start."))
+            StepHeader(title: String(localized: "You're set"), subtitle: String(localized: "Press \(model.hotKey.inline) in any text box to start."))
             MenuBarHint()
             VStack(alignment: .leading, spacing: Spacing.inner) {
                 InfoRow(icon: "menubar.arrow.up.rectangle", text: String(localized: "Takes lives in the menu bar. Click its icon for presets, the coach and settings."))

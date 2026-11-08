@@ -368,3 +368,11 @@ enum ContentDirection {
     static func layout(_ text: String) -> LayoutDirection { isRightToLeft(text) ? .rightToLeft : .leftToRight }
     static func writing(_ text: String) -> NSWritingDirection { isRightToLeft(text) ? .rightToLeft : .leftToRight }
 }
+
+extension View {
+    /// A block of the person's own text, aligned to the side it starts from: an English instruction stays left-aligned
+    /// in a Hebrew or Arabic interface.
+    func contentDirection(_ text: String) -> some View {
+        frame(maxWidth: .infinity, alignment: .leading).environment(\.layoutDirection, ContentDirection.layout(text))
+    }
+}

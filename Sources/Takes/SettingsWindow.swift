@@ -266,7 +266,7 @@ struct HotKeyRecorder: View {
 
     var body: some View {
         Button(action: toggle) {
-            Text(recording ? String(localized: "Press a shortcut…") : (combo?.display ?? String(localized: "Record shortcut")))
+            Text(recording ? String(localized: "Press a shortcut…") : (combo.map { "\u{200E}" + $0.display } ?? String(localized: "Record shortcut")))
                 .font(.system(size: height < 32 ? 13 : 14, weight: .semibold))
                 .foregroundStyle(recording ? Theme.accent : Theme.text)
                 .lineLimit(1)

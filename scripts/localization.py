@@ -6,6 +6,8 @@
                                     specifiers (%@, %lld) that don't match. Exits 1 on an error.
   scripts/localization.py missing <lang>
                                     Prints the English entries <lang> doesn't have yet, ready to translate.
+  scripts/localization.py rtl       Adds the direction marks right-to-left languages need (see RTL_LANGUAGES), in place.
+                                    check reports any that are missing.
 
 A string is translatable when it reaches SwiftUI as a literal (Text("…"), Button("…"), .help("…") and the like) or is
 wrapped in String(localized: "…") or NSLocalizedString("…", comment: …). Interpolated values become %@ (String) or %lld
@@ -357,6 +359,47 @@ def specifiers(s):
     return found
 
 
+# Right-to-left languages. A sentence that starts with a Latin word ("Takes", "Claude"), a number or a placeholder would
+# otherwise be laid out left to right, scrambling its line order and punctuation, so it starts with a right-to-left
+# mark. A shortcut written in a sentence ("⌘Z") is isolated left to right, or it shows as "Z⌘".
+RTL_LANGUAGES = {"ar", "fa", "he", "ur"}
+RLM, LRI, PDI = "\u200f", "\u2066", "\u2069"
+SHORTCUT = re.compile(r"(?<![\u2066⌃⌥⇧⌘])[⌃⌥⇧⌘]+(?:Space|Return|Tab|Esc|Delete|F\d{1,2}|[A-Za-z0-9,./;'=\[\]\\`←→↑↓⇥↩⌫])?")
+
+
+def is_rtl_letter(c):
+    return "\u0590" <= c <= "\u08ff" or "\ufb1d" <= c <= "\ufdff" or "\ufe70" <= c <= "\ufeff"
+
+
+def rtl_fixed(value):
+    """value with the marks a right-to-left language needs."""
+    # Text with no right-to-left letters ("claude auth login", "esc") stays as it is: a command may be copied.
+    if not any(is_rtl_letter(c) for c in value):
+        return value.replace(RLM, "").replace(LRI, "").replace(PDI, "")
+    value = SHORTCUT.sub(lambda m: LRI + m.group(0) + PDI, value)
+    # Fragments joined to other strings (" · %@") take their direction from the whole line.
+    if value and not value[0].isspace() and value[0] not in (RLM, LRI) and not is_rtl_letter(value[0]):
+        value = RLM + value
+    return value
+
+
+def rtl():
+    entry = re.compile(r'^("(?:[^"\\]|\\.)*"\s*=\s*")((?:[^"\\]|\\.)*)(";)', re.M)
+    for lang in sorted(RTL_LANGUAGES):
+        path = LOCALIZATIONS / f"{lang}.lproj" / TABLE
+        src = path.read_text(encoding="utf-8")
+        fixed, count = [], 0
+
+        def fix(m):
+            nonlocal count
+            value = rtl_fixed(m.group(2))
+            count += value != m.group(2)
+            return m.group(1) + value + m.group(3)
+
+        path.write_text(entry.sub(fix, src), encoding="utf-8")
+        print(f"{lang}: {count} strings marked")
+
+
 def check():
     english = parse_strings(LOCALIZATIONS / "en.lproj" / TABLE)
     errors = 0
@@ -380,7 +423,10 @@ def check():
                    and ((k[:1] == " ") != (v[:1] == " ") or (k[-1:] == " ") != (v[-1:] == " "))]
         for k in spacing:
             print(f"{lang}: spaces at the ends differ: {k!r} → {table[k]!r}")
-        errors += len(bad) + len(spacing)
+        marks = [k for k, v in table.items() if lang in RTL_LANGUAGES and v != rtl_fixed(v)]
+        for k in marks:
+            print(f"{lang}: needs direction marks (run scripts/localization.py rtl): {k!r}")
+        errors += len(bad) + len(spacing) + len(marks)
         status = f"{len(table) - len(extra)}/{len(english)}"
         if missing:
             status += f", {len(missing)} missing"
@@ -405,6 +451,8 @@ if __name__ == "__main__":
         extract()
     elif command == "check":
         check()
+    elif command == "rtl":
+        rtl()
     elif command == "missing" and len(sys.argv) > 2:
         missing(sys.argv[2])
     else:

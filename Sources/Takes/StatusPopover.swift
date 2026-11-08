@@ -93,7 +93,7 @@ struct StatusPopoverView: View {
                             .environment(\.layoutDirection, .leftToRight)
                     }
                     .fixedSize()
-                    (Text(verbatim: before) + Text(verbatim: hotKey.display).fontWeight(.semibold) + Text(verbatim: after))
+                    (Text(verbatim: before) + Text(verbatim: hotKey.inline).fontWeight(.semibold) + Text(verbatim: after))
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .accessibilityElement(children: .ignore)

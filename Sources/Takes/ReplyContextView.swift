@@ -34,7 +34,7 @@ struct ReplyContextBar: View {
         return HStack(spacing: Spacing.item) {
             Button(action: model.startEditingContext) {
                 HStack(spacing: Spacing.item) {
-                    Image(systemName: "arrowshape.turn.up.left")
+                    Image(systemName: "arrowshape.turn.up.backward")
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(Theme.secondaryText)
                     Text("Replying to").font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.controlText).fixedSize()

@@ -191,7 +191,7 @@ struct SetupView: View {
                 Text(monitor.allSet ? "You're all set" : "Takes needs a couple of things")
                     .font(.system(size: 22, weight: .bold))
                 Text(monitor.allSet
-                     ? "Press \(store.settings.summonHotKey.display) in any text field to start."
+                     ? "Press \(store.settings.summonHotKey.inline) in any text field to start."
                      : "This window updates by itself as you finish each step.")
                     .font(.system(size: 14))
                     .foregroundStyle(Theme.secondaryText)
@@ -339,8 +339,8 @@ struct SetupView: View {
     private var hotKeyStep: some View {
         let free = monitor.takenHotKeys.isEmpty
         let taken = monitor.takenHotKeys.map { combo in
-            SystemShortcuts.owner(of: combo).map { String(localized: "\(combo.display) (macOS: \($0))") }
-                ?? String(localized: "\(combo.display) (another app)")
+            SystemShortcuts.owner(of: combo).map { String(localized: "\(combo.inline) (macOS: \($0))") }
+                ?? String(localized: "\(combo.inline) (another app)")
         }.joined(separator: ", ")
         return SetupStep(number: 4, title: String(localized: "Hotkey"), done: free,
                          status: free ? store.settings.summonHotKey.display : String(localized: "Taken: \(taken)"),

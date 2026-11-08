@@ -47,6 +47,9 @@ The UI is translated into the languages in `Resources/Localizations`, one `<lang
 - A helper of the app's own that takes a `LocalizedStringKey` (like the coach's `tile("…")`) translates at runtime but isn't extracted until it's listed in `LOCAL_KEY_CALLS` in the script.
 - A sentence with keycaps in it is one string with `KeysSentence.marker` where the keys go (`"Press \(KeysSentence<EmptyView>.marker) in any text box."`), so each language can put the words around them in its own order.
 - To see a language, run `build/Takes.app/Contents/MacOS/Takes --snapshot <folder> -AppleLanguages '(de)'`. For Arabic, Hebrew, Persian and Urdu add `-AppleTextDirection YES` to get the mirrored right-to-left layout.
+- Right to left, SwiftUI mirrors the layout and any `Shape`. Keep left to right what has a direction of its own: the Takes mark (`BrandMarkShape` does this itself), checks, shortcuts (`.environment(\.layoutDirection, .leftToRight)`) and anything placed on a photo. For icons that point "forward" or "back", use the `.forward` and `.backward` SF Symbols, which flip on their own.
+- After adding Arabic, Hebrew, Persian or Urdu strings, run `scripts/localization.py rtl`. It starts a sentence that opens with a Latin word or a placeholder ("Takes …") with a right-to-left mark, so its lines and punctuation stay in order, and keeps shortcuts written in a sentence ("⌘Z") left to right. `check` reports strings that need it. A shortcut the code puts into a sentence uses `KeyCombo.inline`.
+- The person's own text (a draft, a take, a preset's instruction) and the English coach guide follow their own direction with `.contentDirection(text)`, so English stays left-aligned in a right-to-left interface.
 
 ## How it calls the model
 

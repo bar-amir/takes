@@ -93,7 +93,7 @@ struct HistoryTab: View {
                 }
             } label: {
                 HStack(spacing: 10) {
-                    Image(systemName: "chevron.right")
+                    Image(systemName: "chevron.forward")
                         .font(.system(size: 9, weight: .bold))
                         .foregroundStyle(Theme.tertiaryText)
                         .rotationEffect(.degrees(open ? 90 : 0))

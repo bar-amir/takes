@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import XCTest
 @testable import Takes
 
@@ -69,5 +70,15 @@ final class LocalizationTests: XCTestCase {
         XCTAssertTrue(ContentDirection.isRightToLeft("3 مرحبا"))
         XCTAssertFalse(ContentDirection.isRightToLeft("Thursday works, תודה"))
         XCTAssertFalse(ContentDirection.isRightToLeft(""))
+    }
+
+    func testLabelSpacingFollowsTheScript() {
+        for language in ["en", "de", "ru", "el", "vi", "tr"] { XCTAssertTrue(Font.spacesLabels(language), language) }
+        for language in ["he", "ar", "fa", "ja", "zh-Hans", "ko", "hi", "th"] { XCTAssertFalse(Font.spacesLabels(language), language) }
+    }
+
+    func testShortcutsInSentencesStayLeftToRight() {
+        let combo = KeyCombo(keyCode: 19, modifiers: 0, display: "⌃⌥2")
+        XCTAssertEqual(combo.inline, "\u{2066}⌃⌥2\u{2069}")
     }
 }

@@ -98,7 +98,7 @@ struct ToneReadSection: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(read.summary).foregroundStyle(Theme.text)
                 if let hint = read.hint {
-                    (Text("Try: ").fontWeight(.semibold) + Text(hint)).foregroundStyle(Theme.secondaryText)
+                    (Text("Try: ").fontWeight(.semibold) + Text(verbatim: "\u{2068}" + hint + "\u{2069}")).foregroundStyle(Theme.secondaryText)
                 }
             }
             .font(.system(size: 13))

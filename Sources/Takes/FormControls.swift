@@ -46,6 +46,7 @@ struct StyledTextField: View {
     var height: CGFloat = 36
     var onSubmit: () -> Void = {}
     @FocusState private var focused: Bool
+    @Environment(\.layoutDirection) private var layoutDirection
 
     var body: some View {
         Group {
@@ -55,6 +56,8 @@ struct StyledTextField: View {
                 TextField(placeholder, text: $text)
             }
         }
+        // A URL, key or English name reads left to right in a right-to-left interface; the placeholder follows the app.
+        .environment(\.layoutDirection, text.isEmpty ? layoutDirection : ContentDirection.layout(text))
         .textFieldStyle(.plain)
         .font(.system(size: 14))
         .focused($focused)

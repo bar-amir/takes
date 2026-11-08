@@ -9,6 +9,8 @@ struct KeyCombo: Codable, Hashable {
     /// Carbon modifier mask (controlKey, optionKey, shiftKey, cmdKey).
     var modifiers: UInt32
     var display: String
+    /// `display` for use inside a sentence: kept left to right ("⌃⌥Space") in right-to-left languages.
+    var inline: String { "\u{2066}" + display + "\u{2069}" }
 }
 
 struct AppRef: Codable, Hashable, Identifiable {

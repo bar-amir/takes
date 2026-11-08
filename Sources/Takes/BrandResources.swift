@@ -35,8 +35,22 @@ enum BrandResources {
 }
 
 extension Font {
+    /// Whether the app's language is written in Latin, Cyrillic or Greek letters. Mono labels and letter spacing are
+    /// for those; Hebrew, Arabic, Japanese, Devanagari and other scripts fall back to wide, broken-up glyphs with them.
+    static let spacedLabels = spacesLabels(Bundle.main.preferredLocalizations.first ?? "en")
+
+    static func spacesLabels(_ language: String) -> Bool {
+        let script = Locale.Language(identifier: language).maximalIdentifier.split(separator: "-").first { $0.count == 4 }
+        return ["Latn", "Cyrl", "Grek"].contains(script.map { String($0) } ?? "Latn")
+    }
+
+    /// Letter spacing for a small label, or none where the script doesn't take it.
+    static func labelSpacing(_ value: CGFloat) -> CGFloat { spacedLabels ? value : 0 }
+
     /// Mono labels (TAKE 1, keycaps, small cues), set in JetBrains Mono like the website; falls back to SF Mono.
+    /// In other scripts, the system font.
     static func mono(_ size: CGFloat, bold: Bool = false) -> Font {
+        guard spacedLabels else { return .system(size: size, weight: bold ? .bold : .medium) }
         let name = bold ? "JetBrainsMono-Bold" : "JetBrainsMono-Medium"
         if NSFont(name: name, size: size) != nil { return .custom(name, fixedSize: size) }
         return .system(size: size, weight: bold ? .bold : .medium, design: .monospaced)

@@ -175,6 +175,7 @@ struct GalleryPresetPreview: View {
                 }
                 Text(preset.instruction).font(.system(size: 14)).foregroundStyle(Theme.controlText).lineSpacing(3)
                     .fixedSize(horizontal: false, vertical: true)
+                    .contentDirection(preset.instruction)
                 if !preset.dos.isEmpty {
                     VStack(alignment: .leading, spacing: Spacing.item) {
                         Text("Do").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.doText)

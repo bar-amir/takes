@@ -16,6 +16,7 @@ enum CoachScreen: Hashable {
 struct CoachStrip: View {
     @ObservedObject var model: PanelModel
     @ObservedObject var run: CoachRun
+    @Environment(\.layoutDirection) private var layoutDirection
     @State private var picked = 0
 
     var body: some View {
@@ -76,6 +77,8 @@ struct CoachStrip: View {
                     Text("Coach").font(.system(size: 13, weight: .bold))
                     Text(Self.summary(notes: n, showsTop: top != nil && !model.coachExpanded))
                         .font(.system(size: 13)).foregroundStyle(Theme.controlText)
+                        // A right-to-left line drops the summary's trailing space before the fix.
+                        .padding(.trailing, layoutDirection == .rightToLeft && top != nil && !model.coachExpanded ? 4 : 0)
                     if let top, !model.coachExpanded {
                         CoachFix(wrong: top.wrong, right: top.right, size: 13).layoutPriority(-1)
                         if let rule = CoachGuide.pattern(top.pattern)?.name {
@@ -137,7 +140,8 @@ struct CoachStrip: View {
     private func detail(_ finding: CoachCheck.Finding) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: Spacing.item) {
             (Text(CoachGuide.pattern(finding.pattern)?.name ?? "").fontWeight(.semibold).foregroundStyle(Theme.controlText)
-                + Text("  \(finding.why)").foregroundStyle(Theme.secondaryText))
+                // Isolated, so an English reason keeps its own order after a Hebrew or Arabic rule name.
+                + Text("  \("\u{2068}" + finding.why + "\u{2069}")").foregroundStyle(Theme.secondaryText))
                 .font(.system(size: 12))
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: Spacing.item)
@@ -431,7 +435,7 @@ struct CoachBackButton: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 2) {
-                Image(systemName: "chevron.left").font(.system(size: 11, weight: .semibold))
+                Image(systemName: "chevron.backward").font(.system(size: 11, weight: .semibold))
                 Text(title).font(.system(size: 13, weight: .medium))
             }
             .foregroundStyle(hovering ? Theme.text : Theme.secondaryText)
@@ -510,7 +514,7 @@ struct CoachHeading: View {
     let text: String
     init(_ text: String) { self.text = text }
     var body: some View {
-        Text(text.uppercased()).font(.system(size: 11, weight: .bold)).kerning(0.6).foregroundStyle(Theme.secondaryText)
+        Text(text.uppercased()).font(.system(size: 11, weight: .bold)).kerning(Font.labelSpacing(0.6)).foregroundStyle(Theme.secondaryText)
     }
 }
 
@@ -559,7 +563,7 @@ struct CoachIntroView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("WHAT YOU'LL SEE").font(.mono(10.5, bold: true)).kerning(1).foregroundStyle(Theme.secondaryText)
+                    Text("WHAT YOU'LL SEE").font(.mono(10.5, bold: true)).kerning(Font.labelSpacing(1)).foregroundStyle(Theme.secondaryText)
                     HStack(alignment: .top, spacing: 12) {
                         tile("Notes under your takes") {
                             CoachFix(wrong: "if you will send", right: "if you send", size: 12.5)
@@ -1217,11 +1221,19 @@ struct CoachLessonView: View {
                     VStack(alignment: .leading, spacing: 18) {
                         VStack(alignment: .leading, spacing: 8) {
                             CoachHeading(String(localized: "The rule"))
+                            // The guide is in English: its text keeps to the left in a right-to-left interface.
                             Text(pattern.rule).font(.system(size: 15)).fixedSize(horizontal: false, vertical: true)
+                                .contentDirection(pattern.rule)
                             Text(pattern.example).font(.system(size: 15, weight: .medium)).fixedSize(horizontal: false, vertical: true)
+                                .contentDirection(pattern.example)
                             if let note = pattern.firstLanguage[store.settings.coach.firstLanguage] {
-                                Text("Why it slips: \(note)").font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
+                                // The line runs in the note's direction: a translated label in front of an English
+                                // note would otherwise turn the whole line right to left.
+                                let mark = ContentDirection.isRightToLeft(note) ? "\u{200F}" : "\u{200E}"
+                                Text(verbatim: mark + String(localized: "Why it slips: \(note)"))
+                                    .font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
                                     .fixedSize(horizontal: false, vertical: true)
+                                    .contentDirection(note)
                             }
                         }
                         .padding(16).frame(maxWidth: .infinity, alignment: .leading)
@@ -1258,6 +1270,7 @@ struct CoachLessonView: View {
                                         }
                                         .padding(.horizontal, 12).padding(.vertical, 8)
                                         .background(index % 2 == 0 ? Theme.strip : .clear)
+                                        .environment(\.layoutDirection, ContentDirection.layout(row.example))
                                         if index < pattern.contrasts.count - 1 { RowDivider() }
                                     }
                                 }

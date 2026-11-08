@@ -379,11 +379,12 @@ struct PresetPickerView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Text(model.draft.isEmpty ? "No draft yet" : model.draft.replacingOccurrences(of: "\n", with: " "))
+            let draft = model.draft.isEmpty ? String(localized: "No draft yet") : model.draft.replacingOccurrences(of: "\n", with: " ")
+            Text(draft)
                 .font(.system(size: 15))
                 .foregroundStyle(Theme.secondaryText)
                 .lineLimit(1)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentDirection(draft)
                 .frame(height: Spacing.control)
                 .padding(.horizontal, Spacing.gutter)
                 .padding(.vertical, Spacing.bar)
@@ -482,7 +483,7 @@ struct PresetPickerView: View {
     private func sectionTitle(_ text: String) -> some View {
         Text(text.uppercased())
             .font(.system(size: 11, weight: .semibold))
-            .tracking(0.5)
+            .tracking(Font.labelSpacing(0.5))
             .foregroundStyle(Theme.secondaryText)
             .padding(.horizontal, Spacing.gutter / 2)
             .padding(.top, 8)
@@ -521,6 +522,7 @@ struct PresetPickerView: View {
                         Text(preset.summary(for: model.store.settings)).font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
                     }
                     Text(preset.instruction).font(.system(size: 14)).foregroundStyle(Theme.controlText).lineSpacing(3)
+                        .contentDirection(preset.instruction)
                     if !preset.dos.isEmpty {
                         VStack(alignment: .leading, spacing: Spacing.item) {
                             Text("Do").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.doText)
@@ -855,7 +857,7 @@ private struct TakeCard: View {
             HStack(spacing: Spacing.item) {
                 Text(label(finished: finished, showChanges: showChanges))
                     .font(.mono(10.5, bold: true))
-                    .kerning(0.5)
+                    .kerning(Font.labelSpacing(0.5))
                     .foregroundStyle(isSelected ? Theme.text : Theme.secondaryText)
                     .lineLimit(1)
                 Spacer(minLength: 0)

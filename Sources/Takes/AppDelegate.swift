@@ -146,7 +146,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             open.keyEquivalent = equivalent.key
             open.keyEquivalentModifierMask = equivalent.modifiers
         } else {
-            open.title = String(localized: "Open Takes   \(hotKey.display)")
+            open.title = String(localized: "Open Takes   \(hotKey.inline)")
         }
         menu.addItem(open)
 
