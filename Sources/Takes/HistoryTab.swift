@@ -25,17 +25,17 @@ struct HistoryTab: View {
     var body: some View {
         SettingsPage {
             if !store.history.isEmpty {
-                StyledTextField(placeholder: "Search drafts and takes", text: $search, height: 30)
+                StyledTextField(placeholder: String(localized: "Search drafts and takes"), text: $search, height: 30)
                     .accessibilityLabel("Search history")
             }
             if store.history.isEmpty {
-                FormSection("Runs") {
+                FormSection(String(localized: "Runs")) {
                     Text(store.settings.keepHistory ? "No runs yet. Takes you write show up here for 30 days." : "History is off.")
                         .font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
                         .formRowPadding()
                 }
             } else if days.isEmpty {
-                FormSection("Runs") {
+                FormSection(String(localized: "Runs")) {
                     Text("Nothing matches “\(search)”.").font(.system(size: 13)).foregroundStyle(Theme.secondaryText).formRowPadding()
                 }
             } else {
@@ -49,16 +49,16 @@ struct HistoryTab: View {
                 }
             }
 
-            FormSection("Keeping history") {
-                FormToggle("Keep 30 days of history, on this Mac only", isOn: $store.settings.keepHistory)
+            FormSection(String(localized: "Keeping history")) {
+                FormToggle(String(localized: "Keep 30 days of history, on this Mac only"), isOn: $store.settings.keepHistory)
                 FormDivider()
-                FormRow("Run log", detail: "Timings for bug reports. It never contains your text.") {
+                FormRow(String(localized: "Run log"), detail: String(localized: "Timings for bug reports. It never contains your text.")) {
                     Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([RunLog.url]) }
                         .buttonStyle(SecondaryButtonStyle(height: 28))
                         .fixedSize()
                 }
                 FormDivider()
-                FormRow("Delete all history") {
+                FormRow(String(localized: "Delete all history")) {
                     Button("Clear History…", action: clear)
                         .buttonStyle(DestructiveButtonStyle())
                         .disabled(store.history.isEmpty)
@@ -75,7 +75,9 @@ struct HistoryTab: View {
         }
         var result: [(title: String, entries: [HistoryEntry])] = []
         for entry in entries {
-            let title = Self.dayFormat.string(from: entry.date)
+            // "aujourd’hui", "tänään": a section header starts with a capital in every language.
+            let day = Self.dayFormat.string(from: entry.date)
+            let title = day.prefix(1).uppercased(with: .current) + day.dropFirst()
             if result.last?.title == title { result[result.count - 1].entries.append(entry) } else { result.append((title, [entry])) }
         }
         return result
@@ -91,7 +93,7 @@ struct HistoryTab: View {
                 }
             } label: {
                 HStack(spacing: 10) {
-                    Image(systemName: "chevron.right")
+                    Image(systemName: "chevron.forward")
                         .font(.system(size: 9, weight: .bold))
                         .foregroundStyle(Theme.tertiaryText)
                         .rotationEffect(.degrees(open ? 90 : 0))
@@ -119,7 +121,7 @@ struct HistoryTab: View {
                 VStack(alignment: .leading, spacing: 10) {
                     ForEach(Array(entry.takes.enumerated()), id: \.offset) { index, take in
                         HStack(alignment: .top, spacing: 12) {
-                            Text(entry.pastedIndex == index ? "PASTED" : "TAKE \(index + 1)")
+                            Text(entry.pastedIndex == index ? String(localized: "PASTED") : String(localized: "TAKE \(index + 1)"))
                                 .font(.mono(10, bold: true))
                                 .foregroundStyle(entry.pastedIndex == index ? Theme.accent : Theme.secondaryText)
                                 .frame(width: 56, alignment: .leading)
@@ -144,8 +146,9 @@ struct HistoryTab: View {
     }
 
     private func clear() {
-        guard confirmDestructive("Clear all history?", message: "This deletes every draft and take Takes has kept on this Mac. You can't undo this.",
-                                 button: "Clear History") else { return }
+        guard confirmDestructive(String(localized: "Clear all history?"),
+                                 message: String(localized: "This deletes every draft and take Takes has kept on this Mac. You can't undo this."),
+                                 button: String(localized: "Clear History")) else { return }
         store.history = []
         expanded = []
     }

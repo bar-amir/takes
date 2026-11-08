@@ -27,7 +27,7 @@ enum PresetGallery {
     static func blurb(for preset: Preset) -> String {
         let id = preset.galleryID ?? preset.id
         if id.hasPrefix("gallery.translate"), case .language(let code) = preset.language {
-            return "Natural \(Languages.englishName(code)) from any language."
+            return String(localized: "Natural \(Languages.displayName(code)) from any language.")
         }
         return blurbs[id] ?? ""
     }
@@ -76,67 +76,67 @@ enum PresetGallery {
     // MARK: Templates
 
     static let slack = Preset(
-        id: "gallery.slack", name: "Slack message", colorHex: "#2F55E0",
+        id: "gallery.slack", name: String(localized: "Slack message"), colorHex: "#2F55E0",
         instruction: "Rewrite my draft as a chat message to teammates. Lead with the answer or the ask, then only the context they need. Warm but brief, the way a respected colleague writes in Slack.",
         dos: ["Answer or ask in the first sentence", "One ask per sentence", "Keep shorthand like EOD, QA, PR"],
         avoid: ["Exclamation marks", "\"Just\", \"quick question\", \"hope you're well\"", "Emoji unless I used them", "Bullets for a short message"],
         apps: [AppRef(bundleID: "com.tinyspeck.slackmacgap", name: "Slack")])
 
     static let email = Preset(
-        id: "gallery.email", name: "Polish email", colorHex: "#7A3FD1",
+        id: "gallery.email", name: String(localized: "Polish email"), colorHex: "#7A3FD1",
         instruction: "Rewrite my draft as a clear, professional email body. Keep my points; fix the order and flow so the reader knows what I need by the end of the first paragraph. Keep any greeting or sign-off I wrote. No subject line, no signature.",
         dos: ["Short paragraphs, one idea each", "The ask or decision near the top", "Concrete dates and owners"],
         avoid: ["\"I hope this email finds you well\"", "Stacked apologies", "Facts or promises I didn't write"],
         length: .any, apps: [AppRef(bundleID: "com.apple.mail", name: "Mail")])
 
     static let shorter = Preset(
-        id: "gallery.shorter", name: "Shorter", colorHex: "#8A4B08",
+        id: "gallery.shorter", name: String(localized: "Shorter"), colorHex: "#8A4B08",
         instruction: "Say the same thing in as few words as possible. Keep every ask, fact, number, name and date.",
         dos: ["Cut filler, hedges and repetition", "Merge points that say the same thing"],
         avoid: ["Dropping any ask or detail", "Clipped fragments that read as rude"],
         length: .shorter)
 
     static let friendlier = Preset(
-        id: "gallery.friendlier", name: "Friendlier", colorHex: "#1D6B4F",
+        id: "gallery.friendlier", name: String(localized: "Friendlier"), colorHex: "#1D6B4F",
         instruction: "Make my draft warmer and easier to receive without changing what it says. Sound like a kind colleague, not a greeting card.",
         dos: ["Acknowledge the other person where it fits", "Soften blunt phrasing", "Keep every ask and fact"],
         avoid: ["Gushing (\"amazing\", \"so excited\")", "Exclamation marks in every sentence", "Emoji unless I used them", "Burying the point"])
 
     static let direct = Preset(
-        id: "gallery.direct", name: "More direct", colorHex: "#B42318",
+        id: "gallery.direct", name: String(localized: "More direct"), colorHex: "#B42318",
         instruction: "Make my draft more direct and confident. Put the point and the ask first, in plain words. Stay polite.",
         dos: ["Lead with the point", "Turn hedges into clear statements", "Name the date or owner if I gave one"],
         avoid: ["\"Just\", \"I think\", \"sort of\", \"maybe\"", "Apologising for asking", "Exclamation marks", "Sounding cold or curt"])
 
     static let professional = Preset(
-        id: "gallery.professional", name: "Professional", colorHex: "#55555E",
+        id: "gallery.professional", name: String(localized: "Professional"), colorHex: "#55555E",
         instruction: "Rewrite my draft for a client, leadership or someone I don't know well: polished and confident, still plain and human. Keep my meaning exactly.",
         dos: ["Complete sentences", "Calm, neutral tone"],
         avoid: ["Slang and in-jokes", "Jargon (\"synergy\", \"circle back\", \"leverage\")", "Stiff, legal-sounding phrasing"])
 
     static let explainSimply = Preset(
-        id: "gallery.explain", name: "Explain simply", colorHex: "#0E6E8C",
+        id: "gallery.explain", name: String(localized: "Explain simply"), colorHex: "#0E6E8C",
         instruction: "Rewrite my draft so someone outside my field understands it on the first read. Swap jargon for plain words. Add a short example only if it makes the point clearer.",
         dos: ["Short sentences", "Explain a term the first time if it has to stay", "Keep the facts accurate"],
         avoid: ["Unexplained acronyms", "Talking down to the reader", "Claims I didn't make"],
         length: .any)
 
     static let summarize = Preset(
-        id: "gallery.summarize", name: "Summarize", colorHex: "#2F55E0",
+        id: "gallery.summarize", name: String(localized: "Summarize"), colorHex: "#2F55E0",
         instruction: "Turn my draft (notes, a long update or text I pasted) into a short summary I can post as a reply: the bottom line first, then the key points, decisions and open asks.",
         dos: ["Bottom line in the first sentence", "Up to 3 short bullets if there are several points", "Names, numbers and dates exactly as written"],
         avoid: ["Opinions or conclusions that aren't in the text", "Restating everything", "Headings"],
         length: .shorter)
 
     static let statusUpdate = Preset(
-        id: "gallery.status", name: "Status update", colorHex: "#1D6B4F",
+        id: "gallery.status", name: String(localized: "Status update"), colorHex: "#1D6B4F",
         instruction: "Turn my notes into a short status update for the team: what's done, what's next and what's blocked, with owners and dates where I gave them.",
         dos: ["Done, next, blocked, in that order", "Skip a part that has nothing in it"],
         avoid: ["Padding a short update", "Progress, owners or dates I didn't mention"],
         length: .any)
 
     static let decline = Preset(
-        id: "gallery.decline", name: "Decline politely", colorHex: "#B42318",
+        id: "gallery.decline", name: String(localized: "Decline politely"), colorHex: "#B42318",
         instruction: "Say no to the request in my draft, politely and clearly, and keep the relationship warm. Give a reason only if my draft has one. Offer an alternative only if I suggested one.",
         dos: ["Make the no unmistakable", "Thank them once, briefly"],
         avoid: ["Over-apologising", "Vague maybes that invite a follow-up", "Reasons or alternatives I didn't give"])
@@ -145,7 +145,7 @@ enum PresetGallery {
     static func translate(to code: String) -> Preset {
         let name = Languages.englishName(code)
         return Preset(
-            id: code == "en" ? "gallery.translate" : "gallery.translate.\(code)", name: "Translate to \(name)", colorHex: "#0E6E8C",
+            id: code == "en" ? "gallery.translate" : "gallery.translate.\(code)", name: String(localized: "Translate to \(Languages.displayName(code))"), colorHex: "#0E6E8C",
             instruction: "Translate my draft into natural \(name), the way a native speaker would write it. Keep my meaning, tone, register and formatting.",
             dos: ["Names, product terms, links and numbers as written", "Idioms become natural equivalents"],
             avoid: ["Word-for-word translation", "Adding or dropping anything", "More formal than my draft"],
@@ -153,16 +153,16 @@ enum PresetGallery {
     }
 
     private static let blurbs: [String: String] = [
-        Preset.proofread.id: "Fixes mistakes only. Keeps your words.",
-        slack.id: "Lead with the answer, warm and brief.",
-        email.id: "A clear email body, ask near the top.",
-        shorter.id: "Fewer words, nothing lost.",
-        friendlier.id: "Warmer, same message.",
-        direct.id: "Point first, no hedging, still polite.",
-        professional.id: "Polished for clients and leadership.",
-        explainSimply.id: "Plain words for people outside your field.",
-        summarize.id: "Notes or a long thread into a short reply.",
-        statusUpdate.id: "Done, next and blocked.",
-        decline.id: "A clear no that keeps things warm.",
+        Preset.proofread.id: String(localized: "Fixes mistakes only. Keeps your words."),
+        slack.id: String(localized: "Lead with the answer, warm and brief."),
+        email.id: String(localized: "A clear email body, ask near the top."),
+        shorter.id: String(localized: "Fewer words, nothing lost."),
+        friendlier.id: String(localized: "Warmer, same message."),
+        direct.id: String(localized: "Point first, no hedging, still polite."),
+        professional.id: String(localized: "Polished for clients and leadership."),
+        explainSimply.id: String(localized: "Plain words for people outside your field."),
+        summarize.id: String(localized: "Notes or a long thread into a short reply."),
+        statusUpdate.id: String(localized: "Done, next and blocked."),
+        decline.id: String(localized: "A clear no that keeps things warm."),
     ]
 }

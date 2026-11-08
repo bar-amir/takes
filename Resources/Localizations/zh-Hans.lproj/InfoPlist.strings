@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes 只在你听写草稿（在面板中按 ⌘D）时聆听。你的语音会在这台 Mac 上转换为文本，音频绝不会离开这台 Mac。";
+"NSSpeechRecognitionUsageDescription" = "Takes 仅使用设备端语音识别，在这台 Mac 上将你听写的草稿转换为文本。不会向 Apple 或任何其他人发送任何内容。";

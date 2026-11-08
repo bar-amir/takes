@@ -39,12 +39,15 @@ cp THIRD-PARTY-NOTICES.md "$APP/Contents/Resources/THIRD-PARTY-NOTICES.md"
 [[ -d Resources/Fonts ]] && ditto Resources/Fonts "$APP/Contents/Resources/Fonts"
 [[ -d Resources/Onboarding ]] && ditto Resources/Onboarding "$APP/Contents/Resources/Onboarding"
 [[ -d Resources/About ]] && ditto Resources/About "$APP/Contents/Resources/About"
+# Translations: one <language>.lproj folder per language, found by Bundle.main.
+for lproj in Resources/Localizations/*.lproj(N); do ditto "$lproj" "$APP/Contents/Resources/${lproj:t}"; done
 
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+  <key>CFBundleDevelopmentRegion</key><string>en</string>
   <key>CFBundleIdentifier</key><string>com.baramir.takes</string>
   <key>CFBundleName</key><string>Takes</string>
   <key>CFBundleDisplayName</key><string>Takes</string>

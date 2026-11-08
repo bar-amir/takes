@@ -14,45 +14,45 @@ struct ModelTab: View {
 
     var body: some View {
         SettingsPage {
-            FormSection("Where your takes are written") {
-                EngineRow(engine: .claudeCode, title: "Claude Code on this Mac",
-                          summary: "Uses your Claude subscription; each run counts toward its usage limits. Personal build only.") {
+            FormSection(String(localized: "Where your takes are written")) {
+                EngineRow(engine: .claudeCode, title: String(localized: "Claude Code on this Mac"),
+                          summary: String(localized: "Uses your Claude subscription; each run counts toward its usage limits. Personal build only.")) {
                     claudeCodeBadge
                 } details: { claudeCodeDetails }
                 FormDivider(inset: 40)
-                EngineRow(engine: .apiKey, title: "Anthropic API key",
-                          summary: "Pay per use, billed by Anthropic. Usually a cent or two per run, more with Opus or more takes. Takes doesn't cap your spending; set a limit in the Anthropic Console.") {
-                    if hasKey { StatusBadge(text: "Key saved", good: true) } else { muted("Pay per use") }
+                EngineRow(engine: .apiKey, title: String(localized: "Anthropic API key"),
+                          summary: String(localized: "Pay per use, billed by Anthropic. Usually a cent or two per run, more with Opus or more takes. Takes doesn't cap your spending; set a limit in the Anthropic Console.")) {
+                    if hasKey { StatusBadge(text: String(localized: "Key saved"), good: true) } else { muted(String(localized: "Pay per use")) }
                 } details: { apiKeyDetails }
                 FormDivider(inset: 40)
-                EngineRow(engine: .chatGPT, title: "Your ChatGPT plan",
-                          summary: "Sign in with ChatGPT and write with the models in your Plus or Pro plan. No extra cost; your plan's limits apply.") {
+                EngineRow(engine: .chatGPT, title: String(localized: "Your ChatGPT plan"),
+                          summary: String(localized: "Sign in with ChatGPT and write with the models in your Plus or Pro plan. No extra cost; your plan's limits apply.")) {
                     ChatGPTEngineBadge()
                 } details: { ChatGPTEngineSettings() }
                 FormDivider(inset: 40)
-                EngineRow(engine: .provider, title: "Other provider",
-                          summary: "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account.") {
+                EngineRow(engine: .provider, title: String(localized: "Other provider"),
+                          summary: String(localized: "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account.")) {
                     ProviderEngineBadge()
                 } details: { ProviderEngineSettings() }
                 FormDivider(inset: 40)
-                EngineRow(engine: .local, title: "Local model",
-                          summary: "Runs on this Mac with Ollama or LM Studio, so your drafts never leave it. Small models write plainer takes than Claude. It's free, but uses this Mac's memory and battery.") {
+                EngineRow(engine: .local, title: String(localized: "Local model"),
+                          summary: String(localized: "Runs on this Mac with Ollama or LM Studio, so your drafts never leave it. Small models write plainer takes than Claude. It's free, but uses this Mac's memory and battery.")) {
                     LocalEngineBadge()
                 } details: { LocalEngineSettings() }
             }
 
-            FormSection(header: "Defaults for new presets") {
-                FormRow("Takes · Model · Effort") {
+            FormSection(header: String(localized: "Defaults for new presets")) {
+                FormRow(String(localized: "Takes · Model · Effort")) {
                     HStack(spacing: 6) {
                         MenuPicker(options: (1...5).map { (value: $0, title: "\($0)") }, selection: $store.settings.defaultTakes)
                         MenuPicker(options: Models.all.map { (value: $0.id, title: $0.label) }, selection: $store.settings.defaultModel)
-                        MenuPicker(options: Models.efforts.map { (value: $0, title: $0.capitalized) }, selection: $store.settings.defaultEffort)
+                        MenuPicker(options: Models.efforts.map { (value: $0, title: Models.effortLabel($0)) }, selection: $store.settings.defaultEffort)
                     }
                 }
                 if let ms = store.settings.lastFirstTextMs {
                     FormDivider()
-                    FormRow("Last run") {
-                        Text(String(format: "First words after %.1f s", Double(ms) / 1000))
+                    FormRow(String(localized: "Last run")) {
+                        Text(String(format: NSLocalizedString("First words after %.1f s", comment: ""), locale: .current, Double(ms) / 1000))
                             .font(.system(size: 12.5)).foregroundStyle(Theme.secondaryText)
                     }
                 }
@@ -60,8 +60,9 @@ struct ModelTab: View {
                 LocalEngineModelNote()
             }
 
-            FormSection("Privacy", footer: privacyText + " No server of ours, no tracking; logs never contain your text.") {
-                FormRow("Privacy notice") {
+            FormSection(String(localized: "Privacy"),
+                        footer: privacyText + " " + String(localized: "No server of ours, no tracking; logs never contain your text.")) {
+                FormRow(String(localized: "Privacy notice")) {
                     Button("Open…") { NSWorkspace.shared.open(SetupMonitor.privacyURL) }
                         .buttonStyle(SecondaryButtonStyle(height: 28))
                         .fixedSize()
@@ -74,13 +75,13 @@ struct ModelTab: View {
     /// Where the draft goes with the chosen engine, in one sentence.
     private var privacyText: String {
         switch store.settings.engine {
-        case .local: return "With a local model, your drafts stay on this Mac."
-        case .claudeCode, .apiKey: return "Takes sends your draft only to Anthropic, under your own account."
-        case .chatGPT: return "Takes sends your draft to OpenAI under your own ChatGPT plan."
+        case .local: return String(localized: "With a local model, your drafts stay on this Mac.")
+        case .claudeCode, .apiKey: return String(localized: "Takes sends your draft only to Anthropic, under your own account.")
+        case .chatGPT: return String(localized: "Takes sends your draft to OpenAI under your own ChatGPT plan.")
         case .provider:
             let provider = Provider.current(store.settings)
-            return provider.id == "custom" ? "Takes sends your draft to the server you added, under your own account."
-                                           : "Takes sends your draft to \(provider.name) under your own account."
+            return provider.id == "custom" ? String(localized: "Takes sends your draft to the server you added, under your own account.")
+                                           : String(localized: "Takes sends your draft to \(provider.name) under your own account.")
         }
     }
 
@@ -94,14 +95,15 @@ struct ModelTab: View {
 
     @ViewBuilder private var claudeCodeBadge: some View {
         if installer.state.isBusy {
-            StatusBadge(text: "Installing…", good: false)
+            StatusBadge(text: String(localized: "Installing…"), good: false)
         } else if let status = claudeStatus {
             if !status.found {
-                StatusBadge(text: "Not installed", good: false)
+                StatusBadge(text: String(localized: "Not installed"), good: false)
             } else if status.signedIn {
-                StatusBadge(text: "Signed in" + (status.plan.map { " · \($0.capitalized) plan" } ?? ""), good: true)
+                StatusBadge(text: status.plan.map { String(localized: "Signed in · \($0.capitalized) plan") } ?? String(localized: "Signed in"),
+                            good: true)
             } else {
-                StatusBadge(text: "Not signed in", good: false)
+                StatusBadge(text: String(localized: "Not signed in"), good: false)
             }
         } else {
             ProgressView().controlSize(.mini).accessibilityLabel("Checking Claude Code")
@@ -174,9 +176,9 @@ struct ModelTab: View {
             HStack(spacing: 10) {
                 Text("Key saved in your keychain").font(.system(size: 13)).foregroundStyle(Theme.doText)
                 Button("Remove Key…") {
-                    guard confirmDestructive("Remove your Anthropic API key?",
-                                             message: "Takes deletes it from your keychain. You'll need to paste it again to write with it.",
-                                             button: "Remove Key") else { return }
+                    guard confirmDestructive(String(localized: "Remove your Anthropic API key?"),
+                                             message: String(localized: "Takes deletes it from your keychain. You'll need to paste it again to write with it."),
+                                             button: String(localized: "Remove Key")) else { return }
                     Keychain.setAPIKey(nil)
                     hasKey = false
                 }
@@ -184,7 +186,7 @@ struct ModelTab: View {
             }
         } else {
             HStack(spacing: 8) {
-                StyledTextField(placeholder: "Paste your key", text: $keyInput, secure: true, height: 30, onSubmit: saveKey)
+                StyledTextField(placeholder: String(localized: "Paste your key"), text: $keyInput, secure: true, height: 30, onSubmit: saveKey)
                     .frame(maxWidth: 360)
                     .accessibilityLabel("Anthropic API key")
                 Button("Save", action: saveKey)

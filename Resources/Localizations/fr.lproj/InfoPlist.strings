@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes n’écoute que pendant que vous dictez un brouillon (⌘D dans le panneau). Votre parole est convertie en texte sur ce Mac et l’audio ne le quitte jamais.";
+"NSSpeechRecognitionUsageDescription" = "Takes convertit votre brouillon dicté en texte sur ce Mac, uniquement avec la reconnaissance vocale sur l’appareil. Rien n’est envoyé à Apple ni à personne d’autre.";

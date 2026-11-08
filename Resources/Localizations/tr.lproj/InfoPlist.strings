@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes yalnızca bir taslağı dikte ederken dinler (paneldeki ⌘D). Konuşmanız bu Mac’te metne dönüştürülür ve ses Mac’inizden hiç çıkmaz.";
+"NSSpeechRecognitionUsageDescription" = "Takes, dikte ettiğiniz taslağı yalnızca aygıt üzerinde konuşma tanıma kullanarak bu Mac’te metne dönüştürür. Apple’a ya da başka birine hiçbir şey gönderilmez.";

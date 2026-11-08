@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "El Takes només escolta mentre dictes un esborrany (⌘D al tauler). La teva veu es converteix en text en aquest Mac i l'àudio no en surt mai.";
+"NSSpeechRecognitionUsageDescription" = "El Takes converteix en text l'esborrany que dictes en aquest Mac, només amb el reconeixement de veu del dispositiu. No s'envia res a Apple ni a ningú més.";

@@ -5,7 +5,7 @@ import Security
 struct APIEngine: TakesEngine {
     func run(_ request: EngineRequest, onUpdate: @escaping @Sendable ([String]) -> Void) async throws -> EngineResult {
         guard let key = Keychain.apiKey, !key.isEmpty else {
-            throw EngineError.failed("Add your Anthropic API key in Settings › Model.")
+            throw EngineError.failed(String(localized: "Add your Anthropic API key in Settings › Model."))
         }
 
         var urlRequest = URLRequest(url: URL(string: "https://api.anthropic.com/v1/messages")!)
@@ -33,7 +33,7 @@ struct APIEngine: TakesEngine {
         let started = Date()
         let elapsedMs = { Int(Date().timeIntervalSince(started) * 1000) }
         let (bytes, response) = try await URLSession.shared.bytes(for: urlRequest)
-        guard let http = response as? HTTPURLResponse else { throw EngineError.failed("No response from the API.") }
+        guard let http = response as? HTTPURLResponse else { throw EngineError.failed(String(localized: "No response from the API.")) }
 
         if http.statusCode != 200 {
             var data = Data()
@@ -64,17 +64,17 @@ struct APIEngine: TakesEngine {
             case "error":
                 let error = json["error"] as? [String: Any]
                 throw Self.apiError(status: nil, type: error?["type"] as? String,
-                                    message: error?["message"] as? String ?? "stream error", retryAfter: nil)
+                                    message: error?["message"] as? String ?? String(localized: "stream error"), retryAfter: nil)
             default:
                 break
             }
         }
 
         if stopReason == "refusal" && text.isEmpty {
-            throw EngineError.failed("Claude declined to rewrite this draft.")
+            throw EngineError.failed(String(localized: "Claude declined to rewrite this draft."))
         }
         let takes = TakeSplitter.split(text, streaming: false)
-        guard !takes.isEmpty else { throw EngineError.failed("Claude returned no takes.") }
+        guard !takes.isEmpty else { throw EngineError.failed(String(localized: "Claude returned no takes.")) }
         return EngineResult(takes: takes, wallMs: elapsedMs(), firstTextMs: firstTextMs)
     }
 }
@@ -88,20 +88,20 @@ extension APIEngine {
         let lower = message.lowercased()
         if type == "billing_error" || status == 402 || lower.contains("credit balance") {
             return UsageLimitError(kind: .outOfCredit,
-                                   message: "Your Anthropic account is out of credit. Add credit in the Anthropic Console, or pick another engine.",
+                                   message: String(localized: "Your Anthropic account is out of credit. Add credit in the Anthropic Console, or pick another engine."),
                                    manage: billingURL)
         }
         // "You have reached your specified API usage limits. You will regain access on …"
         if lower.contains("usage limit") || lower.contains("spend limit") {
-            let message = "Your Anthropic account reached the spend limit set for it. Raise the limit in the Anthropic Console, or pick another engine."
+            let message = String(localized: "Your Anthropic account reached the spend limit set for it. Raise the limit in the Anthropic Console, or pick another engine.")
             return UsageLimitError(kind: .planLimit, message: message, manage: limitsURL)
         }
         if type == "rate_limit_error" || status == 429 {
             return UsageLimitError(kind: .rateLimited,
-                                   message: "Your Anthropic key hit its rate limit. \(UsageLimitError.retryHint(retryAfter))",
+                                   message: String(localized: "Your Anthropic key hit its rate limit. \(UsageLimitError.retryHint(retryAfter))"),
                                    manage: limitsURL)
         }
-        return EngineError.failed("API error: \(message)")
+        return EngineError.failed(String(localized: "API error: \(message)"))
     }
 }
 

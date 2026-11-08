@@ -125,7 +125,9 @@ final class OnboardingModel: ObservableObject {
             if engineKind != settings.engine { engineKind = settings.engine }
             hotKey = settings.summonHotKey
             let clash = taken.contains(settings.summonHotKey)
-            hotKeyOwner = clash ? SystemShortcuts.owner(of: settings.summonHotKey).map { "macOS: \($0)" } ?? "another app" : nil
+            hotKeyOwner = clash
+                ? SystemShortcuts.owner(of: settings.summonHotKey).map { String(localized: "macOS: \($0)") } ?? String(localized: "another app")
+                : nil
             return OnboardingConditions(accessibility: accessibility, engineReady: engine.isReady,
                                         privacyAccepted: settings.privacyAccepted, hotKeyFree: !clash)
         }
@@ -231,32 +233,43 @@ final class OnboardingModel: ObservableObject {
 
     // MARK: Primary action
 
-    /// What Connect a model's button does for the picked engine, before "Understood, " is put in front of it.
-    private var engineAction: String {
+    /// What Connect a model's button does for the picked engine; `understood` puts "Understood, " in front of it.
+    /// Waiting titles ("Checking…") never get it.
+    private func engineAction(understood: Bool) -> String {
         switch engineKind {
-        case .apiKey: return "Save key"
-        case .local: return engineStatus == .checking ? "Checking…" : "Check again"
-        case .chatGPT: return ChatGPTSignIn.shared.state == .signingIn ? "Waiting for the browser…" : "Continue with ChatGPT"
-        case .provider: return "Open Engine settings"
+        case .apiKey: return understood ? String(localized: "Understood, save key") : String(localized: "Save key")
+        case .local:
+            if engineStatus == .checking { return String(localized: "Checking…") }
+            return understood ? String(localized: "Understood, check again") : String(localized: "Check again")
+        case .chatGPT:
+            if ChatGPTSignIn.shared.state == .signingIn { return String(localized: "Waiting for the browser…") }
+            return understood ? String(localized: "Understood, continue with ChatGPT") : String(localized: "Continue with ChatGPT")
+        case .provider:
+            return understood ? String(localized: "Understood, open Engine settings") : String(localized: "Open Engine settings")
         case .claudeCode:
-            if engineStatus == .checking { return "Checking…" }
-            if installer.state.isBusy { return "Installing…" }
-            return claudeMissing ? "Install Claude Code" : "Sign in to Claude"
+            if engineStatus == .checking { return String(localized: "Checking…") }
+            if installer.state.isBusy { return String(localized: "Installing…") }
+            if claudeMissing {
+                return understood ? String(localized: "Understood, install Claude Code") : String(localized: "Install Claude Code")
+            }
+            return understood ? String(localized: "Understood, sign in to Claude") : String(localized: "Sign in to Claude")
         }
     }
 
     var primaryTitle: String {
         switch step {
-        case .accessibility: return flow.isCurrentSatisfied ? "Continue" : "Open System Settings"
+        case .accessibility: return flow.isCurrentSatisfied ? String(localized: "Continue") : String(localized: "Open System Settings")
         case .engine:
-            if flow.isCurrentSatisfied { return "Continue" }
+            if flow.isCurrentSatisfied { return String(localized: "Continue") }
             // Reading where the text goes is part of this step; the button says so until it's been accepted.
-            let action = flow.conditions.engineReady ? "Continue" : engineAction
-            if flow.conditions.privacyAccepted || action.hasSuffix("…") { return action }
-            return "Understood, " + action.prefix(1).lowercased() + action.dropFirst()
-        case .personalize: return "Continue"
-        case .practice: return practiceStage == .pasted ? "Continue" : "Open Takes"
-        case .done: return "Start using Takes"
+            let understood = !flow.conditions.privacyAccepted
+            if flow.conditions.engineReady {
+                return understood ? String(localized: "Understood, continue") : String(localized: "Continue")
+            }
+            return engineAction(understood: understood)
+        case .personalize: return String(localized: "Continue")
+        case .practice: return practiceStage == .pasted ? String(localized: "Continue") : String(localized: "Open Takes")
+        case .done: return String(localized: "Start using Takes")
         }
     }
 
@@ -453,7 +466,7 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
         let window = NSWindow(contentRect: NSRect(origin: .zero, size: Self.size),
                               styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView],
                               backing: .buffered, defer: false)
-        window.title = "Welcome to Takes"
+        window.title = String(localized: "Welcome to Takes")
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
         window.isReleasedWhenClosed = false

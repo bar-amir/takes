@@ -9,6 +9,8 @@ struct KeyCombo: Codable, Hashable {
     /// Carbon modifier mask (controlKey, optionKey, shiftKey, cmdKey).
     var modifiers: UInt32
     var display: String
+    /// `display` for use inside a sentence: kept left to right ("⌃⌥Space") in right-to-left languages.
+    var inline: String { "\u{2066}" + display + "\u{2069}" }
 }
 
 struct AppRef: Codable, Hashable, Identifiable {
@@ -22,10 +24,19 @@ enum TakeLength: String, Codable, CaseIterable, Identifiable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .sameOrShorter: return "Same or shorter"
-        case .shorter: return "Shorter"
-        case .any: return "Any length"
-        case .longer: return "Longer"
+        case .sameOrShorter: return String(localized: "Same or shorter")
+        case .shorter: return String(localized: "Shorter")
+        case .any: return String(localized: "Any length")
+        case .longer: return String(localized: "Longer")
+        }
+    }
+    /// The label as it reads mid-line, after a " · " ("3 takes · Sonnet 5.5 · same or shorter").
+    var inlineLabel: String {
+        switch self {
+        case .sameOrShorter: return String(localized: "same or shorter", comment: "Take length, mid-line")
+        case .shorter: return String(localized: "shorter", comment: "Take length, mid-line")
+        case .any: return String(localized: "any length", comment: "Take length, mid-line")
+        case .longer: return String(localized: "longer", comment: "Take length, mid-line")
         }
     }
 }
@@ -39,6 +50,16 @@ enum Models {
     static let efforts = ["low", "medium", "high"]
 
     static func label(_ id: String) -> String { all.first { $0.id == id }?.label ?? id }
+
+    /// "Low", "Medium" or "High" for an effort's raw value, for menus.
+    static func effortLabel(_ effort: String) -> String {
+        switch effort {
+        case "low": return String(localized: "Low", comment: "Effort level")
+        case "medium": return String(localized: "Medium", comment: "Effort level")
+        case "high": return String(localized: "High", comment: "Effort level")
+        default: return effort.capitalized
+        }
+    }
 }
 
 struct Preset: Codable, Identifiable, Hashable {
@@ -73,7 +94,15 @@ struct Preset: Codable, Identifiable, Hashable {
     static let colors = ["#2F55E0", "#1D6B4F", "#8A4B08", "#7A3FD1", "#B42318", "#0E6E8C", "#55555E"]
 
     var summary: String {
-        "\(takes) take\(takes == 1 ? "" : "s") · \(Models.label(model)) · \(effort.capitalized) effort · \(length.label.lowercased())"
+        let count = takes == 1 ? String(localized: "1 take") : String(localized: "\(takes) takes")
+        let effortText: String
+        switch effort {
+        case "low": effortText = String(localized: "Low effort")
+        case "medium": effortText = String(localized: "Medium effort")
+        case "high": effortText = String(localized: "High effort")
+        default: effortText = String(localized: "\(effort.capitalized) effort")
+        }
+        return "\(count) · \(Models.label(model)) · \(effortText) · \(length.inlineLabel)"
     }
 }
 
@@ -127,14 +156,14 @@ enum PanelPosition: String, Codable, CaseIterable, Identifiable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .nearCursor: "Next to the text box"
-        case .topLeft: "Top left"
-        case .topCenter: "Top center"
-        case .topRight: "Top right"
-        case .center: "Center of the screen"
-        case .bottomLeft: "Bottom left"
-        case .bottomCenter: "Bottom center"
-        case .bottomRight: "Bottom right"
+        case .nearCursor: String(localized: "Next to the text box")
+        case .topLeft: String(localized: "Top left")
+        case .topCenter: String(localized: "Top center")
+        case .topRight: String(localized: "Top right")
+        case .center: String(localized: "Center of the screen")
+        case .bottomLeft: String(localized: "Bottom left")
+        case .bottomCenter: String(localized: "Bottom center")
+        case .bottomRight: String(localized: "Bottom right")
         }
     }
 }
@@ -143,9 +172,9 @@ enum Prefill: String, Codable, CaseIterable, Identifiable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .fieldText: return "Text already in the field"
-        case .selectionOnly: return "Selected text only"
-        case .empty: return "An empty draft"
+        case .fieldText: return String(localized: "Text already in the field")
+        case .selectionOnly: return String(localized: "Selected text only")
+        case .empty: return String(localized: "An empty draft")
         }
     }
 }
@@ -273,7 +302,7 @@ final class Store: ObservableObject {
     }
 
     func newPreset() -> Preset {
-        Preset(name: "New preset", colorHex: Preset.colors[presets.count % Preset.colors.count],
+        Preset(name: String(localized: "New preset"), colorHex: Preset.colors[presets.count % Preset.colors.count],
                instruction: "Rewrite my draft so it is clear and natural.",
                takes: settings.defaultTakes, model: settings.defaultModel, effort: settings.defaultEffort)
     }
@@ -322,7 +351,7 @@ final class Store: ObservableObject {
     }
 
     static let defaultPresets: [Preset] = [
-        Preset(name: "Slack · clear & friendly", colorHex: "#2F55E0",
+        Preset(name: String(localized: "Slack · clear & friendly"), colorHex: "#2F55E0",
                instruction: "Rewrite my draft as a message to teammates. Clear first, friendly second. Lead with the answer.",
                dos: ["One ask per sentence", "Keep EOD, QA, PR"],
                avoid: ["Exclamation marks", "\"Just\", \"quick question\"", "Emoji unless I used them"],
@@ -330,20 +359,20 @@ final class Store: ObservableObject {
         Preset(name: "Proofread only, keep my words", colorHex: "#1D6B4F",
                instruction: "Fix spelling, grammar and punctuation only. Keep my words, tone and structure.",
                avoid: ["Rewording anything that is already correct"], takes: 1),
-        Preset(name: "Shorter", colorHex: "#8A4B08",
+        Preset(name: String(localized: "Shorter"), colorHex: "#8A4B08",
                instruction: "Say the same thing in as few words as possible without dropping any ask or fact.",
                length: .shorter),
-        Preset(name: "Formal email", colorHex: "#7A3FD1",
+        Preset(name: String(localized: "Formal email"), colorHex: "#7A3FD1",
                instruction: "Rewrite my draft as a polite, professional email body. No subject line, no signature.",
                dos: ["Short paragraphs"], length: .any,
                apps: [AppRef(bundleID: "com.apple.mail", name: "Mail")]),
-        Preset(name: "Push back politely", colorHex: "#B42318",
+        Preset(name: String(localized: "Push back politely"), colorHex: "#B42318",
                instruction: "Say no or push back on the request, politely and firmly. Keep the relationship warm. Offer an alternative only if my draft suggests one.",
                avoid: ["Over-apologising", "Vague maybes"]),
-        Preset(name: "Hebrew → English, keep my tone", colorHex: "#0E6E8C",
+        Preset(name: String(localized: "Hebrew → English, keep my tone"), colorHex: "#0E6E8C",
                instruction: "Translate my Hebrew draft into natural English, the way a native speaker would write it. Keep my tone and register.",
                language: .english, length: .any),
-        Preset(name: "English → עברית", colorHex: "#0E6E8C",
+        Preset(name: String(localized: "English → עברית"), colorHex: "#0E6E8C",
                instruction: "Translate my English draft into natural Hebrew, the way Israelis write at work. Keep my tone and register.",
                language: .hebrew, length: .any),
     ]

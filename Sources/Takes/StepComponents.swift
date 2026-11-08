@@ -52,6 +52,8 @@ struct DrawnCheck: View {
                 guard drawn == 0 else { return }
                 withAnimation(.easeOut(duration: 0.3)) { drawn = 1 }
             }
+            // A check isn't mirrored in right-to-left languages.
+            .environment(\.layoutDirection, .leftToRight)
     }
 
     struct CheckShape: Shape {

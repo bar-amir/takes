@@ -40,7 +40,7 @@ enum BrandMark {
             return true
         }
         image.isTemplate = true
-        image.accessibilityDescription = alert ? "Takes needs setup" : "Takes"
+        image.accessibilityDescription = alert ? String(localized: "Takes needs setup") : "Takes"
         return image
     }
 
@@ -119,4 +119,11 @@ enum BrandMark {
 struct BrandMarkShape: Shape {
     var small = false
     func path(in rect: CGRect) -> Path { Path(BrandMark.path(in: rect, small: small)) }
+}
+
+extension BrandMarkShape {
+    /// The mark filled with `style`. A logo keeps its shape in right-to-left languages, where SwiftUI would mirror a shape.
+    func fill<S: ShapeStyle>(_ style: S) -> some View {
+        _ShapeView(shape: self, style: style).environment(\.layoutDirection, .leftToRight)
+    }
 }

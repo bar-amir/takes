@@ -41,19 +41,19 @@ struct ProviderEngineSettings: View {
     private var details: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
-                LabeledMenu(label: "Provider",
-                            options: Provider.known.map { (value: $0.id, title: $0.name) } + [(value: Provider.customID, title: "Custom address")],
+                LabeledMenu(label: String(localized: "Provider"),
+                            options: Provider.known.map { (value: $0.id, title: $0.name) } + [(value: Provider.customID, title: String(localized: "Custom address"))],
                             selection: Binding(get: { provider.id }, set: { id in resetInputs(); models.select(id) }))
                 if let console = provider.consoleURL {
                     Button("Get a key") { NSWorkspace.shared.open(console) }
                         .buttonStyle(SecondaryButtonStyle(height: 30))
-                        .accessibilityHint("Opens \(console.host ?? "the provider's site") in your browser")
+                        .accessibilityHint("Opens \(console.host ?? String(localized: "the provider's site")) in your browser")
                 }
             }
             if provider.isCustom { address }
             hint(provider.dataNote)
             if provider.id == Provider.gemini.id {
-                hint("Google requires a key on a project with billing on in the EEA, Switzerland and the UK.")
+                hint(String(localized: "Google requires a key on a project with billing on in the EEA, Switzerland and the UK."))
             }
             if models.state != .noAddress {
                 keyRow
@@ -83,9 +83,9 @@ struct ProviderEngineSettings: View {
             HStack(spacing: 10) {
                 Text("Key saved in your keychain").font(.system(size: 13)).foregroundStyle(Theme.doText)
                 Button("Remove Key…") {
-                    guard confirmDestructive("Remove your \(provider.name) key?",
-                                             message: "Takes deletes it from your keychain. You'll need to paste it again to write with \(provider.name).",
-                                             button: "Remove Key") else { return }
+                    guard confirmDestructive(String(localized: "Remove your \(provider.name) key?"),
+                                             message: String(localized: "Takes deletes it from your keychain. You'll need to paste it again to write with \(provider.name)."),
+                                             button: String(localized: "Remove Key")) else { return }
                     keyNote = nil
                     models.removeKey()
                 }
@@ -109,33 +109,33 @@ struct ProviderEngineSettings: View {
         case .checking, .idle:
             HStack(spacing: 6) {
                 ProgressView().controlSize(.mini)
-                hint("Looking up \(provider.name)'s models…")
+                hint(String(localized: "Looking up \(provider.name)'s models…"))
             }
         case .refused(let message):
-            hint(message + " Or remove it and paste a new one.", warning: true)
+            hint(String(localized: "\(message) Or remove it and paste a new one."), warning: true)
         case .ready where !models.models.isEmpty:
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 10) {
-                    LabeledMenu(label: "Model",
+                    LabeledMenu(label: String(localized: "Model"),
                                 options: models.modelOptions(picked: store.settings.providerModel).map { (value: $0, title: $0) },
                                 selection: Binding(get: { store.settings.providerModel },
                                                    set: { store.settings.providerModel = $0; models.test = .idle }))
                     testButton
                 }
                 if !store.settings.providerModel.isEmpty, !models.models.contains(store.settings.providerModel) {
-                    hint("\(provider.name) doesn't list \(store.settings.providerModel) any more. Pick another.", warning: true)
+                    hint(String(localized: "\(provider.name) doesn't list \(store.settings.providerModel) any more. Pick another."), warning: true)
                 }
                 testResult
             }
         case .ready, .failed, .noKey, .noAddress:
             VStack(alignment: .leading, spacing: 8) {
                 if case .failed(let message) = models.state {
-                    hint("Couldn't load the model list. \(message)", warning: true)
+                    hint(String(localized: "Couldn't load the model list. \(message)"), warning: true)
                 } else {
-                    hint("\(provider.name) didn't list any models. Type the model ID instead.")
+                    hint(String(localized: "\(provider.name) didn't list any models. Type the model ID instead."))
                 }
                 HStack(spacing: 8) {
-                    StyledTextField(placeholder: "Model ID", text: $modelInput, height: 30, onSubmit: saveModel)
+                    StyledTextField(placeholder: String(localized: "Model ID"), text: $modelInput, height: 30, onSubmit: saveModel)
                         .accessibilityLabel("Model ID")
                     Button("Save", action: saveModel)
                         .buttonStyle(SecondaryButtonStyle(height: 30))
@@ -164,10 +164,10 @@ struct ProviderEngineSettings: View {
         case .running:
             HStack(spacing: 6) {
                 ProgressView().controlSize(.mini)
-                hint("Asking \(store.settings.providerModel)…")
+                hint(String(localized: "Asking \(store.settings.providerModel)…"))
             }
         case .passed(let ms):
-            Text(String(format: "Works. Answered in %.1f s.", Double(ms) / 1000))
+            Text(String(format: NSLocalizedString("Works. Answered in %.1f s.", comment: ""), locale: .current, Double(ms) / 1000))
                 .font(.system(size: 12)).foregroundStyle(Theme.doText)
         case .failed(let message):
             hint(message, warning: true)
@@ -199,7 +199,7 @@ struct ProviderEngineSettings: View {
 
     private func saveAddress() {
         guard let url = ProviderEndpoint.normalize(addressInput) else {
-            addressError = "Use an https address on the internet, such as https://llm.example.com/v1. Servers on this Mac go in the Local model row."
+            addressError = String(localized: "Use an https address on the internet, such as https://llm.example.com/v1. Servers on this Mac go in the Local model row.")
             return
         }
         addressError = nil
@@ -235,24 +235,24 @@ struct ProviderOnboardingDetail: View {
         VStack(alignment: .leading, spacing: 8) {
             if !provider.isCustom {
                 HStack(spacing: 10) {
-                    LabeledMenu(label: "Provider", options: Provider.known.map { (value: $0.id, title: $0.name) },
+                    LabeledMenu(label: String(localized: "Provider"), options: Provider.known.map { (value: $0.id, title: $0.name) },
                                 selection: Binding(get: { provider.id }, set: { keyInput = ""; models.select($0) }))
                     if let console = provider.consoleURL {
                         Button("Get a key") { NSWorkspace.shared.open(console) }
                             .buttonStyle(SecondaryButtonStyle(height: 28))
-                            .accessibilityHint("Opens \(console.host ?? "the provider's site") in your browser")
+                            .accessibilityHint("Opens \(console.host ?? String(localized: "the provider's site")) in your browser")
                     }
                 }
             }
             if models.state == .noAddress {
-                StepNote("Set your server's address in Settings › Model.")
+                StepNote(String(localized: "Set your server's address in Settings › Model."))
             } else if !models.hasKey {
                 StyledTextField(placeholder: provider.keyPlaceholder, text: $keyInput, secure: true, height: 34, onSubmit: saveKey)
                     .accessibilityLabel("\(provider.name) API key")
                 if let note = provider.keyNote(keyInput) {
                     Text(note).font(.system(size: 12)).foregroundStyle(Theme.avoidText).fixedSize(horizontal: false, vertical: true)
                 }
-                StepNote("Press Return to save it in your keychain. \(provider.dataNote)")
+                StepNote(String(localized: "Press Return to save it in your keychain. \(provider.dataNote)"))
             } else {
                 StepNote(status)
             }
@@ -263,13 +263,13 @@ struct ProviderOnboardingDetail: View {
 
     private var status: String {
         switch models.state {
-        case .checking, .idle: return "Key saved. Looking up \(provider.name)'s models…"
-        case .refused(let message): return message + " Change it in Settings › Model."
-        case .failed: return "Key saved, but the model list didn't load. Type a model ID in Settings › Model."
+        case .checking, .idle: return String(localized: "Key saved. Looking up \(provider.name)'s models…")
+        case .refused(let message): return String(localized: "\(message) Change it in Settings › Model.")
+        case .failed: return String(localized: "Key saved, but the model list didn't load. Type a model ID in Settings › Model.")
         case .ready, .noKey, .noAddress:
             return store.settings.providerModel.isEmpty
-                ? "Key saved. Pick a model in Settings › Model."
-                : "Key saved. Takes will write with \(store.settings.providerModel); change it any time in Settings › Model."
+                ? String(localized: "Key saved. Pick a model in Settings › Model.")
+                : String(localized: "Key saved. Takes will write with \(store.settings.providerModel); change it any time in Settings › Model.")
         }
     }
 

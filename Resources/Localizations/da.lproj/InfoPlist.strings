@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes lytter kun, mens du indtaler et udkast (⌘D i panelet). Din tale bliver til tekst på denne Mac, og lyden forlader den aldrig.";
+"NSSpeechRecognitionUsageDescription" = "Takes gør dit indtalte udkast til tekst på denne Mac og bruger kun talegenkendelse på enheden. Intet sendes til Apple eller andre.";

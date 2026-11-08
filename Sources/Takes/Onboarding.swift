@@ -9,11 +9,11 @@ enum OnboardingStep: String, Codable, CaseIterable, Identifiable {
     /// The short name in the step list.
     var title: String {
         switch self {
-        case .accessibility: return "Allow access"
-        case .engine: return "Connect a model"
-        case .personalize: return "Make it yours"
-        case .practice: return "Try it"
-        case .done: return "Done"
+        case .accessibility: return String(localized: "Allow access")
+        case .engine: return String(localized: "Connect a model")
+        case .personalize: return String(localized: "Make it yours")
+        case .practice: return String(localized: "Try it")
+        case .done: return String(localized: "Done")
         }
     }
 

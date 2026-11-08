@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes luistert alleen terwijl je een concept dicteert (⌘D in het paneel). Je spraak wordt op deze Mac omgezet in tekst en de audio verlaat hem nooit.";
+"NSSpeechRecognitionUsageDescription" = "Takes zet je gedicteerde concept op deze Mac om in tekst, alleen met spraakherkenning op het apparaat. Er wordt niets naar Apple of iemand anders gestuurd.";

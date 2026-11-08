@@ -30,16 +30,20 @@ final class SetupMonitor: ObservableObject {
 
     /// Where the text goes with the chosen engine, in one sentence. Setup and onboarding both show it, so they can't drift.
     static func privacySummary(for settings: AppSettings) -> String {
-        let destination: String
         switch settings.engine {
-        case .claudeCode, .apiKey: destination = "to Anthropic, under your own Claude account"
-        case .chatGPT: destination = "to OpenAI, under your own ChatGPT plan"
+        case .claudeCode, .apiKey:
+            return String(localized: "When you ask for takes, it sends your draft, your preset's instructions and any context you add straight from your Mac to Anthropic, under your own Claude account.")
+        case .chatGPT:
+            return String(localized: "When you ask for takes, it sends your draft, your preset's instructions and any context you add straight from your Mac to OpenAI, under your own ChatGPT plan.")
         case .provider:
             let provider = Provider.current(settings)
-            destination = provider.id == "custom" ? "to the server you added, under your own account" : "to \(provider.name), under your own account"
-        case .local: return "When you ask for takes, it sends your draft, your preset's instructions and any context you add to the model server on this Mac; nothing leaves it."
+            if provider.id == "custom" {
+                return String(localized: "When you ask for takes, it sends your draft, your preset's instructions and any context you add straight from your Mac to the server you added, under your own account.")
+            }
+            let name = provider.name
+            return String(localized: "When you ask for takes, it sends your draft, your preset's instructions and any context you add straight from your Mac to \(name), under your own account.")
+        case .local: return String(localized: "When you ask for takes, it sends your draft, your preset's instructions and any context you add to the model server on this Mac; nothing leaves it.")
         }
-        return "When you ask for takes, it sends your draft, your preset's instructions and any context you add straight from your Mac \(destination)."
     }
 
     /// Who receives the draft with the chosen engine, for onboarding's "where your text goes": the company or
@@ -50,7 +54,7 @@ final class SetupMonitor: ObservableObject {
         case .chatGPT: return "OpenAI"
         case .provider:
             let provider = Provider.current(settings)
-            return provider.id == "custom" ? "the server you added" : provider.name
+            return provider.id == "custom" ? String(localized: "the server you added") : provider.name
         case .local: return nil
         }
     }
@@ -58,14 +62,14 @@ final class SetupMonitor: ObservableObject {
     /// One short line on what's still missing, for the menu-bar popover; nil when Takes is ready.
     static func missingSummary(accessibility: Bool, engine: EngineStatus, privacyAccepted: Bool, hotKeyFree: Bool) -> String? {
         var missing: [String] = []
-        if !accessibility { missing.append("allow Accessibility") }
-        if case .problem = engine { missing.append("connect a model") }
-        if !privacyAccepted { missing.append("review where text goes") }
-        if !hotKeyFree { missing.append("pick a free hotkey") }
+        if !accessibility { missing.append(String(localized: "allow Accessibility")) }
+        if case .problem = engine { missing.append(String(localized: "connect a model")) }
+        if !privacyAccepted { missing.append(String(localized: "review where text goes")) }
+        if !hotKeyFree { missing.append(String(localized: "pick a free hotkey")) }
         switch missing.count {
         case 0: return nil
-        case 1: return "One thing left: \(missing[0])."
-        default: return "\(missing.count) things left to set up."
+        case 1: return String(localized: "One thing left: \(missing[0]).")
+        default: return String(localized: "\(missing.count) things left to set up.")
         }
     }
 
@@ -76,7 +80,9 @@ final class SetupMonitor: ObservableObject {
 
     /// The reminder to check a take, naming Claude only when it's Claude writing.
     static func mistakesNote(for settings: AppSettings) -> String {
-        (settings.engine.isClaude ? "Claude" : "Models") + " can get things wrong, and takes are only as good as your preset's instructions. Read a take before you send it: what you send is up to you."
+        settings.engine.isClaude
+            ? String(localized: "Claude can get things wrong, and takes are only as good as your preset's instructions. Read a take before you send it: what you send is up to you.")
+            : String(localized: "Models can get things wrong, and takes are only as good as your preset's instructions. Read a take before you send it: what you send is up to you.")
     }
 
     private var timer: Timer?
@@ -104,7 +110,7 @@ final class SetupMonitor: ObservableObject {
         }
     }
 
-    static let claudeMissing = "Claude Code isn't installed"
+    static let claudeMissing = String(localized: "Claude Code isn't installed")
 
     func refreshEngine() async {
         lastEngineCheck = Date()
@@ -116,15 +122,16 @@ final class SetupMonitor: ObservableObject {
         case .chatGPT:
             engine = await Self.chatGPTEngineStatus()
         case .apiKey:
-            engine = Keychain.apiKey?.isEmpty == false ? .ready("Anthropic API key saved") : .problem("No API key saved yet")
+            engine = Keychain.apiKey?.isEmpty == false ? .ready(String(localized: "Anthropic API key saved")) : .problem(String(localized: "No API key saved yet"))
         case .claudeCode:
             let status = await ClaudeCodeEngine.status()
             if !status.found {
                 engine = .problem(Self.claudeMissing)
             } else if !status.signedIn {
-                engine = .problem("Claude Code isn't signed in")
+                engine = .problem(String(localized: "Claude Code isn't signed in"))
             } else {
-                engine = .ready("Claude Code signed in" + (status.plan.map { " · \($0.capitalized) plan" } ?? ""))
+                engine = .ready(status.plan.map { String(localized: "Claude Code signed in · \($0.capitalized) plan") }
+                    ?? String(localized: "Claude Code signed in"))
             }
         }
     }
@@ -158,7 +165,7 @@ final class SetupWindowController: NSObject, NSWindowDelegate {
     private func makeWindow() -> NSWindow {
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 640, height: 820),
                               styleMask: [.titled, .closable, .fullSizeContentView], backing: .buffered, defer: false)
-        window.title = "Set up Takes"
+        window.title = String(localized: "Set up Takes")
         window.titlebarAppearsTransparent = true
         window.isReleasedWhenClosed = false
         // Stay above System Settings so the steps are visible while granting access.
@@ -184,7 +191,7 @@ struct SetupView: View {
                 Text(monitor.allSet ? "You're all set" : "Takes needs a couple of things")
                     .font(.system(size: 22, weight: .bold))
                 Text(monitor.allSet
-                     ? "Press \(store.settings.summonHotKey.display) in any text field to start."
+                     ? "Press \(store.settings.summonHotKey.inline) in any text field to start."
                      : "This window updates by itself as you finish each step.")
                     .font(.system(size: 14))
                     .foregroundStyle(Theme.secondaryText)
@@ -226,9 +233,9 @@ struct SetupView: View {
     }
 
     private var accessibilityStep: some View {
-        SetupStep(number: 1, title: "Allow Accessibility access", done: monitor.accessibility,
-                  status: monitor.accessibility ? "Allowed" : "Needed",
-                  detail: "Lets Takes read the text box you're typing in and paste the take back into it.") {
+        SetupStep(number: 1, title: String(localized: "Allow Accessibility access"), done: monitor.accessibility,
+                  status: monitor.accessibility ? String(localized: "Allowed") : String(localized: "Needed"),
+                  detail: String(localized: "Lets Takes read the text box you're typing in and paste the take back into it.")) {
             if !monitor.accessibility {
                 HStack(spacing: 8) {
                     Button("Open Accessibility settings", action: monitor.requestAccessibility)
@@ -249,16 +256,16 @@ struct SetupView: View {
         let done = monitor.engine.isReady
         let status: String
         switch monitor.engine {
-        case .checking: status = "Checking…"
+        case .checking: status = String(localized: "Checking…")
         case .ready(let text), .problem(let text): status = text
         }
-        return SetupStep(number: 2, title: "Connect a model", done: done, status: status, detail: engineDetail) {
+        return SetupStep(number: 2, title: String(localized: "Connect a model"), done: done, status: status, detail: engineDetail) {
             if !done, monitor.engine != .checking {
                 if store.settings.engine == .claudeCode {
                     let missing = monitor.engine == .problem(SetupMonitor.claudeMissing)
                     HStack(spacing: 8) {
                         if missing {
-                            Button(installer.state.isBusy ? "Installing…" : "Install Claude Code") {
+                            Button(installer.state.isBusy ? String(localized: "Installing…") : String(localized: "Install Claude Code")) {
                                 Task { if await installer.installAfterConfirming() { ClaudeCodeEngine.openSignIn() } }
                             }
                             .buttonStyle(PrimaryButtonStyle())
@@ -273,8 +280,8 @@ struct SetupView: View {
                         }
                     }
                     Text(installer.state.progress ?? installer.state.error
-                         ?? (missing ? "Takes installs it for you from Anthropic, then Terminal opens so you can sign in."
-                                     : "Terminal opens and takes you to your browser to sign in. Nothing to type."))
+                         ?? (missing ? String(localized: "Takes installs it for you from Anthropic, then Terminal opens so you can sign in.")
+                                     : String(localized: "Terminal opens and takes you to your browser to sign in. Nothing to type.")))
                         .font(.system(size: 12))
                         .foregroundStyle(installer.state.error == nil ? Theme.secondaryText : Theme.avoidText)
                         .fixedSize(horizontal: false, vertical: true)
@@ -291,27 +298,27 @@ struct SetupView: View {
 
     private var engineDetail: String {
         switch store.settings.engine {
-        case .claudeCode: return "Takes runs Claude Code on this Mac, using your Claude subscription."
-        case .apiKey: return "Takes calls Claude with your Anthropic API key."
-        case .local: return "Takes runs a local model with Ollama or LM Studio. Nothing leaves this Mac."
-        case .chatGPT: return "Takes writes with your ChatGPT plan after you sign in with ChatGPT."
-        case .provider: return "Takes calls \(Provider.current(store.settings).name) with your own API key."
+        case .claudeCode: return String(localized: "Takes runs Claude Code on this Mac, using your Claude subscription.")
+        case .apiKey: return String(localized: "Takes calls Claude with your Anthropic API key.")
+        case .local: return String(localized: "Takes runs a local model with Ollama or LM Studio. Nothing leaves this Mac.")
+        case .chatGPT: return String(localized: "Takes writes with your ChatGPT plan after you sign in with ChatGPT.")
+        case .provider: return String(localized: "Takes calls \(Provider.current(store.settings).name) with your own API key.")
         }
     }
 
     private var engineButton: String {
         switch store.settings.engine {
-        case .chatGPT: return "Sign in with ChatGPT"
-        case .local: return "Open Engine settings"
-        case .claudeCode, .apiKey, .provider: return "Add your API key"
+        case .chatGPT: return String(localized: "Sign in with ChatGPT")
+        case .local: return String(localized: "Open Engine settings")
+        case .claudeCode, .apiKey, .provider: return String(localized: "Add your API key")
         }
     }
 
     private var privacyStep: some View {
         let accepted = store.settings.privacyAccepted
-        return SetupStep(number: 3, title: "Your text and the model", done: accepted,
-                         status: accepted ? "Understood" : "Please read",
-                         detail: "When you press the hotkey, Takes reads the text box you're typing in. \(SetupMonitor.privacySummary(for: store.settings)) Nothing goes to the developer: there's no server and no tracking. \(SetupMonitor.mistakesNote(for: store.settings))") {
+        return SetupStep(number: 3, title: String(localized: "Your text and the model"), done: accepted,
+                         status: accepted ? String(localized: "Understood") : String(localized: "Please read"),
+                         detail: String(localized: "When you press the hotkey, Takes reads the text box you're typing in. \(SetupMonitor.privacySummary(for: store.settings)) Nothing goes to the developer: there's no server and no tracking. \(SetupMonitor.mistakesNote(for: store.settings))")) {
             HStack(spacing: 8) {
                 if !accepted {
                     Button("I understand") { store.settings.privacyAccepted = true }
@@ -331,13 +338,14 @@ struct SetupView: View {
 
     private var hotKeyStep: some View {
         let free = monitor.takenHotKeys.isEmpty
-        return SetupStep(number: 4, title: "Hotkey", done: free,
-                         status: free ? store.settings.summonHotKey.display
-                                      : "Taken: " + monitor.takenHotKeys.map { combo in
-                                          SystemShortcuts.owner(of: combo).map { "\(combo.display) (macOS: \($0))" } ?? "\(combo.display) (another app)"
-                                      }.joined(separator: ", "),
-                         detail: free ? "Press it in any text field to open Takes."
-                                      : "Pick a different shortcut, or turn the macOS one off in System Settings › Keyboard › Keyboard Shortcuts.") {
+        let taken = monitor.takenHotKeys.map { combo in
+            SystemShortcuts.owner(of: combo).map { String(localized: "\(combo.inline) (macOS: \($0))") }
+                ?? String(localized: "\(combo.inline) (another app)")
+        }.joined(separator: ", ")
+        return SetupStep(number: 4, title: String(localized: "Hotkey"), done: free,
+                         status: free ? store.settings.summonHotKey.display : String(localized: "Taken: \(taken)"),
+                         detail: free ? String(localized: "Press it in any text field to open Takes.")
+                                      : String(localized: "Pick a different shortcut, or turn the macOS one off in System Settings › Keyboard › Keyboard Shortcuts.")) {
             if !free {
                 Button("Change shortcut") {
                     onDone()

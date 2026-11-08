@@ -42,7 +42,8 @@ struct AboutView: View {
     private var version: String {
         let short = info["CFBundleShortVersionString"] as? String ?? "dev"
         let build = info["CFBundleVersion"] as? String
-        return build.map { $0 == short ? "Version \(short)" : "Version \(short) (\($0))" } ?? "Version \(short)"
+        return build.map { $0 == short ? String(localized: "Version \(short)") : String(localized: "Version \(short) (\($0))") }
+            ?? String(localized: "Version \(short)")
     }
     private var copyright: String { info["NSHumanReadableCopyright"] as? String ?? "© 2026 Bar Amir. MIT License." }
 
@@ -50,8 +51,8 @@ struct AboutView: View {
         VStack(spacing: 0) {
             AboutLogo(still: still)
                 .frame(width: 236, height: 162) // The clip is 368 × 252.
-                .accessibilityLabel("Takes")
-            Text("Takes")
+                .accessibilityLabel(Text(verbatim: "Takes"))
+            Text(verbatim: "Takes")
                 .font(.system(size: 20, weight: .bold))
                 .padding(.top, 2)
             Text(version)

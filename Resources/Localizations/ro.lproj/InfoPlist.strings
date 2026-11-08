@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes ascultă doar cât dictați o ciornă (⌘D în panou). Vorbirea e transformată în text pe acest Mac, iar sunetul nu-l părăsește niciodată.";
+"NSSpeechRecognitionUsageDescription" = "Takes transformă ciorna dictată în text pe acest Mac, folosind doar recunoașterea vocală de pe dispozitiv. Nimic nu este trimis la Apple sau altcuiva.";

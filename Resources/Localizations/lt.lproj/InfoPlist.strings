@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes klausosi tik tada, kai diktuojate juodraštį (⌘D skydelyje). Jūsų kalba paverčiama tekstu šiame Mac, o garsas niekada iš jo neišeina.";
+"NSSpeechRecognitionUsageDescription" = "Takes paverčia jūsų padiktuotą juodraštį tekstu šiame Mac, naudodama tik įrenginyje veikiantį kalbos atpažinimą. Niekas nesiunčiama nei Apple, nei kam nors kitam.";

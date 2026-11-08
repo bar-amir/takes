@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "Takes solo escucha mientras dictas un borrador (⌘D en el panel). Tu voz se convierte en texto en este Mac y el audio nunca sale de él.";
+"NSSpeechRecognitionUsageDescription" = "Takes convierte en texto el borrador que dictas en este Mac, usando solo el reconocimiento de voz del dispositivo. No se envía nada a Apple ni a nadie más.";
