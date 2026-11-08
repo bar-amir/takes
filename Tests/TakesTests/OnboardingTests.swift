@@ -380,13 +380,34 @@ final class OnboardingPracticeTests: XCTestCase {
         let model = OnboardingModel(progress: OnboardingProgress(step: .engine, history: [.accessibility]),
                                     conditions: OnboardingConditions(accessibility: true))
         model.engineStatus = .problem("Claude Code isn't signed in")
-        XCTAssertEqual(model.primaryTitle, "Understood, open Terminal")
+        XCTAssertEqual(model.primaryTitle, "Understood, sign in to Claude")
         model.engineKind = .apiKey
         XCTAssertEqual(model.primaryTitle, "Understood, save key")
         model.engineKind = .local
         XCTAssertEqual(model.primaryTitle, "Understood, check again")
         model.engineStatus = .checking
         XCTAssertEqual(model.primaryTitle, "Checking…")
+    }
+
+    func testMissingClaudeCodeOffersToInstallIt() {
+        let model = OnboardingModel(progress: OnboardingProgress(step: .engine, history: [.accessibility]),
+                                    conditions: OnboardingConditions(accessibility: true, privacyAccepted: true))
+        model.installer = ClaudeInstaller()
+        model.engineStatus = .problem(SetupMonitor.claudeMissing)
+        XCTAssertTrue(model.claudeMissing)
+        XCTAssertEqual(model.primaryTitle, "Install Claude Code")
+        XCTAssertTrue(model.primaryEnabled)
+        model.installer.state = .downloading
+        XCTAssertEqual(model.primaryTitle, "Installing…")
+        XCTAssertFalse(model.primaryEnabled)
+        model.installer.state = .failed("Couldn't reach Anthropic.")
+        XCTAssertEqual(model.primaryTitle, "Install Claude Code")
+        XCTAssertTrue(model.primaryEnabled)
+        // Installed: the same button now signs in.
+        model.installer.state = .idle
+        model.engineStatus = .problem("Claude Code isn't signed in")
+        XCTAssertFalse(model.claudeMissing)
+        XCTAssertEqual(model.primaryTitle, "Sign in to Claude")
     }
 
     func testEscBacksOutThenCloses() {

@@ -104,6 +104,8 @@ final class SetupMonitor: ObservableObject {
         }
     }
 
+    static let claudeMissing = "Claude Code isn't installed"
+
     func refreshEngine() async {
         lastEngineCheck = Date()
         switch Store.shared.settings.engine {
@@ -118,7 +120,7 @@ final class SetupMonitor: ObservableObject {
         case .claudeCode:
             let status = await ClaudeCodeEngine.status()
             if !status.found {
-                engine = .problem("Claude Code isn't installed")
+                engine = .problem(Self.claudeMissing)
             } else if !status.signedIn {
                 engine = .problem("Claude Code isn't signed in")
             } else {
@@ -174,7 +176,7 @@ struct SetupView: View {
     @ObservedObject var monitor: SetupMonitor
     @ObservedObject var store = Store.shared
     let onDone: () -> Void
-    @State private var copied = false
+    @ObservedObject var installer = ClaudeInstaller.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -253,24 +255,29 @@ struct SetupView: View {
         return SetupStep(number: 2, title: "Connect a model", done: done, status: status, detail: engineDetail) {
             if !done, monitor.engine != .checking {
                 if store.settings.engine == .claudeCode {
+                    let missing = monitor.engine == .problem(SetupMonitor.claudeMissing)
                     HStack(spacing: 8) {
-                        Button(copied ? "Copied" : "Copy “claude auth login”") {
-                            NSPasteboard.general.clearContents()
-                            NSPasteboard.general.setString("claude auth login", forType: .string)
-                            copied = true
-                        }
-                        .buttonStyle(PrimaryButtonStyle())
-                        Button("Open Terminal") {
-                            NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Utilities/Terminal.app"))
+                        if missing {
+                            Button(installer.state.isBusy ? "Installing…" : "Install Claude Code") {
+                                Task { if await installer.installAfterConfirming() { ClaudeCodeEngine.openSignIn() } }
+                            }
+                            .buttonStyle(PrimaryButtonStyle())
+                            .disabled(installer.state.isBusy)
+                        } else {
+                            Button("Sign in to Claude", action: ClaudeCodeEngine.openSignIn)
+                                .buttonStyle(PrimaryButtonStyle())
                         }
                         Button("Use an API key instead") {
                             onDone()
                             SettingsWindowController.shared.show(tab: .model)
                         }
                     }
-                    Text("Paste the command in Terminal, sign in in the browser, then paste the code it shows back into Terminal.")
+                    Text(installer.state.progress ?? installer.state.error
+                         ?? (missing ? "Takes installs it for you from Anthropic, then Terminal opens so you can sign in."
+                                     : "Terminal opens and takes you to your browser to sign in. Nothing to type."))
                         .font(.system(size: 12))
-                        .foregroundStyle(Theme.secondaryText)
+                        .foregroundStyle(installer.state.error == nil ? Theme.secondaryText : Theme.avoidText)
+                        .fixedSize(horizontal: false, vertical: true)
                 } else {
                     Button(engineButton) {
                         onDone()

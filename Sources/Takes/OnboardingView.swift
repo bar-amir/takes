@@ -393,6 +393,7 @@ private struct EngineStep: View {
     private var ready: Bool { model.flow.conditions.engineReady }
 
     private var statusText: String {
+        if model.engineKind == .claudeCode, model.installer.state.isBusy { return "Installing Claude Code" }
         switch model.engineStatus {
         case .checking: return "Checking…"
         case .ready(let text), .problem(let text): return text
@@ -438,7 +439,8 @@ private struct EngineStep: View {
                     HStack(spacing: Spacing.item) {
                         Text(title(kind)).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.text).lineLimit(1)
                         if selected {
-                            StatusPill(text: statusText, good: model.engineStatus.isReady, waiting: model.engineStatus == .checking)
+                            StatusPill(text: statusText, good: model.engineStatus.isReady,
+                                       waiting: model.engineStatus == .checking || (kind == .claudeCode && model.installer.state.isBusy))
                         } else if found(kind) {
                             StatusPill(text: "Found on this Mac", good: true)
                         }
@@ -471,25 +473,30 @@ private struct EngineStep: View {
     }
 
     @ViewBuilder private var claudeCodeDetail: some View {
+        let install = model.installer.state
         if !ready, model.engineStatus != .checking {
             VStack(alignment: .leading, spacing: 6) {
-                if case .problem(let text) = model.engineStatus, text.contains("installed") {
-                    StepNote("Install Claude Code first, then come back. This page checks again every few seconds.")
-                    Button("How to install Claude Code") { NSWorkspace.shared.open(URL(string: "https://claude.com/claude-code")!) }
-                        .buttonStyle(SecondaryButtonStyle(height: 28))
-                } else if model.copiedSignIn {
-                    StepNote("Copied. Paste it in Terminal, sign in in the browser, then paste the code it shows back into Terminal. This page moves on by itself.")
-                } else {
+                if let progress = install.progress {
                     HStack(spacing: Spacing.item) {
-                        Text("claude auth login")
-                            .font(.system(size: 12, design: .monospaced))
-                            .foregroundStyle(Theme.text)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(RoundedRectangle(cornerRadius: 6).fill(Theme.surface))
-                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Theme.border))
-                        Text("copied when you continue").font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
+                        ProgressView().controlSize(.small)
+                        Text(progress).font(.system(size: 12, weight: .medium)).foregroundStyle(Theme.text)
                     }
+                    StepNote("This takes about a minute. Then Terminal opens so you can sign in.")
+                } else if model.claudeMissing {
+                    if let error = install.error {
+                        Text(error).font(.system(size: 12)).foregroundStyle(Theme.avoidText)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Button("Install it yourself") { NSWorkspace.shared.open(ClaudeInstaller.manualURL) }
+                            .buttonStyle(SecondaryButtonStyle(height: 28))
+                    } else {
+                        StepNote("Takes installs it for you from Anthropic, then you sign in once. No password, nothing to type.")
+                    }
+                } else if model.signInOpened {
+                    StepNote("Finish signing in in the browser. This page moves on by itself.")
+                    Button("Open Terminal again", action: model.openSignIn)
+                        .buttonStyle(SecondaryButtonStyle(height: 28))
+                } else {
+                    StepNote("Terminal opens and takes you to your browser to sign in. Nothing to type.")
                 }
             }
             .padding(.top, 4)

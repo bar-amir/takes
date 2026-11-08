@@ -204,30 +204,41 @@ struct ClaudeCodeEngine: TakesEngine {
     }
 
     /// Opens Terminal already running `claude auth login`, which sends the person to the browser to sign in.
-    /// A .command file runs on open without the Automation permission that scripting Terminal would need.
+    /// A .command file runs on open without the Automation permission that scripting Terminal would need. It runs
+    /// `claude` by its full path: the official installer puts it in ~/.local/bin, which a new shell often doesn't
+    /// have on its PATH, so a bare `claude` would be "command not found". The sign-in itself stays in Claude Code:
+    /// Takes never sees the code or the token.
     static func openSignIn() {
-        let claude = knownClaudePath ?? "claude"
-        let quoted = "'" + claude.replacingOccurrences(of: "'", with: "'\\''") + "'"
-        let script = """
-            #!/bin/zsh
-            clear
-            echo "Signing Takes in to Claude. Finish in the browser window that opens, then go back to Takes and press Try again."
-            echo
-            \(quoted) auth login
-            echo
-            echo "You can close this window now."
-            """
+        let claude = knownClaudePath ?? ClaudeLocator.fixedPath() ?? "claude"
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("Sign in to Claude.command")
         do {
-            try script.write(to: url, atomically: true, encoding: .utf8)
+            try signInScript(claudePath: claude).write(to: url, atomically: true, encoding: .utf8)
             try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: url.path)
             NSWorkspace.shared.open(url)
         } catch {
-            // Fall back to what onboarding does: copy the command and open Terminal.
+            // Copy the full command instead, so pasting it in Terminal works too.
             NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString("claude auth login", forType: .string)
+            NSPasteboard.general.setString(signInCommand(claudePath: claude), forType: .string)
             NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Utilities/Terminal.app"))
         }
+    }
+
+    /// `claude auth login` with `claude` by its full path, quoted for the shell.
+    static func signInCommand(claudePath: String) -> String {
+        "'" + claudePath.replacingOccurrences(of: "'", with: "'\\''") + "' auth login"
+    }
+
+    /// What the sign-in window runs.
+    static func signInScript(claudePath: String) -> String {
+        """
+        #!/bin/zsh
+        clear
+        echo "Signing Takes in to Claude. Finish in the browser window that opens, then go back to Takes."
+        echo
+        \(signInCommand(claudePath: claudePath))
+        echo
+        echo "You can close this window now."
+        """
     }
 
     /// Whether the CLI is installed and signed in, for Settings › Model.
