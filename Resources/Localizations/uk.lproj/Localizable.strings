@@ -1035,3 +1035,6 @@
 "↓ 50% articles this month" = "↓ 50% артиклів цього місяця";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · перевірок: %lld · уроки безкоштовні";
 "⌘Z" = "⌘Z";
+"Report a Problem…" = "Повідомити про проблему…";
+"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Текстове поле в %@ змінилося, поки Takes писав, тож нічого не вставлено.";
+"Claude Code didn't answer within %lld minutes, so Takes stopped it. Try again, or pick another engine in Settings › Model." = "Claude Code не відповів протягом %lld хв, тож Takes зупинив його. Спробуйте знову або виберіть інший рушій у розділі «Параметри › Модель».";

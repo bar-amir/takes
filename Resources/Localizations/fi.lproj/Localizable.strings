@@ -1035,3 +1035,6 @@
 "↓ 50% articles this month" = "↓ 50 % artikkelit tässä kuussa";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld tarkistusta · oppitunnit ilmaisia";
 "⌘Z" = "⌘Z";
+"Report a Problem…" = "Ilmoita ongelmasta…";
+"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Tekstikenttä kohteessa %@ muuttui, kun Takes kirjoitti, joten mitään ei liitetty.";
+"Claude Code didn't answer within %lld minutes, so Takes stopped it. Try again, or pick another engine in Settings › Model." = "Claude Code ei vastannut %lld minuutin kuluessa, joten Takes pysäytti sen. Yritä uudelleen tai valitse toinen moottori kohdassa Asetukset › Malli.";

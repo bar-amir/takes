@@ -1035,3 +1035,6 @@
 "↓ 50% articles this month" = "↓ 50 % članova ovaj mjesec";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · provjera: %lld · lekcije besplatne";
 "⌘Z" = "⌘Z";
+"Report a Problem…" = "Prijavi problem…";
+"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Tekstno polje u aplikaciji %@ promijenilo se dok je Takes pisao, pa ništa nije zalijepljeno.";
+"Claude Code didn't answer within %lld minutes, so Takes stopped it. Try again, or pick another engine in Settings › Model." = "Claude Code nije odgovorio u roku od %lld min, pa ga je Takes zaustavio. Pokušajte ponovno ili odaberite drugi servis u Postavkama › Model.";

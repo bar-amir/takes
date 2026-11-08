@@ -127,6 +127,8 @@ final class OnboardingModel: ObservableObject {
             .receive(on: RunLoop.main)
             .sink { [weak self] accessibility, engine, taken, settings in
                 guard let self else { return }
+                // Claude Code installed while setup is open: the engine check just found it.
+                if !claudeInstalled, ClaudeCodeEngine.knownClaudePath != nil { claudeInstalled = true }
                 setConditions(read(accessibility, engine, taken, settings))
             }
             .store(in: &subscriptions)
@@ -138,7 +140,9 @@ final class OnboardingModel: ObservableObject {
         guard flow.index <= OnboardingStep.allCases.firstIndex(of: .engine) ?? 0, !flow.conditions.engineReady else { return }
         Task { [weak self] in
             await LocalModels.shared.refresh()
+            let claudeFound = await ClaudeCodeEngine.locate() != nil
             guard let self else { return }
+            claudeInstalled = claudeFound
             let running = LocalModels.shared.running.contains { !($0.models ?? []).isEmpty }
             localRunning = running
             let pick = Onboarding.recommendedEngine(current: engineKind, currentReady: engineStatus.isReady,

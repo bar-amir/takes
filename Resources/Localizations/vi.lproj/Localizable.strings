@@ -1035,3 +1035,6 @@
 "↓ 50% articles this month" = "↓ 50% lỗi mạo từ tháng này";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld lần kiểm tra · bài học miễn phí";
 "⌘Z" = "⌘Z";
+"Report a Problem…" = "Báo cáo sự cố…";
+"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Ô văn bản trong %@ đã thay đổi khi Takes đang viết, nên không dán gì.";
+"Claude Code didn't answer within %lld minutes, so Takes stopped it. Try again, or pick another engine in Settings › Model." = "Claude Code không trả lời trong vòng %lld phút, nên Takes đã dừng nó. Hãy thử lại, hoặc chọn công cụ khác trong Cài đặt › Mô hình.";

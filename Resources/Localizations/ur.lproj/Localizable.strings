@@ -1035,3 +1035,6 @@
 "↓ 50% articles this month" = "↓ اس مہینے آرٹیکلز میں 50%";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld جانچ · اسباق مفت";
 "⌘Z" = "⌘Z";
+"Report a Problem…" = "مسئلہ رپورٹ کریں…";
+"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Takes کے لکھتے وقت %@ میں ٹیکسٹ باکس بدل گیا، اس لیے کچھ پیسٹ نہیں ہوا۔";
+"Claude Code didn't answer within %lld minutes, so Takes stopped it. Try again, or pick another engine in Settings › Model." = "Claude Code نے %lld منٹ میں جواب نہیں دیا، اس لیے Takes نے اسے روک دیا۔ دوبارہ کوشش کریں، یا سیٹنگز › ماڈل میں کوئی دوسرا انجن منتخب کریں۔";

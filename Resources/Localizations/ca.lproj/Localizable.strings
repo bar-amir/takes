@@ -1035,3 +1035,6 @@
 "↓ 50% articles this month" = "↓ 50% articles aquest mes";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld revisions · lliçons gratuïtes";
 "⌘Z" = "⌘Z";
+"Report a Problem…" = "Informar d'un problema…";
+"The text box in %@ changed while Takes was writing, so nothing was pasted." = "El quadre de text de %@ ha canviat mentre el Takes escrivia, així que no s'ha enganxat res.";
+"Claude Code didn't answer within %lld minutes, so Takes stopped it. Try again, or pick another engine in Settings › Model." = "El Claude Code no ha respost en %lld minuts, així que el Takes l'ha aturat. Torna-ho a provar o tria un altre motor a Configuració › Model.";

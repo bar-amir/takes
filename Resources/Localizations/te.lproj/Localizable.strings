@@ -1035,3 +1035,6 @@
 "↓ 50% articles this month" = "↓ ఈ నెల ఆర్టికల్స్ 50%";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld తనిఖీలు · పాఠాలు ఉచితం";
 "⌘Z" = "⌘Z";
+"Report a Problem…" = "సమస్యను నివేదించు…";
+"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Takes రాస్తున్నప్పుడు %@ లోని టెక్స్ట్ బాక్స్ మారింది, కాబట్టి ఏదీ పేస్ట్ కాలేదు.";
+"Claude Code didn't answer within %lld minutes, so Takes stopped it. Try again, or pick another engine in Settings › Model." = "Claude Code %lld నిమిషాల్లో సమాధానం ఇవ్వలేదు, కాబట్టి Takes దాన్ని ఆపివేసింది. మళ్లీ ప్రయత్నించండి, లేదా సెట్టింగ్‌లు › మోడల్‌లో మరో ఇంజిన్ ఎంచుకోండి.";

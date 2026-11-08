@@ -1035,3 +1035,6 @@
 "↓ 50% articles this month" = "↓ 50% artikel bulan ini";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld semakan · pelajaran percuma";
 "⌘Z" = "⌘Z";
+"Report a Problem…" = "Laporkan Masalah…";
+"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Kotak teks dalam %@ berubah semasa Takes sedang menulis, jadi tiada apa-apa ditampal.";
+"Claude Code didn't answer within %lld minutes, so Takes stopped it. Try again, or pick another engine in Settings › Model." = "Claude Code tidak menjawab dalam %lld minit, jadi Takes menghentikannya. Cuba lagi, atau pilih enjin lain dalam Seting › Model.";

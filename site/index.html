@@ -7,16 +7,40 @@
 <meta name="description" content="Ask your Mac. Takes shows a few ways to say your draft, shorter, warmer or more formal, and pastes the one you choose back where you started.">
 <meta property="og:title" content="Takes: does this sound rude?">
 <meta property="og:description" content="Ask your Mac. Takes shows a few ways to say it and pastes the one you choose. A free Mac writing companion that uses your own Claude, or a model of your choice.">
-<meta property="og:image" content="https://bar-amir.github.io/takes/img/social.jpg">
+<meta property="og:image" content="https://takes.rocks/img/social.jpg">
 <meta property="og:image:width" content="1280">
 <meta property="og:image:height" content="640">
 <meta property="og:image:alt" content="The takes logo as a glossy marbled slab in cobalt, tomato and cream on a sunlit paper desk">
-<meta property="og:url" content="https://bar-amir.github.io/takes/">
+<meta property="og:url" content="https://takes.rocks/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#F3EBDD">
+<meta property="og:type" content="website">
+<link rel="canonical" href="https://takes.rocks/">
+<meta name="google-site-verification" content="e5zMzHR5ZFr4Ft3dsexPEZIDqFcID8Skp0kjg2qWMQM">
 <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Takes",
+  "description": "A free, open-source Mac app that rewrites the draft in any text field a few ways, with the Claude or ChatGPT plan you already have, an API key or a model on your Mac, and pastes the one you choose back.",
+  "url": "https://takes.rocks/",
+  "downloadUrl": "https://github.com/bar-amir/takes/releases/latest/download/Takes.dmg",
+  "installUrl": "https://github.com/bar-amir/takes/releases/latest/download/Takes.dmg",
+  "image": "https://takes.rocks/img/social.jpg",
+  "screenshot": "https://takes.rocks/film/takes-film-poster.jpg",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "macOS 14 or later",
+  "softwareVersion": "0.6.1",
+  "isAccessibleForFree": true,
+  "license": "https://github.com/bar-amir/takes/blob/main/LICENSE",
+  "codeRepository": "https://github.com/bar-amir/takes",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": { "@type": "Person", "name": "Bar Amir", "url": "https://github.com/bar-amir" }
+}
+</script>
 <style>
 /* Fonts are served from this site, not Google Fonts (SIL Open Font License 1.1; licenses in fonts/). */
 /* Barlow Condensed, latin-ext */
@@ -82,6 +106,32 @@ img, video { max-width: 100%; height: auto; display: block; }
 .btn { display: inline-flex; align-items: center; height: 54px; padding: 0 30px; font: 17px var(--text); text-decoration: none; }
 .btn-ink { background: var(--ink); color: var(--acid); }
 .btn:hover { filter: brightness(1.25); }
+/* The film button: an outline twin of the download button. */
+.btn-line { gap: 12px; padding: 0 26px; background: transparent; color: var(--ink); border: 1.5px solid var(--ink); cursor: pointer; }
+.btn-line:hover { filter: none; background: var(--ink); color: var(--paper); }
+.btn-line .len { font: 500 12px/1 var(--mono); letter-spacing: .04em; text-transform: uppercase; opacity: .62; }
+
+/* The film: a native modal <dialog>, so Esc, focus and VoiceOver come from the browser. The video loads only when it opens. */
+.film { width: min(1280px, calc(100vw - 48px), calc((100vh - 120px) * 16 / 9)); max-width: none; max-height: none; margin: auto; padding: 0; border: 0; background: transparent; overflow: visible; }
+.film::backdrop { background: rgba(23, 23, 20, .88); }
+.film-frame { position: relative; aspect-ratio: 16 / 9; margin: 0 auto; background: #000; box-shadow: 0 30px 90px rgba(0,0,0,.5); }
+.film video { width: 100%; height: 100%; max-width: none; object-fit: contain; background: #000; }
+.film-bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 12px; color: var(--paper); }
+.film-bar .label { color: #CFC7B8; }
+.film-close { width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(243,235,221,.5); background: transparent; color: var(--paper); font: 26px/1 var(--text); cursor: pointer; }
+.film-close:hover { background: var(--paper); color: var(--ink); }
+.film:focus-visible, .film video:focus-visible { outline-offset: 4px; outline-color: var(--acid); }
+.film-close:focus-visible { outline-color: var(--acid); }
+@media (prefers-reduced-motion: no-preference) {
+  .film[open] { animation: film-in .22s ease-out; }
+  .film[open]::backdrop { animation: film-fade .22s ease-out; }
+}
+@keyframes film-in { from { opacity: 0; transform: scale(.97); } }
+@keyframes film-fade { from { opacity: 0; } }
+@media (max-width: 720px) {
+  .film { width: min(100vw, calc((100vh - 72px) * 16 / 9)); }
+  .film-bar { padding: 0 16px; }
+}
 .text-link { font-size: 17px; text-underline-offset: 4px; }
 
 /* Masthead */
@@ -396,6 +446,7 @@ fill="currentColor" stroke="none">
         <p class="sub">Press a shortcut in any Mac app.<br>Takes rewrites your draft a few ways.<br>Pick one and it's pasted back.</p>
         <div class="ctas">
           <a class="btn btn-ink" href="https://github.com/bar-amir/takes/releases/latest/download/Takes.dmg" data-goatcounter-click="download-hero" data-goatcounter-title="Download for Mac (hero)">Download for Mac</a>
+          <button class="btn btn-line" type="button" data-film aria-haspopup="dialog" aria-label="Watch the film, 1 minute" data-goatcounter-click="film-hero" data-goatcounter-title="Watch the film (hero)"><svg aria-hidden="true" viewBox="0 0 12 14" width="12" height="14"><path d="M1 1.2v11.6L11 7z" fill="currentColor"/></svg>Watch the film<span class="len">1 min</span></button>
         </div>
         <p class="small">Free and open source.<br>No account needed to download.<br>macOS 14 or later.</p>
       </div>
@@ -496,14 +547,17 @@ fill="currentColor" stroke="none">
     </div>
   </section>
 
-  <section class="paper">
+  <section id="faq" class="paper">
     <div class="wrap">
       <h2 class="display" style="margin-bottom: 40px">Good to know.</h2>
+      <details><summary>How is this different from Apple's Writing Tools?</summary><p>Writing Tools rewrites with Apple's models, one version at a time, on Macs with Apple Intelligence. Takes shows a few takes side by side, from presets you write yourself, with Do and Avoid rules and examples of how you write. It uses the model you pick: Claude, ChatGPT, another provider or a model on your Mac. Each take gets a note on how it may come across, and you can add the message you're replying to. It runs on macOS 14 or later, on Apple silicon and Intel.</p></details>
+      <details><summary>Is my text sent anywhere?</summary><p>Only to the model you chose, straight from your Mac and under your own account: Anthropic with Claude, OpenAI with your ChatGPT plan, the provider whose key you added, or nowhere with a model on your Mac. Takes reads only the text box you're typing in, and only when you press the shortcut. The developer runs no server and receives nothing. <a href="https://github.com/bar-amir/takes/blob/main/PRIVACY.md">Privacy notice</a>.</p></details>
+      <details><summary>Do I need to pay?</summary><p>Not for Takes. It's free and open source under the MIT license, with no ads or paid tier. The model is yours: runs count toward your Claude or ChatGPT plan, an API key is billed by its provider, usually a cent or two a run, and a model on your Mac costs nothing.</p></details>
+      <details><summary>Why isn't it in the Mac App Store?</summary><p>Takes reads and pastes into other apps' text fields with Accessibility access, and it can run Claude Code on your Mac. App Store apps are sandboxed, which rules out both. Instead, Takes is signed with a Developer ID and notarized by Apple, and it updates itself with Sparkle after asking you first. You can also install it with Homebrew.</p></details>
+      <details><summary>Which apps does it work in?</summary><p>In apps whose text fields macOS can read, including Slack, Mail, Messages, Notes, browsers and Claude's desktop app. Where an app hides its field, Takes copies the text instead and puts your clipboard back. If an app doesn't work, please <a href="https://github.com/bar-amir/takes/issues/new/choose">open an issue</a> with its name.</p></details>
       <details><summary>What do I need?</summary><p>macOS 14 or later, Accessibility access so Takes can read the field and paste, and a model to write with: Claude Code signed in to your account or an Anthropic API key, your ChatGPT plan, an API key from another provider, or a model on your Mac with Ollama or LM Studio.</p></details>
       <details><summary>Which models can it use?</summary><p>Claude, through Claude Code on your Mac or your Anthropic API key. Your ChatGPT Plus or Pro plan, through Sign in with ChatGPT. Your own API key for OpenAI, Google Gemini, OpenRouter, Groq, Mistral or another compatible https server. Or a model running on your Mac with Ollama or LM Studio, so nothing leaves it.</p></details>
-      <details><summary>Does it work in my app?</summary><p>In apps whose text fields macOS can read, including Slack, Mail, Messages, Notes, browsers and Claude's desktop app. Where an app hides its field, Takes copies the text instead and puts your clipboard back.</p></details>
-      <details><summary>What does it cost?</summary><p>Takes is free and open source, with no ads or paid tier, and every released version stays under the MIT license. Generation uses your own Claude plan, ChatGPT plan or API account, or costs nothing with a model on your Mac.</p></details>
-      <details><summary>Is it made by Anthropic or OpenAI?</summary><p>No. Takes is an independent app. It runs Claude Code or calls the provider you chose with your own account.</p></details>
+      <details><summary>Is it made by Anthropic, OpenAI or Apple?</summary><p>No. Takes is an independent app. It runs Claude Code or calls the provider you chose with your own account.</p></details>
     </div>
   </section>
 
@@ -524,10 +578,18 @@ fill="currentColor" stroke="none">
 
 <footer>
   <div class="wrap">
-    <div class="links"><a href="https://github.com/bar-amir/takes">GitHub</a><a href="https://github.com/bar-amir/takes/blob/main/PRIVACY.md">Privacy</a><a href="https://github.com/bar-amir/takes/blob/main/LICENSE">License</a><a href="https://github.com/sponsors/bar-amir" data-goatcounter-click="sponsor-footer" data-goatcounter-title="Support Takes (footer)">Support Takes</a></div>
+    <div class="links"><a href="https://github.com/bar-amir/takes">GitHub</a><a href="https://github.com/bar-amir/takes/blob/main/PRIVACY.md">Privacy</a><a href="https://github.com/bar-amir/takes/blob/main/LICENSE">License</a><a href="https://github.com/bar-amir/takes/tree/main/brand/press">Press kit</a><a href="https://github.com/sponsors/bar-amir" data-goatcounter-click="sponsor-footer" data-goatcounter-title="Support Takes (footer)">Support Takes</a></div>
     <div>Takes isn't made or endorsed by Anthropic, OpenAI or any other model provider. Claude is a trademark of Anthropic, PBC. ChatGPT is a trademark of OpenAI. Mac is a trademark of Apple Inc.</div>
   </div>
 </footer>
+<dialog class="film" aria-labelledby="film-title">
+  <div class="film-bar"><div class="label" id="film-title">Takes, the film · 1:07</div><button type="button" class="film-close" aria-label="Close the film">×</button></div>
+  <div class="film-frame">
+    <video controls playsinline preload="none" data-poster="film/takes-film-poster.jpg" aria-label="Takes, the film, with music. A rough Slack draft becomes three takes side by side, then presets, proofread, translate, tone and the English coach.">
+      <source data-src="film/takes-film.mp4" type="video/mp4">
+    </video>
+  </div>
+</dialog>
 <script>
   // Features carousel: buttons and dots scroll one slide; arrow keys work on the focused track.
   (() => {
@@ -568,6 +630,25 @@ fill="currentColor" stroke="none">
     const near = new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? wake : sleep)(e.target)), { root: track, rootMargin: "0px 60% 0px 60%", threshold: 0 });
     const section = new IntersectionObserver(([e]) => { if (e.isIntersecting) { all.forEach((s) => near.observe(s)); section.disconnect(); } }, { rootMargin: "200px" });
     if ("IntersectionObserver" in window) section.observe(track);
+  })();
+</script>
+<script>
+  // The film opens in a modal dialog. Nothing is downloaded until the button is pressed; closing it stops the sound.
+  (() => {
+    const dlg = document.querySelector("dialog.film"), btn = document.querySelector("[data-film]");
+    if (!dlg || !btn || typeof dlg.showModal !== "function") { btn?.remove(); return; }
+    const v = dlg.querySelector("video"), src = v.querySelector("source");
+    const still = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+    btn.addEventListener("click", () => {
+      if (!src.src) { v.poster = v.dataset.poster; src.src = src.dataset.src; v.preload = "auto"; v.load(); }
+      dlg.showModal();
+      // With Reduce Motion the film waits for Play; otherwise it starts, with sound, since the visitor asked for it.
+      if (!still()) v.play().catch(() => {});
+    });
+    dlg.querySelector(".film-close").addEventListener("click", () => dlg.close());
+    // A click on the dark backdrop (the dialog box itself, outside the frame and the bar) closes it.
+    dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+    dlg.addEventListener("close", () => v.pause());
   })();
 </script>
 <script>

@@ -1035,3 +1035,6 @@
 "↓ 50% articles this month" = "↓ 50% членове този месец";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld проверки · уроците са безплатни";
 "⌘Z" = "⌘Z";
+"Report a Problem…" = "Докладване за проблем…";
+"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Текстовото поле в %@ се промени, докато Takes пишеше, затова нищо не е поставено.";
+"Claude Code didn't answer within %lld minutes, so Takes stopped it. Try again, or pick another engine in Settings › Model." = "Claude Code не отговори в рамките на %lld мин., затова Takes го спря. Опитайте пак или изберете друг двигател в Настройки › Модел.";

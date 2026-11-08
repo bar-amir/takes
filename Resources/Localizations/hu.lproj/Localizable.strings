@@ -1035,3 +1035,6 @@
 "↓ 50% articles this month" = "↓ 50% névelő ebben a hónapban";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld ellenőrzés · a leckék ingyenesek";
 "⌘Z" = "⌘Z";
+"Report a Problem…" = "Probléma jelentése…";
+"The text box in %@ changed while Takes was writing, so nothing was pasted." = "A szövegmező megváltozott itt: %@, miközben a Takes írt, ezért semmi sem lett beillesztve.";
+"Claude Code didn't answer within %lld minutes, so Takes stopped it. Try again, or pick another engine in Settings › Model." = "A Claude Code nem válaszolt %lld percen belül, ezért a Takes leállította. Próbálja újra, vagy válasszon másik motort a Beállítások › Modell lapon.";

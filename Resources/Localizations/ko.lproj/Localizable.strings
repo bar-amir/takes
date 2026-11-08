@@ -1035,3 +1035,6 @@
 "↓ 50% articles this month" = "↓ 이번 달 관사 50%";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · 확인 %lld회 · 레슨 무료";
 "⌘Z" = "⌘Z";
+"Report a Problem…" = "문제 보고…";
+"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Takes가 작성하는 동안 %@의 텍스트 상자가 바뀌어 아무것도 붙여넣지 않았습니다.";
+"Claude Code didn't answer within %lld minutes, so Takes stopped it. Try again, or pick another engine in Settings › Model." = "Claude Code가 %lld분 안에 응답하지 않아 Takes가 중지했습니다. 다시 시도하거나 설정 › 모델에서 다른 엔진을 선택하세요.";

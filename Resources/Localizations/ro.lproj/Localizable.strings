@@ -1035,3 +1035,6 @@
 "↓ 50% articles this month" = "↓ 50% articole luna aceasta";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld verificări · lecții gratuite";
 "⌘Z" = "⌘Z";
+"Report a Problem…" = "Raportați o problemă…";
+"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Caseta de text din %@ s-a schimbat în timp ce Takes scria, așa că nu s-a lipit nimic.";
+"Claude Code didn't answer within %lld minutes, so Takes stopped it. Try again, or pick another engine in Settings › Model." = "Claude Code nu a răspuns în %lld minute, așa că Takes l-a oprit. Încercați din nou sau alegeți alt motor în Configurări › Model.";

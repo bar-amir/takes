@@ -1035,3 +1035,6 @@
 "↓ 50% articles this month" = "↓ 50 % členů tento měsíc";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · kontroly: %lld · lekce zdarma";
 "⌘Z" = "⌘Z";
+"Report a Problem…" = "Nahlásit problém…";
+"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Textové pole v %@ se změnilo, zatímco Takes psal, takže se nic nevložilo.";
+"Claude Code didn't answer within %lld minutes, so Takes stopped it. Try again, or pick another engine in Settings › Model." = "Claude Code neodpověděl do %lld min, takže ho Takes zastavil. Zkuste to znovu, nebo vyberte jinou službu v Nastavení › Model.";

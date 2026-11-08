@@ -1035,3 +1035,6 @@
 "↓ 50% articles this month" = "↓ 50 % artikelių šį mėnesį";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · patikrinimų: %lld · pamokos nemokamos";
 "⌘Z" = "⌘Z";
+"Report a Problem…" = "Pranešti apie problemą…";
+"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Teksto laukas programoje %@ pasikeitė, kol Takes rašė, todėl nieko neįklijuota.";
+"Claude Code didn't answer within %lld minutes, so Takes stopped it. Try again, or pick another engine in Settings › Model." = "Claude Code neatsakė per %lld min., todėl Takes jį sustabdė. Bandykite dar kartą arba pasirinkite kitą variklį skiltyje Nustatymai › Modelis.";

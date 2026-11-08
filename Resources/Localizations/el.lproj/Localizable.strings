@@ -1035,3 +1035,6 @@
 "↓ 50% articles this month" = "↓ 50% άρθρα αυτόν τον μήνα";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld έλεγχοι · δωρεάν μαθήματα";
 "⌘Z" = "⌘Z";
+"Report a Problem…" = "Αναφορά προβλήματος…";
+"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Το πεδίο κειμένου στο %@ άλλαξε ενώ το Takes έγραφε, οπότε δεν επικολλήθηκε τίποτα.";
+"Claude Code didn't answer within %lld minutes, so Takes stopped it. Try again, or pick another engine in Settings › Model." = "Το Claude Code δεν απάντησε μέσα σε %lld λεπτά, οπότε το Takes το σταμάτησε. Δοκιμάστε ξανά ή επιλέξτε άλλη μηχανή στις Ρυθμίσεις › Μοντέλο.";

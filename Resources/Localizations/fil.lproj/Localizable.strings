@@ -1035,3 +1035,6 @@
 "↓ 50% articles this month" = "↓ 50% article ngayong buwan";
 "≈ %@ · %lld checks · lessons free" = "≈ %@ · %lld pagsusuri · libre ang mga aralin";
 "⌘Z" = "⌘Z";
+"Report a Problem…" = "Mag-ulat ng Problema…";
+"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Nagbago ang text box sa %@ habang nagsusulat ang Takes, kaya walang na-paste.";
+"Claude Code didn't answer within %lld minutes, so Takes stopped it. Try again, or pick another engine in Settings › Model." = "Hindi sumagot ang Claude Code sa loob ng %lld minuto, kaya itinigil ito ng Takes. Subukan ulit, o pumili ng ibang engine sa Settings › Modelo.";

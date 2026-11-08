@@ -121,7 +121,7 @@ Remove it with `gh api -X DELETE repos/bar-amir/takes/interaction-limits`.
 
 ```bash
 gh repo edit bar-amir/takes \
-  --homepage "https://bar-amir.github.io/takes/" \
+  --homepage "https://takes.rocks/" \
   --add-topic macos,menu-bar-app,swift,swiftui,writing-assistant,rewrite,proofreading,claude,chatgpt,llm,local-llm,productivity,open-source
 ```
 

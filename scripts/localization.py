@@ -38,6 +38,7 @@ LOCAL_KEY_CALLS: dict[str, set[str]] = {
 # Interpolated expressions that aren't Strings, by file: "File.swift:expression" -> specifier.
 INT_INTERPOLATIONS: dict[str, str] = {
     "AppDelegate.swift:lessonsReady": "%lld",
+    "ClaudeCodeEngine.swift:minutes": "%lld",
     "Diff.swift:fixes.count": "%lld",
     "Engine.swift:seconds": "%lld",
     "Engine.swift:minutes": "%lld",
