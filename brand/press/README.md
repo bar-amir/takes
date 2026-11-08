@@ -10,8 +10,8 @@ Everything here may be used to write about Takes. Please don't change the icon o
 | `takes-wordmark.svg` | The wordmark in Ink, letters cut out |
 | `takes-wordmark-inverted.svg` | The wordmark for dark backgrounds |
 | `screenshots/` | Four real screens, light and dark, rendered by the app itself (`Takes --snapshot`) |
-| [The film](https://bar-amir.github.io/takes/film/takes-film.mp4) | 1:07, 1920 × 1080, H.264 with sound, 14 MB. Source in the repo: [`site/film/takes-film.mp4`](../../site/film/takes-film.mp4) |
-| [Poster frame](https://bar-amir.github.io/takes/film/takes-film-poster.jpg) | 1280 × 720 JPG. Source: [`site/film/takes-film-poster.jpg`](../../site/film/takes-film-poster.jpg) |
+| [The film](https://takes.rocks/film/takes-film.mp4) | 1:07, 1920 × 1080, H.264 with sound, 14 MB. Source in the repo: [`site/film/takes-film.mp4`](../../site/film/takes-film.mp4) |
+| [Poster frame](https://takes.rocks/film/takes-film-poster.jpg) | 1280 × 720 JPG. Source: [`site/film/takes-film-poster.jpg`](../../site/film/takes-film-poster.jpg) |
 | [`fact-sheet.md`](fact-sheet.md) | Price, license, requirements, engines, links |
 | [`bio.md`](bio.md) | About the maker |
 

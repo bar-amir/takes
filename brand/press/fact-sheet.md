@@ -17,7 +17,7 @@
 
 ## Links
 
-- Website: https://bar-amir.github.io/takes/
+- Website: https://takes.rocks/
 - Download: https://github.com/bar-amir/takes/releases/latest/download/Takes.dmg
 - Source: https://github.com/bar-amir/takes
 - Privacy notice: https://github.com/bar-amir/takes/blob/main/PRIVACY.md
