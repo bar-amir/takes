@@ -41,13 +41,15 @@ enum InstantMode {
         case noTake
         /// The user moved to another app while it was writing.
         case leftField(take: String)
+        /// Same app, but focus moved to another text box or its text changed while it was writing.
+        case fieldChanged(take: String)
         /// The field's app couldn't be brought back to the front; the take is on the clipboard.
         case couldNotReturn(take: String)
 
         /// The take that was written, for "Open in Takes".
         var take: String? {
             switch self {
-            case .leftField(let take), .couldNotReturn(let take): return take
+            case .leftField(let take), .fieldChanged(let take), .couldNotReturn(let take): return take
             case .engine, .noTake: return nil
             }
         }
@@ -57,6 +59,7 @@ enum InstantMode {
             case .engine(let reason): return "Nothing was pasted. \(reason)"
             case .noTake: return "The model sent back an empty take. Nothing was pasted."
             case .leftField: return "You left \(app), so nothing was pasted."
+            case .fieldChanged: return "The text box in \(app) changed while Takes was writing, so nothing was pasted."
             case .couldNotReturn: return "Couldn't get back to \(app). The take is on the clipboard: press ⌘V."
             }
         }
@@ -79,16 +82,19 @@ final class InstantRun {
     private let engine: TakesEngine
     private let paste: Paste
     private let stillInField: () -> Bool
+    private let sameField: () -> Bool
     private let unchanged: (String) -> Bool
     private(set) var isCancelled = false
     private(set) var result: EngineResult?
 
     /// `unchanged` says whether a take is the draft as written; such a take is never pasted.
+    /// `sameField` says whether the text box read from still has focus with the text that was read.
     init(engine: TakesEngine, paste: @escaping Paste, stillInField: @escaping () -> Bool,
-         unchanged: @escaping (String) -> Bool = { _ in false }) {
+         sameField: @escaping () -> Bool = { true }, unchanged: @escaping (String) -> Bool = { _ in false }) {
         self.engine = engine
         self.paste = paste
         self.stillInField = stillInField
+        self.sameField = sameField
         self.unchanged = unchanged
     }
 
@@ -109,6 +115,7 @@ final class InstantRun {
         }
         if unchanged(take) { return .unchanged }
         guard stillInField() else { return .failed(.leftField(take: take)) }
+        guard sameField() else { return .failed(.fieldChanged(take: take)) }
         let pasted = await withCheckedContinuation { continuation in
             paste(take) { continuation.resume(returning: $0) }
         }
@@ -123,6 +130,7 @@ final class InstantModeController {
     private let panel: PanelController
     private let toast = ToastController()
     private var run: InstantRun?
+    private var runTask: Task<Void, Never>?
     private var escapeID: UInt32?
     /// Where the field's caret was, so every toast of a run shows in the same place.
     private var caret: CGRect?
@@ -172,6 +180,8 @@ final class InstantModeController {
                 Paster.paste(take, into: focus, replaceAll: replaceAll, restoreClipboard: restore, done: done)
             },
             stillInField: { pid == nil || NSWorkspace.shared.frontmostApplication?.processIdentifier == pid },
+            // Select all and paste must not wipe another text box (another Slack channel) or text typed meanwhile.
+            sameField: { !replaceAll || FocusReader.stillEditing(focus) },
             unchanged: { take in Proofread.nothingToFix(draft: draft, takes: [take]) })
         self.run = run
         show(.writing(preset: preset.name), near: focus.caretRect)
@@ -179,7 +189,7 @@ final class InstantModeController {
 
         let request = InstantMode.request(preset: preset, draft: draft, rules: store.settings.voiceRules,
                                           model: store.settings.runModel(for: preset))
-        Task {
+        runTask = Task {
             let outcome = await run.run(request)
             guard self.run === run else { return }
             self.run = nil
@@ -255,6 +265,9 @@ final class InstantModeController {
     private func stop() {
         run?.cancel()
         run = nil
+        // Cancelling the task also stops a Claude Code process that is still writing.
+        runTask?.cancel()
+        runTask = nil
         stopListeningForEscape()
     }
 
