@@ -187,6 +187,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         check.keyEquivalentModifierMask = []
         menu.addItem(check)
         menu.addItem(alternate(item("Support Takes…", #selector(showSponsors))))
+        menu.addItem(item("Report a Problem…", #selector(reportProblem)))
         let about = item("About Takes", #selector(showAbout))
         about.keyEquivalentModifierMask = []
         menu.addItem(about)
@@ -195,6 +196,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(withTitle: "Quit Takes", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         statusItem.menu = menu
     }
+
+    @objc private func reportProblem() { ReportProblem.open() }
 
     private let coachItem = NSMenuItem(title: "English Coach: off", action: nil, keyEquivalent: "")
     private let modelItem = NSMenuItem(title: "Model", action: nil, keyEquivalent: "")

@@ -2,7 +2,17 @@ import AppKit
 
 /// Runs the Claude Code CLI on this Mac, so requests use the user's own Claude login.
 struct ClaudeCodeEngine: TakesEngine {
-    static let claudePath: String? = resolveClaude()
+    /// Where the `claude` command is. Looked up again while it isn't found, so installing Claude Code while
+    /// setup is open is noticed without restarting Takes.
+    static var claudePath: String? { ClaudeLocator.shared.path() }
+    /// The last answer, without looking: for the main thread, which must never wait on a shell.
+    static var knownClaudePath: String? { ClaudeLocator.shared.known }
+
+    /// Looks for `claude` off the main thread, the login shell included.
+    static func locate() async -> String? { await Task.detached { claudePath }.value }
+
+    /// A run that hasn't finished by then is stopped, so a hung `claude` can't keep the panel spinning.
+    static let runTimeout: TimeInterval = 120
 
     private static let workDir: URL = {
         // An empty folder, so Claude Code finds no CLAUDE.md or project settings.
@@ -45,79 +55,99 @@ struct ClaudeCodeEngine: TakesEngine {
         let started = Date()
         let elapsedMs = { Int(Date().timeIntervalSince(started) * 1000) }
 
-        return try await withCheckedThrowingContinuation { continuation in
-            DispatchQueue.global().async {
-                do {
-                    try process.run()
-                } catch {
-                    continuation.resume(throwing: error)
-                    return
-                }
-                // Written on its own queue: a long draft can fill the pipe before claude starts reading.
-                let input = stdin.fileHandleForWriting
-                // If claude exits before reading everything, the write fails instead of killing Takes with SIGPIPE.
-                _ = fcntl(input.fileDescriptor, F_SETNOSIGPIPE, 1)
+        // Esc, closing the panel or asking again cancels the task; the process is stopped too, so it doesn't
+        // keep running (and using the person's Claude plan) for a result nobody will see.
+        let stop = ProcessStopper(process)
+        let result: EngineResult = try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
                 DispatchQueue.global().async {
-                    try? input.write(contentsOf: Data(request.user.utf8))
-                    try? input.close()
-                }
-
-                var text = ""
-                var firstTextMs: Int?
-                var resultLine: [String: Any]?
-                var buffer = Data()
-                let reader = stdout.fileHandleForReading
-
-                func handle(line: Data) {
-                    guard let json = try? JSONSerialization.jsonObject(with: line) as? [String: Any] else { return }
-                    switch json["type"] as? String {
-                    case "stream_event":
-                        guard let event = json["event"] as? [String: Any],
-                              event["type"] as? String == "content_block_delta",
-                              let delta = event["delta"] as? [String: Any],
-                              delta["type"] as? String == "text_delta",
-                              let chunk = delta["text"] as? String else { return }
-                        if firstTextMs == nil { firstTextMs = elapsedMs() }
-                        text += chunk
-                        onUpdate(TakeSplitter.split(text, streaming: true))
-                    case "result":
-                        resultLine = json
-                    default:
-                        break
+                    do {
+                        try process.run()
+                    } catch {
+                        continuation.resume(throwing: error)
+                        return
                     }
-                }
-
-                while true {
-                    let data = reader.availableData
-                    if data.isEmpty { break }
-                    buffer.append(data)
-                    while let newline = buffer.firstIndex(of: 0x0A) {
-                        handle(line: buffer[buffer.startIndex..<newline])
-                        buffer.removeSubrange(buffer.startIndex...newline)
+                    stop.started()
+                    DispatchQueue.global().asyncAfter(deadline: .now() + Self.runTimeout) { stop.timeOut() }
+                    // Written on its own queue: a long draft can fill the pipe before claude starts reading.
+                    let input = stdin.fileHandleForWriting
+                    // If claude exits before reading everything, the write fails instead of killing Takes with SIGPIPE.
+                    _ = fcntl(input.fileDescriptor, F_SETNOSIGPIPE, 1)
+                    DispatchQueue.global().async {
+                        try? input.write(contentsOf: Data(request.user.utf8))
+                        try? input.close()
                     }
-                }
-                if !buffer.isEmpty { handle(line: buffer) }
-                let errorOutput = stderr.fileHandleForReading.readDataToEndOfFile()
-                process.waitUntilExit()
 
-                guard let result = resultLine else {
-                    let message = String(data: errorOutput, encoding: .utf8) ?? ""
-                    continuation.resume(throwing: EngineError.failed("Claude Code failed: \(message.prefix(400))"))
-                    return
+                    var text = ""
+                    var firstTextMs: Int?
+                    var resultLine: [String: Any]?
+                    var buffer = Data()
+                    let reader = stdout.fileHandleForReading
+
+                    func handle(line: Data) {
+                        guard let json = try? JSONSerialization.jsonObject(with: line) as? [String: Any] else { return }
+                        switch json["type"] as? String {
+                        case "stream_event":
+                            guard let event = json["event"] as? [String: Any],
+                                  event["type"] as? String == "content_block_delta",
+                                  let delta = event["delta"] as? [String: Any],
+                                  delta["type"] as? String == "text_delta",
+                                  let chunk = delta["text"] as? String else { return }
+                            if firstTextMs == nil { firstTextMs = elapsedMs() }
+                            text += chunk
+                            onUpdate(TakeSplitter.split(text, streaming: true))
+                        case "result":
+                            resultLine = json
+                        default:
+                            break
+                        }
+                    }
+
+                    while true {
+                        let data = reader.availableData
+                        if data.isEmpty { break }
+                        buffer.append(data)
+                        while let newline = buffer.firstIndex(of: 0x0A) {
+                            handle(line: buffer[buffer.startIndex..<newline])
+                            buffer.removeSubrange(buffer.startIndex...newline)
+                        }
+                    }
+                    if !buffer.isEmpty { handle(line: buffer) }
+                    let errorOutput = stderr.fileHandleForReading.readDataToEndOfFile()
+                    process.waitUntilExit()
+
+                    if stop.wasCancelled {
+                        continuation.resume(throwing: CancellationError())
+                        return
+                    }
+                    if stop.timedOut {
+                        let minutes = Int(Self.runTimeout / 60)
+                        continuation.resume(throwing: EngineError.failed(
+                            "Claude Code didn't answer within \(minutes) minutes, so Takes stopped it. Try again, or pick another engine in Settings › Model."))
+                        return
+                    }
+                    guard let result = resultLine else {
+                        let message = String(data: errorOutput, encoding: .utf8) ?? ""
+                        continuation.resume(throwing: EngineError.failed("Claude Code failed: \(message.prefix(400))"))
+                        return
+                    }
+                    if result["is_error"] as? Bool == true {
+                        continuation.resume(throwing: Self.resultError(result["result"] as? String ?? "unknown error"))
+                        return
+                    }
+                    // The result line holds the full text; prefer it over the streamed pieces.
+                    let takes = TakeSplitter.split(result["result"] as? String ?? text, streaming: false)
+                    guard !takes.isEmpty else {
+                        continuation.resume(throwing: EngineError.failed("Claude returned no takes."))
+                        return
+                    }
+                    continuation.resume(returning: EngineResult(takes: takes, wallMs: elapsedMs(), firstTextMs: firstTextMs))
                 }
-                if result["is_error"] as? Bool == true {
-                    continuation.resume(throwing: Self.resultError(result["result"] as? String ?? "unknown error"))
-                    return
-                }
-                // The result line holds the full text; prefer it over the streamed pieces.
-                let takes = TakeSplitter.split(result["result"] as? String ?? text, streaming: false)
-                guard !takes.isEmpty else {
-                    continuation.resume(throwing: EngineError.failed("Claude returned no takes."))
-                    return
-                }
-                continuation.resume(returning: EngineResult(takes: takes, wallMs: elapsedMs(), firstTextMs: firstTextMs))
             }
+        } onCancel: {
+            stop.cancel()
         }
+        return result
     }
 
     static let usageURL = URL(string: "https://claude.ai/settings/usage")!
@@ -176,7 +206,7 @@ struct ClaudeCodeEngine: TakesEngine {
     /// Opens Terminal already running `claude auth login`, which sends the person to the browser to sign in.
     /// A .command file runs on open without the Automation permission that scripting Terminal would need.
     static func openSignIn() {
-        let claude = claudePath ?? "claude"
+        let claude = knownClaudePath ?? "claude"
         let quoted = "'" + claude.replacingOccurrences(of: "'", with: "'\\''") + "'"
         let script = """
             #!/bin/zsh
@@ -233,28 +263,110 @@ struct ClaudeCodeEngine: TakesEngine {
         process.environment = env
         return process
     }
+}
 
-    private static func resolveClaude() -> String? {
-        if let path = ProcessInfo.processInfo.environment["CLAUDE_PATH"], FileManager.default.isExecutableFile(atPath: path) {
-            return path
+/// Stops a `claude` process on cancel or timeout, and remembers which, from any thread.
+final class ProcessStopper: @unchecked Sendable {
+    private let process: Process
+    private let lock = NSLock()
+    private var running = false
+    private var cancelled = false
+    private var expired = false
+
+    init(_ process: Process) { self.process = process }
+
+    var wasCancelled: Bool { lock.withLock { cancelled } }
+    var timedOut: Bool { lock.withLock { expired } }
+
+    /// Called once the process runs; a cancel that came first stops it now.
+    func started() {
+        let stopNow = lock.withLock { running = true; return cancelled }
+        if stopNow { process.terminate() }
+    }
+
+    func cancel() {
+        let stopNow = lock.withLock { cancelled = true; return running }
+        if stopNow && process.isRunning { process.terminate() }
+    }
+
+    func timeOut() {
+        let stopNow = lock.withLock { () -> Bool in
+            guard running, !cancelled, process.isRunning else { return false }
+            expired = true
+            return true
         }
-        // Ask a login shell, which knows about nvm, Homebrew and ~/.local/bin.
+        if stopNow { process.terminate() }
+    }
+}
+
+/// Finds the `claude` command. A found path is kept while it still exists; a miss is looked up again, the
+/// slow login-shell lookup at most every few seconds and never on the main thread.
+final class ClaudeLocator: @unchecked Sendable {
+    static let shared = ClaudeLocator()
+
+    private let lock = NSLock()
+    private var found: String?
+    private var lastShellLookup: Date?
+    /// How long the login shell gets: a slow or interactive `.zshrc` must not hang Takes.
+    static let shellTimeout: TimeInterval = 3
+    static let shellRetry: TimeInterval = 4
+
+    var known: String? { lock.withLock { found } }
+
+    func path() -> String? {
+        let canAskShell: Bool = lock.withLock {
+            if let found, FileManager.default.isExecutableFile(atPath: found) { return false }
+            found = Self.fixedPath()
+            // On the main thread, answer from what is known; a background check fills it in.
+            guard found == nil, !Thread.isMainThread else { return false }
+            if let last = lastShellLookup, Date().timeIntervalSince(last) < Self.shellRetry { return false }
+            lastShellLookup = Date()
+            return true
+        }
+        guard canAskShell else { return known }
+        // The shell runs outside the lock, so `known` never waits on it.
+        let path = Self.shellPath()
+        lock.withLock { if found == nil { found = path } }
+        return known
+    }
+
+    /// The environment override and the usual install places, which need no shell.
+    static func fixedPath(environment: [String: String] = ProcessInfo.processInfo.environment,
+                          home: String = FileManager.default.homeDirectoryForCurrentUser.path,
+                          isExecutable: (String) -> Bool = { FileManager.default.isExecutableFile(atPath: $0) }) -> String? {
+        if let path = environment["CLAUDE_PATH"], isExecutable(path) { return path }
+        // ~/.claude/local is the older "local" install, where `claude` is only a shell alias.
+        return ["\(home)/.local/bin/claude", "\(home)/.claude/local/claude", "/opt/homebrew/bin/claude", "/usr/local/bin/claude"]
+            .first(where: isExecutable)
+    }
+
+    /// Asks a login shell, which knows about nvm and other version managers. Stopped after `shellTimeout`.
+    private static func shellPath() -> String? {
         let shell = Process()
         shell.executableURL = URL(fileURLWithPath: "/bin/zsh")
         shell.arguments = ["-lic", "command -v claude"]
         let pipe = Pipe()
+        shell.standardInput = FileHandle.nullDevice
         shell.standardOutput = pipe
         shell.standardError = FileHandle.nullDevice
-        if (try? shell.run()) != nil {
-            let data = pipe.fileHandleForReading.readDataToEndOfFile()
-            shell.waitUntilExit()
-            let path = String(data: data, encoding: .utf8)?
-                .split(separator: "\n").last.map(String.init)?
-                .trimmingCharacters(in: .whitespaces)
-            if let path, FileManager.default.isExecutableFile(atPath: path) { return path }
+        let done = DispatchSemaphore(value: 0)
+        shell.terminationHandler = { _ in done.signal() }
+        guard (try? shell.run()) != nil else { return nil }
+        if done.wait(timeout: .now() + shellTimeout) == .timedOut {
+            shell.terminate()
+            return nil
         }
-        let home = FileManager.default.homeDirectoryForCurrentUser.path
-        return ["\(home)/.local/bin/claude", "/opt/homebrew/bin/claude", "/usr/local/bin/claude"]
-            .first { FileManager.default.isExecutableFile(atPath: $0) }
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        return parse(String(data: data, encoding: .utf8) ?? "")
+    }
+
+    /// The path in `command -v` output: the last line, or the target of an `alias claude=…`.
+    static func parse(_ output: String, isExecutable: (String) -> Bool = { FileManager.default.isExecutableFile(atPath: $0) }) -> String? {
+        guard var line = output.split(separator: "\n").last.map(String.init)?.trimmingCharacters(in: .whitespaces) else { return nil }
+        if line.hasPrefix("alias claude=") {
+            line = String(line.dropFirst("alias claude=".count)).trimmingCharacters(in: CharacterSet(charactersIn: "'\""))
+            line = (line as NSString).expandingTildeInPath
+        }
+        return isExecutable(line) ? line : nil
     }
 }

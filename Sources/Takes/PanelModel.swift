@@ -67,7 +67,10 @@ final class PanelModel: ObservableObject {
     let store = Store.shared
     private(set) var focus: FocusSnapshot?
     private var historyID: String?
-    private var runToken = 0
+    /// Bumped whenever a run is replaced or abandoned; the old run's task is cancelled with it, which also
+    /// stops a Claude Code process still writing.
+    private var runToken = 0 { didSet { runTask?.cancel(); runTask = nil } }
+    private var runTask: Task<Void, Never>?
 
     var onPaste: (Int, String, String?) -> Void = { _, _, _ in }
     var onCopy: (Int, String) -> Void = { _, _ in }
@@ -333,7 +336,7 @@ final class PanelModel: ObservableObject {
         startedAt = Date()
         show(.takes)
 
-        Task {
+        runTask = Task {
             do {
                 let result = try await engine.run(request) { partial in
                     Task { @MainActor in

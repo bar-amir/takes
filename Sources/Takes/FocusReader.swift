@@ -140,6 +140,20 @@ enum FocusReader {
         }
     }
 
+    /// Whether the text box a snapshot read is still focused and still holds the text that was read, for a
+    /// paste that replaces everything seconds later. Answers yes when the app can't tell, so apps with thin
+    /// accessibility keep working as before.
+    static func stillEditing(_ snapshot: FocusSnapshot) -> Bool {
+        guard let app = snapshot.app, let element = snapshot.element else { return true }
+        let appElement = AXUIElementCreateApplication(app.processIdentifier)
+        AXUIElementSetMessagingTimeout(appElement, 0.25)
+        guard let current: AXUIElement = copy(appElement, kAXFocusedUIElementAttribute) else { return true }
+        guard CFEqual(current, element) else { return false }
+        // Text read by copying can differ from what accessibility reports; only compare like with like.
+        guard !snapshot.method.hasPrefix("copy"), let (text, _) = readText(element) else { return true }
+        return text == snapshot.text
+    }
+
     // MARK: Reading text
 
     static let textRoles: Set<String> = ["AXTextArea", "AXTextField", "AXComboBox", "AXSearchField"]
