@@ -886,7 +886,7 @@ private struct TakeCard: View {
             .lineSpacing(4)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, minHeight: 72, maxHeight: .infinity, alignment: .topLeading)
-            .environment(\.layoutDirection, ContentDirection.layout(model.takes[index]))
+            .environment(\.layoutDirection, ContentDirection.layout(hasText ? model.takes[index] : ""))
             TakeToneLine(model: model, index: index)
         }
         .padding(Spacing.section)
