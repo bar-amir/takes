@@ -66,7 +66,7 @@ Reasoning: audio capture (AVAudioEngine) and SFSpeechRecognizer don't require th
 ## Live check for the orchestrator
 
 1. Reset permissions: `tccutil reset Microphone com.baramir.takes` and `tccutil reset SpeechRecognition com.baramir.takes`. Build and open Takes.
-2. In TextEdit, press ⌃⌥Space. Confirm TextEdit stays the active app (menu bar says TextEdit).
+2. In TextEdit, press ⌥⇧Space. Confirm TextEdit stays the active app (menu bar says TextEdit).
 3. Press ⌘D: the explanation note appears. Press ↵: macOS asks for the microphone, then speech recognition. Allow both. Check the panel still takes keys (type a letter in the draft) and that recording started (red dot, meter moves when you speak, orange mic dot in the menu bar).
 4. Put the caret in the middle of the draft, press ⌘D, say a sentence: the words appear at the caret and revise in place. Press ⌘D: "Finishing…", then idle with the words kept.
 5. Press ⌘D, speak, then type a key: dictation stops and the letter is typed after the words. Press ⌘D, speak, press ↵: takes are written from the draft with the spoken words.

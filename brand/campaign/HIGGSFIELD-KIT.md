@@ -79,7 +79,7 @@ cursor a little. The pieces themselves stay still. Pieces per scene are the name
 
 | Scene | Pieces |
 |---|---|
-| shortcut | field, key-control, key-option, key-space, chip (reuses the takes chip) |
+| shortcut | field, key-option, key-shift, key-space, chip (reuses the takes chip) |
 | presets | chip1 (Polish email, selected: Ink with an Acid dot), chip2–chip5 (greyed), instruction, do, avoid |
 | proofread | card, fix1–fix3 |
 | coach | draft, tray, fix1–fix3 |

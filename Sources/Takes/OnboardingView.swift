@@ -200,7 +200,7 @@ private struct InfoRow: View {
     }
 }
 
-/// The hotkey drawn as large keycaps: ⌃ ⌥ Space.
+/// The hotkey drawn as large keycaps: ⌥ ⇧ Space.
 struct BigKeys: View {
     let combo: KeyCombo
     var size: CGFloat = 44

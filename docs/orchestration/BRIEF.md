@@ -66,7 +66,7 @@ Other sessions are changing the same app at the same time. To keep merges clean:
   - `scripts/assemble-app.sh` Info.plist: only `dictation` adds usage strings (microphone, speech recognition).
 - **Don't edit** `README.md`, `CHANGELOG.md`, `VERSION`, release scripts or workflows. The orchestrator writes those from your
   change note.
-- **Don't drive the live desktop.** Eight sessions share one Mac and one global hotkey (⌃⌥Space). Don't launch the app to press
+- **Don't drive the live desktop.** Eight sessions share one Mac and one global hotkey (⌥⇧Space). Don't launch the app to press
   hotkeys, don't use computer use, don't change system settings. Verify with tests, `--snapshot` renders and command-line modes.
   The orchestrator does the live end-to-end pass after merging. If your feature needs a live check, describe the exact steps in
   your change note.
