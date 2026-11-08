@@ -6,7 +6,7 @@
 | **Maker** | Bar Amir, an independent developer |
 | **Price** | Free. No ads, no paid tier, no account |
 | **License** | MIT (the code). The name, logo and icon are not covered by the license |
-| **Current version** | 0.6.1 (5 November 2026) |
+| **Current version** | 0.7.0 (8 November 2026) |
 | **First release** | 0.1.0 (27 October 2026) |
 | **Requirements** | macOS 14 or later, Apple silicon or Intel. Accessibility access to read the text field and paste |
 | **Engines** | Claude Code with your Claude plan · Anthropic API key · your ChatGPT Plus or Pro plan (Sign in with ChatGPT) · your own key for OpenAI, Google Gemini, OpenRouter, Groq, Mistral or any OpenAI-compatible https server · Ollama or LM Studio on your Mac |
