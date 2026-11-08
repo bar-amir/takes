@@ -2,6 +2,17 @@
 
 All notable changes to Takes. Versions follow [semantic versioning](https://semver.org).
 
+## 0.7.0 · 2026-11-08
+
+- **Takes speaks your language.** The interface is translated into 46 languages besides English, and follows your Mac's language. Hebrew, Arabic and Persian are laid out right to left, with shortcuts still reading left to right. Preset names and instructions stay as you wrote them.
+- **Install Claude Code from Takes.** When Claude Code isn't on your Mac, setup, Settings › Model and the Setup window offer "Install Claude Code". After you confirm, Takes runs Anthropic's official installer in the background and shows its progress. Takes doesn't ship or change Claude Code; it's downloaded from Anthropic each time.
+- **Sign in to Claude without typing.** Every "Sign in to Claude" button opens Terminal already running Claude Code's own sign-in, which sends you to the browser. Signing in right after installing used to fail with "command not found".
+- Takes notices Claude Code as soon as it's installed during setup.
+- Cancelling a run (Esc, asking again or starting a new one) stops Claude Code, so it no longer keeps using your plan. A run that takes more than 2 minutes stops with a plain message.
+- "Write and paste right away" checks that the text box it read still has focus and still holds your draft, so it never pastes over a different conversation.
+- **Report a Problem…** in the menu opens a GitHub bug report with the Takes version, macOS version and engine type filled in, and nothing else.
+- Fixed a misspelled word on the onboarding opening image.
+
 ## 0.6.1 · 2026-11-05
 
 - **A new About window.** The marbled takes logo loops on its own (a still frame with Reduce Motion), above the version and copyright. The open-source notices still ship inside the app.
