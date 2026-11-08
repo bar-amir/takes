@@ -19,7 +19,7 @@
 <p align="center">
   <a href="https://github.com/bar-amir/takes/releases/latest/download/Takes.dmg"><b>⬇ Download for Mac</b></a>
   &nbsp;·&nbsp;
-  <a href="https://bar-amir.github.io/takes/">Website</a>
+  <a href="https://takes.rocks/">Website</a>
   &nbsp;·&nbsp;
   <a href="PRIVACY.md">Privacy</a>
 </p>
@@ -30,7 +30,7 @@ brew install --cask bar-amir/tap/takes
 
 <!-- TODO: replace with a ~10-second demo GIF of real use: a chat field → ⌃⌥Space → 3 takes stream in → paste. -->
 <p align="center">
-  <a href="https://bar-amir.github.io/takes/"><img src="site/img/layers/takes.webp" alt="The Takes panel as floating layers: a rough Slack draft at the top, three rewritten takes below it with the middle one lifted to the front, and a Paste button" width="820"></a>
+  <a href="https://takes.rocks/"><img src="site/img/layers/takes.webp" alt="The Takes panel as floating layers: a rough Slack draft at the top, three rewritten takes below it with the middle one lifted to the front, and a Paste button" width="820"></a>
 </p>
 
 ## How it works
