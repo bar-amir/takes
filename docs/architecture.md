@@ -48,7 +48,7 @@ Takes is one executable target (`Sources/Takes`) with no server. It's an `LSUIEl
 | Engines | `TakesEngine` protocol, `Engines.current` (`Engine.swift`) | One `run(_:onUpdate:)` that streams takes. Each engine file implements it. |
 | Pasting | `Paster` | Puts focus back, pastes or replaces all, then restores the user's clipboard. |
 | Storage | `Store` (`Store.swift`) | Presets, settings and history as JSON in `~/Library/Application Support/Takes`. Secrets go in the Keychain, never here. |
-| Settings | `SettingsWindow` and `*Tab.swift`, `*Views.swift` | One tab per area: Presets, Voice, English coach, Engine, History. |
+| Settings | `SettingsWindow` and `*Tab.swift`, `*Views.swift` | One tab per area: General, Presets, Writing, Coach, Model, History. |
 | First run | `Onboarding*`, `Setup.swift` (`SetupMonitor`) | Accessibility, engine connection, privacy notice, hotkey, starter presets and practice. |
 | Updates | `Updater` (Sparkle) | Only in signed release builds, and only after the user agrees. |
 | Screenshots | `Snapshot*.swift` | `--snapshot <folder>` renders every screen with sample data. |
