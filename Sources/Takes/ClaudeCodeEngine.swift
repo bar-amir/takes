@@ -128,7 +128,8 @@ struct ClaudeCodeEngine: TakesEngine {
                     }
                     guard let result = resultLine else {
                         let message = String(data: errorOutput, encoding: .utf8) ?? ""
-                        continuation.resume(throwing: EngineError.failed("Claude Code failed: \(message.prefix(400))"))
+                        continuation.resume(throwing: EngineError.failed(
+                            Self.isOutOfDate(message) ? Self.outOfDateMessage : "Claude Code failed: \(message.prefix(400))"))
                         return
                     }
                     if result["is_error"] as? Bool == true {
@@ -194,7 +195,17 @@ struct ClaudeCodeEngine: TakesEngine {
     /// expired and couldn't be refreshed: "Failed to authenticate: OAuth session expired…") becomes
     /// `signedOutMessage`; anything else keeps the CLI's wording.
     static func errorMessage(_ message: String) -> String {
-        isSignInProblem(message) ? signedOutMessage : "Claude Code: \(message)"
+        if isSignInProblem(message) { return signedOutMessage }
+        if isOutOfDate(message) { return outOfDateMessage }
+        return "Claude Code: \(message)"
+    }
+
+    /// An old CLI rejects a flag Takes passes ("error: unknown option '--effort'").
+    static let outOfDateMessage = "This version of Claude Code is too old for Takes. Update it (run `claude update` in Terminal), or pick another engine in Settings › Model."
+
+    static func isOutOfDate(_ message: String) -> Bool {
+        let lower = message.lowercased()
+        return lower.contains("unknown option") || lower.contains("unknown command") || lower.contains("too many arguments")
     }
 
     static func isSignInProblem(_ message: String) -> Bool {
@@ -203,17 +214,25 @@ struct ClaudeCodeEngine: TakesEngine {
             .contains { lower.contains($0) }
     }
 
+    /// `claude auth login` with the path Takes found, quoted for a shell: a Terminal whose PATH doesn't have
+    /// `claude` yet (the native installer adds it to .zshrc, not to fish) would otherwise say "command not found".
+    static var signInCommand: String {
+        guard let claude = knownClaudePath else { return "claude auth login" }
+        if claude.split(separator: "/").last == "claude", !claude.contains(where: { " '\"$`\\".contains($0) }) {
+            return "\(claude) auth login"
+        }
+        return "'" + claude.replacingOccurrences(of: "'", with: "'\\''") + "' auth login"
+    }
+
     /// Opens Terminal already running `claude auth login`, which sends the person to the browser to sign in.
     /// A .command file runs on open without the Automation permission that scripting Terminal would need.
     static func openSignIn() {
-        let claude = knownClaudePath ?? "claude"
-        let quoted = "'" + claude.replacingOccurrences(of: "'", with: "'\\''") + "'"
         let script = """
             #!/bin/zsh
             clear
             echo "Signing Takes in to Claude. Finish in the browser window that opens, then go back to Takes and press Try again."
             echo
-            \(quoted) auth login
+            \(signInCommand)
             echo
             echo "You can close this window now."
             """
@@ -225,30 +244,93 @@ struct ClaudeCodeEngine: TakesEngine {
         } catch {
             // Fall back to what onboarding does: copy the command and open Terminal.
             NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString("claude auth login", forType: .string)
+            NSPasteboard.general.setString(signInCommand, forType: .string)
             NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Utilities/Terminal.app"))
         }
     }
 
-    /// Whether the CLI is installed and signed in, for Settings › Model.
-    static func status() async -> (found: Bool, signedIn: Bool, plan: String?) {
-        guard let claudePath else { return (false, false, nil) }
-        return await withCheckedContinuation { continuation in
-            DispatchQueue.global().async {
-                let process = Self.process(claudePath, ["auth", "status"])
-                let pipe = Pipe()
-                process.standardOutput = pipe
-                process.standardError = FileHandle.nullDevice
-                guard (try? process.run()) != nil else {
-                    continuation.resume(returning: (true, false, nil))
-                    return
-                }
-                let data = pipe.fileHandleForReading.readDataToEndOfFile()
-                process.waitUntilExit()
-                let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
-                continuation.resume(returning: (true, json?["loggedIn"] as? Bool ?? false, json?["subscriptionType"] as? String))
-            }
+    /// What `status()` found out about the CLI.
+    struct Status: Equatable {
+        var found: Bool
+        var signedIn = false
+        var plan: String?
+        /// "2.1.310", or nil when the CLI didn't say.
+        var version: String?
+        /// `claude auth status` didn't answer within `statusTimeout`; nothing is known about the sign-in.
+        var timedOut = false
+    }
+
+    /// `claude auth status` and `claude --version` get this long each. A hung CLI must not stop setup from showing.
+    static let statusTimeout: TimeInterval = 15
+
+    /// The oldest CLI Takes works with: `claude auth login` and `claude auth status` arrived in 2.1.41, and the run
+    /// flags Takes passes (`--effort`, `--setting-sources`) are from the same time.
+    static let minimumVersion = "2.1.41"
+
+    static func isSupported(version: String) -> Bool { compareVersions(version, minimumVersion) != .orderedAscending }
+
+    /// "2.1.9" < "2.1.41": numeric, part by part; missing parts count as 0.
+    static func compareVersions(_ a: String, _ b: String) -> ComparisonResult {
+        let (x, y) = (a.split(separator: ".").map { Int($0) ?? 0 }, b.split(separator: ".").map { Int($0) ?? 0 })
+        for i in 0..<max(x.count, y.count) {
+            let (p, q) = (i < x.count ? x[i] : 0, i < y.count ? y[i] : 0)
+            if p != q { return p < q ? .orderedAscending : .orderedDescending }
         }
+        return .orderedSame
+    }
+
+    /// The version in `claude --version` output ("2.1.310 (Claude Code)").
+    static func parseVersion(_ output: String) -> String? {
+        let trimmed = output.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let first = trimmed.split(whereSeparator: { $0 == " " || $0 == "\n" }).first else { return nil }
+        let digits = first.split(separator: ".")
+        guard digits.count >= 2, digits.allSatisfy({ Int($0) != nil }) else { return nil }
+        return String(first)
+    }
+
+    /// Whether the CLI is installed, recent enough and signed in, for setup and Settings › Model.
+    static func status() async -> Status {
+        guard let claudePath else { return Status(found: false) }
+        return await Task.detached {
+            var status = Status(found: true)
+            // The version is asked once per install and remembered: it's a process start each time.
+            if let version = ClaudeLocator.shared.version(of: claudePath, read: {
+                run(claudePath, ["--version"]).map { parseVersion($0) ?? "" }
+            }), !version.isEmpty {
+                status.version = version
+            }
+            guard let output = run(claudePath, ["auth", "status"]) else {
+                status.timedOut = true
+                return status
+            }
+            let json = (try? JSONSerialization.jsonObject(with: Data(output.utf8))) as? [String: Any]
+            status.signedIn = json?["loggedIn"] as? Bool ?? false
+            status.plan = json?["subscriptionType"] as? String
+            return status
+        }.value
+    }
+
+    /// Runs the CLI for its standard output, or nil when it didn't finish within `statusTimeout` (it's stopped then).
+    private static func run(_ path: String, _ arguments: [String]) -> String? {
+        let process = Self.process(path, arguments)
+        let pipe = Pipe()
+        process.standardInput = FileHandle.nullDevice
+        process.standardOutput = pipe
+        process.standardError = FileHandle.nullDevice
+        let done = DispatchSemaphore(value: 0)
+        process.terminationHandler = { _ in done.signal() }
+        guard (try? process.run()) != nil else { return "" }
+        // Read first: a CLI that writes more than the pipe holds would never exit otherwise.
+        var data = Data()
+        let reading = DispatchQueue.global()
+        let read = DispatchSemaphore(value: 0)
+        reading.async { data = pipe.fileHandleForReading.readDataToEndOfFile(); read.signal() }
+        if done.wait(timeout: .now() + statusTimeout) == .timedOut {
+            process.terminate()
+            return nil
+        }
+        read.wait()
+        return String(data: data, encoding: .utf8) ?? ""
     }
 
     private static func process(_ path: String, _ arguments: [String]) -> Process {
@@ -307,11 +389,20 @@ final class ClaudeLocator: @unchecked Sendable {
     private let lock = NSLock()
     private var found: String?
     private var lastShellLookup: Date?
+    private var versions: [String: String] = [:]
     /// How long the login shell gets: a slow or interactive `.zshrc` must not hang Takes.
     static let shellTimeout: TimeInterval = 3
     static let shellRetry: TimeInterval = 4
 
     var known: String? { lock.withLock { found } }
+
+    /// The CLI's version at `path`, read once with `read` and remembered; nil when `read` gave nothing.
+    func version(of path: String, read: () -> String?) -> String? {
+        if let cached = lock.withLock({ versions[path] }) { return cached }
+        guard let version = read() else { return nil }
+        lock.withLock { versions[path] = version }
+        return version
+    }
 
     func path() -> String? {
         let canAskShell: Bool = lock.withLock {
@@ -340,11 +431,31 @@ final class ClaudeLocator: @unchecked Sendable {
             .first(where: isExecutable)
     }
 
-    /// Asks a login shell, which knows about nvm and other version managers. Stopped after `shellTimeout`.
+    /// The user's login shell (fish, bash, zsh…), which is where nvm, Volta and the like are set up; /bin/zsh when
+    /// it can't be told. `environment` is the override for tests.
+    static func loginShell(environment: [String: String] = ProcessInfo.processInfo.environment,
+                           isExecutable: (String) -> Bool = { FileManager.default.isExecutableFile(atPath: $0) }) -> String {
+        var candidates: [String] = []
+        if let shell = environment["SHELL"], shell.hasPrefix("/") { candidates.append(shell) }
+        if let entry = getpwuid(getuid()), let shell = entry.pointee.pw_shell.map({ String(cString: $0) }), shell.hasPrefix("/") {
+            candidates.append(shell)
+        }
+        return candidates.first(where: isExecutable) ?? "/bin/zsh"
+    }
+
+    /// Asks the user's login shell, which knows about nvm and other version managers, and zsh if that found
+    /// nothing. Each is stopped after `shellTimeout`.
     private static func shellPath() -> String? {
+        let shell = loginShell()
+        if let path = shellPath(shell: shell) { return path }
+        return shell == "/bin/zsh" ? nil : shellPath(shell: "/bin/zsh")
+    }
+
+    private static func shellPath(shell path: String) -> String? {
         let shell = Process()
-        shell.executableURL = URL(fileURLWithPath: "/bin/zsh")
-        shell.arguments = ["-lic", "command -v claude"]
+        shell.executableURL = URL(fileURLWithPath: path)
+        // -l -i: a login, interactive shell, so .zshrc / .bashrc / config.fish run and set PATH as they do in Terminal.
+        shell.arguments = ["-l", "-i", "-c", "command -v claude"]
         let pipe = Pipe()
         shell.standardInput = FileHandle.nullDevice
         shell.standardOutput = pipe

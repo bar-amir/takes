@@ -274,6 +274,9 @@ struct HotKeyRecorder: View {
 
     private func start() {
         recording = true
+        // Takes's own hotkeys are let go while recording: a registered one never reaches the window (macOS
+        // handles it first), so pressing it would open the panel instead of recording it.
+        HotKeyCenter.shared.suspend()
         monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             if event.keyCode == 53 { stop(); return nil } // Esc
             if event.keyCode == 51 && allowClear { combo = nil; stop(); return nil } // ⌫
@@ -289,5 +292,7 @@ struct HotKeyRecorder: View {
         recording = false
         if let monitor { NSEvent.removeMonitor(monitor) }
         monitor = nil
+        // The store's debounced re-registration follows a change; this covers Esc and a repeat of the same combo.
+        HotKeyCenter.shared.resume()
     }
 }

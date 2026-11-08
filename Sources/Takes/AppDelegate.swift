@@ -18,8 +18,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         statusItem.button?.image = BrandMark.menuBarImage(alert: false)
         rebuildStatusMenu()
 
-        // Re-register hotkeys whenever presets or settings change.
+        // A new install starts on a hotkey this Mac leaves free (HotKeyChoice), before anything is registered.
         let store = Store.shared
+        if store.isNewInstall {
+            let picked = HotKeyChoice.firstLaunchDefault(taken: store.presets.compactMap(\.hotKey))
+            if picked != store.settings.summonHotKey { store.settings.summonHotKey = picked }
+        }
+        // Re-register hotkeys whenever presets or settings change.
         Publishers.CombineLatest(store.$presets, store.$settings)
             .debounce(for: .milliseconds(200), scheduler: RunLoop.main)
             .sink { [weak self] _, _ in
@@ -63,12 +68,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         popover.openSettings = { [weak self] in self?.openPresets() }
         popover.finishSetup = { [weak self] in self?.showSetup() }
+        // New users get onboarding right away: the engine check can take a few seconds (a login shell, then
+        // `claude auth status`), and a first launch that shows nothing for that long looks broken. People who had
+        // Takes before never see onboarding, and get the setup window if the check finds something missing.
+        if Onboarding.shouldShow(Store.shared.settings) {
+            OnboardingWindowController.shared.show()
+        }
         Task {
             await monitor.refreshEngine()
-            // New users get onboarding; people who had Takes before never do, and get the setup window if needed.
-            if Onboarding.shouldShow(Store.shared.settings) {
-                OnboardingWindowController.shared.show()
-            } else if !monitor.allSet {
+            if !Onboarding.shouldShow(Store.shared.settings), !monitor.allSet {
                 SetupWindowController.shared.show()
             }
         }

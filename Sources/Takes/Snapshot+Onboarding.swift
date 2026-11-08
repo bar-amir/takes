@@ -59,8 +59,12 @@ extension Snapshot {
         var takenConditions = all
         takenConditions.hotKeyFree = false
         let taken = model(.personalize, takenConditions)
-        taken.hotKeyOwner = "macOS: Show Finder search window"
+        taken.hotKeyOwner = "macOS: Select next source in Input menu"
+        taken.hotKeySuggestions = Array(HotKeyChoice.candidates.prefix(3))
         screens.append(("3-make-it-yours-hotkey-taken", taken))
+        let needsMove = model(.accessibility, none)
+        needsMove.needsMove = true
+        screens.append(("1-accessibility-move-to-applications", needsMove))
         let noPresets = model(.personalize, all)
         noPresets.chosenPresets = []
         screens.append(("3-make-it-yours-none", noPresets))
@@ -77,6 +81,9 @@ extension Snapshot {
         let done = model(.done, all, history: [.accessibility, .engine, .personalize, .practice],
                          auto: [.accessibility], skipped: [.personalize])
         screens.append(("5-done", done))
+        let loginOn = model(.done, all, history: [.accessibility, .engine, .personalize, .practice])
+        loginOn.launchAtLogin = true
+        screens.append(("5-done-login-on", loginOn))
 
         for (name, model) in screens {
             for scheme in [ColorScheme.light, .dark] {

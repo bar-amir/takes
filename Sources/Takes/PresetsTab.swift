@@ -190,6 +190,17 @@ struct PresetsTab: View {
 
 private struct PresetEditor: View {
     @Binding var preset: Preset
+    @ObservedObject var monitor = SetupMonitor.shared
+
+    /// Who else has this preset's hotkey: the Open Takes hotkey, another preset, macOS or another app.
+    private var hotKeyNote: String? {
+        guard let combo = preset.hotKey else { return nil }
+        let store = Store.shared
+        if combo == store.settings.summonHotKey { return "This is the Open Takes hotkey too; only one of them can fire." }
+        if let other = store.presets.first(where: { $0.id != preset.id && $0.hotKey == combo }) { return "Also the hotkey of “\(other.name)”." }
+        if monitor.takenHotKeys.contains(combo) { return "Also used by \(HotKeyChoice.owner(of: combo)). Pick another." }
+        return nil
+    }
 
     var body: some View {
         HStack(spacing: 0) {
@@ -202,7 +213,7 @@ private struct PresetEditor: View {
                         FormDivider()
                         FormRow("Color") { colors }
                         FormDivider()
-                        FormRow("Own hotkey") { HotKeyRecorder(combo: $preset.hotKey, height: 28) }
+                        FormRow("Own hotkey", detail: hotKeyNote) { HotKeyRecorder(combo: $preset.hotKey, height: 28) }
                         FormDivider()
                         FormRow("Picked automatically in") {
                             AppsEditor(apps: $preset.apps).frame(maxWidth: 280, alignment: .trailing)

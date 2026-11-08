@@ -7,6 +7,11 @@ final class HotKeyCenter {
 
     private var refs: [EventHotKeyRef] = []
     private var handlers: [UInt32: () -> Void] = [:]
+    /// What `replaceAll` was last given, so `suspend` and `resume` can put the same hotkeys back.
+    private var bindings: [(KeyCombo, () -> Void)] = []
+    /// What the last real registration refused, answered again while suspended so nothing looks freed meanwhile.
+    private var lastFailed: [KeyCombo] = []
+    private(set) var suspended = false
     /// Short-lived hotkeys (Esc while instant mode writes), kept apart so `replaceAll` leaves them alone.
     private var transient: [UInt32: (ref: EventHotKeyRef, handler: () -> Void)] = [:]
     private var nextID: UInt32 = 1
@@ -26,9 +31,11 @@ final class HotKeyCenter {
     /// Replaces every registered hotkey. Returns the combos macOS refused (already taken).
     @discardableResult
     func replaceAll(with bindings: [(KeyCombo, () -> Void)]) -> [KeyCombo] {
+        self.bindings = bindings
         refs.forEach { UnregisterEventHotKey($0) }
         refs = []
         handlers = [:]
+        guard !suspended else { return lastFailed }
         var failed: [KeyCombo] = []
         for (combo, handler) in bindings {
             let id = nextID
@@ -43,7 +50,26 @@ final class HotKeyCenter {
                 failed.append(combo)
             }
         }
+        lastFailed = failed
         return failed
+    }
+
+    /// Lets go of every hotkey without forgetting it, so the shortcut recorder can see a press that is one of
+    /// Takes's own hotkeys instead of Takes acting on it. `resume` puts them back.
+    func suspend() {
+        guard !suspended else { return }
+        suspended = true
+        refs.forEach { UnregisterEventHotKey($0) }
+        refs = []
+        handlers = [:]
+    }
+
+    /// The hotkeys given to the last `replaceAll`, registered again. Returns the combos macOS refused.
+    @discardableResult
+    func resume() -> [KeyCombo] {
+        guard suspended else { return [] }
+        suspended = false
+        return replaceAll(with: bindings)
     }
 
     /// Holds `combo` until `unregisterTransient`. Returns nil when macOS refuses it.

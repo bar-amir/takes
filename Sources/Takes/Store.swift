@@ -152,7 +152,8 @@ enum Prefill: String, Codable, CaseIterable, Identifiable {
 
 struct AppSettings: Codable {
     var engine = EngineKind.claudeCode
-    var summonHotKey = KeyCombo(keyCode: UInt32(kVK_Space), modifiers: UInt32(controlKey | optionKey), display: "⌃⌥Space")
+    /// ⌥⇧Space (HotKeyChoice.preferred). A new install starts on the first candidate its Mac leaves free.
+    var summonHotKey = HotKeyChoice.preferred
     var panelPosition = PanelPosition.nearCursor
     var prefill = Prefill.fieldText
     var restoreClipboard = true
@@ -243,6 +244,8 @@ final class Store: ObservableObject {
     @Published var presets: [Preset] { didSet { save(presets, "presets.json") } }
     @Published var settings: AppSettings { didSet { save(settings, "settings.json") } }
     @Published var history: [HistoryEntry] { didSet { save(history, "history.json") } }
+    /// There was no settings file when Takes started: the very first launch, before onboarding has saved anything.
+    let isNewInstall: Bool
 
     static let directory: URL = {
         let url = FileManager.default.homeDirectoryForCurrentUser
@@ -253,6 +256,7 @@ final class Store: ObservableObject {
 
     private init() {
         let existingUser = FileManager.default.fileExists(atPath: Store.directory.appendingPathComponent("settings.json").path)
+        isNewInstall = !existingUser
         let presetsFile = Store.directory.appendingPathComponent("presets.json")
         presets = Proofread.upgraded(Store.load("presets.json") ?? PresetGallery.initialPresets(existingUser: existingUser))
         settings = Store.load("settings.json") ?? AppSettings()

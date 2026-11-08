@@ -281,7 +281,7 @@ final class OnboardingFlowTests: XCTestCase {
     func testHotkeyAsAMenuKeyEquivalent() throws {
         let space = try XCTUnwrap(AppSettings().summonHotKey.menuKeyEquivalent)
         XCTAssertEqual(space.key, " ")
-        XCTAssertEqual(space.modifiers, [.control, .option])
+        XCTAssertEqual(space.modifiers, [.option, .shift])
         let letter = try XCTUnwrap(KeyCombo(keyCode: UInt32(kVK_ANSI_K), modifiers: UInt32(cmdKey | shiftKey), display: "⇧⌘K").menuKeyEquivalent)
         XCTAssertEqual(letter.key, "k", "Lowercase, so the mask alone carries ⇧")
         XCTAssertEqual(letter.modifiers, [.shift, .command])

@@ -5,7 +5,7 @@ import SwiftUI
 /// sign-in), the defaults for new presets, and where drafts go.
 struct ModelTab: View {
     @ObservedObject var store = Store.shared
-    @State private var status: (found: Bool, signedIn: Bool, plan: String?)?
+    @State private var status: ClaudeCodeEngine.Status?
     @State private var keyInput = ""
     @State private var hasKey = Keychain.apiKey != nil
 
@@ -91,6 +91,10 @@ struct ModelTab: View {
         if let status {
             if !status.found {
                 StatusBadge(text: "Not installed", good: false)
+            } else if let version = status.version, !ClaudeCodeEngine.isSupported(version: version) {
+                StatusBadge(text: "Too old (\(version))", good: false)
+            } else if status.timedOut {
+                StatusBadge(text: "Didn't answer", good: false)
             } else if status.signedIn {
                 StatusBadge(text: "Signed in" + (status.plan.map { " · \($0.capitalized) plan" } ?? ""), good: true)
             } else {
@@ -105,6 +109,11 @@ struct ModelTab: View {
         VStack(alignment: .leading, spacing: 8) {
             if let status, !status.found {
                 Text("Install Claude Code, sign in, then check again.").font(.system(size: 12)).foregroundStyle(Theme.avoidText)
+            } else if let status, let version = status.version, !ClaudeCodeEngine.isSupported(version: version) {
+                Text("Claude Code \(version) is too old for Takes. Run `claude update` in Terminal, then check again.")
+                    .font(.system(size: 12)).foregroundStyle(Theme.avoidText)
+            } else if let status, status.timedOut {
+                Text("Claude Code didn't answer. Check again in a moment.").font(.system(size: 12)).foregroundStyle(Theme.avoidText)
             } else if let status, !status.signedIn {
                 Text("Run `claude auth login` in Terminal, then check again.").font(.system(size: 12)).foregroundStyle(Theme.avoidText)
             }
