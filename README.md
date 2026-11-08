@@ -43,7 +43,7 @@ brew install --cask bar-amir/tap/takes
 
 - **Works where you type.** Slack, Mail, Messages, Notes, browsers, the Claude app. Takes reads only the focused text box, and only when you press the hotkey.
 - **Presets that sound like you.** Instructions, Do and Avoid rules, up to five examples of your writing, a reply language, and the apps where each preset is picked automatically. Start from a gallery of ready-made ones.
-- **Compare, don't gamble.** 1 to 5 takes at once, with a word-level "Changes" view, a refine box ("warmer", "drop the second ask") and "More like take 2".
+- **Compare, don't gamble.** 1 to 5 takes at once, with a word-level view of what changed (hold ⌥), a refine box ("warmer", "drop the second ask") and "More like take 2".
 - **Proofread.** Fixes spelling, grammar and punctuation, keeps your words, and marks every fix. When nothing needs fixing, it says so.
 - **Write and paste right away.** Give a preset its own hotkey and it writes and pastes one take with no panel. ⌘Z undoes it.
 - **Context and tone.** Add the message you're replying to, as reference only. Each take gets a short note on how it may come across.
@@ -60,7 +60,7 @@ brew install --cask bar-amir/tap/takes
 brew install --cask bar-amir/tap/takes
 ```
 
-Open Takes. It lives in the menu bar, and a short guided setup walks you through Accessibility access, connecting a model, the hotkey and your first presets, ending with a real take in a practice box.
+Open Takes. It lives in the menu bar, and a short setup takes you through five steps: allow access, connect a model (it starts with what already works on your Mac), make it yours, try it in a practice box, done.
 
 - macOS 14 or later.
 - Signed with a Developer ID and notarized by Apple. Updates arrive through Sparkle, and Takes asks before it starts checking.
@@ -76,7 +76,7 @@ Open Takes. It lives in the menu bar, and a short guided setup walks you through
 | **Other provider** | Your own API key for OpenAI, Google Gemini, OpenRouter, Groq, Mistral or any https server that speaks the OpenAI API, stored in your keychain | That provider, under your account |
 | **Local model** | [Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai) running on your Mac | Nowhere: it stays on your Mac |
 
-Claude Code is the default. You can switch any time in Settings › Engine.
+Claude Code is the default. You can switch any time in Settings › Model.
 
 ## Privacy
 
@@ -99,6 +99,18 @@ Takes are written by an AI model. They can be wrong, miss your meaning or sound 
 ## FAQ
 
 <details>
+<summary><b>How is this different from Apple's Writing Tools?</b></summary>
+
+Writing Tools rewrites with Apple's models, one version at a time, on Macs with Apple Intelligence. Takes shows a few takes side by side, from presets you write yourself, with Do and Avoid rules and examples of how you write. It uses the model you pick: Claude, ChatGPT, another provider or a model on your Mac. Each take gets a note on how it may come across, and you can add the message you're replying to. It runs on macOS 14 or later, on Apple silicon and Intel.
+</details>
+
+<details>
+<summary><b>Why isn't it in the Mac App Store?</b></summary>
+
+Takes reads and pastes into other apps' text fields with Accessibility access, and it can run Claude Code on your Mac. App Store apps are sandboxed, which rules out both. Instead, Takes is signed with a Developer ID and notarized by Apple, and it updates itself with Sparkle after asking you first.
+</details>
+
+<details>
 <summary><b>Does it work in my app?</b></summary>
 
 In apps whose text fields macOS can read, including Slack, Mail, Messages, Notes, browsers and the Claude desktop app. Where an app hides its field, Takes copies the text with ⌘A ⌘C instead and puts your clipboard back. If an app doesn't work, please [open an issue](https://github.com/bar-amir/takes/issues/new/choose) with the app's name.
@@ -113,7 +125,7 @@ To read the text box you're typing in and to paste the take back. It reads only 
 <details>
 <summary><b>⌃⌥Space opens something else.</b></summary>
 
-macOS can use ⌃⌥Space for "Show Finder search window" or for switching input sources. Setup flags this and lets you pick another hotkey (Settings › Engine).
+macOS can use ⌃⌥Space for "Show Finder search window" or for switching input sources. Setup flags this and lets you pick another hotkey (Settings › General).
 </details>
 
 <details>
@@ -150,7 +162,7 @@ open build/Takes.app
 
 ## Support Takes
 
-Takes is free, has no ads or paid tier, and is built in spare time. If it saves you time, you can support it on [GitHub Sponsors](https://github.com/sponsors/bar-amir), also reachable from the menu-bar icon › Support Takes…. Starring the repo, reporting bugs and telling a friend help too.
+Takes is free, has no ads or paid tier, and is built in spare time. If it saves you time, you can support it on [GitHub Sponsors](https://github.com/sponsors/bar-amir), also in the menu-bar menu when you hold ⌥. Starring the repo, reporting bugs and telling a friend help too.
 
 ## License
 
