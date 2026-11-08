@@ -277,14 +277,67 @@ private struct AccessibilityStep: View {
             }
             .padding(.top, Spacing.section)
             if !allowed {
-                HStack(spacing: Spacing.item) {
-                    Button("Show Takes in Finder") { NSWorkspace.shared.activateFileViewerSelecting([Bundle.main.bundleURL]) }
-                        .buttonStyle(SecondaryButtonStyle())
+                if model.needsMove {
+                    MoveToApplicationsNote(model: model).padding(.top, Spacing.inner)
+                } else {
+                    HStack(spacing: Spacing.item) {
+                        Button("Show Takes in Finder") { NSWorkspace.shared.activateFileViewerSelecting([Bundle.main.bundleURL]) }
+                            .buttonStyle(SecondaryButtonStyle())
+                    }
+                    .padding(.top, Spacing.inner)
                 }
-                .padding(.top, Spacing.inner)
                 StepNote(String(localized: "Takes already listed and switched on? Select it, remove it with –, and add it again. macOS keeps access tied to the previous version after an update."))
                     .padding(.top, Spacing.inner)
             }
+        }
+    }
+}
+
+/// Takes was opened from the disk image or a download folder, so macOS runs a hidden copy: offer to move it to
+/// Applications first, where access, login items and updates all stick. Shared by onboarding and the setup window.
+struct MoveToApplicationsNote: View {
+    @ObservedObject var model: OnboardingModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.inner) {
+            HStack(spacing: Spacing.item) {
+                Button("Move Takes to Applications", action: model.moveToApplications)
+                    .buttonStyle(PrimaryButtonStyle(height: 32))
+                    .accessibilityHint("Copies Takes to the Applications folder and opens it from there")
+                Text(String(localized: "Takes is running from \(AppLocation.whereItRuns). Move it first, so the access you allow stays with it."))
+                    .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
+            }
+            if let error = model.moveError {
+                Text(error).font(.system(size: 12)).foregroundStyle(Theme.avoidText).fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+}
+
+/// Free hotkeys offered as keycap chips; one click picks it.
+struct HotKeySuggestionChips: View {
+    let suggestions: [KeyCombo]
+    let pick: (KeyCombo) -> Void
+
+    var body: some View {
+        if !suggestions.isEmpty {
+            HStack(spacing: Spacing.item) {
+                Text("Free right now:").font(.system(size: 12)).foregroundStyle(Theme.secondaryText).fixedSize()
+                ForEach(suggestions, id: \.self) { combo in
+                    Button { pick(combo) } label: {
+                        HStack(spacing: 3) { ForEach(Array(BigKeys.parts(combo.display).enumerated()), id: \.offset) { Kbd($0.element) } }
+                            .padding(.horizontal, 6)
+                            .frame(height: 28)
+                            .background(RoundedRectangle(cornerRadius: 7).fill(Theme.surface))
+                            .overlay(RoundedRectangle(cornerRadius: 7).stroke(Theme.controlBorder))
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Use \(combo.display)")
+                }
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("Free hotkeys")
         }
     }
 }
@@ -556,6 +609,7 @@ private struct PersonalizeStep: View {
                 Text(free ? "Press it in any text box to open Takes. Nothing else on this Mac uses it."
                           : "Also used by \(model.hotKeyOwner ?? String(localized: "another app")). Pick another, or turn that one off in System Settings › Keyboard.")
                     .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
+                if !free { HotKeySuggestionChips(suggestions: model.hotKeySuggestions, pick: model.pickHotKey) }
             }
             .padding(Spacing.inner)
             .background(RoundedRectangle(cornerRadius: 12).fill(Theme.surface))
@@ -719,6 +773,17 @@ private struct DoneStep: View {
         VStack(alignment: .leading, spacing: 0) {
             StepHeader(title: String(localized: "You're set"), subtitle: String(localized: "Press \(model.hotKey.inline) in any text box to start."))
             MenuBarHint()
+            HStack(alignment: .firstTextBaseline, spacing: Spacing.inner) {
+                Checkbox(isOn: $model.launchAtLogin, label: String(localized: "Open Takes when I log in"))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Open Takes when I log in").font(.system(size: 13)).foregroundStyle(Theme.text)
+                    Text(model.launchAtLoginError ?? String(localized: "So the hotkey is ready without opening Takes first. Change it any time in Settings › General."))
+                        .font(.system(size: 12)).foregroundStyle(model.launchAtLoginError == nil ? Theme.secondaryText : Theme.avoidText)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .padding(.top, Spacing.section)
+            .accessibilityElement(children: .contain)
             VStack(alignment: .leading, spacing: Spacing.inner) {
                 InfoRow(icon: "menubar.arrow.up.rectangle", text: String(localized: "Takes lives in the menu bar. Click its icon for presets, the coach and settings."))
                 InfoRow(icon: "slider.horizontal.3", text: String(localized: "Make a preset your own in Settings › Presets: its rules, examples of how you write, and a hotkey of its own."))
@@ -730,7 +795,7 @@ private struct DoneStep: View {
                     InfoRow(icon: "arrow.uturn.backward", text: String(localized: "Skipped something? It's all in Settings, any time."))
                 }
             }
-            .padding(.top, 22)
+            .padding(.top, Spacing.section)
         }
     }
 }

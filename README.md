@@ -28,14 +28,14 @@
 brew install --cask bar-amir/tap/takes
 ```
 
-<!-- TODO: replace with a ~10-second demo GIF of real use: a chat field → ⌃⌥Space → 3 takes stream in → paste. -->
+<!-- TODO: replace with a ~10-second demo GIF of real use: a chat field → ⌥⇧Space → 3 takes stream in → paste. -->
 <p align="center">
   <a href="https://takes.rocks/"><img src="site/img/layers/takes.webp" alt="The Takes panel as floating layers: a rough Slack draft at the top, three rewritten takes below it with the middle one lifted to the front, and a Paste button" width="820"></a>
 </p>
 
 ## How it works
 
-1. **Draft.** In any text field, in any app, press **⌃⌥Space**. Takes opens with what you've written so far.
+1. **Draft.** In any text field, in any app, press **⌥⇧Space**. Takes opens with what you've written so far.
 2. **Choose.** Pick a preset (Proofread, Friendlier, Shorter, Slack message, your own…) and press ↵. A few takes stream in side by side in about 3 seconds. See what changed, refine one, or ask for more like it.
 3. **Paste.** Press ↵ and the take you chose replaces your draft in the original field. Your clipboard is put back. You decide when to send.
 
@@ -123,9 +123,9 @@ To read the text box you're typing in and to paste the take back. It reads only 
 </details>
 
 <details>
-<summary><b>⌃⌥Space opens something else.</b></summary>
+<summary><b>The hotkey opens something else, or nothing.</b></summary>
 
-macOS can use ⌃⌥Space for "Show Finder search window" or for switching input sources. Setup flags this and lets you pick another hotkey (Settings › General).
+Another app or a macOS shortcut has it. Setup names who (macOS, Raycast, 1Password, Rectangle…), offers free hotkeys to pick from, and you can record any other one in Settings › General. The default is ⌥⇧Space, which stock macOS leaves free; on a Mac where it isn't, a new install picks the first free one from Takes's list.
 </details>
 
 <details>

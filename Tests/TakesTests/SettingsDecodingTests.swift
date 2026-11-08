@@ -12,7 +12,7 @@ final class SettingsDecodingTests: XCTestCase {
         // Missing keys fall back to defaults.
         XCTAssertFalse(settings.privacyAccepted)
         XCTAssertEqual(settings.defaultModel, Models.sonnet)
-        XCTAssertEqual(settings.summonHotKey.display, "⌃⌥Space")
+        XCTAssertEqual(settings.summonHotKey.display, "⌥⇧Space")
     }
 
     func testRoundTrip() throws {

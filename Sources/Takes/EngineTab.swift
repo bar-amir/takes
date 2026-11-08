@@ -5,12 +5,12 @@ import SwiftUI
 /// sign-in), the defaults for new presets, and where drafts go.
 struct ModelTab: View {
     @ObservedObject var store = Store.shared
-    @State private var status: (found: Bool, signedIn: Bool, plan: String?)?
+    @State private var status: ClaudeCodeEngine.Status?
     @State private var keyInput = ""
     @State private var hasKey = Keychain.apiKey != nil
     @ObservedObject var installer = ClaudeInstaller.shared
     /// For snapshots: shown instead of asking Claude Code.
-    var fixedStatus: (found: Bool, signedIn: Bool, plan: String?)?
+    var fixedStatus: ClaudeCodeEngine.Status?
 
     var body: some View {
         SettingsPage {
@@ -91,7 +91,7 @@ struct ModelTab: View {
 
     // MARK: Claude Code
 
-    private var claudeStatus: (found: Bool, signedIn: Bool, plan: String?)? { fixedStatus ?? status }
+    private var claudeStatus: ClaudeCodeEngine.Status? { fixedStatus ?? status }
 
     @ViewBuilder private var claudeCodeBadge: some View {
         if installer.state.isBusy {
@@ -99,6 +99,10 @@ struct ModelTab: View {
         } else if let status = claudeStatus {
             if !status.found {
                 StatusBadge(text: String(localized: "Not installed"), good: false)
+            } else if let version = status.version, !ClaudeCodeEngine.isSupported(version: version) {
+                StatusBadge(text: String(localized: "Too old (\(version))"), good: false)
+            } else if status.timedOut {
+                StatusBadge(text: String(localized: "Didn't answer"), good: false)
             } else if status.signedIn {
                 StatusBadge(text: status.plan.map { String(localized: "Signed in · \($0.capitalized) plan") } ?? String(localized: "Signed in"),
                             good: true)
@@ -138,6 +142,14 @@ struct ModelTab: View {
                             .fixedSize()
                     }
                 }
+            } else if let status = claudeStatus, let version = status.version, !ClaudeCodeEngine.isSupported(version: version) {
+                Text("Claude Code \(version) is too old for Takes. Run `claude update` in Terminal, then check again.")
+                    .font(.system(size: 12)).foregroundStyle(Theme.avoidText)
+                    .fixedSize(horizontal: false, vertical: true)
+                checkAgain
+            } else if let status = claudeStatus, status.timedOut {
+                Text("Claude Code didn't answer. Check again in a moment.").font(.system(size: 12)).foregroundStyle(Theme.avoidText)
+                checkAgain
             } else if let status = claudeStatus, !status.signedIn {
                 Text("Sign in once: Terminal opens and takes you to your browser. Then press Check again.")
                     .font(.system(size: 12)).foregroundStyle(Theme.avoidText)

@@ -35,8 +35,20 @@ final class OnboardingModel: ObservableObject {
         didSet { if engineKind != oldValue { onEngineKindChange(engineKind) } }
     }
     @Published var hotKey = AppSettings().summonHotKey
-    /// Who already uses the hotkey ("macOS: Show Finder search window", "another app"), or nil when it's free.
+    /// Who already uses the hotkey ("macOS: Show Finder search window", "Raycast", "another app"), or nil when it's free.
     @Published var hotKeyOwner: String?
+    /// Free hotkeys to pick instead, from HotKeyChoice; empty in tests and snapshots unless set.
+    @Published var hotKeySuggestions: [KeyCombo] = []
+    /// Open Takes when the user logs in (Done step). Off by default; the app wires it to LaunchAtLogin.
+    @Published var launchAtLogin = false {
+        didSet { if launchAtLogin != oldValue { setLaunchAtLogin(launchAtLogin) } }
+    }
+    /// Why the login item couldn't be set, shown under the toggle; nil when it worked.
+    @Published var launchAtLoginError: String?
+    var setLaunchAtLogin: (Bool) -> Void = { _ in }
+    /// Takes runs from the disk image or a temporary copy (AppLocation); Allow access offers to move it first.
+    @Published var needsMove = false
+    @Published var moveError: String?
     @Published var apiKeyInput = ""
     /// Terminal was opened to sign in to Claude; the page says what to do there.
     @Published var signInOpened = false
@@ -115,6 +127,17 @@ final class OnboardingModel: ObservableObject {
         saveLanguages = { languages in store.settings.languages = languages }
         recordPrivacyAccepted = { store.settings.privacyAccepted = true }
         save = { progress in if store.settings.onboarding != progress { store.settings.onboarding = progress } }
+        launchAtLogin = LaunchAtLogin.isEnabled
+        needsMove = AppLocation.needsMove
+        setLaunchAtLogin = { [weak self] on in
+            do {
+                try LaunchAtLogin.set(on)
+                self?.launchAtLoginError = nil
+            } catch {
+                self?.launchAtLoginError = LaunchAtLogin.explain(error)
+                if self?.launchAtLogin != LaunchAtLogin.isEnabled { self?.launchAtLogin = LaunchAtLogin.isEnabled }
+            }
+        }
         onEngineKindChange = { [weak self] kind in
             if store.settings.engine != kind { store.settings.engine = kind }
             if kind == .local { self?.checkLocalEngine() }
@@ -125,9 +148,9 @@ final class OnboardingModel: ObservableObject {
             if engineKind != settings.engine { engineKind = settings.engine }
             hotKey = settings.summonHotKey
             let clash = taken.contains(settings.summonHotKey)
-            hotKeyOwner = clash
-                ? SystemShortcuts.owner(of: settings.summonHotKey).map { String(localized: "macOS: \($0)") } ?? String(localized: "another app")
-                : nil
+            hotKeyOwner = clash ? HotKeyChoice.owner(of: settings.summonHotKey) : nil
+            // Registering a candidate is how "free" is known, so only look while there's a reason to show them.
+            hotKeySuggestions = clash ? HotKeyChoice.suggestions(current: settings.summonHotKey, taken: taken) : []
             return OnboardingConditions(accessibility: accessibility, engineReady: engine.isReady,
                                         privacyAccepted: settings.privacyAccepted, hotKeyFree: !clash)
         }
@@ -243,6 +266,10 @@ final class OnboardingModel: ObservableObject {
             return understood ? String(localized: "Understood, check again") : String(localized: "Check again")
         case .chatGPT:
             if ChatGPTSignIn.shared.state == .signingIn { return String(localized: "Waiting for the browser…") }
+            // Signed in but no model yet (the list couldn't be fetched): ask OpenAI again, not for another sign-in.
+            if ChatGPTSignIn.shared.canUsePlan {
+                return understood ? String(localized: "Understood, check again") : String(localized: "Check again")
+            }
             return understood ? String(localized: "Understood, continue with ChatGPT") : String(localized: "Continue with ChatGPT")
         case .provider:
             return understood ? String(localized: "Understood, open Engine settings") : String(localized: "Open Engine settings")
@@ -297,7 +324,7 @@ final class OnboardingModel: ObservableObject {
             if flow.isCurrentSatisfied { go { $0.next() } }
             else if engineKind == .apiKey { saveAPIKey() }
             else if engineKind == .local { checkLocalEngine() }
-            else if engineKind == .chatGPT { ChatGPTSignIn.shared.start() }
+            else if engineKind == .chatGPT { ChatGPTSignIn.shared.canUsePlan ? checkChatGPTModels() : ChatGPTSignIn.shared.start() }
             else if engineKind == .provider { SettingsWindowController.shared.show(tab: .model) }
             else if claudeMissing { installClaudeCode() }
             else { openSignIn() }
@@ -329,6 +356,27 @@ final class OnboardingModel: ObservableObject {
             await SetupMonitor.shared.refreshEngine()
         }
     }
+
+    /// Signed in with ChatGPT but no model yet (the list couldn't be fetched): ask OpenAI again.
+    func checkChatGPTModels() {
+        Task {
+            ChatGPTModels.shared.checked = false
+            await ChatGPTModels.shared.refresh()
+            await SetupMonitor.shared.refreshEngine()
+        }
+    }
+
+    func moveToApplications() {
+        do {
+            try AppLocation.moveToApplications()
+            moveError = nil
+        } catch {
+            moveError = error.localizedDescription
+        }
+    }
+
+    /// The hotkey chips on Make it yours: one click picks the combo.
+    func pickHotKey(_ combo: KeyCombo) { Store.shared.settings.summonHotKey = combo }
 
     /// Opens Terminal running Claude Code's own sign-in. Nothing to type or paste; the page moves on once
     /// `claude auth status` says signed in.
@@ -483,8 +531,9 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
 
     private func stepChanged(_ step: OnboardingStep, window: NSWindow? = nil) {
         guard let window = window ?? self.window else { return }
-        // Stay above System Settings and Terminal while access is granted or Claude is signed in.
-        window.level = step == .accessibility || step == .engine ? .floating : .normal
+        // An ordinary window: System Settings, Terminal and the browser the steps send people to must open in
+        // front of it, not under it. The step that follows brings it back (below).
+        window.level = .normal
         // Back from System Settings: bring the window forward for the next step.
         if step != .accessibility, window.isVisible, !window.isKeyWindow, model?.step != .practice {
             NSApp.activate(ignoringOtherApps: true)

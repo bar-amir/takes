@@ -5,14 +5,31 @@ import SwiftUI
 /// Settings › General: how the panel opens, the clipboard, dictation and what macOS has allowed.
 struct GeneralTab: View {
     @ObservedObject var store = Store.shared
+    @ObservedObject var monitor = SetupMonitor.shared
+    @State private var suggestions: [KeyCombo] = []
+    @State private var launchAtLogin = LaunchAtLogin.isEnabled
+    @State private var launchAtLoginError: String?
+
+    /// Who else has the summon hotkey, or nil when it's Takes's alone.
+    private var hotKeyOwner: String? {
+        let combo = store.settings.summonHotKey
+        if monitor.takenHotKeys.contains(combo) { return HotKeyChoice.owner(of: combo) }
+        if let preset = store.presets.first(where: { $0.hotKey == combo }) { return String(localized: "the preset “\(preset.name)”") }
+        return nil
+    }
 
     var body: some View {
         SettingsPage {
             FormSection(String(localized: "Opening Takes")) {
-                FormRow(String(localized: "Hotkey")) {
+                FormRow(String(localized: "Hotkey"), detail: hotKeyOwner.map { String(localized: "Also used by \($0). Pick another, or turn that one off.") }) {
                     HotKeyRecorder(combo: Binding(get: { store.settings.summonHotKey },
                                                   set: { if let combo = $0 { store.settings.summonHotKey = combo } }),
                                    allowClear: false, height: 28)
+                }
+                if hotKeyOwner != nil, !suggestions.isEmpty {
+                    HotKeySuggestionChips(suggestions: suggestions) { store.settings.summonHotKey = $0 }
+                        .formRowPadding()
+                        .onChange(of: monitor.takenHotKeys) { _, _ in refreshSuggestions() }
                 }
                 FormDivider()
                 FormRow(String(localized: "Open the panel"), detail: String(localized: "Wherever it opens, it moves aside rather than cover the text box.")) {
@@ -32,10 +49,31 @@ struct GeneralTab: View {
 
             DictationSettings()
 
-            FormSection(String(localized: "System")) {
+            FormSection(header: String(localized: "System")) {
+                FormToggle(String(localized: "Open Takes when I log in"), isOn: Binding(get: { launchAtLogin }, set: setLaunchAtLogin))
+                FormDivider()
                 FormRow(String(localized: "Permissions")) { PermissionsStatus() }
+            } footer: {
+                if let launchAtLoginError { Text(launchAtLoginError).foregroundStyle(Theme.avoidText) }
             }
         }
+        .onAppear { refreshSuggestions(); launchAtLogin = LaunchAtLogin.isEnabled }
+        .onChange(of: store.settings.summonHotKey) { _, _ in refreshSuggestions() }
+    }
+
+    private func refreshSuggestions() {
+        suggestions = HotKeyChoice.suggestions(current: store.settings.summonHotKey,
+                                               taken: monitor.takenHotKeys + store.presets.compactMap(\.hotKey))
+    }
+
+    private func setLaunchAtLogin(_ on: Bool) {
+        do {
+            try LaunchAtLogin.set(on)
+            launchAtLoginError = nil
+        } catch {
+            launchAtLoginError = LaunchAtLogin.explain(error)
+        }
+        launchAtLogin = LaunchAtLogin.isEnabled
     }
 }
 

@@ -51,7 +51,7 @@ body:
       label: Steps to reproduce
       placeholder: |
         1. Open Notes and type a short draft
-        2. Press ⌃⌥Space and pick Proofread
+        2. Press ⌥⇧Space and pick Proofread
         3. …
   - type: textarea
     id: focus-log

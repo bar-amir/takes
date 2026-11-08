@@ -52,11 +52,12 @@ extension Snapshot {
     /// installed but not signed in. The status is set here, so it doesn't depend on this Mac.
     private static func renderClaudeCodeStates(dark: Bool, to url: URL) {
         let failed = ClaudeInstaller.failureMessage(status: 6, output: "curl: (6) Could not resolve host: claude.ai", timedOut: false) ?? ""
-        let states: [(String, (found: Bool, signedIn: Bool, plan: String?), ClaudeInstaller.State)] = [
-            ("not-installed", (false, false, nil), .idle),
-            ("installing", (false, false, nil), .settingUp),
-            ("install-failed", (false, false, nil), .failed(failed)),
-            ("not-signed-in", (true, false, nil), .idle),
+        let states: [(String, ClaudeCodeEngine.Status, ClaudeInstaller.State)] = [
+            ("not-installed", ClaudeCodeEngine.Status(found: false), .idle),
+            ("installing", ClaudeCodeEngine.Status(found: false), .settingUp),
+            ("install-failed", ClaudeCodeEngine.Status(found: false), .failed(failed)),
+            ("not-signed-in", ClaudeCodeEngine.Status(found: true, version: "2.1.310"), .idle),
+            ("too-old", ClaudeCodeEngine.Status(found: true, signedIn: true, version: "2.0.24"), .idle),
         ]
         for (name, status, state) in states {
             let installer = ClaudeInstaller()

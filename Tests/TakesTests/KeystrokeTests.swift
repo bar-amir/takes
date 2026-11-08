@@ -7,7 +7,7 @@ import XCTest
 final class KeystrokeTests: XCTestCase {
     private let summon = KeyCombo(keyCode: UInt32(kVK_Space), modifiers: UInt32(controlKey | optionKey), display: "⌃⌥Space")
 
-    /// Ori's Mac: Spotlight on ⌃Space and "Show Finder search window" on ⌃⌥Space, Takes's default.
+    /// Ori's Mac: Spotlight on ⌃Space and "Show Finder search window" on ⌃⌥Space, the default Takes had until 0.6.
     private let orisHotKeys: [String: Any] = [
         "60": ["enabled": true, "value": ["parameters": [32, 49, 1_048_576], "type": "standard"]],
         "61": ["enabled": true, "value": ["parameters": [32, 49, 1_572_864], "type": "standard"]],

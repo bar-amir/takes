@@ -87,6 +87,8 @@ final class SetupMonitor: ObservableObject {
 
     private var timer: Timer?
     private var lastEngineCheck = Date.distantPast
+    /// Counts `refreshEngine` calls, so a slow answer from an earlier check can't overwrite a newer one.
+    private var engineCheck = 0
     private var settingsSubscription: AnyCancellable?
 
     private init() {
@@ -114,26 +116,37 @@ final class SetupMonitor: ObservableObject {
 
     func refreshEngine() async {
         lastEngineCheck = Date()
+        engineCheck += 1
+        let check = engineCheck
+        let result: EngineStatus
         switch Store.shared.settings.engine {
         case .local:
-            engine = await Self.localEngineStatus()
+            result = await Self.localEngineStatus()
         case .provider:
-            engine = await Self.providerEngineStatus()
+            result = await Self.providerEngineStatus()
         case .chatGPT:
-            engine = await Self.chatGPTEngineStatus()
+            result = await Self.chatGPTEngineStatus()
         case .apiKey:
-            engine = Keychain.apiKey?.isEmpty == false ? .ready(String(localized: "Anthropic API key saved")) : .problem(String(localized: "No API key saved yet"))
+            result = Keychain.apiKey?.isEmpty == false ? .ready(String(localized: "Anthropic API key saved")) : .problem(String(localized: "No API key saved yet"))
         case .claudeCode:
-            let status = await ClaudeCodeEngine.status()
-            if !status.found {
-                engine = .problem(Self.claudeMissing)
-            } else if !status.signedIn {
-                engine = .problem(String(localized: "Claude Code isn't signed in"))
-            } else {
-                engine = .ready(status.plan.map { String(localized: "Claude Code signed in · \($0.capitalized) plan") }
-                    ?? String(localized: "Claude Code signed in"))
-            }
+            result = Self.claudeCodeStatus(await ClaudeCodeEngine.status())
         }
+        // Checks overlap (the timer, opening a window, a settings change); only the newest one counts.
+        guard check == engineCheck else { return }
+        engine = result
+    }
+
+    /// Claude Code's status in one line. An old CLI has no `claude auth` and no `--effort`, so it can't be used
+    /// until it's updated; a check that hung is said so, not reported as signed out.
+    nonisolated static func claudeCodeStatus(_ status: ClaudeCodeEngine.Status) -> EngineStatus {
+        if !status.found { return .problem(claudeMissing) }
+        if status.timedOut { return .problem(String(localized: "Claude Code didn't answer; trying again")) }
+        if let version = status.version, !ClaudeCodeEngine.isSupported(version: version) {
+            return .problem(String(localized: "Claude Code \(version) is too old; update it (claude update)"))
+        }
+        if !status.signedIn { return .problem(String(localized: "Claude Code isn't signed in")) }
+        return .ready(status.plan.map { String(localized: "Claude Code signed in · \($0.capitalized) plan") }
+            ?? String(localized: "Claude Code signed in"))
     }
 
     func requestAccessibility() {
@@ -183,6 +196,9 @@ struct SetupView: View {
     @ObservedObject var monitor: SetupMonitor
     @ObservedObject var store = Store.shared
     let onDone: () -> Void
+    @State private var copied = false
+    @State private var suggestions: [KeyCombo] = []
+    @State private var moveError: String?
     @ObservedObject var installer = ClaudeInstaller.shared
 
     var body: some View {
@@ -240,9 +256,21 @@ struct SetupView: View {
                 HStack(spacing: 8) {
                     Button("Open Accessibility settings", action: monitor.requestAccessibility)
                         .buttonStyle(PrimaryButtonStyle())
-                    Button("Show Takes in Finder") {
-                        NSWorkspace.shared.activateFileViewerSelecting([Bundle.main.bundleURL])
+                    if AppLocation.needsMove {
+                        Button("Move Takes to Applications") {
+                            do { try AppLocation.moveToApplications(); moveError = nil } catch { moveError = error.localizedDescription }
+                        }
+                    } else {
+                        Button("Show Takes in Finder") {
+                            NSWorkspace.shared.activateFileViewerSelecting([Bundle.main.bundleURL])
+                        }
                     }
+                }
+                if AppLocation.needsMove {
+                    Text(moveError ?? String(localized: "Takes is running from \(AppLocation.whereItRuns). Move it to Applications first, so the access you allow stays with it."))
+                        .font(.system(size: 12))
+                        .foregroundStyle(moveError == nil ? Theme.secondaryText : Theme.avoidText)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 Text("Switch Takes on in the list, or drag it in from Finder. If Takes is already listed and switched on, select it, remove it with –, and add it again: macOS keeps access tied to the previous version after an update.")
                     .font(.system(size: 12))
@@ -338,22 +366,28 @@ struct SetupView: View {
 
     private var hotKeyStep: some View {
         let free = monitor.takenHotKeys.isEmpty
-        let taken = monitor.takenHotKeys.map { combo in
-            SystemShortcuts.owner(of: combo).map { String(localized: "\(combo.inline) (macOS: \($0))") }
-                ?? String(localized: "\(combo.inline) (another app)")
-        }.joined(separator: ", ")
+        let taken = monitor.takenHotKeys.map { String(localized: "\($0.inline) (\(HotKeyChoice.owner(of: $0)))") }.joined(separator: ", ")
         return SetupStep(number: 4, title: String(localized: "Hotkey"), done: free,
                          status: free ? store.settings.summonHotKey.display : String(localized: "Taken: \(taken)"),
                          detail: free ? String(localized: "Press it in any text field to open Takes.")
-                                      : String(localized: "Pick a different shortcut, or turn the macOS one off in System Settings › Keyboard › Keyboard Shortcuts.")) {
+                                      : String(localized: "Pick a different shortcut, or turn the other one off in that app or in System Settings › Keyboard › Keyboard Shortcuts.")) {
             if !free {
-                Button("Change shortcut") {
-                    onDone()
-                    SettingsWindowController.shared.show(tab: .model)
+                HStack(spacing: 8) {
+                    Button("Change shortcut") {
+                        onDone()
+                        SettingsWindowController.shared.show(tab: .general)
+                    }
+                    .buttonStyle(PrimaryButtonStyle())
+                    HotKeySuggestionChips(suggestions: suggestions) { store.settings.summonHotKey = $0 }
                 }
-                .buttonStyle(PrimaryButtonStyle())
+                .onAppear(perform: refreshSuggestions)
+                .onChange(of: monitor.takenHotKeys) { _, _ in refreshSuggestions() }
             }
         }
+    }
+
+    private func refreshSuggestions() {
+        suggestions = HotKeyChoice.suggestions(current: store.settings.summonHotKey, taken: monitor.takenHotKeys)
     }
 }
 
