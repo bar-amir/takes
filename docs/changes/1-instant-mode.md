@@ -32,7 +32,7 @@ It's off for every preset by default, and only works on a preset that has its ow
    - You switched to another app while it wrote: "You left Slack, so nothing was pasted." "Open in Takes" shows the take.
    - The app couldn't be brought back to the front: the take is left on the clipboard, "press ⌘V".
    - Empty text box, or no text box: the normal panel opens instead.
-   - Pressing ⌃⌥Space (the summon hotkey) while it writes cancels the run and opens the panel.
+   - Pressing ⌥⇧Space (the summon hotkey) while it writes cancels the run and opens the panel.
 
    ![Engine error](img/instant-mode/7-instant-toast-3-failed-engine-light.png)
    ![Left the app](img/instant-mode/7-instant-toast-4-failed-left-light.png)
@@ -104,5 +104,5 @@ Use a test text box (TextEdit, Notes, Slack's composer):
 5. Press ⌃⌥2, then Esc at once: "Cancelled. Nothing was pasted.", field unchanged. Esc works normally in the app afterwards.
 6. Press ⌃⌥2, then switch to another app before it finishes: "You left …, so nothing was pasted."
 7. Empty text box, ⌃⌥2: the normal panel opens.
-8. Press ⌃⌥2 then ⌃⌥Space while writing: the panel opens, nothing is pasted later.
+8. Press ⌃⌥2 then ⌥⇧Space while writing: the panel opens, nothing is pasted later.
 9. Turn on VoiceOver: the toast states are announced.

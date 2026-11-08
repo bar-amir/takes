@@ -116,6 +116,6 @@ Edits stayed minimal: typos and apostrophes fixed; emoji, code, link, line break
 treated all-lowercase casual writing as the user's style and left "i"/"dana" lowercase. That matches "keep my voice";
 if we want capitalisation fixed in casual drafts too, strengthen the capitalisation rule in `Proofread.rules`.
 
-**Orchestrator live pass:** in a text box type `i think teh specs are due wed`, ⌃⌥Space, pick Proofread, ↵ → expect the
+**Orchestrator live pass:** in a text box type `i think teh specs are due wed`, ⌥⇧Space, pick Proofread, ↵ → expect the
 fixes marked and "N fixes", ↵ pastes. Then try a clean sentence → "No mistakes found", ↵ pastes it unchanged, Esc goes back.
 Settings › Presets: an existing user who had "Proofread only, keep my words" now sees "Proofread" with Minimal edits on.

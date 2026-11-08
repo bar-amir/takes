@@ -124,7 +124,7 @@ auto-advance after access is granted, and Esc backing out then closing.
    window comes back on the Claude step.
 2. With Claude Code signed in, the Claude step should pass by itself. Quit Takes on the Presets step, relaunch: it
    reopens on Presets.
-3. On Try it, click in the box and press ⌃⌥Space. The panel opens beside the window with the sample draft. ↵, pick a
+3. On Try it, click in the box and press ⌥⇧Space. The panel opens beside the window with the sample draft. ↵, pick a
    take, ↵: it lands in the practice box, the checklist ticks, Continue → Done → Start using Takes.
 4. Put the old `settings.json` back and relaunch: no onboarding.
-5. Check the hotkey step with ⌃⌥Space bound to "Show Finder search window" (taken state names it).
+5. Check the hotkey step with the summon hotkey bound to a macOS shortcut such as "Show Finder search window" (taken state names it).

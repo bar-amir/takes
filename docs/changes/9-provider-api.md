@@ -135,7 +135,7 @@ engine is new. With one real key per provider you have (short drafts, a handful 
    Model menu fills (no embedding/audio/image models), and **Test** says "Works. Answered in … s.".
 2. Paste an `sk-ant-` key into OpenAI: the note appears. Remove it and paste a wrong `sk-…` key: the badge says
    "Key refused".
-3. In a text field press ⌃⌥Space: Model shows the OpenAI model, no Effort; write 3 takes. Check that they stream into
+3. In a text field press ⌥⇧Space: Model shows the OpenAI model, no Effort; write 3 takes. Check that they stream into
    3 cards and that the header says "via OpenAI". Try one `gpt-5*` model (reasoning: the request uses
    `max_completion_tokens`) and one `gpt-4.1*` model.
 4. Repeat 1 and 3 for Gemini (check the `models/` prefix is gone and runs work), OpenRouter (pick an `openai/…` and an

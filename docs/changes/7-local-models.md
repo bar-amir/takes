@@ -136,7 +136,7 @@ Ollama is installed on this Mac (Homebrew) and running, but has **no models**, s
 forbids downloading). To check live:
 1. `ollama pull llama3.2` (about 2 GB).
 2. Settings › Engine › Local model: badge "Ollama · 1 model", model auto-picked, **Test** says "Works. Answered in … s."
-3. In a text field press ⌃⌥Space: the Model strip shows llama3.2 and no Effort. Write 3 takes; they stream into 3 cards
+3. In a text field press ⌥⇧Space: the Model strip shows llama3.2 and no Effort. Write 3 takes; they stream into 3 cards
    with no preamble or labels.
 4. Quit Ollama (`ollama` menu-bar icon › Quit, or stop `ollama serve`) and press Regenerate: the error says Ollama isn't
    running and the draft is kept. Check the setup window's engine step shows "Ollama isn't running".

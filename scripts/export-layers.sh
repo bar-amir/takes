@@ -21,7 +21,7 @@ for p in ${PARTS:-base chip draft take1 take2 take3 ring paste}; do shoot "scene
 for s in ${SLIDES:-shortcut presets proofread coach local instant dictation tone languages}; do shoot "scene=$s&shot=1" "$OUT/slides/$s.png" 1600 900; done
 # The pieces each carousel scene is built from (the names given to place() in site/js/layers.js).
 pieces() { case $1 in
-  shortcut) echo field key-control key-option key-space chip;; presets) echo chip1 chip2 chip3 chip4 chip5 instruction do avoid;;
+  shortcut) echo field key-option key-shift key-space chip;; presets) echo chip1 chip2 chip3 chip4 chip5 instruction do avoid;;
   proofread) echo card fix1 fix2 fix3;; coach) echo draft tray fix1 fix2 fix3;; local) echo panel menu badge;; instant) echo field toast return;;
   dictation) echo card pill wave;; tone) echo reply take note;; languages) echo de es en;; esac; }
 for s in ${PIECE_SCENES-shortcut presets proofread coach local instant dictation tone languages}; do mkdir -p "$OUT/pieces/$s"; for p in $(pieces "$s"); do shoot "scene=$s&part=$p" "$OUT/pieces/$s/$p.png" 1200 1200; done; done

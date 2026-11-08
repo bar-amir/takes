@@ -7,7 +7,7 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 const C = { ink: "#171714", paper: "#F3EBDD", card: "#F5EEE2", strip: "#ECE4D5", tray: "#EADFCB",
   cobalt: "#3045FF", acid: "#E8F449", tomato: "#F0543D", mute: "#8A8478", red: "#B3261E", green: "#1E6B3A",
   redBg: "rgba(240,84,61,.13)", greenBg: "rgba(30,107,58,.11)" };
-const ASSET_V = "3"; // bump when the rendered pieces change, so browsers fetch the new files
+const ASSET_V = "4"; // bump when the rendered pieces change, so browsers fetch the new files
 const FONT = 'Arial, "Helvetica Neue", Helvetica, sans-serif';
 const PX = 100;           // drawing units per world unit
 const SCALE = 2.6;        // canvas pixels per drawing unit
@@ -200,8 +200,8 @@ const SCENES = {
         c.fillStyle = C.cobalt; c.fillRect(36 + w, 84, 3, 36); } }), 0.3, 0.9, 0, "field"));
     const key = (s, w, bg = C.card) => tile(renderer, { w, h: 1.15, r: 0.22, depth: 0.45, bg,
       draw: (c, cw, ch) => text(c, s, cw / 2, ch / 2 + 15, { size: 44, align: "center" }) });
-    root.add(sized(place(key("⌃", 1.15), -3.0, -1.35, 2.2, "key-control"), 1.25));
-    root.add(sized(place(key("⌥", 1.15), -1.45, -1.35, 2.2, "key-option"), 1.25));
+    root.add(sized(place(key("⌥", 1.15), -3.0, -1.35, 2.2, "key-option"), 1.25));
+    root.add(sized(place(key("⇧", 1.15), -1.45, -1.35, 2.2, "key-shift"), 1.25));
     root.add(sized(place(key("", 3.4, C.cobalt), 1.35, -1.35, 2.2, "key-space"), 1.15));
     root.add(place(chip(renderer, "Slack message"), 3.6, 2.2, 1.0, "chip"));
     return { bounds: [10, 6.4] };

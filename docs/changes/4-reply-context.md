@@ -90,7 +90,7 @@ Repeat with: `build/Takes.app/Contents/MacOS/Takes --bench --runs 1 --model clau
 
 ## For the orchestrator's live pass
 
-1. Copy a message in Slack, focus the reply box, ⌃⌥Space, ⇧⌘V: the chip shows "from the clipboard". ↵: takes answer the message. ⌘R and refine keep it.
+1. Copy a message in Slack, focus the reply box, ⌥⇧Space, ⇧⌘V: the chip shows "from the clipboard". ↵: takes answer the message. ⌘R and refine keep it.
 2. ⌘J, type a message, ↵: back in the draft with the chip. ⇧⌘⌫ removes it. Esc closes the panel as before.
 3. Summon again: no chip (cleared each summon).
 4. Turn on Settings › Engine › Reply context. Copy a message, summon within 2 minutes: chip says "copied just now". Paste a take, summon again: not re-attached. Copy a password from 1Password: not attached. Wait 2+ minutes: not attached.

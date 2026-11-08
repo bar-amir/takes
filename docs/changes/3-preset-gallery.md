@@ -72,7 +72,7 @@ None. The gallery is local data. Nothing new is read or sent, so PRIVACY.md is u
   empty state; the editor itself is untouched), and `Snapshot.swift` (one line).
 - **Live check:** (1) In Settings › Presets, click Browse presets. Check two, press ↵, and see both added and the first one
   selected. Reopen and see them marked Added. (2) Click New. The hint bar shows. Browse and add one, and the blank preset is
-  gone. (3) With fewer than 8 presets, press ⌃⌥Space, then ⇥, ↓ to the last row, ↵. The panel closes and the gallery opens
+  gone. (3) With fewer than 8 presets, press ⌥⇧Space, then ⇥, ↓ to the last row, ↵. The panel closes and the gallery opens
   in Settings. (4) Type a filter that matches nothing. The row shows and ↵ opens the gallery. (5) Fresh install: move
   `~/Library/Application Support/Takes` aside, launch, and see the 6 starters.
 

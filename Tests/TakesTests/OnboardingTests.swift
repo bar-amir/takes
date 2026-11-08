@@ -273,7 +273,7 @@ final class OnboardingFlowTests: XCTestCase {
     }
 
     func testHotkeyKeycaps() {
-        XCTAssertEqual(BigKeys.parts("⌃⌥Space"), ["⌃", "⌥", "Space"])
+        XCTAssertEqual(BigKeys.parts("⌥⇧Space"), ["⌥", "⇧", "Space"])
         XCTAssertEqual(BigKeys.parts("⌘⇧K"), ["⌘", "⇧", "K"])
         XCTAssertEqual(BigKeys.parts("F5"), ["F5"])
     }

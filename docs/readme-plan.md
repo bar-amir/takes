@@ -35,9 +35,9 @@ Badges: latest release · macOS 14+ · MIT · Sponsor
 [Download for Mac]  ·  brew install --cask bar-amir/tap/takes  ·  Website
 
 HERO: site/img/takes.png (real UI from `Takes --snapshot`), linked to the site
-<!-- TODO: replace with a 10-second demo GIF: Slack field → ⌃⌥Space → 3 takes → paste -->
+<!-- TODO: replace with a 10-second demo GIF: Slack field → ⌥⇧Space → 3 takes → paste -->
 
-## How it works          3 steps: Draft (⌃⌥Space) → Choose → Paste
+## How it works          3 steps: Draft (⌥⇧Space) → Choose → Paste
 ## Features              6–8 bullets, one line each (presets, takes side by side + changes,
                          proofread, write-and-paste-right-away, reply context, tone,
                          dictation, local models, your languages)

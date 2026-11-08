@@ -34,7 +34,7 @@ Reference points (Mobbin): Cycle's feature grid uses one chunky 3D object per fe
 | Feature | Scene | File |
 |---|---|---|
 | Takes (compare, choose) | The panel: draft strip, three takes, one lifted to the front | `site/img/layers/takes.webp` (live WebGL on the site) |
-| Shortcut, draft panel | The draft field and preset chips, with ⌃ ⌥ and a cobalt space bar in front | `compose.webp` |
+| Shortcut, draft panel | The draft field and preset chips, with ⌥ ⇧ and a cobalt space bar in front | `compose.webp` |
 | Presets | A stack of preset tiles, Slack message pulled out, beside its instruction and Do / Avoid | `presets.webp` |
 | Proofread | A take with each fix marked, the three fixes floating beside it | `proofread.webp` |
 | English coach | The draft with flagged phrases, the coach tray with its fix chips lifted out | `coach.webp` |
