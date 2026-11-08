@@ -36,13 +36,21 @@ extension Snapshot {
         let others = model(.engine, granted)
         others.showOtherEngines = true
         screens.append(("2-engine-other-ways", others))
-        let copied = model(.engine, granted)
-        copied.copiedSignIn = true
-        screens.append(("2-engine-copied", copied))
-        let missing = model(.engine, granted)
-        missing.claudeInstalled = false
-        missing.engineStatus = .problem("Claude Code isn't installed")
-        screens.append(("2-engine-not-installed", missing))
+        let opened = model(.engine, granted)
+        opened.signInOpened = true
+        screens.append(("2-engine-sign-in-opened", opened))
+        // Claude Code missing: the offer to install it, the install running, and an install that failed.
+        func missing(_ state: ClaudeInstaller.State) -> OnboardingModel {
+            let missing = model(.engine, granted)
+            missing.claudeInstalled = false
+            missing.engineStatus = .problem(SetupMonitor.claudeMissing)
+            missing.installer = ClaudeInstaller()
+            missing.installer.state = state
+            return missing
+        }
+        screens.append(("2-engine-not-installed", missing(.idle)))
+        screens.append(("2-engine-installing", missing(.downloading)))
+        screens.append(("2-engine-install-failed", missing(.failed(ClaudeInstaller.failureMessage(status: 6, output: "curl: (6) Could not resolve host: claude.ai", timedOut: false) ?? ""))))
         let apiKey = model(.engine, granted)
         apiKey.engineKind = .apiKey
         apiKey.engineStatus = .problem("No API key saved yet")

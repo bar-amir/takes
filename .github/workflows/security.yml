@@ -46,7 +46,7 @@ jobs:
           echo "${GITLEAKS_SHA256}  $RUNNER_TEMP/$TARBALL" | sha256sum --check --strict
           tar -xzf "$RUNNER_TEMP/$TARBALL" -C "$RUNNER_TEMP" gitleaks
       - name: Scan the git history
-        run: "$RUNNER_TEMP/gitleaks" git --redact --no-banner --verbose --exit-code 1 .
+        run: $RUNNER_TEMP/gitleaks git --redact --no-banner --verbose --exit-code 1 .
 
   codeql:
     name: codeql (${{ matrix.language }})

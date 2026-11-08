@@ -8,6 +8,9 @@ struct ModelTab: View {
     @State private var status: (found: Bool, signedIn: Bool, plan: String?)?
     @State private var keyInput = ""
     @State private var hasKey = Keychain.apiKey != nil
+    @ObservedObject var installer = ClaudeInstaller.shared
+    /// For snapshots: shown instead of asking Claude Code.
+    var fixedStatus: (found: Bool, signedIn: Bool, plan: String?)?
 
     var body: some View {
         SettingsPage {
@@ -66,7 +69,7 @@ struct ModelTab: View {
                 }
             }
         }
-        .task { status = await ClaudeCodeEngine.status() }
+        .task { if fixedStatus == nil { status = await ClaudeCodeEngine.status() } }
     }
 
     /// Where the draft goes with the chosen engine, in one sentence.
@@ -88,8 +91,12 @@ struct ModelTab: View {
 
     // MARK: Claude Code
 
+    private var claudeStatus: (found: Bool, signedIn: Bool, plan: String?)? { fixedStatus ?? status }
+
     @ViewBuilder private var claudeCodeBadge: some View {
-        if let status {
+        if installer.state.isBusy {
+            StatusBadge(text: String(localized: "Installing…"), good: false)
+        } else if let status = claudeStatus {
             if !status.found {
                 StatusBadge(text: String(localized: "Not installed"), good: false)
             } else if status.signedIn {
@@ -105,14 +112,60 @@ struct ModelTab: View {
 
     private var claudeCodeDetails: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if let status, !status.found {
-                Text("Install Claude Code, sign in, then check again.").font(.system(size: 12)).foregroundStyle(Theme.avoidText)
-            } else if let status, !status.signedIn {
-                Text("Run `claude auth login` in Terminal, then check again.").font(.system(size: 12)).foregroundStyle(Theme.avoidText)
+            if let progress = installer.state.progress {
+                HStack(spacing: 8) {
+                    ProgressView().controlSize(.small)
+                    Text(progress).font(.system(size: 12)).foregroundStyle(Theme.text)
+                }
+                Text("This takes about a minute. Then Terminal opens so you can sign in.")
+                    .font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
+            } else if let status = claudeStatus, !status.found {
+                if let error = installer.state.error {
+                    Text(error).font(.system(size: 12)).foregroundStyle(Theme.avoidText)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Text("Claude Code isn't on this Mac. Takes can install it for you from Anthropic; no password needed.")
+                        .font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                HStack(spacing: 8) {
+                    Button("Install Claude Code…", action: install)
+                        .buttonStyle(PrimaryButtonStyle(height: 28))
+                        .fixedSize()
+                    if installer.state.error != nil {
+                        Button("Install it yourself") { NSWorkspace.shared.open(ClaudeInstaller.manualURL) }
+                            .buttonStyle(SecondaryButtonStyle(height: 28))
+                            .fixedSize()
+                    }
+                }
+            } else if let status = claudeStatus, !status.signedIn {
+                Text("Sign in once: Terminal opens and takes you to your browser. Then press Check again.")
+                    .font(.system(size: 12)).foregroundStyle(Theme.avoidText)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: 8) {
+                    Button("Sign in to Claude", action: ClaudeCodeEngine.openSignIn)
+                        .buttonStyle(PrimaryButtonStyle(height: 28))
+                        .fixedSize()
+                    checkAgain
+                }
+            } else {
+                checkAgain
             }
-            Button("Check again") { Task { status = nil; status = await ClaudeCodeEngine.status() } }
-                .buttonStyle(SecondaryButtonStyle(height: 26))
-                .fixedSize()
+        }
+    }
+
+    private var checkAgain: some View {
+        Button("Check again") { Task { status = nil; status = await ClaudeCodeEngine.status() } }
+            .buttonStyle(SecondaryButtonStyle(height: 26))
+            .fixedSize()
+    }
+
+    /// Installs Claude Code after the person confirms, then opens sign-in.
+    private func install() {
+        Task {
+            guard await installer.installAfterConfirming() else { return }
+            status = await ClaudeCodeEngine.status()
+            if status?.signedIn == false { ClaudeCodeEngine.openSignIn() }
         }
     }
 

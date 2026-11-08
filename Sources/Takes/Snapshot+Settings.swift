@@ -39,11 +39,34 @@ extension Snapshot {
             renderSettingsTab(.model, dark: dark, to: url.appendingPathComponent("5-settings-model-api-key-\(suffix).png"))
             store.settings.engine = .claudeCode
             signIn.state = .signedOut
+            renderClaudeCodeStates(dark: dark, to: url)
             // The About window, with the logo's still frame in place of the loop.
             let about = AboutView(still: true)
             let aboutSize = NSHostingView(rootView: about).fittingSize
             try? settingsBitmap(about.background(Theme.formBackground), size: aboutSize, dark: dark)?
                 .representation(using: .png, properties: [:])?.write(to: url.appendingPathComponent("5-about-\(suffix).png"))
+        }
+    }
+
+    /// Settings › Model's Claude Code row when it isn't ready: not installed, installing, the install failed, and
+    /// installed but not signed in. The status is set here, so it doesn't depend on this Mac.
+    private static func renderClaudeCodeStates(dark: Bool, to url: URL) {
+        let failed = ClaudeInstaller.failureMessage(status: 6, output: "curl: (6) Could not resolve host: claude.ai", timedOut: false) ?? ""
+        let states: [(String, (found: Bool, signedIn: Bool, plan: String?), ClaudeInstaller.State)] = [
+            ("not-installed", (false, false, nil), .idle),
+            ("installing", (false, false, nil), .settingUp),
+            ("install-failed", (false, false, nil), .failed(failed)),
+            ("not-signed-in", (true, false, nil), .idle),
+        ]
+        for (name, status, state) in states {
+            let installer = ClaudeInstaller()
+            installer.state = state
+            let view = ModelTab(installer: installer, fixedStatus: status)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .background(Theme.formBackground)
+            let rep = settingsBitmap(view, size: CGSize(width: SettingsMetrics.width, height: 640), dark: dark)
+            try? rep?.representation(using: .png, properties: [:])?
+                .write(to: url.appendingPathComponent("5-settings-model-claude-\(name)-\(dark ? "dark" : "light").png"))
         }
     }
 

@@ -30,10 +30,10 @@
 /* Seconds · PanelModel.swift:365 */
 "%.1f s" = "%.1f s";
 
-/* Setup.swift:336 */
+/* Setup.swift:343 */
 "%@ (another app)" = "%@ (another app)";
 
-/* Setup.swift:335 */
+/* Setup.swift:342 */
 "%@ (macOS: %@)" = "%@ (macOS: %@)";
 
 /* ChatGPTEngine.swift:177 */
@@ -108,7 +108,7 @@
 /* LocalEngineViews.swift:132 */
 "%@ isn't installed in %@ any more. Pick another." = "%@ isn't installed in %@ any more. Pick another.";
 
-/* LocalEngine.swift:603, OnboardingView.swift:503 */
+/* LocalEngine.swift:603, OnboardingView.swift:510 */
 "%@ isn't running" = "%@ isn't running";
 
 /* LocalEngineViews.swift:57 */
@@ -273,7 +273,7 @@
 /* OpeningScreen.swift:136 */
 "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards" = "A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards";
 
-/* OnboardingView.swift:409 */
+/* OnboardingView.swift:410 */
 "A model on this Mac" = "A model on this Mac";
 
 /* EnglishCoachViews.swift:571 */
@@ -324,7 +324,7 @@
 /* APIEngine.swift:8 */
 "Add your Anthropic API key in Settings › Model." = "Add your Anthropic API key in Settings › Model.";
 
-/* Setup.swift:306 */
+/* Setup.swift:313 */
 "Add your API key" = "Add your API key";
 
 /* PresetGalleryView.swift:30 */
@@ -357,43 +357,43 @@
 /* Setup.swift:65 */
 "allow Accessibility" = "allow Accessibility";
 
-/* OnboardingView.swift:260, Setup.swift:234 */
+/* OnboardingView.swift:260, Setup.swift:236 */
 "Allow Accessibility access" = "Allow Accessibility access";
 
-/* Setup.swift:235 */
+/* Setup.swift:237 */
 "Allowed" = "Allowed";
 
 /* PresetGalleryView.swift:207 */
 "Already in your presets. Edit it there." = "Already in your presets. Edit it there.";
 
-/* OnboardingView.swift:548 */
+/* OnboardingView.swift:555 */
 "Also used by %@. Pick another, or turn that one off in System Settings › Keyboard." = "Also used by %@. Pick another, or turn that one off in System Settings › Keyboard.";
 
 /* PresetGalleryView.swift:202 */
 "Always writes in %@." = "Always writes in %@.";
 
-/* OnboardingView.swift:406 */
+/* OnboardingView.swift:407 */
 "An Anthropic API key" = "An Anthropic API key";
 
 /* Store.swift:175 */
 "An empty draft" = "An empty draft";
 
-/* OnboardingView.swift:408 */
+/* OnboardingView.swift:409 */
 "An OpenAI or other API key" = "An OpenAI or other API key";
 
 /* PresetGalleryView.swift:266 */
 "and %lld more" = "and %lld more";
 
-/* OnboardingModel.swift:115 */
+/* OnboardingModel.swift:129 */
 "another app" = "another app";
 
 /* DictationViews.swift:45 */
 "Answer the macOS dialogs to turn on dictation." = "Answer the macOS dialogs to turn on dictation.";
 
-/* EngineTab.swift:138, EngineTab.swift:20, EnglishCoachViews.swift:526, OnboardingView.swift:520 */
+/* EngineTab.swift:191, EngineTab.swift:23, EnglishCoachViews.swift:526, OnboardingView.swift:527 */
 "Anthropic API key" = "Anthropic API key";
 
-/* Setup.swift:123 */
+/* Setup.swift:125 */
 "Anthropic API key saved" = "Anthropic API key saved";
 
 /* Store.swift:27 */
@@ -468,7 +468,7 @@
 /* PresetsTab.swift:26 */
 "Browse presets…" = "Browse presets…";
 
-/* OnboardingView.swift:572 */
+/* OnboardingView.swift:579 */
 "Browse the preset gallery…" = "Browse the preset gallery…";
 
 /* PresetsTab.swift:85 */
@@ -480,7 +480,7 @@
 /* EnglishCoach.swift:136 */
 "Can, should, must" = "Can, should, must";
 
-/* ChatGPTEngineViews.swift:46, EnglishCoachViews.swift:1081, EnglishCoachViews.swift:1087, EnglishCoachViews.swift:749, LocalEngineViews.swift:176, PresetGalleryView.swift:65, SettingsForm.swift:239 */
+/* ChatGPTEngineViews.swift:46, ClaudeInstaller.swift:53, EnglishCoachViews.swift:1081, EnglishCoachViews.swift:1087, EnglishCoachViews.swift:749, LocalEngineViews.swift:176, PresetGalleryView.swift:65, SettingsForm.swift:239 */
 "Cancel" = "Cancel";
 
 /* Key hint: esc cancels the instant take · InstantModeViews.swift:94 */
@@ -501,13 +501,13 @@
 /* PanelViews.swift:588 */
 "Change engine…" = "Change engine…";
 
-/* OnboardingView.swift:545 */
+/* OnboardingView.swift:552 */
 "Change hotkey" = "Change hotkey";
 
-/* Setup.swift:343 */
+/* Setup.swift:350 */
 "Change shortcut" = "Change shortcut";
 
-/* OnboardingView.swift:539 */
+/* OnboardingView.swift:546 */
 "Change:" = "Change:";
 
 /* PanelViews.swift:309 */
@@ -555,7 +555,7 @@
 /* PresetGalleryView.swift:62 */
 "check" = "check";
 
-/* ChatGPTEngineViews.swift:84, EngineTab.swift:113, LocalEngineViews.swift:159, OnboardingModel.swift:229, ProviderEngineViews.swift:144 */
+/* ChatGPTEngineViews.swift:84, EngineTab.swift:158, LocalEngineViews.swift:159, OnboardingModel.swift:243, ProviderEngineViews.swift:144 */
 "Check again" = "Check again";
 
 /* AppDelegate.swift:182 */
@@ -564,13 +564,13 @@
 /* Proofread.swift:106 */
 "Checked spelling, grammar, punctuation and capitals, and kept your shorthand. Paste it as it is, or go back and keep writing." = "Checked spelling, grammar, punctuation and capitals, and kept your shorthand. Paste it as it is, or go back and keep writing.";
 
-/* EngineTab.swift:102 */
+/* EngineTab.swift:109 */
 "Checking Claude Code" = "Checking Claude Code";
 
 /* ProviderEngineViews.swift:12 */
 "Checking your key" = "Checking your key";
 
-/* OnboardingModel.swift:228, OnboardingModel.swift:236, OnboardingView.swift:398, Setup.swift:257 */
+/* OnboardingModel.swift:242, OnboardingModel.swift:250, OnboardingView.swift:399, Setup.swift:259 */
 "Checking…" = "Checking…";
 
 /* GeneralTab.swift:51 */
@@ -585,11 +585,8 @@
 /* PresetsTab.swift:363 */
 "Choose from Applications…" = "Choose from Applications…";
 
-/* OnboardingView.swift:636 */
+/* OnboardingView.swift:643 */
 "Choose one with ← →, press ↵ to paste it here" = "Choose one with ← →, press ↵ to paste it here";
-
-/* OnboardingView.swift:485 */
-"claude auth login" = "claude auth login";
 
 /* Setup.swift:84 */
 "Claude can get things wrong, and takes are only as good as your preset's instructions. Read a take before you send it: what you send is up to you." = "Claude can get things wrong, and takes are only as good as your preset's instructions. Read a take before you send it: what you send is up to you.";
@@ -603,26 +600,35 @@
 /* ClaudeCodeEngine.swift:131 */
 "Claude Code failed: %@" = "Claude Code failed: %@";
 
-/* OnboardingView.swift:416 */
+/* ClaudeInstaller.swift:73 */
+"Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again.";
+
+/* OnboardingView.swift:417 */
 "Claude Code is installed. Sign in once in Terminal, and Takes notices on its own. Counts toward your plan's limits." = "Claude Code is installed. Sign in once in Terminal, and Takes notices on its own. Counts toward your plan's limits.";
 
-/* OnboardingView.swift:477, Setup.swift:127 */
+/* Setup.swift:113 */
 "Claude Code isn't installed" = "Claude Code isn't installed";
 
-/* Setup.swift:129 */
+/* EngineTab.swift:127 */
+"Claude Code isn't on this Mac. Takes can install it for you from Anthropic; no password needed." = "Claude Code isn't on this Mac. Takes can install it for you from Anthropic; no password needed.";
+
+/* Setup.swift:131 */
 "Claude Code isn't signed in" = "Claude Code isn't signed in";
 
-/* EngineTab.swift:15 */
+/* EngineTab.swift:18 */
 "Claude Code on this Mac" = "Claude Code on this Mac";
 
 /* EnglishCoachViews.swift:519 */
 "Claude Code or ChatGPT: counts toward your plan. An API key (Anthropic, OpenAI or other): billed like any run. A local model: free, but slower and less accurate. Usage is shown here every month." = "Claude Code or ChatGPT: counts toward your plan. An API key (Anthropic, OpenAI or other): billed like any run. A local model: free, but slower and less accurate. Usage is shown here every month.";
 
-/* Setup.swift:132 */
+/* Setup.swift:134 */
 "Claude Code signed in" = "Claude Code signed in";
 
-/* Setup.swift:131 */
+/* Setup.swift:133 */
 "Claude Code signed in · %@ plan" = "Claude Code signed in · %@ plan";
+
+/* ClaudeInstaller.swift:141 */
+"Claude Code's download isn't available from here. Anthropic lists where it is at anthropic.com/supported-countries." = "Claude Code's download isn't available from here. Anthropic lists where it is at anthropic.com/supported-countries.";
 
 /* ClaudeCodeEngine.swift:201 */
 "Claude Code: %@" = "Claude Code: %@";
@@ -654,7 +660,7 @@
 /* EnglishCoachViews.swift:1085 */
 "Clear the coach’s data?" = "Clear the coach’s data?";
 
-/* OnboardingView.swift:631 */
+/* OnboardingView.swift:638 */
 "Click in the box and press %@" = "Click in the box and press %@";
 
 /* StatusPopover.swift:101 */
@@ -672,7 +678,7 @@
 /* Key hint: esc closes the note · DictationViews.swift:54, DictationViews.swift:64, PanelViews.swift:40 */
 "close" = "close";
 
-/* Setup.swift:218 */
+/* Setup.swift:220 */
 "Close" = "Close";
 
 /* AppDelegate.swift:260 */
@@ -714,19 +720,19 @@
 /* EnglishCoach.swift:45 */
 "Conditionals" = "Conditionals";
 
-/* Onboarding.swift:13, OnboardingView.swift:298, Setup.swift:260 */
+/* Onboarding.swift:13, OnboardingView.swift:298, Setup.swift:262 */
 "Connect a model" = "Connect a model";
 
 /* Setup.swift:66 */
 "connect a model" = "connect a model";
 
-/* DictationViews.swift:40, EnglishCoachViews.swift:755, OnboardingModel.swift:243, OnboardingModel.swift:245, OnboardingModel.swift:249, OnboardingModel.swift:252, OnboardingModel.swift:253 */
+/* DictationViews.swift:40, EnglishCoachViews.swift:755, OnboardingModel.swift:261, OnboardingModel.swift:263, OnboardingModel.swift:267, OnboardingModel.swift:270, OnboardingModel.swift:271 */
 "Continue" = "Continue";
 
-/* ChatGPTEngineViews.swift:39, OnboardingModel.swift:232 */
+/* ChatGPTEngineViews.swift:39, OnboardingModel.swift:246 */
 "Continue with ChatGPT" = "Continue with ChatGPT";
 
-/* LocalEngineViews.swift:186, Setup.swift:264 */
+/* LocalEngineViews.swift:186 */
 "Copied" = "Copied";
 
 /* ReplyContext.swift:52 */
@@ -734,12 +740,6 @@
 
 /* PanelController.swift:306 */
 "Copied take %lld" = "Copied take %lld";
-
-/* OnboardingView.swift:492 */
-"copied when you continue" = "copied when you continue";
-
-/* OnboardingView.swift:482 */
-"Copied. Paste it in Terminal, sign in in the browser, then paste the code it shows back into Terminal. This page moves on by itself." = "Copied. Paste it in Terminal, sign in in the browser, then paste the code it shows back into Terminal. This page moves on by itself.";
 
 /* LocalEngineViews.swift:192 */
 "Copies the command to paste in Terminal" = "Copies the command to paste in Terminal";
@@ -765,9 +765,6 @@
 /* LocalEngineViews.swift:186 */
 "Copy “%@”" = "Copy “%@”";
 
-/* Setup.swift:264 */
-"Copy “claude auth login”" = "Copy “claude auth login”";
-
 /* EnglishCoachViews.swift:591 */
 "Costs" = "Costs";
 
@@ -782,6 +779,12 @@
 
 /* InstantMode.swift:63 */
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "Couldn't get back to %@. The take is on the clipboard: press ⌘V.";
+
+/* ClaudeInstaller.swift:146 */
+"Couldn't install Claude Code. Try again, or install it yourself." = "Couldn't install Claude Code. Try again, or install it yourself.";
+
+/* ClaudeInstaller.swift:148 */
+"Couldn't install Claude Code: %@ Try again, or install it yourself." = "Couldn't install Claude Code: %@ Try again, or install it yourself.";
 
 /* ProviderEngineViews.swift:133 */
 "Couldn't load the model list. %@" = "Couldn't load the model list. %@";
@@ -800,6 +803,9 @@
 
 /* ProviderEngine.swift:464 */
 "Couldn't reach %@: this Mac seems to be offline. Check your connection and try again." = "Couldn't reach %@: this Mac seems to be offline. Check your connection and try again.";
+
+/* ClaudeInstaller.swift:138 */
+"Couldn't reach Anthropic. Check your internet connection, then try again." = "Couldn't reach Anthropic. Check your internet connection, then try again.";
 
 /* ChatGPTEngine.swift:105 */
 "Couldn't reach ChatGPT. Check your internet connection and try again." = "Couldn't reach ChatGPT. Check your internet connection and try again.";
@@ -828,7 +834,7 @@
 /* PresetGallery.swift:139 */
 "Decline politely" = "Decline politely";
 
-/* EngineTab.swift:41 */
+/* EngineTab.swift:44 */
 "Defaults for new presets" = "Defaults for new presets";
 
 /* PanelViews.swift:329 */
@@ -882,13 +888,13 @@
 /* EnglishCoachViews.swift:223 */
 "Don't ask again" = "Don't ask again";
 
-/* Setup.swift:324 */
+/* Setup.swift:331 */
 "Don't use Takes on text you're not allowed to share with an AI provider, such as confidential work material." = "Don't use Takes on text you're not allowed to share with an AI provider, such as confidential work material.";
 
-/* EnglishCoachViews.swift:1036, EnglishCoachViews.swift:890, Onboarding.swift:16, ReplyContextView.swift:82, Setup.swift:218 */
+/* EnglishCoachViews.swift:1036, EnglishCoachViews.swift:890, Onboarding.swift:16, ReplyContextView.swift:82, Setup.swift:220 */
 "Done" = "Done";
 
-/* OnboardingView.swift:152, OnboardingView.swift:656 */
+/* OnboardingView.swift:152, OnboardingView.swift:663 */
 "done" = "done";
 
 /* PresetGallery.swift:165 */
@@ -896,6 +902,9 @@
 
 /* EnglishCoachViews.swift:1251 */
 "Don’t mix them up" = "Don’t mix them up";
+
+/* ClaudeInstaller.swift:23 */
+"Downloading Claude Code from Anthropic…" = "Downloading Claude Code from Anthropic…";
 
 /* EnglishCoachViews.swift:1083 */
 "Drafts stop being checked, and everything the coach kept on this Mac is deleted." = "Drafts stop being checked, and everything the coach kept on this Mac is deleted.";
@@ -954,7 +963,7 @@
 /* EnglishCoachViews.swift:32 */
 "English coach is checking your draft" = "English coach is checking your draft";
 
-/* OnboardingView.swift:718 */
+/* OnboardingView.swift:725 */
 "English Coach is off. Takes offers it later, when it spots a mistake you repeat." = "English Coach is off. Takes offers it later, when it spots a mistake you repeat.";
 
 /* EnglishCoachViews.swift:216 */
@@ -1014,6 +1023,9 @@
 /* StatusPopover.swift:134 */
 "Finish setup ›" = "Finish setup ›";
 
+/* OnboardingView.swift:496 */
+"Finish signing in in the browser. This page moves on by itself." = "Finish signing in in the browser. This page moves on by itself.";
+
 /* ChatGPTEngineViews.swift:50 */
 "Finish signing in in your browser. Takes waits up to 5 minutes." = "Finish signing in in your browser. Takes waits up to 5 minutes.";
 
@@ -1029,7 +1041,7 @@
 /* PanelModel.swift:366 */
 "first words %@" = "first words %@";
 
-/* EngineTab.swift:52 */
+/* EngineTab.swift:55 */
 "First words after %.1f s" = "First words after %.1f s";
 
 /* Proofread.swift:134 */
@@ -1053,10 +1065,10 @@
 /* Store.swift:363 */
 "Formal email" = "Formal email";
 
-/* OnboardingView.swift:444 */
+/* OnboardingView.swift:446 */
 "Found on this Mac" = "Found on this Mac";
 
-/* OnboardingView.swift:537 */
+/* OnboardingView.swift:544 */
 "Free to use" = "Free to use";
 
 /* PresetGallery.swift:100 */
@@ -1086,7 +1098,7 @@
 /* ProviderEngineViews.swift:241, ProviderEngineViews.swift:48 */
 "Get a key" = "Get a key";
 
-/* OnboardingView.swift:505 */
+/* OnboardingView.swift:512 */
 "Get Ollama" = "Get Ollama";
 
 /* OpeningScreen.swift:96 */
@@ -1152,7 +1164,7 @@
 /* PanelController.swift:315 */
 "History…" = "History…";
 
-/* GeneralTab.swift:12, Setup.swift:338 */
+/* GeneralTab.swift:12, Setup.swift:345 */
 "Hotkey" = "Hotkey";
 
 /* OnboardingView.swift:239 */
@@ -1167,10 +1179,7 @@
 /* PresetOptions.swift:9 */
 "How it writes" = "How it writes";
 
-/* OnboardingView.swift:479 */
-"How to install Claude Code" = "How to install Claude Code";
-
-/* Setup.swift:317 */
+/* Setup.swift:324 */
 "I understand" = "I understand";
 
 /* PresetsTab.swift:71 */
@@ -1179,14 +1188,29 @@
 /* GeneralTab.swift:27 */
 "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history." = "In the panel, ⌘J adds what you're replying to and ⇧⌘V uses the clipboard. Context isn't kept in history.";
 
-/* OnboardingView.swift:508 */
+/* ClaudeInstaller.swift:52 */
+"Install" = "Install";
+
+/* OnboardingView.swift:515 */
 "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings." = "Install a model in Ollama or LM Studio (for example llama3.2), then press Check again. You can pick another model later in Settings.";
 
-/* OnboardingView.swift:478 */
-"Install Claude Code first, then come back. This page checks again every few seconds." = "Install Claude Code first, then come back. This page checks again every few seconds.";
+/* OnboardingModel.swift:253, Setup.swift:268 */
+"Install Claude Code" = "Install Claude Code";
 
-/* EngineTab.swift:109 */
-"Install Claude Code, sign in, then check again." = "Install Claude Code, sign in, then check again.";
+/* ClaudeInstaller.swift:50 */
+"Install Claude Code?" = "Install Claude Code?";
+
+/* EngineTab.swift:132 */
+"Install Claude Code…" = "Install Claude Code…";
+
+/* EngineTab.swift:136, OnboardingView.swift:490 */
+"Install it yourself" = "Install it yourself";
+
+/* OnboardingView.swift:397 */
+"Installing Claude Code" = "Installing Claude Code";
+
+/* EngineTab.swift:98, OnboardingModel.swift:251, Setup.swift:268 */
+"Installing…" = "Installing…";
 
 /* PresetsTab.swift:213, PresetsTab.swift:221 */
 "Instruction" = "Instruction";
@@ -1209,7 +1233,7 @@
 /* HistoryTab.swift:53 */
 "Keep 30 days of history, on this Mac only" = "Keep 30 days of history, on this Mac only";
 
-/* OnboardingView.swift:570 */
+/* OnboardingView.swift:577 */
 "Keep at least one to continue." = "Keep at least one to continue.";
 
 /* HistoryTab.swift:52 */
@@ -1221,7 +1245,7 @@
 /* DictationViews.swift:107 */
 "Keeps the words so far" = "Keeps the words so far";
 
-/* OnboardingView.swift:609 */
+/* OnboardingView.swift:616 */
 "kept" = "kept";
 
 /* EnglishCoachViews.swift:1064 */
@@ -1230,10 +1254,10 @@
 /* ProviderEngine.swift:674 */
 "Key refused" = "Key refused";
 
-/* EngineTab.swift:22 */
+/* EngineTab.swift:25 */
 "Key saved" = "Key saved";
 
-/* EngineTab.swift:124, ProviderEngineViews.swift:84 */
+/* EngineTab.swift:177, ProviderEngineViews.swift:84 */
 "Key saved in your keychain" = "Key saved in your keychain";
 
 /* ProviderEngineViews.swift:268 */
@@ -1254,10 +1278,10 @@
 /* DictationViews.swift:189 */
 "Language" = "Language";
 
-/* OnboardingView.swift:562, WritingTab.swift:57 */
+/* OnboardingView.swift:569, WritingTab.swift:57 */
 "Languages you write in" = "Languages you write in";
 
-/* EngineTab.swift:51 */
+/* EngineTab.swift:54 */
 "Last run" = "Last run";
 
 /* EnglishCoachViews.swift:1125 */
@@ -1290,7 +1314,7 @@
 /* EnglishCoachViews.swift:812 */
 "Let the coach find my patterns" = "Let the coach find my patterns";
 
-/* Setup.swift:236 */
+/* Setup.swift:238 */
 "Lets Takes read the text box you're typing in and paste the take back into it." = "Lets Takes read the text box you're typing in and paste the take back into it.";
 
 /* DictationViews.swift:34 */
@@ -1302,7 +1326,7 @@
 /* LocalEngineViews.swift:74 */
 "LM Studio's server isn't running. In LM Studio, load a model and start the server, then check again." = "LM Studio's server isn't running. In LM Studio, load a model and start the server, then check again.";
 
-/* EngineTab.swift:35, EnglishCoachViews.swift:527 */
+/* EngineTab.swift:38, EnglishCoachViews.swift:527 */
 "Local model" = "Local model";
 
 /* OnboardingView.swift:348 */
@@ -1332,13 +1356,13 @@
 /* SystemShortcuts.swift:36 */
 "macOS shortcut %@" = "macOS shortcut %@";
 
-/* OnboardingModel.swift:115 */
+/* OnboardingModel.swift:129 */
 "macOS: %@" = "macOS: %@";
 
-/* OnboardingView.swift:715 */
+/* OnboardingView.swift:722 */
 "Make a preset your own in Settings › Presets: its rules, examples of how you write, and a hotkey of its own." = "Make a preset your own in Settings › Presets: its rules, examples of how you write, and a hotkey of its own.";
 
-/* Onboarding.swift:14, OnboardingView.swift:533 */
+/* Onboarding.swift:14, OnboardingView.swift:540 */
 "Make it yours" = "Make it yours";
 
 /* PanelViews.swift:343 */
@@ -1401,7 +1425,7 @@
 /* OnboardingView.swift:371 */
 "Models can get things wrong: read each take before you send it." = "Models can get things wrong: read each take before you send it.";
 
-/* OnboardingView.swift:755 */
+/* OnboardingView.swift:762 */
 "Mon 9:41" = "Mon 9:41";
 
 /* PresetGallery.swift:106 */
@@ -1458,7 +1482,7 @@
 /* EnglishCoach.swift:180, EnglishCoach.swift:22 */
 "Natural phrasing" = "Natural phrasing";
 
-/* Setup.swift:235 */
+/* Setup.swift:237 */
 "Needed" = "Needed";
 
 /* EnglishCoachViews.swift:501 */
@@ -1479,7 +1503,7 @@
 /* ChatGPTEngine.swift:94 */
 "No answer from ChatGPT." = "No answer from ChatGPT.";
 
-/* ProviderEngine.swift:692, Setup.swift:123 */
+/* ProviderEngine.swift:692, Setup.swift:125 */
 "No API key saved yet" = "No API key saved yet";
 
 /* InstantModeViews.swift:36 */
@@ -1533,7 +1557,7 @@
 /* ProviderEngine.swift:691 */
 "No server address yet" = "No server address yet";
 
-/* EngineTab.swift:61 */
+/* EngineTab.swift:64 */
 "No server of ours, no tracking; logs never contain your text." = "No server of ours, no tracking; logs never contain your text.";
 
 /* StatusPopover.swift:84 */
@@ -1551,10 +1575,10 @@
 /* ChatGPTAuth.swift:616 */
 "Not found" = "Not found";
 
-/* EngineTab.swift:94 */
+/* EngineTab.swift:101 */
 "Not installed" = "Not installed";
 
-/* OnboardingView.swift:609 */
+/* OnboardingView.swift:616 */
 "not kept" = "not kept";
 
 /* DictationViews.swift:37, EnglishCoachViews.swift:203 */
@@ -1563,10 +1587,10 @@
 /* LocalEngineViews.swift:24 */
 "Not running" = "Not running";
 
-/* EngineTab.swift:182 */
+/* EngineTab.swift:235 */
 "Not selected" = "Not selected";
 
-/* EngineTab.swift:99 */
+/* EngineTab.swift:106 */
 "Not signed in" = "Not signed in";
 
 /* ChatGPTEngine.swift:486 */
@@ -1593,7 +1617,7 @@
 /* EnglishCoachViews.swift:985 */
 "Nothing yet" = "Nothing yet";
 
-/* OnboardingView.swift:656 */
+/* OnboardingView.swift:663 */
 "now" = "now";
 
 /* EnglishCoachViews.swift:483 */
@@ -1620,7 +1644,7 @@
 /* LocalEngineViews.swift:72 */
 "Ollama isn't running. Start it with “ollama serve” in Terminal, then check again. LM Studio works too: start its local server." = "Ollama isn't running. Start it with “ollama serve” in Terminal, then check again. LM Studio works too: start its local server.";
 
-/* OnboardingView.swift:421 */
+/* OnboardingView.swift:422 */
 "Ollama or LM Studio. Free, and nothing leaves your Mac." = "Ollama or LM Studio. Free, and nothing leaves your Mac.";
 
 /* EnglishCoachViews.swift:458 */
@@ -1665,10 +1689,10 @@
 /* LocalEngineViews.swift:80 */
 "Open %@" = "Open %@";
 
-/* Setup.swift:239 */
+/* Setup.swift:241 */
 "Open Accessibility settings" = "Open Accessibility settings";
 
-/* OnboardingModel.swift:234, Setup.swift:305 */
+/* OnboardingModel.swift:248, Setup.swift:312 */
 "Open Engine settings" = "Open Engine settings";
 
 /* InstantModeViews.swift:118, InstantModeViews.swift:128 */
@@ -1677,23 +1701,23 @@
 /* InstantModeViews.swift:128 */
 "Open in Takes, or press %@ again" = "Open in Takes, or press %@ again";
 
-/* OnboardingView.swift:504 */
+/* OnboardingView.swift:511 */
 "Open Ollama or LM Studio, then press Check again. Takes doesn't download or install anything." = "Open Ollama or LM Studio, then press Check again. Takes doesn't download or install anything.";
 
-/* Setup.swift:212 */
+/* Setup.swift:214 */
 "Open Settings" = "Open Settings";
 
-/* DictationViews.swift:51, OnboardingModel.swift:243 */
+/* DictationViews.swift:51, OnboardingModel.swift:261 */
 "Open System Settings" = "Open System Settings";
 
-/* AppDelegate.swift:143, OnboardingModel.swift:253 */
+/* AppDelegate.swift:143, OnboardingModel.swift:271 */
 "Open Takes" = "Open Takes";
 
 /* AppDelegate.swift:149 */
 "Open Takes   %@" = "Open Takes   %@";
 
-/* OnboardingModel.swift:237, Setup.swift:270 */
-"Open Terminal" = "Open Terminal";
+/* OnboardingView.swift:497 */
+"Open Terminal again" = "Open Terminal again";
 
 /* GeneralTab.swift:18, StatusPopover.swift:114 */
 "Open the panel" = "Open the panel";
@@ -1743,7 +1767,7 @@
 /* PanelViews.swift:346 */
 "Opens your ChatGPT usage settings in the browser" = "Opens your ChatGPT usage settings in the browser";
 
-/* EngineTab.swift:63 */
+/* EngineTab.swift:66 */
 "Open…" = "Open…";
 
 /* Key hint: ⌘K opens the run options · PanelViews.swift:218 */
@@ -1755,7 +1779,7 @@
 /* StatusPopover.swift:101 */
 "Or click this icon for presets, the coach and settings." = "Or click this icon for presets, the coach and settings.";
 
-/* EngineTab.swift:30 */
+/* EngineTab.swift:33 */
 "Other provider" = "Other provider";
 
 /* OnboardingView.swift:347 */
@@ -1791,16 +1815,13 @@
 /* PanelViews.swift:800 */
 "Paste take %lld" = "Paste take %lld";
 
-/* Setup.swift:278 */
-"Paste the command in Terminal, sign in in the browser, then paste the code it shows back into Terminal." = "Paste the command in Terminal, sign in in the browser, then paste the code it shows back into Terminal.";
-
-/* EngineTab.swift:136, ProviderEngine.swift:108 */
+/* EngineTab.swift:189, ProviderEngine.swift:108 */
 "Paste your key" = "Paste your key";
 
 /* ProviderEngine.swift:108 */
 "Paste your key (%@…)" = "Paste your key (%@…)";
 
-/* OnboardingView.swift:517 */
+/* OnboardingView.swift:524 */
 "Paste your key (sk-ant-…)" = "Paste your key (sk-ant-…)";
 
 /* HistoryTab.swift:124 */
@@ -1824,16 +1845,16 @@
 /* InstantModeViews.swift:35 */
 "Pasted. Command Z undoes it." = "Pasted. Command Z undoes it.";
 
-/* EngineTab.swift:22 */
+/* EngineTab.swift:25 */
 "Pay per use" = "Pay per use";
 
-/* EngineTab.swift:21 */
+/* EngineTab.swift:24 */
 "Pay per use, billed by Anthropic. Usually a cent or two per run, more with Opus or more takes. Takes doesn't cap your spending; set a limit in the Anthropic Console." = "Pay per use, billed by Anthropic. Usually a cent or two per run, more with Opus or more takes. Takes doesn't cap your spending; set a limit in the Anthropic Console.";
 
-/* OnboardingView.swift:418 */
+/* OnboardingView.swift:419 */
 "Pay per use, billed by Anthropic. Usually a cent or two per run; Takes doesn't cap your spending." = "Pay per use, billed by Anthropic. Usually a cent or two per run; Takes doesn't cap your spending.";
 
-/* OnboardingView.swift:420 */
+/* OnboardingView.swift:421 */
 "Pay per use, billed by the provider; Takes doesn't cap your spending." = "Pay per use, billed by the provider; Takes doesn't cap your spending.";
 
 /* GeneralTab.swift:36 */
@@ -1845,7 +1866,7 @@
 /* ChatGPTEngine.swift:19 */
 "Pick a ChatGPT model in Settings › Model." = "Pick a ChatGPT model in Settings › Model.";
 
-/* Setup.swift:341 */
+/* Setup.swift:348 */
 "Pick a different shortcut, or turn the macOS one off in System Settings › Keyboard › Keyboard Shortcuts." = "Pick a different shortcut, or turn the macOS one off in System Settings › Keyboard › Keyboard Shortcuts.";
 
 /* Setup.swift:68 */
@@ -1890,7 +1911,7 @@
 /* ChatGPTEngine.swift:168 */
 "Plan usage wasn't allowed for Takes. Sign in again in Settings › Model and allow it." = "Plan usage wasn't allowed for Takes. Sign in again in Settings › Model and allow it.";
 
-/* Setup.swift:313 */
+/* Setup.swift:320 */
 "Please read" = "Please read";
 
 /* ChatGPTEngineViews.swift:14 */
@@ -1911,7 +1932,7 @@
 /* PresetGallery.swift:162 */
 "Polished for clients and leadership." = "Polished for clients and leadership.";
 
-/* OnboardingView.swift:678 */
+/* OnboardingView.swift:685 */
 "Practice box" = "Practice box";
 
 /* EnglishCoachViews.swift:1279 */
@@ -1941,40 +1962,40 @@
 /* WritingTab.swift:58 */
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "Presets can reply in any of these, and Browse presets offers a translate preset for each.";
 
-/* OnboardingView.swift:711 */
+/* OnboardingView.swift:718 */
 "Press %@ in any text box to start." = "Press %@ in any text box to start.";
 
 /* StatusPopover.swift:100, StatusPopover.swift:87 */
 "Press %@ in any text box." = "Press %@ in any text box.";
 
-/* Setup.swift:192 */
+/* Setup.swift:194 */
 "Press %@ in any text field to start." = "Press %@ in any text field to start.";
 
 /* SettingsWindow.swift:269 */
 "Press a shortcut…" = "Press a shortcut…";
 
-/* OnboardingView.swift:547 */
+/* OnboardingView.swift:554 */
 "Press it in any text box to open Takes. Nothing else on this Mac uses it." = "Press it in any text box to open Takes. Nothing else on this Mac uses it.";
 
-/* Setup.swift:340 */
+/* Setup.swift:347 */
 "Press it in any text field to open Takes." = "Press it in any text field to open Takes.";
 
 /* ProviderEngineViews.swift:255 */
 "Press Return to save it in your keychain. %@" = "Press Return to save it in your keychain. %@";
 
-/* OnboardingView.swift:635 */
+/* OnboardingView.swift:642 */
 "Press ↵ to write a few takes" = "Press ↵ to write a few takes";
 
-/* OnboardingView.swift:733 */
+/* OnboardingView.swift:740 */
 "Press ⌘D in the panel to speak a draft. It's turned into text on this Mac." = "Press ⌘D in the panel to speak a draft. It's turned into text on this Mac.";
 
-/* OnboardingView.swift:734 */
+/* OnboardingView.swift:741 */
 "Press ⌘D in the panel to speak a draft. macOS asks for the microphone the first time." = "Press ⌘D in the panel to speak a draft. macOS asks for the microphone the first time.";
 
-/* EngineTab.swift:60 */
+/* EngineTab.swift:63 */
 "Privacy" = "Privacy";
 
-/* EngineTab.swift:62, OnboardingView.swift:372 */
+/* EngineTab.swift:65, OnboardingView.swift:372 */
 "Privacy notice" = "Privacy notice";
 
 /* PresetGallery.swift:112 */
@@ -1998,7 +2019,7 @@
 /* AppDelegate.swift:196, AppDelegate.swift:261 */
 "Quit Takes" = "Quit Takes";
 
-/* Setup.swift:320 */
+/* Setup.swift:327 */
 "Read the privacy notice" = "Read the privacy notice";
 
 /* ToneCheckViews.swift:93 */
@@ -2052,10 +2073,10 @@
 /* PresetsTab.swift:300 */
 "Remove example %lld" = "Remove example %lld";
 
-/* EngineTab.swift:128, ProviderEngineViews.swift:88 */
+/* EngineTab.swift:181, ProviderEngineViews.swift:88 */
 "Remove Key" = "Remove Key";
 
-/* EngineTab.swift:125, ProviderEngineViews.swift:85 */
+/* EngineTab.swift:178, ProviderEngineViews.swift:85 */
 "Remove Key…" = "Remove Key…";
 
 /* ProviderEngineViews.swift:93 */
@@ -2064,7 +2085,7 @@
 /* ProviderEngineViews.swift:86 */
 "Remove your %@ key?" = "Remove your %@ key?";
 
-/* EngineTab.swift:126 */
+/* EngineTab.swift:179 */
 "Remove your Anthropic API key?" = "Remove your Anthropic API key?";
 
 /* Diff.swift:168 */
@@ -2100,9 +2121,6 @@
 /* Preset run settings · PresetsTab.swift:233 */
 "Run" = "Run";
 
-/* EngineTab.swift:111 */
-"Run `claude auth login` in Terminal, then check again." = "Run `claude auth login` in Terminal, then check again.";
-
 /* HistoryTab.swift:55 */
 "Run log" = "Run log";
 
@@ -2121,7 +2139,7 @@
 /* HistoryTab.swift:32, HistoryTab.swift:38 */
 "Runs" = "Runs";
 
-/* EngineTab.swift:36 */
+/* EngineTab.swift:39 */
 "Runs on this Mac with Ollama or LM Studio, so your drafts never leave it. Small models write plainer takes than Claude. It's free, but uses this Mac's memory and battery." = "Runs on this Mac with Ollama or LM Studio, so your drafts never leave it. Small models write plainer takes than Claude. It's free, but uses this Mac's memory and battery.";
 
 /* Languages.swift:82 */
@@ -2139,13 +2157,13 @@
 /* PresetsTab.swift:405 */
 "Sample draft" = "Sample draft";
 
-/* EngineTab.swift:139, EnglishCoachViews.swift:755, LocalEngineViews.swift:175, ProviderEngineViews.swift:140, ProviderEngineViews.swift:72, ProviderEngineViews.swift:99 */
+/* EngineTab.swift:192, EnglishCoachViews.swift:755, LocalEngineViews.swift:175, ProviderEngineViews.swift:140, ProviderEngineViews.swift:72, ProviderEngineViews.swift:99 */
 "Save" = "Save";
 
 /* Toast.swift:180 */
 "Save as example" = "Save as example";
 
-/* OnboardingModel.swift:226 */
+/* OnboardingModel.swift:240 */
 "Save key" = "Save key";
 
 /* SystemShortcuts.swift:17 */
@@ -2163,7 +2181,7 @@
 /* PresetsTab.swift:423 */
 "Saved as you type. Right-click a preset to export it." = "Saved as you type. Right-click a preset to export it.";
 
-/* OnboardingView.swift:521 */
+/* OnboardingView.swift:528 */
 "Saved in your keychain. Create one at console.anthropic.com." = "Saved in your keychain. Create one at console.anthropic.com.";
 
 /* SystemShortcuts.swift:19 */
@@ -2187,7 +2205,7 @@
 /* SystemShortcuts.swift:10 */
 "Select the previous input source" = "Select the previous input source";
 
-/* EngineTab.swift:182 */
+/* EngineTab.swift:235 */
 "Selected" = "Selected";
 
 /* Store.swift:174 */
@@ -2208,11 +2226,14 @@
 /* EnglishCoachViews.swift:555 */
 "Set up coach…" = "Set up coach…";
 
-/* Setup.swift:166 */
+/* Setup.swift:168 */
 "Set up Takes" = "Set up Takes";
 
 /* ProviderEngineViews.swift:248 */
 "Set your server's address in Settings › Model." = "Set your server's address in Settings › Model.";
+
+/* ClaudeInstaller.swift:24 */
+"Setting up Claude Code…" = "Setting up Claude Code…";
 
 /* EnglishCoachViews.swift:1019 */
 "Settings" = "Settings";
@@ -2262,7 +2283,7 @@
 /* SystemShortcuts.swift:11 */
 "Show Spotlight search" = "Show Spotlight search";
 
-/* OnboardingView.swift:279, Setup.swift:241 */
+/* OnboardingView.swift:279, Setup.swift:243 */
 "Show Takes in Finder" = "Show Takes in Finder";
 
 /* ToneCheckViews.swift:121 */
@@ -2274,22 +2295,25 @@
 /* ChatGPTEngineViews.swift:59 */
 "Sign in again" = "Sign in again";
 
+/* EngineTab.swift:142 */
+"Sign in once: Terminal opens and takes you to your browser. Then press Check again." = "Sign in once: Terminal opens and takes you to your browser. Then press Check again.";
+
 /* ChatGPTAuth.swift:283 */
 "Sign in to ChatGPT again in Settings › Model." = "Sign in to ChatGPT again in Settings › Model.";
 
 /* ChatGPTAuth.swift:468 */
 "Sign in to ChatGPT in Settings › Model." = "Sign in to ChatGPT in Settings › Model.";
 
-/* PanelViews.swift:621 */
+/* EngineTab.swift:146, OnboardingModel.swift:255, PanelViews.swift:621, Setup.swift:274 */
 "Sign in to Claude" = "Sign in to Claude";
 
-/* Setup.swift:304 */
+/* Setup.swift:311 */
 "Sign in with ChatGPT" = "Sign in with ChatGPT";
 
-/* EngineTab.swift:26 */
+/* EngineTab.swift:29 */
 "Sign in with ChatGPT and write with the models in your Plus or Pro plan. No extra cost; your plan's limits apply." = "Sign in with ChatGPT and write with the models in your Plus or Pro plan. No extra cost; your plan's limits apply.";
 
-/* OnboardingView.swift:419 */
+/* OnboardingView.swift:420 */
 "Sign in with ChatGPT. Plus or Pro, no extra cost; counts toward your plan's limits." = "Sign in with ChatGPT. Plus or Pro, no extra cost; counts toward your plan's limits.";
 
 /* ChatGPTEngineViews.swift:126, ChatGPTEngineViews.swift:60 */
@@ -2301,7 +2325,7 @@
 /* ChatGPTAuth.swift:281 */
 "Sign-in was cancelled in the browser. Try again when you're ready." = "Sign-in was cancelled in the browser. Try again when you're ready.";
 
-/* ChatGPTAuth.swift:627, ChatGPTEngineViews.swift:11, EngineTab.swift:96 */
+/* ChatGPTAuth.swift:627, ChatGPTEngineViews.swift:11, EngineTab.swift:103 */
 "Signed in" = "Signed in";
 
 /* ChatGPTEngineViews.swift:56 */
@@ -2310,7 +2334,7 @@
 /* ChatGPTEngineViews.swift:167, ChatGPTEngineViews.swift:52 */
 "Signed in as %@." = "Signed in as %@.";
 
-/* EngineTab.swift:96 */
+/* EngineTab.swift:103 */
 "Signed in · %@ plan" = "Signed in · %@ plan";
 
 /* ChatGPTEngineViews.swift:168, ChatGPTEngineViews.swift:57 */
@@ -2325,8 +2349,8 @@
 /* ChatGPTEngine.swift:352 */
 "Signed out on this Mac, but OpenAI didn't confirm it. You can also remove Takes in ChatGPT › Settings." = "Signed out on this Mac, but OpenAI didn't confirm it. You can also remove Takes in ChatGPT › Settings.";
 
-/* ClaudeCodeEngine.swift:216 */
-"Signing Takes in to Claude. Finish in the browser window that opens, then go back to Takes and press Try again." = "Signing Takes in to Claude. Finish in the browser window that opens, then go back to Takes and press Try again.";
+/* ClaudeCodeEngine.swift:238 */
+"Signing Takes in to Claude. Finish in the browser window that opens, then go back to Takes." = "Signing Takes in to Claude. Finish in the browser window that opens, then go back to Takes.";
 
 /* EnglishCoach.swift:123 */
 "Simple or continuous" = "Simple or continuous";
@@ -2340,7 +2364,7 @@
 /* OnboardingView.swift:153 */
 "skipped" = "skipped";
 
-/* OnboardingView.swift:721 */
+/* OnboardingView.swift:728 */
 "Skipped something? It's all in Settings, any time." = "Skipped something? It's all in Settings, any time.";
 
 /* OnboardingView.swift:71 */
@@ -2376,7 +2400,7 @@
 /* PresetGalleryView.swift:289 */
 "Start from a ready-made preset instead?" = "Start from a ready-made preset instead?";
 
-/* OnboardingModel.swift:254 */
+/* OnboardingModel.swift:272 */
 "Start using Takes" = "Start using Takes";
 
 /* GeneralTab.swift:22 */
@@ -2394,7 +2418,7 @@
 /* EnglishCoachViews.swift:727 */
 "Step %lld of 3" = "Step %lld of 3";
 
-/* OnboardingView.swift:168, Setup.swift:377 */
+/* OnboardingView.swift:168, Setup.swift:384 */
 "Step %lld, %@, %@" = "Step %lld, %@, %@";
 
 /* EnglishCoachViews.swift:793 */
@@ -2430,7 +2454,7 @@
 /* AppDelegate.swift:189 */
 "Support Takes…" = "Support Takes…";
 
-/* Setup.swift:245 */
+/* Setup.swift:247 */
 "Switch Takes on in the list, or drag it in from Finder. If Takes is already listed and switched on, select it, remove it with –, and add it again: macOS keeps access tied to the previous version after an update." = "Switch Takes on in the list, or drag it in from Finder. If Takes is already listed and switched on, select it, remove it with –, and add it again: macOS keeps access tied to the previous version after an update.";
 
 /* OnboardingView.swift:272 */
@@ -2454,10 +2478,10 @@
 /* PanelViews.swift:913 */
 "TAKE %lld · WRITING" = "TAKE %lld · WRITING";
 
-/* The hotkey is already used by something else · OnboardingView.swift:537 */
+/* The hotkey is already used by something else · OnboardingView.swift:544 */
 "Taken" = "Taken";
 
-/* Setup.swift:339 */
+/* Setup.swift:346 */
 "Taken: %@" = "Taken: %@";
 
 /* Run options: number of takes · PanelViews.swift:321, PanelViews.swift:360 */
@@ -2466,10 +2490,10 @@
 /* OnboardingView.swift:283 */
 "Takes already listed and switched on? Select it, remove it with –, and add it again. macOS keeps access tied to the previous version after an update." = "Takes already listed and switched on? Select it, remove it with –, and add it again. macOS keeps access tied to the previous version after an update.";
 
-/* Setup.swift:298 */
+/* Setup.swift:305 */
 "Takes calls %@ with your own API key." = "Takes calls %@ with your own API key.";
 
-/* Setup.swift:295 */
+/* Setup.swift:302 */
 "Takes calls Claude with your Anthropic API key." = "Takes calls Claude with your Anthropic API key.";
 
 /* ChatGPTEngine.swift:402 */
@@ -2478,31 +2502,40 @@
 /* ProviderEngineViews.swift:87 */
 "Takes deletes it from your keychain. You'll need to paste it again to write with %@." = "Takes deletes it from your keychain. You'll need to paste it again to write with %@.";
 
-/* EngineTab.swift:127 */
+/* EngineTab.swift:180 */
 "Takes deletes it from your keychain. You'll need to paste it again to write with it." = "Takes deletes it from your keychain. You'll need to paste it again to write with it.";
+
+/* ClaudeInstaller.swift:51 */
+"Takes downloads Claude Code from Anthropic and installs it in your home folder. It takes about a minute and needs no password. Then Terminal opens so you can sign in to Claude." = "Takes downloads Claude Code from Anthropic and installs it in your home folder. It takes about a minute and needs no password. Then Terminal opens so you can sign in to Claude.";
 
 /* ClaudeCodeEngine.swift:195 */
 "Takes got signed out of Claude. Sign in again to keep going. This sign-in is separate from the Claude app, so it can expire even while the app still works." = "Takes got signed out of Claude. Sign in again to keep going. This sign-in is separate from the Claude app, so it can expire even while the app still works.";
 
+/* Setup.swift:283 */
+"Takes installs it for you from Anthropic, then Terminal opens so you can sign in." = "Takes installs it for you from Anthropic, then Terminal opens so you can sign in.";
+
+/* OnboardingView.swift:493 */
+"Takes installs it for you from Anthropic, then you sign in once. No password, nothing to type." = "Takes installs it for you from Anthropic, then you sign in once. No password, nothing to type.";
+
 /* StatusPopover.swift:78 */
 "Takes is already up here" = "Takes is already up here";
 
-/* OnboardingView.swift:765 */
+/* OnboardingView.swift:772 */
 "Takes is here, at the top of your screen" = "Takes is here, at the top of your screen";
 
-/* OnboardingView.swift:772 */
+/* OnboardingView.swift:779 */
 "Takes is in the menu bar at the top right of your screen. Its icon is the Takes mark, a t inside a speech bubble." = "Takes is in the menu bar at the top right of your screen. Its icon is the Takes mark, a t inside a speech bubble.";
 
-/* OnboardingView.swift:645 */
+/* OnboardingView.swift:652 */
 "Takes is open beside this window. Esc in Takes comes back here." = "Takes is open beside this window. Esc in Takes comes back here.";
 
-/* OnboardingView.swift:714 */
+/* OnboardingView.swift:721 */
 "Takes lives in the menu bar. Click its icon for presets, the coach and settings." = "Takes lives in the menu bar. Click its icon for presets, the coach and settings.";
 
 /* StatusPopover.swift:78 */
 "Takes lives up here" = "Takes lives up here";
 
-/* Setup.swift:189 */
+/* Setup.swift:191 */
 "Takes needs a couple of things" = "Takes needs a couple of things";
 
 /* OnboardingView.swift:261 */
@@ -2514,22 +2547,22 @@
 /* LocalEngine.swift:328 */
 "Takes only talks to model servers on this Mac (localhost). Change the address in Settings › Model." = "Takes only talks to model servers on this Mac (localhost). Change the address in Settings › Model.";
 
-/* Setup.swift:296 */
+/* Setup.swift:303 */
 "Takes runs a local model with Ollama or LM Studio. Nothing leaves this Mac." = "Takes runs a local model with Ollama or LM Studio. Nothing leaves this Mac.";
 
-/* Setup.swift:294 */
+/* Setup.swift:301 */
 "Takes runs Claude Code on this Mac, using your Claude subscription." = "Takes runs Claude Code on this Mac, using your Claude subscription.";
 
-/* EngineTab.swift:76 */
+/* EngineTab.swift:79 */
 "Takes sends your draft only to Anthropic, under your own account." = "Takes sends your draft only to Anthropic, under your own account.";
 
-/* EngineTab.swift:81 */
+/* EngineTab.swift:84 */
 "Takes sends your draft to %@ under your own account." = "Takes sends your draft to %@ under your own account.";
 
-/* EngineTab.swift:77 */
+/* EngineTab.swift:80 */
 "Takes sends your draft to OpenAI under your own ChatGPT plan." = "Takes sends your draft to OpenAI under your own ChatGPT plan.";
 
-/* EngineTab.swift:80 */
+/* EngineTab.swift:83 */
 "Takes sends your draft to the server you added, under your own account." = "Takes sends your draft to the server you added, under your own account.";
 
 /* ProviderEngine.swift:48 */
@@ -2553,14 +2586,17 @@
 /* OnboardingView.swift:298 */
 "Takes writes with a model under your own account, or with one on this Mac." = "Takes writes with a model under your own account, or with one on this Mac.";
 
-/* Setup.swift:297 */
+/* Setup.swift:304 */
 "Takes writes with your ChatGPT plan after you sign in with ChatGPT." = "Takes writes with your ChatGPT plan after you sign in with ChatGPT.";
 
-/* EngineTab.swift:42, PresetsTab.swift:234 */
+/* EngineTab.swift:45, PresetsTab.swift:234 */
 "Takes · Model · Effort" = "Takes · Model · Effort";
 
 /* PanelViews.swift:309 */
 "Takes, model and effort, from the preset. ⌘K" = "Takes, model and effort, from the preset. ⌘K";
+
+/* OnboardingView.swift:500, Setup.swift:284 */
+"Terminal opens and takes you to your browser to sign in. Nothing to type." = "Terminal opens and takes you to your browser to sign in. Nothing to type.";
 
 /* ChatGPTEngineViews.swift:91, LocalEngineViews.swift:124, ProviderEngineViews.swift:154 */
 "Test" = "Test";
@@ -2574,7 +2610,7 @@
 /* ChatGPTEngine.swift:407 */
 "That's a different ChatGPT account from the one Takes was set up with. Try again to connect this one." = "That's a different ChatGPT account from the one Takes was set up with. Try again to connect this one.";
 
-/* OnboardingView.swift:620 */
+/* OnboardingView.swift:627 */
 "That's the whole flow" = "That's the whole flow";
 
 /* ClaudeCodeEngine.swift:159 */
@@ -2606,6 +2642,9 @@
 
 /* ChatGPTEngine.swift:69 */
 "The connection to ChatGPT dropped. Try again." = "The connection to ChatGPT dropped. Try again.";
+
+/* ClaudeInstaller.swift:130 */
+"The download took too long, so Takes stopped it. Check your internet connection, then try again." = "The download took too long, so Takes stopped it. Check your internet connection, then try again.";
 
 /* PanelModel.swift:108 */
 "The field was empty" = "The field was empty";
@@ -2661,10 +2700,13 @@
 /* InstantMode.swift:62 */
 "The text box in %@ changed while Takes was writing, so nothing was pasted." = "The text box in %@ changed while Takes was writing, so nothing was pasted.";
 
+/* ClaudeInstaller.swift:144 */
+"There isn't enough free space on this Mac to install Claude Code. Free some up, then try again." = "There isn't enough free space on this Mac to install Claude Code. Free some up, then try again.";
+
 /* WritingTab.swift:8 */
 "These apply on top of each preset's own Do and Avoid lists. Untick a rule to pause it." = "These apply on top of each preset's own Do and Avoid lists. Untick a rule to pause it.";
 
-/* OnboardingView.swift:623 */
+/* OnboardingView.swift:630 */
 "This box works like any text box on your Mac. Use the draft below or write your own." = "This box works like any text box on your Mac. Use the draft below or write your own.";
 
 /* ChatGPTEngine.swift:165 */
@@ -2685,10 +2727,13 @@
 /* InstantModeViews.swift:160 */
 "This preset's own hotkey would write 1 take and paste it, without opening the panel. It needs a hotkey of its own first." = "This preset's own hotkey would write 1 take and paste it, without opening the panel. It needs a hotkey of its own first.";
 
-/* Setup.swift:193 */
+/* EngineTab.swift:120, OnboardingView.swift:485 */
+"This takes about a minute. Then Terminal opens so you can sign in." = "This takes about a minute. Then Terminal opens so you can sign in.";
+
+/* Setup.swift:195 */
 "This window updates by itself as you finish each step." = "This window updates by itself as you finish each step.";
 
-/* OnboardingView.swift:417 */
+/* OnboardingView.swift:418 */
 "Through Claude Code on this Mac. Counts toward your plan's usage limits." = "Through Claude Code on this Mac. Counts toward your plan's usage limits.";
 
 /* EnglishCoach.swift:115 */
@@ -2703,7 +2748,7 @@
 /* OnboardingView.swift:154 */
 "to do" = "to do";
 
-/* OnboardingView.swift:735 */
+/* OnboardingView.swift:742 */
 "To speak drafts with ⌘D, allow Takes under Microphone and Speech Recognition in System Settings › Privacy & Security." = "To speak drafts with ⌘D, allow Takes under Microphone and Speech Recognition in System Settings › Privacy & Security.";
 
 /* EnglishCoachViews.swift:1056 */
@@ -2751,7 +2796,7 @@
 /* Onboarding.swift:15, PresetsTab.swift:397 */
 "Try it" = "Try it";
 
-/* OnboardingView.swift:620 */
+/* OnboardingView.swift:627 */
 "Try it here" = "Try it here";
 
 /* StatusPopover.swift:114 */
@@ -2781,26 +2826,29 @@
 /* UK English · EnglishCoachViews.swift:918 */
 "UK" = "UK";
 
-/* Setup.swift:313 */
+/* Setup.swift:320 */
 "Understood" = "Understood";
 
-/* OnboardingModel.swift:229 */
+/* OnboardingModel.swift:243 */
 "Understood, check again" = "Understood, check again";
 
-/* OnboardingModel.swift:249 */
+/* OnboardingModel.swift:267 */
 "Understood, continue" = "Understood, continue";
 
-/* OnboardingModel.swift:232 */
+/* OnboardingModel.swift:246 */
 "Understood, continue with ChatGPT" = "Understood, continue with ChatGPT";
 
-/* OnboardingModel.swift:234 */
+/* OnboardingModel.swift:253 */
+"Understood, install Claude Code" = "Understood, install Claude Code";
+
+/* OnboardingModel.swift:248 */
 "Understood, open Engine settings" = "Understood, open Engine settings";
 
-/* OnboardingModel.swift:237 */
-"Understood, open Terminal" = "Understood, open Terminal";
-
-/* OnboardingModel.swift:226 */
+/* OnboardingModel.swift:240 */
 "Understood, save key" = "Understood, save key";
+
+/* OnboardingModel.swift:255 */
+"Understood, sign in to Claude" = "Understood, sign in to Claude";
 
 /* AppDelegate.swift:267 */
 "Undo" = "Undo";
@@ -2823,7 +2871,7 @@
 /* LocalEngineViews.swift:58 */
 "Use %@" = "Use %@";
 
-/* Setup.swift:273 */
+/* Setup.swift:277 */
 "Use an API key instead" = "Use an API key instead";
 
 /* ProviderEngineViews.swift:202 */
@@ -2841,7 +2889,7 @@
 /* ReplyContextView.swift:237 */
 "Use the clipboard as context when it looks like a message" = "Use the clipboard as context when it looks like a message";
 
-/* EngineTab.swift:16 */
+/* EngineTab.swift:19 */
 "Uses your Claude subscription; each run counts toward its usage limits. Personal build only." = "Uses your Claude subscription; each run counts toward its usage limits. Personal build only.";
 
 /* EnglishCoach.swift:141 */
@@ -2862,7 +2910,7 @@
 /* ChatGPTEngineViews.swift:13, ChatGPTEngineViews.swift:44 */
 "Waiting for the browser" = "Waiting for the browser";
 
-/* ChatGPTEngineViews.swift:166, ChatGPTEngineViews.swift:45, OnboardingModel.swift:231 */
+/* ChatGPTEngineViews.swift:166, ChatGPTEngineViews.swift:45, OnboardingModel.swift:245 */
 "Waiting for the browser…" = "Waiting for the browser…";
 
 /* PresetGallery.swift:160 */
@@ -2874,7 +2922,7 @@
 /* EnglishCoachViews.swift:1186 */
 "Weekly counts: %@" = "Weekly counts: %@";
 
-/* OnboardingModel.swift:440, OpeningScreen.swift:42 */
+/* OnboardingModel.swift:469, OpeningScreen.swift:42 */
 "Welcome to Takes" = "Welcome to Takes";
 
 /* EnglishCoachViews.swift:777 */
@@ -2904,10 +2952,10 @@
 /* Setup.swift:45 */
 "When you ask for takes, it sends your draft, your preset's instructions and any context you add to the model server on this Mac; nothing leaves it." = "When you ask for takes, it sends your draft, your preset's instructions and any context you add to the model server on this Mac; nothing leaves it.";
 
-/* Setup.swift:314 */
+/* Setup.swift:321 */
 "When you press the hotkey, Takes reads the text box you're typing in. %@ Nothing goes to the developer: there's no server and no tracking. %@" = "When you press the hotkey, Takes reads the text box you're typing in. %@ Nothing goes to the developer: there's no server and no tracking. %@";
 
-/* EngineTab.swift:14 */
+/* EngineTab.swift:17 */
 "Where your takes are written" = "Where your takes are written";
 
 /* OnboardingView.swift:363 */
@@ -2928,7 +2976,7 @@
 /* EnglishCoachViews.swift:1223 */
 "Why it slips: %@" = "Why it slips: %@";
 
-/* EngineTab.swift:75 */
+/* EngineTab.swift:78 */
 "With a local model, your drafts stay on this Mac." = "With a local model, your drafts stay on this Mac.";
 
 /* LocalEngine.swift:547 */
@@ -2997,7 +3045,7 @@
 /* OnboardingView.swift:126 */
 "You can close this window at any time. Takes keeps your place." = "You can close this window at any time. Takes keeps your place.";
 
-/* ClaudeCodeEngine.swift:217 */
+/* ClaudeCodeEngine.swift:239 */
 "You can close this window now." = "You can close this window now.";
 
 /* OnboardingView.swift:266 */
@@ -3015,13 +3063,13 @@
 /* EnglishCoachViews.swift:195 */
 "You made the first one in %lld drafts this month." = "You made the first one in %lld drafts this month.";
 
-/* OnboardingView.swift:556 */
+/* OnboardingView.swift:563 */
 "You write in" = "You write in";
 
-/* Setup.swift:189 */
+/* Setup.swift:191 */
 "You're all set" = "You're all set";
 
-/* OnboardingView.swift:711 */
+/* OnboardingView.swift:718 */
 "You're set" = "You're set";
 
 /* ClaudeCodeEngine.swift:165 */
@@ -3042,13 +3090,13 @@
 /* APIEngine.swift:101 */
 "Your Anthropic key hit its rate limit. %@" = "Your Anthropic key hit its rate limit. %@";
 
-/* EngineTab.swift:25, OnboardingView.swift:407, PanelViews.swift:342 */
+/* EngineTab.swift:28, OnboardingView.swift:408, PanelViews.swift:342 */
 "Your ChatGPT plan" = "Your ChatGPT plan";
 
 /* ChatGPTEngine.swift:145 */
 "Your ChatGPT plan can't be used in Takes right now. Check ChatGPT › Settings › Usage." = "Your ChatGPT plan can't be used in Takes right now. Check ChatGPT › Settings › Usage.";
 
-/* OnboardingView.swift:405 */
+/* OnboardingView.swift:406 */
 "Your Claude subscription" = "Your Claude subscription";
 
 /* EnglishCoachViews.swift:266 */
@@ -3057,13 +3105,13 @@
 /* OnboardingView.swift:365 */
 "Your draft and preset go from this Mac to %@, under your account." = "Your draft and preset go from this Mac to %@, under your account.";
 
-/* OnboardingView.swift:642 */
+/* OnboardingView.swift:649 */
 "Your hotkey is taken right now, so use Open Takes below." = "Your hotkey is taken right now, so use Open Takes below.";
 
-/* OnboardingView.swift:533 */
+/* OnboardingView.swift:540 */
 "Your hotkey, and the presets you start with. All of it can change later in Settings." = "Your hotkey, and the presets you start with. All of it can change later in Settings.";
 
-/* EngineTab.swift:31 */
+/* EngineTab.swift:34 */
 "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account." = "Your own API key for OpenAI, Gemini, OpenRouter, Groq or Mistral, or any OpenAI-compatible server. Billed by the provider under your account.";
 
 /* EnglishCoachViews.swift:982 */
@@ -3078,7 +3126,7 @@
 /* ProviderEngine.swift:81 */
 "Your server" = "Your server";
 
-/* OnboardingView.swift:622 */
+/* OnboardingView.swift:629 */
 "Your take was pasted back into the box, the same way it goes into Slack, Mail or any other app." = "Your take was pasted back into the box, the same way it goes into Slack, Mail or any other app.";
 
 /* EnglishCoachViews.swift:194 */
@@ -3087,7 +3135,7 @@
 /* EnglishCoachViews.swift:193 */
 "Your takes fixed an English slip. " = "Your takes fixed an English slip. ";
 
-/* Setup.swift:312 */
+/* Setup.swift:319 */
 "Your text and the model" = "Your text and the model";
 
 /* EnglishCoachViews.swift:591 */
