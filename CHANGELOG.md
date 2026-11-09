@@ -2,6 +2,10 @@
 
 All notable changes to Takes. Versions follow [semantic versioning](https://semver.org).
 
+## 0.9.2 · 2026-11-10
+
+- After an update, Takes no longer opens the setup window to say Claude Code is missing, only to turn green a few seconds later. Takes now remembers where Claude Code is installed (it took a few seconds to find when installed with nvm or Volta). At launch, it checks the connection again before opening setup.
+
 ## 0.9.1 · 2026-11-09
 
 - **Windows open where you are.** With more than one display, Settings, About, Setup and onboarding used to open on the built-in display. They now open on the display you clicked on. When the hotkey opens setup, it opens on the display you're typing on. The panel still opens next to the text box you're in.
