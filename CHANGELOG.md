@@ -2,6 +2,11 @@
 
 All notable changes to Takes. Versions follow [semantic versioning](https://semver.org).
 
+## 0.9.0 · 2026-11-09
+
+- **Report a crash in two clicks.** If Takes quits unexpectedly, the next launch offers to open a bug report on GitHub with the versions and where it stopped already filled in, and shows the full crash report in Finder so you can attach it. Nothing is sent until you submit the report yourself. Crash reports hold Takes's code, not your text. Choose "Don't ask again" to turn the offer off.
+- **Report a Problem…** in the menu includes the latest crash, if there is one.
+
 ## 0.8.1 · 2026-11-09
 
 - Fixed a crash when takes start to appear. It happened on many runs in 0.8.0, as soon as the first take began streaming in.
