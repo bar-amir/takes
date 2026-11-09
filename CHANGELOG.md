@@ -2,6 +2,10 @@
 
 All notable changes to Takes. Versions follow [semantic versioning](https://semver.org).
 
+## 0.8.1 · 2026-11-09
+
+- Fixed a crash when takes start to appear. It happened on many runs in 0.8.0, as soon as the first take began streaming in.
+
 ## 0.8.0 · 2026-11-08
 
 - **A new hotkey: ⌥⇧Space.** The old ⌃⌥Space is a stock macOS shortcut (it switches input sources), so on most Macs Takes couldn't register it and new installs ended setup with a hotkey that did nothing. ⌥⇧Space is free on a stock Mac and isn't used by Raycast, Alfred, 1Password, Rectangle or Magnet. Existing installs keep the hotkey they have.
