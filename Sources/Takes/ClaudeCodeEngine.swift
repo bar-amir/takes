@@ -266,7 +266,8 @@ struct ClaudeCodeEngine: TakesEngine {
         var plan: String?
         /// "2.1.310", or nil when the CLI didn't say.
         var version: String?
-        /// `claude auth status` didn't answer within `statusTimeout`; nothing is known about the sign-in.
+        /// `claude auth status` didn't answer within `statusTimeout`, or (not found) looking for `claude` ran out
+        /// of time; either way nothing is known yet.
         var timedOut = false
     }
 
@@ -300,7 +301,7 @@ struct ClaudeCodeEngine: TakesEngine {
 
     /// Whether the CLI is installed, recent enough and signed in, for setup and Settings › Model.
     static func status() async -> Status {
-        guard let claudePath else { return Status(found: false) }
+        guard let claudePath else { return Status(found: false, timedOut: ClaudeLocator.shared.lastLookupTimedOut) }
         return await Task.detached {
             var status = Status(found: true)
             // The version is asked once per install and remembered: it's a process start each time.
@@ -391,15 +392,39 @@ final class ProcessStopper: @unchecked Sendable {
     }
 }
 
-/// Finds the `claude` command. A found path is kept while it still exists; a miss is looked up again, the
-/// slow login-shell lookup at most every few seconds and never on the main thread.
+/// Finds the `claude` command. A found path is kept while it still exists, and remembered for the next launch;
+/// a miss is looked up again, the slow login-shell lookup at most every few seconds and never on the main thread.
 final class ClaudeLocator: @unchecked Sendable {
-    static let shared = ClaudeLocator()
+    static let shared = ClaudeLocator(remember: .standard)
+
+    /// Where a path found through the shell is kept between launches. Installed with nvm or Volta, `claude` is
+    /// only found by a login shell, which can take more than `shellTimeout` on a busy Mac (right after an update);
+    /// with the path kept, a launch needs no shell at all. A path, not a secret.
+    static let rememberedKey = "claudeCodePath"
+
+    private let defaults: UserDefaults?
+    private let fixed: () -> String?
+    private let lookup: () -> (path: String?, timedOut: Bool)
+    private let isExecutable: (String) -> Bool
 
     private let lock = NSLock()
+    /// Held for a whole shell lookup, so a check that arrives meanwhile waits for its answer instead of being
+    /// told Claude Code isn't there.
+    private let lookupLock = NSLock()
     private var found: String?
     private var lastShellLookup: Date?
+    private var lookupTimedOut = false
     private var versions: [String: String] = [:]
+
+    init(remember defaults: UserDefaults? = nil,
+         fixed: @escaping () -> String? = { ClaudeLocator.fixedPath() },
+         lookup: @escaping () -> (path: String?, timedOut: Bool) = { ClaudeLocator.shellPath() },
+         isExecutable: @escaping (String) -> Bool = { FileManager.default.isExecutableFile(atPath: $0) }) {
+        self.defaults = defaults
+        self.fixed = fixed
+        self.lookup = lookup
+        self.isExecutable = isExecutable
+    }
     /// How long the login shell gets: a slow or interactive `.zshrc` must not hang Takes.
     static let shellTimeout: TimeInterval = 3
     static let shellRetry: TimeInterval = 4
@@ -414,21 +439,39 @@ final class ClaudeLocator: @unchecked Sendable {
         return version
     }
 
+    /// Whether the last shell lookup ran out of time, rather than finding no `claude`.
+    var lastLookupTimedOut: Bool { lock.withLock { lookupTimedOut } }
+
     func path() -> String? {
-        let canAskShell: Bool = lock.withLock {
-            if let found, FileManager.default.isExecutableFile(atPath: found) { return false }
-            found = Self.fixedPath()
-            // On the main thread, answer from what is known; a background check fills it in.
-            guard found == nil, !Thread.isMainThread else { return false }
+        if let path = lock.withLock({ withoutShell() }) { return path }
+        // On the main thread, answer from what is known; a background check fills it in.
+        guard !Thread.isMainThread else { return nil }
+        lookupLock.lock()
+        defer { lookupLock.unlock() }
+        let ask: Bool = lock.withLock {
+            // Found by the lookup this call waited for.
+            if withoutShell() != nil { return false }
             if let last = lastShellLookup, Date().timeIntervalSince(last) < Self.shellRetry { return false }
             lastShellLookup = Date()
             return true
         }
-        guard canAskShell else { return known }
-        // The shell runs outside the lock, so `known` never waits on it.
-        let path = Self.shellPath()
-        lock.withLock { if found == nil { found = path } }
+        guard ask else { return known }
+        // The shell runs outside `lock`, so `known` never waits on it.
+        let result = lookup()
+        lock.withLock {
+            lookupTimedOut = result.path == nil && result.timedOut
+            if found == nil { found = result.path }
+        }
+        if let path = result.path { defaults?.set(path, forKey: Self.rememberedKey) }
         return known
+    }
+
+    /// The path already found while it still exists, else the usual install places, else the one remembered from
+    /// an earlier launch. Call with `lock` held.
+    private func withoutShell() -> String? {
+        if let found, isExecutable(found) { return found }
+        found = fixed() ?? defaults?.string(forKey: Self.rememberedKey).flatMap { isExecutable($0) ? $0 : nil }
+        return found
     }
 
     /// The environment override and the usual install places, which need no shell.
@@ -455,13 +498,16 @@ final class ClaudeLocator: @unchecked Sendable {
 
     /// Asks the user's login shell, which knows about nvm and other version managers, and zsh if that found
     /// nothing. Each is stopped after `shellTimeout`.
-    private static func shellPath() -> String? {
+    /// Nil with `timedOut` when a shell ran out of time, so "not installed" isn't said of a slow shell.
+    static func shellPath() -> (path: String?, timedOut: Bool) {
         let shell = loginShell()
-        if let path = shellPath(shell: shell) { return path }
-        return shell == "/bin/zsh" ? nil : shellPath(shell: "/bin/zsh")
+        let first = shellPath(shell: shell)
+        if first.path != nil || shell == "/bin/zsh" { return first }
+        let zsh = shellPath(shell: "/bin/zsh")
+        return (zsh.path, first.timedOut || zsh.timedOut)
     }
 
-    private static func shellPath(shell path: String) -> String? {
+    private static func shellPath(shell path: String) -> (path: String?, timedOut: Bool) {
         let shell = Process()
         shell.executableURL = URL(fileURLWithPath: path)
         // -l -i: a login, interactive shell, so .zshrc / .bashrc / config.fish run and set PATH as they do in Terminal.
@@ -472,13 +518,13 @@ final class ClaudeLocator: @unchecked Sendable {
         shell.standardError = FileHandle.nullDevice
         let done = DispatchSemaphore(value: 0)
         shell.terminationHandler = { _ in done.signal() }
-        guard (try? shell.run()) != nil else { return nil }
+        guard (try? shell.run()) != nil else { return (nil, false) }
         if done.wait(timeout: .now() + shellTimeout) == .timedOut {
             shell.terminate()
-            return nil
+            return (nil, true)
         }
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        return parse(String(data: data, encoding: .utf8) ?? "")
+        return (parse(String(data: data, encoding: .utf8) ?? ""), false)
     }
 
     /// The path in `command -v` output: the last line, or the target of an `alias claude=…`.
