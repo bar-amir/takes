@@ -77,7 +77,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         Task { [weak self] in
             await monitor.refreshEngine()
             if !Onboarding.shouldShow(Store.shared.settings), !monitor.allSet {
-                SetupWindowController.shared.show()
+                // Only the model missing: give it a few more seconds before opening a window that would turn
+                // green on its own.
+                await monitor.settleEngine()
+                if !monitor.allSet { SetupWindowController.shared.show() }
             }
             // Takes crashed last time: offer to report it. After the windows above, which would close the popover
             // by taking the keyboard.

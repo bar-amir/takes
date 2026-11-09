@@ -114,6 +114,26 @@ final class SetupMonitor: ObservableObject {
 
     static let claudeMissing = String(localized: "Claude Code isn't installed")
 
+    /// Whether launch should check the model again before opening the setup window: when it's the only thing
+    /// missing. A check can fail once and pass seconds later (a busy Mac right after an update), and the window
+    /// shouldn't open just to turn green.
+    nonisolated static func recheckBeforeSetup(accessibility: Bool, privacyAccepted: Bool, hotKeyFree: Bool,
+                                               engine: EngineStatus) -> Bool {
+        accessibility && privacyAccepted && hotKeyFree && !engine.isReady
+    }
+
+    /// At launch: checks the model again, up to `attempts` times `pause` apart, while it's the only thing missing.
+    func settleEngine(attempts: Int = 3, pause: TimeInterval = 3) async {
+        for _ in 0..<attempts {
+            guard Self.recheckBeforeSetup(accessibility: accessibility, privacyAccepted: privacyAccepted,
+                                          hotKeyFree: takenHotKeys.isEmpty, engine: engine) else { return }
+            try? await Task.sleep(nanoseconds: UInt64(pause * 1_000_000_000))
+            // The once-a-second tick may have checked meanwhile.
+            if engine.isReady { return }
+            await refreshEngine()
+        }
+    }
+
     func refreshEngine() async {
         lastEngineCheck = Date()
         engineCheck += 1
@@ -139,7 +159,9 @@ final class SetupMonitor: ObservableObject {
     /// Claude Code's status in one line. An old CLI has no `claude auth` and no `--effort`, so it can't be used
     /// until it's updated; a check that hung is said so, not reported as signed out.
     nonisolated static func claudeCodeStatus(_ status: ClaudeCodeEngine.Status) -> EngineStatus {
-        if !status.found { return .problem(claudeMissing) }
+        if !status.found {
+            return status.timedOut ? .problem(String(localized: "Still looking for Claude Code; trying again")) : .problem(claudeMissing)
+        }
         if status.timedOut { return .problem(String(localized: "Claude Code didn't answer; trying again")) }
         if let version = status.version, !ClaudeCodeEngine.isSupported(version: version) {
             return .problem(String(localized: "Claude Code \(version) is too old; update it (claude update)"))
