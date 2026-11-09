@@ -75,6 +75,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate, NSToolbarDeleg
         let window = self.window ?? makeWindow()
         self.window = window
         if firstShow { window.center() }
+        window.moveToActiveScreen()
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
     }

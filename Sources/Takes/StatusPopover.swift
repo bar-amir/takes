@@ -86,9 +86,8 @@ final class StatusPopoverController: NSObject, NSPopoverDelegate {
         window.level = .floating
         window.backgroundColor = NSColor(Theme.chrome)
         window.contentView = hosting
-        if let visible = NSScreen.main?.visibleFrame {
-            window.setFrameTopLeftPoint(NSPoint(x: visible.maxX - size.width - 16, y: visible.maxY - 8))
-        }
+        let visible = ScreenChoice.active.visibleFrame
+        window.setFrameTopLeftPoint(NSPoint(x: visible.maxX - size.width - 16, y: visible.maxY - 8))
         crashWindow = window
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)

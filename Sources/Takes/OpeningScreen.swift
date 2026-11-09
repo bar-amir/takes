@@ -12,7 +12,7 @@ final class OpeningWindowController: NSObject {
     private var window: NSWindow?
     private let state = OpeningState()
 
-    func show(onStart: @escaping () -> Void) {
+    func show(on screen: NSScreen, onStart: @escaping () -> Void) {
         state.leaving = false
         let window = self.window ?? makeWindow()
         self.window = window
@@ -20,7 +20,7 @@ final class OpeningWindowController: NSObject {
         window.hasShadow = true
         window.contentView = NSHostingView(rootView: OpeningView(state: state, onStart: { [weak self] in self?.start(onStart) },
                                                                  onClose: { [weak self] in self?.window?.orderOut(nil) }))
-        window.center()
+        window.setFrameOrigin(ScreenChoice.centred(window.frame.size, in: screen.visibleFrame))
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
     }

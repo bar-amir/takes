@@ -467,24 +467,27 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
     var onFinished: () -> Void = {}
 
     /// Opens onboarding where it was left: the opening screen first if Get started hasn't been pressed yet.
-    func show() {
+    /// On `screen`, else the display under the pointer.
+    func show(on screen: NSScreen? = nil) {
         let model = self.model ?? makeModel()
         self.model = model
+        let screen = screen ?? ScreenChoice.active
         if !model.flow.progress.openingSeen && window?.isVisible != true {
-            OpeningWindowController.shared.show { [weak self] in
+            OpeningWindowController.shared.show(on: screen) { [weak self] in
                 model.openingDone()
-                self?.showSteps()
+                self?.showSteps(on: screen)
             }
             return
         }
-        showSteps()
+        showSteps(on: screen)
     }
 
-    private func showSteps() {
+    private func showSteps(on screen: NSScreen) {
         guard let model else { return }
         let window = self.window ?? makeWindow(model: model)
         self.window = window
         Task { await SetupMonitor.shared.refreshEngine() }
+        window.moveToActiveScreen(screen)
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
     }
