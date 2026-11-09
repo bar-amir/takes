@@ -44,6 +44,57 @@ final class StatusPopoverController: NSObject, NSPopoverDelegate {
                                          close()
                                          self?.finishSetup()
                                      })
+        present(view, popover: popover, from: button)
+    }
+
+    /// After a crash: offers to open a bug report with it. It stays until answered, since Takes may not be the
+    /// active app (opened at login), where a transient popover would close before it's seen. Once answered,
+    /// that crash isn't offered again.
+    func showCrashOffer(_ report: CrashReports.Report, from button: NSStatusBarButton) {
+        popover?.performClose(nil)
+        let popover = NSPopover()
+        popover.behavior = .applicationDefined
+        popover.animates = true
+        popover.delegate = self
+        let answered = { [weak self, weak popover] in
+            popover?.performClose(nil)
+            self?.crashWindow?.close()
+            self?.crashWindow = nil
+            CrashReports.handled(report)
+        }
+        let view = CrashOfferView(report: { answered(); CrashReports.send(report) },
+                                  notNow: { answered() },
+                                  never: { answered(); Store.shared.settings.offerCrashReports = false })
+        present(view, popover: popover, from: button)
+        // A busy menu bar can hide the icon behind the notch, and then there's nothing to attach to.
+        if !popover.isShown { showInWindow(view) }
+    }
+
+    private var crashWindow: NSWindow?
+
+    /// The crash offer in a small window at the top right of the screen, where the menu-bar icon would be.
+    private func showInWindow(_ view: CrashOfferView) {
+        let hosting = NSHostingView(rootView: view.background(Theme.chrome))
+        let size = hosting.fittingSize
+        let window = NSPanel(contentRect: NSRect(origin: .zero, size: size), styleMask: [.titled, .closable, .fullSizeContentView],
+                             backing: .buffered, defer: false)
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.title = String(localized: "Takes quit unexpectedly")
+        window.isReleasedWhenClosed = false
+        window.hidesOnDeactivate = false
+        window.level = .floating
+        window.backgroundColor = NSColor(Theme.chrome)
+        window.contentView = hosting
+        if let visible = NSScreen.main?.visibleFrame {
+            window.setFrameTopLeftPoint(NSPoint(x: visible.maxX - size.width - 16, y: visible.maxY - 8))
+        }
+        crashWindow = window
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
+    }
+
+    private func present<V: View>(_ view: V, popover: NSPopover, from button: NSStatusBarButton) {
         let hosting = NSHostingController(rootView: view)
         hosting.sizingOptions = [.preferredContentSize]
         popover.contentViewController = hosting
@@ -142,6 +193,54 @@ struct StatusPopoverView: View {
         case .reopen(nil):
             EmptyView()
         }
+    }
+}
+
+/// "Takes quit unexpectedly": Report… opens the bug form with a summary and shows the full report in Finder.
+struct CrashOfferView: View {
+    var report: () -> Void = {}
+    var notNow: () -> Void = {}
+    var never: () -> Void = {}
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 10) {
+                BrandMarkShape().fill(Theme.text).frame(width: 28, height: 28).accessibilityHidden(true)
+                Text("Takes quit unexpectedly")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(Theme.text)
+                    .accessibilityAddTraits(.isHeader)
+            }
+            Text("Sorry about that. Reporting it helps fix it: Takes opens a bug report on GitHub with where it stopped, and shows the full crash report in Finder to attach.")
+                .font(.system(size: 13.5))
+                .foregroundStyle(Theme.controlText)
+                .fixedSize(horizontal: false, vertical: true)
+            Text("Nothing is sent until you submit it. Crash reports hold Takes's code, not your text.")
+                .font(.system(size: 12.5))
+                .foregroundStyle(Theme.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: Spacing.item) {
+                Button("Don't ask again", action: never)
+                    .buttonStyle(.plain)
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(Theme.secondaryText)
+                    .lineLimit(1)
+                    .fixedSize()
+                Spacer(minLength: 0)
+                Button("Not now", action: notNow)
+                    .buttonStyle(SecondaryButtonStyle(height: 28))
+                    .lineLimit(1)
+                    .fixedSize()
+                    .keyboardShortcut(.cancelAction)
+                Button("Report…", action: report)
+                    .buttonStyle(PrimaryButtonStyle(height: 28))
+                    .lineLimit(1)
+                    .fixedSize()
+                    .keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(20)
+        .frame(width: StatusPopoverView.width, alignment: .leading)
     }
 }
 

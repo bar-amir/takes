@@ -80,7 +80,7 @@ Claude Code is the default. You can switch any time in Settings › Model.
 
 ## Privacy
 
-Takes sends your draft only to the engine you chose, directly from your Mac and under your own account: Anthropic with Claude, OpenAI with your ChatGPT plan, the provider you picked with your own key, or, with a local model, nowhere outside your Mac. Dictation audio never leaves the Mac. If you turn on the English coach, its notes (the short phrase around each mistake, never your whole message) stay on your Mac for 30 days. The developer runs no server and receives nothing from the app; the app has no analytics, crash reporting or tracking. [PRIVACY.md](PRIVACY.md) lists exactly what's read, sent and stored, how Takes follows Anthropic's and OpenAI's rules, and what the website counts.
+Takes sends your draft only to the engine you chose, directly from your Mac and under your own account: Anthropic with Claude, OpenAI with your ChatGPT plan, the provider you picked with your own key, or, with a local model, nowhere outside your Mac. Dictation audio never leaves the Mac. If you turn on the English coach, its notes (the short phrase around each mistake, never your whole message) stay on your Mac for 30 days. The developer runs no server and receives nothing from the app; the app has no analytics, automatic crash reporting or tracking. After a crash it offers to open a bug report you can check and send yourself. [PRIVACY.md](PRIVACY.md) lists exactly what's read, sent and stored, how Takes follows Anthropic's and OpenAI's rules, and what the website counts.
 
 ## Costs and responsibility
 

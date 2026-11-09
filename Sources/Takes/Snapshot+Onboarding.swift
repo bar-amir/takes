@@ -121,6 +121,9 @@ extension Snapshot {
                 try? bitmap(of: view, size: CGSize(width: StatusPopoverView.width, height: NSHostingView(rootView: view).fittingSize.height), scheme: scheme)?
                     .representation(using: .png, properties: [:])?.write(to: url.appendingPathComponent("6-popover-\(name)-\(suffix).png"))
             }
+            let crash = CrashOfferView().background(Theme.chrome).fixedSize(horizontal: false, vertical: true)
+            try? bitmap(of: crash, size: CGSize(width: StatusPopoverView.width, height: NSHostingView(rootView: crash).fittingSize.height), scheme: scheme)?
+                .representation(using: .png, properties: [:])?.write(to: url.appendingPathComponent("6-popover-crash-\(suffix).png"))
         }
     }
 
