@@ -1,8 +1,8 @@
 # Privacy
 
-Last updated: 2026-11-04
+Last updated: 2026-11-09
 
-Takes runs entirely on your Mac. The developer runs no server and never receives your text, your settings or anything about how you use the app. Takes has no analytics, crash reporting or tracking. Apart from the engine you choose, the only connection it makes is the optional update check described below.
+Takes runs entirely on your Mac. The developer runs no server and never receives your text, your settings or anything about how you use the app. Takes has no analytics, automatic crash reporting or tracking. Apart from the engine you choose, the only connection it makes is the optional update check described below. If Takes crashes, it can help you report it yourself (see [Crash reports](#crash-reports)).
 
 ## What Takes reads
 
@@ -121,6 +121,12 @@ Takes itself is free. Runs through Claude Code count toward your Claude plan's u
 ## Update checks
 
 Downloaded copies of Takes can check for new versions with [Sparkle](https://sparkle-project.org). The second time you open Takes, it asks whether to check automatically; you can also use "Check for Updates…" in its menu. A check downloads the update feed (`appcast.xml`) from GitHub's servers at github.com. Like any web request, GitHub sees your IP address. Takes sends no information about you, your Mac or your text with it (Sparkle's "system profile" reporting is off). Updates are only installed if they're signed with the developer's update key and Developer ID. Copies you build yourself never check for updates.
+
+## Crash reports
+
+When an app crashes, macOS saves a crash report on your Mac, in `~/Library/Logs/DiagnosticReports`. Apple doesn't pass these on to developers of apps outside the App Store, so the developer of Takes never gets them on their own.
+
+The next time you open Takes after a crash, it reads its own crash report there and asks whether you want to report it. Report… opens a new bug report on GitHub in your browser, filled in with a short summary: the Takes and macOS versions, the kind of crash and where in Takes's code it stopped. It also shows the full report in Finder so you can attach it. Crash reports hold the app's code and the state of your Mac when it crashed (such as its model and memory), not your text. Nothing is sent unless you submit the bug report on GitHub, where it's public. Takes asks once per crash, only about crashes in the version you're running from the last two weeks, and "Don't ask again" stops it asking. "Report a Problem…" in the menu adds the latest crash the same way.
 
 ## The website
 

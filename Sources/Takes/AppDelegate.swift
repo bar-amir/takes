@@ -74,10 +74,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if Onboarding.shouldShow(Store.shared.settings) {
             OnboardingWindowController.shared.show()
         }
-        Task {
+        Task { [weak self] in
             await monitor.refreshEngine()
             if !Onboarding.shouldShow(Store.shared.settings), !monitor.allSet {
                 SetupWindowController.shared.show()
+            }
+            // Takes crashed last time: offer to report it. After the windows above, which would close the popover
+            // by taking the keyboard.
+            if let crash = CrashReports.pending(Store.shared.settings), let button = self?.statusItem.button {
+                StatusPopoverController.shared.showCrashOffer(crash, from: button)
             }
         }
     }

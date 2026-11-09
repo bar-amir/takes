@@ -18,7 +18,7 @@ Live tests (`*LiveTests.swift`) call real models and are skipped unless their en
 
 ## Rules
 
-- **Privacy.** Never add analytics, telemetry, crash reporting or any network call other than to the engine the user picked. Never log draft text; the logs in `~/Library/Logs/Takes` hold metadata only.
+- **Privacy.** Never add analytics, telemetry, automatic crash reporting or any network call other than to the engine the user picked. Crash reports go only the way `CrashReports.swift` sends them: a GitHub bug report the user opens, checks and submits in their own browser. Never log draft text; the logs in `~/Library/Logs/Takes` hold metadata only.
 - **Secrets.** API keys and tokens go in the Keychain only, never in `UserDefaults`, the JSON files in `~/Library/Application Support/Takes`, or logs.
 - **Scope.** Change only what the task needs. No drive-by reformatting, renames or refactors, and no new dependencies.
 - **Style.** 4-space indentation and the style of the surrounding code. User-facing text is short, plain and specific.

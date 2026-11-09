@@ -219,6 +219,10 @@ struct AppSettings: Codable {
     var chatGPTModel = ""
     /// English coach (EnglishCoach.swift). Off by default.
     var coach = CoachSettings()
+    /// After a crash, the next launch offers to open a bug report with it (CrashReports). "Don't ask again" turns it off.
+    var offerCrashReports = true
+    /// The newest crash report the user was asked about, so each crash is offered once.
+    var lastCrashReport: Date?
 }
 
 extension AppSettings {
@@ -251,6 +255,8 @@ extension AppSettings {
         providerModel = try c.decodeIfPresent(String.self, forKey: .providerModel) ?? d.providerModel
         chatGPTModel = try c.decodeIfPresent(String.self, forKey: .chatGPTModel) ?? d.chatGPTModel
         coach = (try? c.decodeIfPresent(CoachSettings.self, forKey: .coach)) ?? d.coach
+        offerCrashReports = try c.decodeIfPresent(Bool.self, forKey: .offerCrashReports) ?? d.offerCrashReports
+        lastCrashReport = try c.decodeIfPresent(Date.self, forKey: .lastCrashReport)
     }
 }
 

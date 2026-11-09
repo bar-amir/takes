@@ -1081,3 +1081,7 @@
 "This is the Open Takes hotkey too; only one of them can fire." = "זהו גם קיצור המקשים של ״פתח את Takes״; רק אחד מהם יכול לפעול.";
 "This version of Claude Code is too old for Takes. Update it (run `claude update` in Terminal), or pick another engine in Settings › Model." = "גרסה זו של Claude Code ישנה מדי עבור Takes. עדכן אותה (הרץ `claude update` במסוף), או בחר מנוע אחר בהגדרות › מודל.";
 "Too old (%@)" = "ישן מדי (%@)";
+"Takes quit unexpectedly" = "‏Takes נסגר באופן בלתי צפוי";
+"Sorry about that. Reporting it helps fix it: Takes opens a bug report on GitHub with where it stopped, and shows the full crash report in Finder to attach." = "מצטערים על כך. דיווח עוזר לתקן את זה: Takes פותח דיווח באג ב-GitHub עם המקום שבו הוא נעצר, ומציג ב-Finder את דוח הקריסה המלא לצירוף.";
+"Nothing is sent until you submit it. Crash reports hold Takes's code, not your text." = "שום דבר לא נשלח עד שתשלח אותו. דוחות קריסה מכילים את הקוד של Takes, לא את הטקסט שלך.";
+"Report…" = "דווח…";
