@@ -48,4 +48,31 @@ final class ActiveScreenTests: XCTestCase {
         let origin = ScreenChoice.centred(CGSize(width: 640, height: 1200), in: visible)
         XCTAssertEqual(origin.y + 1200, visible.maxY)
     }
+
+    // MARK: Opened by the hotkey
+
+    private func window(_ pid: pid_t, layer: Int = 0, _ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat) -> [String: Any] {
+        [kCGWindowOwnerPID as String: pid, kCGWindowLayer as String: layer,
+         kCGWindowBounds as String: CGRect(x: x, y: y, width: w, height: h).dictionaryRepresentation]
+    }
+
+    func testTheHotkeyFollowsTheWindowYouAreTypingIn() throws {
+        // Front to back: a floating palette, the app's front window on the left monitor, an older one on the
+        // built-in display, then another app.
+        let list = [
+            window(42, layer: 3, 100, 100, 300, 200),
+            window(42, -4800, 100, 1200, 800),
+            window(42, 200, 100, 800, 600),
+            window(7, -2000, 100, 800, 600),
+        ]
+        let front = try XCTUnwrap(ScreenChoice.frontWindow(of: 42, in: list, primaryHeight: 1117))
+        // Top-left origin on the primary display, flipped to Cocoa's bottom-left.
+        XCTAssertEqual(front, CGRect(x: -4800, y: 1117 - 900, width: 1200, height: 800))
+        XCTAssertEqual(ScreenChoice.index(for: front, in: displays), 2)
+    }
+
+    func testNoWindowForAnAppWithoutOne() {
+        let list = [window(7, -2000, 100, 800, 600), window(42, 0, 0, 1, 1)]
+        XCTAssertNil(ScreenChoice.frontWindow(of: 42, in: list, primaryHeight: 1117))
+    }
 }

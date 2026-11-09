@@ -112,7 +112,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             return
         }
         if !monitor.accessibility || !monitor.privacyAccepted || { if case .problem = monitor.engine { return true }; return false }() {
-            showSetup()
+            // Next to what you were typing in, not where the pointer happens to be.
+            openSetup(on: ScreenChoice.focused)
             return
         }
         if instant.handle(presetID: presetID) { return }
@@ -291,11 +292,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @objc private func summon() { summonPanel() }
 
-    @objc private func showSetup() {
+    @objc private func showSetup() { openSetup(on: nil) }
+
+    private func openSetup(on screen: NSScreen?) {
         if Onboarding.shouldShow(Store.shared.settings) {
-            OnboardingWindowController.shared.show()
+            OnboardingWindowController.shared.show(on: screen)
         } else {
-            SetupWindowController.shared.show()
+            SetupWindowController.shared.show(on: screen)
         }
     }
 

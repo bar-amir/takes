@@ -165,11 +165,12 @@ final class SetupWindowController: NSObject, NSWindowDelegate {
     static let shared = SetupWindowController()
     private var window: NSWindow?
 
-    func show() {
+    /// On `screen`, else the display under the pointer.
+    func show(on screen: NSScreen? = nil) {
         let window = self.window ?? makeWindow()
         self.window = window
         Task { await SetupMonitor.shared.refreshEngine() }
-        window.moveToActiveScreen()
+        window.moveToActiveScreen(screen ?? ScreenChoice.active)
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
     }
