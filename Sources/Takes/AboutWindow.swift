@@ -12,6 +12,7 @@ final class AboutWindowController: NSObject, NSWindowDelegate {
     func show() {
         NSApp.activate(ignoringOtherApps: true)
         if let window {
+            window.moveToActiveScreen()
             window.makeKeyAndOrderFront(nil)
             return
         }
@@ -25,6 +26,7 @@ final class AboutWindowController: NSObject, NSWindowDelegate {
         window.contentView = NSHostingView(rootView: AboutView())
         window.setContentSize(window.contentView?.fittingSize ?? NSSize(width: 300, height: 300))
         window.center()
+        window.moveToActiveScreen()
         self.window = window
         window.makeKeyAndOrderFront(nil)
     }

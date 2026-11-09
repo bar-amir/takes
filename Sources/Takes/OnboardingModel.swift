@@ -485,6 +485,7 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
         let window = self.window ?? makeWindow(model: model)
         self.window = window
         Task { await SetupMonitor.shared.refreshEngine() }
+        window.moveToActiveScreen()
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
     }

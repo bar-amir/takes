@@ -169,6 +169,7 @@ final class SetupWindowController: NSObject, NSWindowDelegate {
         let window = self.window ?? makeWindow()
         self.window = window
         Task { await SetupMonitor.shared.refreshEngine() }
+        window.moveToActiveScreen()
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
     }

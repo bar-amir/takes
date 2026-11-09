@@ -20,7 +20,7 @@ final class OpeningWindowController: NSObject {
         window.hasShadow = true
         window.contentView = NSHostingView(rootView: OpeningView(state: state, onStart: { [weak self] in self?.start(onStart) },
                                                                  onClose: { [weak self] in self?.window?.orderOut(nil) }))
-        window.center()
+        window.setFrameOrigin(ScreenChoice.centred(window.frame.size, in: ScreenChoice.active.visibleFrame))
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
     }
