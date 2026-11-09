@@ -2,6 +2,10 @@
 
 All notable changes to Takes. Versions follow [semantic versioning](https://semver.org).
 
+## 0.9.1 · 2026-11-09
+
+- **Windows open where you are.** With more than one display, Settings, About, Setup and onboarding used to open on the built-in display. They now open on the display you clicked on. When the hotkey opens setup, it opens on the display you're typing on. The panel still opens next to the text box you're in.
+
 ## 0.9.0 · 2026-11-09
 
 - **Report a crash in two clicks.** If Takes quits unexpectedly, the next launch offers to open a bug report on GitHub with the versions and where it stopped already filled in, and shows the full crash report in Finder so you can attach it. Nothing is sent until you submit the report yourself. Crash reports hold Takes's code, not your text. Choose "Don't ask again" to turn the offer off.
