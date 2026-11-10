@@ -76,8 +76,16 @@ final class SettingsWindowController: NSObject, NSWindowDelegate, NSToolbarDeleg
         self.window = window
         if firstShow { window.center() }
         window.moveToActiveScreen()
+        // A Dock icon while Settings is open: clicking another app leaves the window behind it, and without the icon
+        // (or a ⌘Tab entry) there'd be no way back to it.
+        NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        // Back to a menu-bar-only app.
+        NSApp.setActivationPolicy(.accessory)
     }
 
     private func makeWindow() -> NSWindow {
@@ -85,6 +93,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate, NSToolbarDeleg
                               styleMask: [.titled, .closable, .miniaturizable],
                               backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
+        window.hidesOnDeactivate = false
         window.backgroundColor = NSColor(Theme.formBackground)
         window.delegate = self
         window.toolbarStyle = .preference
