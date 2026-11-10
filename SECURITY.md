@@ -60,7 +60,7 @@ Only the latest release gets security fixes. Automatic updates (Takes menu › C
   ```
 - The signing secrets (the Developer ID certificate and its password, the App Store Connect notarization key and the Sparkle update key) live only in the protected `release` environment, which needs the maintainer's approval and only runs for version tags on `main`.
 - Two secrets are repository secrets, outside that environment. `HOMEBREW_TAP_TOKEN` is read by the job that updates the Homebrew cask after a release; that job starts only after the approved release job has finished, and the token is meant to reach the Homebrew tap and nothing else. `TRAFFIC_TOKEN` is optional and read by a daily job that saves repository traffic numbers. Neither signs or publishes a release.
-- Workflows that run for pull requests use no secrets and a read-only token.
+- Workflows that run for pull requests use no repository secrets. The build, lint and code-scanning checks run with a read-only token for pull requests from forks. The CLA check has a limited write token (it comments, sets a status and stores signatures on its own branch) and never checks out or runs code from the pull request.
 
 ## For contributors
 
