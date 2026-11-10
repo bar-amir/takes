@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Proofread screens for `--snapshot`: takes with fixes, no mistakes found and the preset editor's
+/// Proofread screens for `--snapshot`: takes with fixes, the same with ⌥ held, no mistakes found and the preset editor's
 /// minimal-edits option, each in light and dark.
 extension Snapshot {
     static func renderProofread(to url: URL) {
@@ -28,8 +28,11 @@ extension Snapshot {
         var threeTakes = Preset.proofread
         threeTakes.name = "Proofread, 3 takes"
         threeTakes.takes = 3
+        let optionHeld = model(draft: fixed.draft, takes: [fixed.take])
+        optionHeld.optionHeld = true
         let screens: [(name: String, model: PanelModel, width: CGFloat)] = [
             ("7-proofread-fixes", model(draft: fixed.draft, takes: [fixed.take]), 720),
+            ("7-proofread-option-held", optionHeld, 720),
             ("7-proofread-no-mistakes", model(draft: clean, takes: [clean]), 720),
             ("7-proofread-three-takes", model(draft: fixed.draft, takes: [
                 fixed.take,

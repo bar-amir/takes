@@ -28,7 +28,7 @@ final class PanelModel: ObservableObject {
     @Published var limit: UsageLimitError?
     @Published var selected = 0
     @Published var changesShown: Set<Int> = []
-    /// ⌥ held on the takes screen: every card shows its changes.
+    /// ⌥ held on the takes screen: every card flips between its changes and the clean take.
     @Published var optionHeld = false
     /// The run-options popover on compose (the chip, or ⌘K).
     @Published var optionsOpen = false
@@ -465,6 +465,12 @@ final class PanelModel: ObservableObject {
 
     func toggleChanges(_ index: Int) {
         if changesShown.contains(index) { changesShown.remove(index) } else { changesShown.insert(index) }
+    }
+
+    /// Whether a finished take shows its changes: ⌥ flips each card, so it reveals them on a regular run and hides
+    /// them on a minimal-edit one, which opens with them shown.
+    func showsChanges(_ index: Int) -> Bool {
+        isFinished(index) && changesShown.contains(index) != optionHeld
     }
 
     func paste(_ index: Int) {

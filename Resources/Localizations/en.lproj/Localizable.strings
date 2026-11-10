@@ -204,7 +204,10 @@
 /* PanelViews.swift:263, ReplyContext.swift:44 */
 "%lld words" = "%lld words";
 
-/* PanelViews.swift:922 */
+/* PanelViews.swift:925 */
+"%lld words · ⌥ hides changes · ⌘C copies" = "%lld words · ⌥ hides changes · ⌘C copies";
+
+/* PanelViews.swift:924 */
 "%lld words · ⌥ shows changes · ⌘C copies" = "%lld words · ⌥ shows changes · ⌘C copies";
 
 /* ReplyContext.swift:43 */
@@ -447,7 +450,7 @@
 /* EnglishCoachViews.swift:751, OnboardingView.swift:61 */
 "Back" = "Back";
 
-/* Key hint: esc goes back · PanelViews.swift:818 */
+/* Key hint: esc goes back · PanelViews.swift:820 */
 "back" = "back";
 
 /* PanelViews.swift:327 */
@@ -522,7 +525,7 @@
 /* PanelViews.swift:309 */
 "Changed for this run. ⌘K" = "Changed for this run. ⌘K";
 
-/* Key hint: ⌥ shows each take's changes · PanelViews.swift:816 */
+/* Key hint: ⌥ shows each take's changes · PanelViews.swift:818 */
 "changes" = "changes";
 
 /* ChatGPTEngine.swift:163 */
@@ -771,7 +774,7 @@
 /* AppDelegate.swift:288 */
 "Copy" = "Copy";
 
-/* Key hint: ⌘C copies the take · PanelViews.swift:817 */
+/* Key hint: ⌘C copies the take · PanelViews.swift:819 */
 "copy" = "copy";
 
 /* SystemShortcuts.swift:17 */
@@ -1178,6 +1181,9 @@
 
 /* EnglishCoachViews.swift:93 */
 "Hide" = "Hide";
+
+/* Key hint: holding ⌥ shows each take without its changes marked · PanelViews.swift:817 */
+"hide changes" = "hide changes";
 
 /* EnglishCoachViews.swift:656 */
 "Hide details" = "Hide details";
@@ -2535,13 +2541,13 @@
 /* PanelViews.swift:175 */
 "Tab shows every preset." = "Tab shows every preset.";
 
-/* HistoryTab.swift:124, PanelViews.swift:916, PresetsTab.swift:426 */
+/* HistoryTab.swift:124, PanelViews.swift:918, PresetsTab.swift:426 */
 "TAKE %lld" = "TAKE %lld";
 
-/* PanelViews.swift:916 */
+/* PanelViews.swift:918 */
 "TAKE %lld · CHANGES" = "TAKE %lld · CHANGES";
 
-/* PanelViews.swift:915 */
+/* PanelViews.swift:917 */
 "TAKE %lld · WRITING" = "TAKE %lld · WRITING";
 
 /* The hotkey is already used by something else · OnboardingView.swift:599 */
