@@ -680,7 +680,7 @@ struct TakesView: View {
                 .onKeyPress(.rightArrow) { move(layoutDirection == .rightToLeft ? -1 : 1); return .handled }
                 .onKeyPress(.upArrow) { move(-3); return .handled }
                 .onKeyPress(.downArrow) { move(3); return .handled }
-                .onKeyPress(.return) { model.pasteSelected(); return .handled }
+                .onKeyPress(.return) { paste(model.selected); return .handled }
                 .onKeyPress(.escape) { model.escape(); return .handled }
 
                 refineBar
@@ -692,7 +692,7 @@ struct TakesView: View {
                     .transition(.asymmetric(insertion: .push(from: .top).combined(with: .opacity), removal: .opacity))
             }
             Rule()
-            footer
+            if model.error != nil { errorFooter } else { footer }
         }
         .animation(Motion.animation().delay(Motion.standard), value: model.invitation)
         .fixedSize(horizontal: false, vertical: true)
@@ -714,6 +714,30 @@ struct TakesView: View {
     }
 
     static let maxGridHeight: CGFloat = 480
+
+    /// The last take of a finished run, when the model stopped before its end (`PanelModel.cutShort`). It's marked
+    /// and can't be pasted; whole takes still can.
+    static func isCutShort(_ index: Int, in model: PanelModel) -> Bool {
+        model.cutShort && !model.running && model.error == nil && index == model.takes.count - 1
+    }
+
+    /// A take can be pasted once it's whole: finished, not cut short, and not left behind by an error.
+    static func canPaste(_ index: Int, in model: PanelModel) -> Bool {
+        model.error == nil && model.isFinished(index) && !isCutShort(index, in: model)
+    }
+
+    /// The draft and take a card diffs, off the main thread: once the take is whole, and only when its changes are
+    /// shown or, on a minimal-edit run, counted in the tooltip. Nil while the take is being written, so streaming
+    /// never queues a diff.
+    static func changesKey(_ index: Int, in model: PanelModel) -> ChangesKey? {
+        guard model.isFinished(index), !isCutShort(index, in: model), model.showsFixes || model.showsChanges(index) else { return nil }
+        return ChangesKey(draft: model.sourceDraft, take: model.takes[index])
+    }
+
+    private func paste(_ index: Int) {
+        guard Self.canPaste(index, in: model) else { return }
+        model.paste(index)
+    }
 
     private func move(_ delta: Int) {
         withAnimation(Motion.animation()) { model.moveSelection(delta) }
@@ -739,7 +763,7 @@ struct TakesView: View {
                     ForEach(row, id: \.self) { index in
                         TakeCard(model: model, index: index, ring: selection)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .onTapGesture(count: 2) { model.paste(index) }
+                            .onTapGesture(count: 2) { paste(index) }
                             .onTapGesture {
                                 withAnimation(Motion.animation()) { model.select(index) }
                                 gridFocused = true
@@ -791,7 +815,7 @@ struct TakesView: View {
                          onEscape: { gridFocused = true })
             Button("More like take \(model.selected + 1)", action: model.moreLikeSelected)
                 .buttonStyle(SecondaryButtonStyle())
-                .disabled(!model.isFinished(model.selected) || model.running)
+                .disabled(!model.isFinished(model.selected) || model.running || Self.isCutShort(model.selected, in: model))
         }
         .padding(.leading, Spacing.inner)
         .padding(.trailing, Spacing.item)
@@ -800,6 +824,18 @@ struct TakesView: View {
         .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Theme.controlBorder))
         .padding(.horizontal, Spacing.gutter)
         .padding(.bottom, Spacing.section)
+    }
+
+    /// Under an error there's nothing to move between, copy or paste: only the way back. The notice above has the
+    /// actions.
+    private var errorFooter: some View {
+        HStack(spacing: Spacing.section) {
+            KeyHint(keys: ["esc"], label: String(localized: "back", comment: "Key hint: esc goes back"))
+            Spacer(minLength: 0)
+        }
+        .frame(height: Spacing.control)
+        .padding(.horizontal, Spacing.gutter)
+        .padding(.vertical, Spacing.bar)
     }
 
     private var footer: some View {
@@ -826,7 +862,9 @@ struct TakesView: View {
                     Color.clear.frame(width: 0, height: 0)
                 }
             }
-            Button(action: model.noFixesFound ? model.pasteOriginal : model.pasteSelected) {
+            Button {
+                if model.noFixesFound { model.pasteOriginal() } else { paste(model.selected) }
+            } label: {
                 HStack(spacing: Spacing.item) {
                     Text(model.noFixesFound ? "Paste original" : "Paste take \(model.selected + 1)")
                     Text("↵").font(.system(size: 12)).opacity(0.85)
@@ -834,7 +872,7 @@ struct TakesView: View {
             }
             .buttonStyle(PrimaryButtonStyle(height: Spacing.control))
             .fixedSize()
-            .disabled(!model.isFinished(model.selected))
+            .disabled(!Self.canPaste(model.selected, in: model))
         }
         .padding(.horizontal, Spacing.gutter)
         .padding(.vertical, Spacing.bar)
@@ -857,7 +895,7 @@ struct TakesView: View {
     private var shortcuts: some View {
         ZStack {
             ForEach(1...5, id: \.self) { number in
-                ShortcutButton(key: KeyEquivalent(Character("\(number)"))) { model.paste(number - 1) }
+                ShortcutButton(key: KeyEquivalent(Character("\(number)"))) { paste(number - 1) }
             }
             ShortcutButton(key: "e") { model.show(.compose) }
             ShortcutButton(key: "r") { model.generate() }
@@ -865,7 +903,8 @@ struct TakesView: View {
             ShortcutButton(key: "c") {
                 if model.textSelectionActive() {
                     NSApp.sendAction(#selector(NSText.copy(_:)), to: nil, from: nil)
-                } else {
+                } else if model.error == nil {
+                    // Under an error nothing is copied, even if part of a take arrived before it.
                     model.copySelected()
                 }
             }
@@ -877,31 +916,37 @@ private struct TakeCard: View {
     @ObservedObject var model: PanelModel
     let index: Int
     let ring: Namespace.ID
+    /// This take's changes, worked out off the main thread once per draft and take.
+    @State private var cached: CachedChanges?
 
     var body: some View {
         let isSelected = model.selected == index
-        let finished = model.isFinished(index)
+        let cutShort = TakesView.isCutShort(index, in: model)
+        let written = model.isFinished(index)
+        let finished = written && !cutShort
         let hasText = index < model.takes.count
-        let showChanges = model.showsChanges(index)
+        let wanted = TakesView.changesKey(index, in: model)
+        let changes = wanted != nil && cached?.key == wanted ? cached?.changes : nil
+        let shown = model.showsChanges(index) && !cutShort ? changes : nil
 
         VStack(alignment: .leading, spacing: Spacing.inner) {
             HStack(spacing: Spacing.item) {
-                Text(label(finished: finished, showChanges: showChanges))
+                Text(label(finished: finished, cutShort: cutShort, showChanges: shown != nil))
                     .font(.mono(10.5, bold: true))
                     .kerning(Font.labelSpacing(0.5))
-                    .foregroundStyle(isSelected ? Theme.text : Theme.secondaryText)
+                    .foregroundStyle(cutShort ? Theme.avoidText : isSelected ? Theme.text : Theme.secondaryText)
                     .lineLimit(1)
                 Spacer(minLength: 0)
-                if !finished && hasText { ProgressView().controlSize(.mini) }
+                if !written && hasText { ProgressView().controlSize(.mini) }
                 if index < 5 {
                     Text(verbatim: "\u{200E}⌘\(index + 1)").font(.mono(10.5)).foregroundStyle(Theme.tertiaryText)
                 }
             }
 
             Group {
-                if showChanges {
-                    Text(WordDiff.attributed(from: model.sourceDraft, to: model.takes[index]))
-                        .accessibilityLabel(WordDiff.spoken(from: model.sourceDraft, to: model.takes[index]))
+                if let shown {
+                    Text(shown.attributed)
+                        .accessibilityLabel(shown.spoken)
                 } else if hasText {
                     Text(model.takes[index])
                 } else {
@@ -913,11 +958,19 @@ private struct TakeCard: View {
                 }
             }
             .font(.system(size: 15))
-            .foregroundStyle(Theme.text)
+            .foregroundStyle(cutShort ? Theme.secondaryText : Theme.text)
             .lineSpacing(4)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, minHeight: 72, maxHeight: .infinity, alignment: .topLeading)
             .environment(\.layoutDirection, ContentDirection.layout(hasText ? model.takes[index] : ""))
+            if cutShort {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Theme.avoidText).accessibilityHidden(true)
+                    Text("The model stopped before the end, so this take can't be pasted.").foregroundStyle(Theme.secondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .font(.system(size: 12))
+            }
             TakeToneLine(model: model, index: index)
         }
         .padding(Spacing.section)
@@ -938,21 +991,42 @@ private struct TakeCard: View {
         .opacity(hasText || !model.running ? 1 : 0.55)
         .offset(y: hasText || !model.running ? 0 : 6)
         .animation(Motion.animation().delay(Double(index) * Motion.stagger), value: hasText)
-        .help(tooltip(finished: finished))
+        .help(tooltip(finished: finished, fixCount: changes?.fixCount))
+        // Never diffs in `body`, and never while the take is being written, so streaming doesn't queue work.
+        .task(id: wanted) { await work(on: wanted) }
     }
 
-    private func label(finished: Bool, showChanges: Bool) -> String {
+    private func work(on key: ChangesKey?) async {
+        guard let key, cached?.key != key else { return }
+        let changes = await Task.detached(priority: .userInitiated) { WordDiff.changes(from: key.draft, to: key.take) }.value
+        guard !Task.isCancelled else { return }
+        cached = CachedChanges(key: key, changes: changes)
+    }
+
+    private func label(finished: Bool, cutShort: Bool, showChanges: Bool) -> String {
         let number = index + 1
+        if cutShort { return String(localized: "TAKE \(number) · CUT SHORT") }
         if !finished { return String(localized: "TAKE \(number) · WRITING") }
         return showChanges ? String(localized: "TAKE \(number) · CHANGES") : String(localized: "TAKE \(number)")
     }
 
-    private func tooltip(finished: Bool) -> String {
+    private func tooltip(finished: Bool, fixCount: Int?) -> String {
         guard finished else { return "" }
         let count = WordCounter.count(model.takes[index])
         guard model.showsFixes else { return String(localized: "\(count) words · ⌥ shows changes · ⌘C copies") }
-        return Proofread.fixLabel(model.fixCount(index)) + " · " + String(localized: "\(count) words · ⌥ hides changes · ⌘C copies")
+        let rest = String(localized: "\(count) words · ⌥ hides changes · ⌘C copies")
+        return fixCount.map { Proofread.fixLabel($0) + " · " + rest } ?? rest
     }
+}
+
+struct ChangesKey: Equatable {
+    let draft: String
+    let take: String
+}
+
+private struct CachedChanges {
+    let key: ChangesKey
+    let changes: WordDiff.Changes
 }
 
 /// Scroll targets in the preset picker's list.

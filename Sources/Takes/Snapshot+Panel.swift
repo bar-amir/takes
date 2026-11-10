@@ -2,7 +2,8 @@ import AppKit
 import SwiftUI
 
 /// The panel's redesigned screens for `--snapshot`, light and dark: compose with its one-row presets and the run
-/// options popover, the takes with the coach collapsed and expanded, the coach invitation and the paste toast.
+/// options popover, the takes with the coach collapsed and expanded, the coach invitation, limits and errors, a take
+/// cut short, and the paste toast.
 @MainActor
 extension Snapshot {
     static func renderPanel(to folder: URL) {
@@ -96,6 +97,18 @@ extension Snapshot {
             ("12-limit-rate", limitModel(ProviderEngine.httpError(status: 429, body: Data(), provider: .openAI, model: "", retryAfter: "20"))),
         ]
 
+        // The model stopped before the end of the last take: it's marked and can't be pasted.
+        let cutShort = takesModel()
+        cutShort.takes[2] = "Can you send me the file by tomorrow? I'll review it and get back to you with"
+        cutShort.cutShort = true
+        cutShort.selected = 2
+        // An error after part of a take arrived: only the notice and the way back.
+        let failed = takesModel()
+        failed.takes = [String(takes[0].prefix(40))]
+        failed.timing = ""
+        failed.error = "The connection was lost. Check your network and try again."
+        let ends = [("13-takes-cut-short", cutShort), ("14-takes-error", failed)]
+
         let toast = ToastView(message: "Pasted take 1 · your clipboard is back", showUndo: true,
                               coachNote: "“If you will send” → “If you send” · 4th time this month",
                               onSaveExample: {}, onDone: {})
@@ -112,7 +125,7 @@ extension Snapshot {
             write(PanelRootView(model: withHotKey), compose720, "3b-compose-preset-hotkey")
             for (name, model) in [("4-takes-coach-collapsed", collapsed), ("5-takes-coach-expanded", expanded),
                                   ("6-takes-coach-checking", checking), ("7-takes-changes-option-held", changes),
-                                  ("8-takes-coach-invitation", invited)] + limits {
+                                  ("8-takes-coach-invitation", invited)] + limits + ends {
                 write(PanelRootView(model: model), CGSize(width: 1060, height: fittedHeight(model)), name)
             }
             write(toast.padding(20).frame(width: 820, height: 140).background(Color(hex: dark ? "#3A3A3F" : "#E9E7E1")),

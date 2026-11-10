@@ -124,6 +124,15 @@ final class WordDiffScaleTests: XCTestCase {
         XCTAssertLessThan(Date().timeIntervalSince(start), 5)
     }
 
+    /// What a card gets in one pass off the main thread matches the separate calls.
+    func testChangesMatchTheSeparateCalls() {
+        let old = "hey dana, i think teh specs are due wed", new = "Hey Dana, I think the specs are due Wed."
+        let changes = WordDiff.changes(from: old, to: new)
+        XCTAssertEqual(changes.attributed, WordDiff.attributed(from: old, to: new))
+        XCTAssertEqual(changes.spoken, WordDiff.spoken(from: old, to: new))
+        XCTAssertEqual(changes.fixCount, WordDiff.fixes(from: old, to: new).count)
+    }
+
     // MARK: Spacing counts
 
     func testAMovedSpaceIsAFix() {
