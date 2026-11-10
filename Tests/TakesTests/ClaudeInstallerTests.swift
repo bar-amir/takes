@@ -11,6 +11,8 @@ final class ClaudeInstallerTests: XCTestCase {
         // A failed download must fail the install, not run an empty script.
         XCTAssertTrue(ClaudeInstaller.command.hasPrefix("set -o pipefail;"))
         XCTAssertTrue(ClaudeInstaller.command.hasSuffix("| bash"))
+        // https only, even after a redirect, and no TLS older than 1.2.
+        XCTAssertEqual(ClaudeInstaller.command, "set -o pipefail; curl --proto '=https' --tlsv1.2 -fsSL https://claude.ai/install.sh | bash")
     }
 
     func testNoNetwork() {
