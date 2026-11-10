@@ -9,7 +9,7 @@ Takes runs entirely on your Mac. The developer runs no server and never receives
 Only when you press the Takes hotkey (or a preset's hotkey), Takes reads:
 
 - **The text box you're typing in:** the selected text, or the text already in the box, depending on your "Start with" setting. It reads this through macOS Accessibility, which you grant in System Settings. Takes only ever reads a real text box, never the page or window around it.
-- **The clipboard, briefly:** if an app doesn't expose its text box to Accessibility, Takes copies the text with ⌘A ⌘C and then puts your previous clipboard back. When pasting a take, it puts the take on the clipboard, sends ⌘V, and then restores your clipboard (unless you turn this off). Your old clipboard goes back only if nothing else was copied in the meantime; anything you copy then stays. Before it sends keys, Takes checks that the text box you read from still has focus (and, when it replaces all your text, that the text hasn't changed). If the app says otherwise, Takes sends no keys.
+- **The clipboard, briefly:** if an app doesn't expose its text box to Accessibility, Takes copies the text with ⌘A ⌘C and then puts your previous clipboard back. When pasting a take, it puts the take on the clipboard, sends ⌘V, and then restores your clipboard (unless you turn this off). Your old clipboard goes back only if nothing else was copied in the meantime; anything you copy then stays. Before it sends keys, Takes checks that the text box you read from still has focus (or that, in the same app, another text box holds the same text), and, when it replaces all your text, that the text hasn't changed. If the app says otherwise, Takes sends no keys.
 - **What you're replying to, only if you add it:** in the panel you can add the message you're answering (⌘J to type or paste it, ⇧⌘V to use the clipboard's text). Nothing is added unless you do it, and it's cleared every time the panel opens.
 - **The clipboard as context, only if you turn it on** (Settings › General › Clipboard › "Use the clipboard as context when it looks like a message", off by default): when the panel opens, Takes checks whether the clipboard changed in the last 2 minutes and holds plain text. Only then does it read that text, and it attaches it only if it looks like a message (a few words, under 4,000 characters, not a link, number or code). Passwords marked as private by password managers, files and images are skipped. While this is on, Takes notes when the clipboard changes (not what's on it) so it can tell a fresh copy from an old one. A take Takes pastes, or an old clipboard it puts back, doesn't count as a fresh copy. The chip in the panel says "copied just now", and one click or ⇧⌘⌫ removes it.
 
@@ -31,6 +31,7 @@ It goes **straight from your Mac** to that engine. Nothing goes through a server
 - **To whom:** Anthropic, under **your own** Claude account.
 - **How:** Takes runs the Claude Code you installed and signed in to, unmodified. You sign in through Anthropic's own flow; Takes never sees your Claude credentials.
 - **Installing:** if Claude Code isn't on your Mac and you press Install Claude Code, Takes runs Anthropic's official installer (`curl --proto '=https' --tlsv1.2 -fsSL https://claude.ai/install.sh | bash`), which downloads Claude Code from Anthropic. Nothing about you is sent. Sign-in then happens in Terminal, in Claude Code itself.
+- **Updating:** if your Claude Code is too old for Takes and you press Update Claude Code, Takes opens Terminal and runs `claude update`, Claude Code's own updater.
 - **Terms:** your Claude subscription and Anthropic's terms for it.
 - **Stored:** nothing new. Claude Code keeps its own sign-in; Takes doesn't read or copy it.
 - **Data use:** [Anthropic's privacy policy](https://www.anthropic.com/legal/privacy).
@@ -39,6 +40,7 @@ It goes **straight from your Mac** to that engine. Nothing goes through a server
 
 - **To whom:** Anthropic's API, under **your own** API account.
 - **Terms:** [Anthropic's Commercial Terms](https://www.anthropic.com/legal/commercial-terms). Billed to you by Anthropic.
+- **Also sent:** when you save the key, Takes asks Anthropic whether it works, in one request that lists a model. It spends no tokens and carries no text. A key Anthropic refuses isn't kept; if you're offline, the key is kept and Takes says it wasn't checked. Takes asks the same way when it checks that setup works with this engine.
 - **Stored:** the key, in your macOS keychain, never in Takes' files.
 - **Data use:** [Anthropic's privacy policy](https://www.anthropic.com/legal/privacy).
 
@@ -56,6 +58,7 @@ Plus and Pro plans can use it. OpenAI calls Sign in with ChatGPT a preview, so i
 
 - **To whom:** the provider you picked (OpenAI, Google Gemini, OpenRouter, Groq or Mistral) or a custom address you typed, under **your own** account with them. Takes only connects over https.
 - **Terms:** that provider's terms. Billed to you by the provider.
+- **Also sent:** when setup, Settings › Model or the panel needs the provider's list of models, Takes asks for it with your key. No text is sent. The answer is kept for up to 10 minutes unless you press Check again.
 - **Stored:** the key, in your macOS keychain, one item per provider, never in Takes' files or logs.
 - **Data use:** [OpenAI](https://openai.com/policies/privacy-policy/), [Google Gemini API](https://ai.google.dev/gemini-api/terms), [OpenRouter](https://openrouter.ai/privacy), [Groq](https://groq.com/privacy-policy/), [Mistral](https://mistral.ai/terms/).
 
@@ -66,7 +69,7 @@ With a **custom address**, your drafts go to whatever server is at that address.
 If you choose **Local model**, Takes sends the same draft, preset and voice rules to a model server running **on your own Mac** (Ollama or LM Studio), and nothing leaves your Mac:
 
 - Takes only connects to addresses on this Mac (`localhost`, `127.0.0.1`, `::1`). It refuses any other address, ignores system proxies for these requests, and won't follow a redirect to another machine.
-- To find a server, Takes asks `localhost:11434` (Ollama) and `localhost:1234` (LM Studio) which models are installed, when you open Settings › Model or the panel. It never downloads or installs models or apps.
+- To find a server, Takes asks `localhost:11434` (Ollama) and `localhost:1234` (LM Studio) which models are installed, when you open Settings › Model, setup or the panel. It never downloads or installs models or apps.
 - What the server and model do with your text is up to them. Ollama and LM Studio run models locally, but check their own settings if you've connected them to anything else.
 
 ### Tone notes
@@ -107,11 +110,13 @@ The words you dictate become part of your draft, and like any draft they're sent
 | English coach notes, if you turn it on (short excerpts of mistakes, never whole drafts; 30 days) | `~/Library/Application Support/Takes/coach.json` | Settings › Coach › Clear coach data…, or turn the coach off |
 | Which kinds of fix showed up in your English drafts while the coach is off, and when (30 days; no text), and your answer to the coach offer | `~/Library/Application Support/Takes/coach-invite.json` | Delete the file |
 | A random ID for this Mac that OpenAI asks for when you sign in with ChatGPT (not tied to you) | `~/Library/Application Support/Takes/chatgpt-host.json` | Settings › Model › Sign out removes it |
-| A copy of a file Takes couldn't read, kept so nothing is lost: `presets.unreadable-<date>.json`, `settings.unreadable-<date>.json`, `history.unreadable-<date>.json`, `coach.unreadable-<date>.json` (at most 3 per file) | `~/Library/Application Support/Takes/` | Delete the copy. The history and coach copies hold the same text as the originals: they expire after 30 days, and Clear History and Clear coach data delete them too |
+| A copy of a file Takes couldn't read, kept so nothing is lost: `presets.unreadable-<date>.json`, `settings.unreadable-<date>.json`, `history.unreadable-<date>.json`, `coach.unreadable-<date>.json` (at most 3 per file) | `~/Library/Application Support/Takes/` | Delete the copy. Takes tells you at launch when it has set a file aside. The history and coach copies hold the same text as the originals: they expire 30 days after the original was last written, and Clear History and Clear coach data delete them too |
 | Run timings (model, effort, engine, number of takes, timing, the app you were in; no text). Capped at about 512 KB: the oldest lines are dropped | `~/Library/Logs/Takes/runs.jsonl` | Delete the file |
-| Field-reading log (app, kind of text box, how it was read, character count, caret position; a line with the reason when a paste wasn't sent; no text) | `~/Library/Logs/Takes/focus.log` | Delete the file |
-| Probe of one app's text box, only if a developer runs Takes with `--ax-probe` (lengths only, no text) | `~/Library/Logs/Takes/ax-probe.txt` | Delete the file |
+| Field-reading log (app, kind of text box, how it was read, character count, caret position; a line for each paste, sent or not, with which check let it through or why it wasn't sent; no text). Capped at about 512 KB: the oldest lines are dropped | `~/Library/Logs/Takes/focus.log` | Delete the file |
+| Probe of one app's text box, only if a developer runs Takes with `--ax-probe` (roles and lengths only, no text; a password field isn't read at all) | `~/Library/Logs/Takes/ax-probe.txt` | Delete the file |
 | API keys and ChatGPT sign-in tokens, if you add them | macOS keychain, service "com.baramir.takes" | Settings › Model › Remove Key… or Sign out |
+
+If Takes can't read `settings.json`, it starts with history off.
 
 While Claude Code writes takes, its instructions (the preset and your voice rules, not your draft) are in a file in your Mac's temporary folder that only you can read. Takes deletes it when the run ends.
 

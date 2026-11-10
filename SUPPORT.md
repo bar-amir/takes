@@ -15,7 +15,7 @@ Before you post, search the [issues](https://github.com/bar-amir/takes/issues?q=
 
 ## Keep your writing private
 
-Don't paste private drafts, messages or API keys into issues or discussions. Describe them instead ("a two-paragraph reply in Slack"). The field-reading log (`~/Library/Logs/Takes/focus.log`) records the app, the kind of text box and character counts, plus the reason when a paste is refused, never your text, so it's safe to share.
+Don't paste private drafts, messages or API keys into issues or discussions. Describe them instead ("a two-paragraph reply in Slack"). The field-reading log (`~/Library/Logs/Takes/focus.log`) records the app, the kind of text box and character counts, and for each paste whether it was sent or why it wasn't, never your text, so it's safe to share.
 
 ## What to expect
 

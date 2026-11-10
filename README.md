@@ -70,7 +70,7 @@ Open Takes. It lives in the menu bar, and a short setup walks you through allowi
 
 | Engine | What you need | Where your draft goes |
 |---|---|---|
-| **Claude Code** | [Claude Code](https://claude.com/claude-code) installed (Takes can install it for you) and signed in to your Claude plan | Anthropic, under your account |
+| **Claude Code** | [Claude Code](https://claude.com/claude-code) 2.1.293 or newer, installed (Takes can install it for you) and signed in to your Claude plan | Anthropic, under your account |
 | **Anthropic API key** | A key from the [Anthropic Console](https://console.anthropic.com), stored in your keychain | Anthropic, under your account |
 | **Your ChatGPT plan** | A ChatGPT Plus or Pro plan; you sign in with ChatGPT in the browser, no extra cost | OpenAI, under your account |
 | **Other provider** | Your own API key for OpenAI, Google Gemini, OpenRouter, Groq, Mistral or any https server that speaks the OpenAI API, stored in your keychain | That provider, under your account |
