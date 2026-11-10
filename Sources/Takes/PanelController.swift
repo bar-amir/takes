@@ -112,6 +112,8 @@ final class PanelController {
         self.panel = panel
         let wasVisible = panel.isVisible
         lastScreen = nil
+        // A height from an earlier draft (more takes, longer text) would leave the panel padded with blank space.
+        takesHeight = 0
         layout()
         if wasVisible {
             panel.makeKeyAndOrderFront(nil)
@@ -244,7 +246,8 @@ final class PanelController {
         guard let panel, model.screen == .takes, height > 0 else { return }
         let visible = (panel.screen ?? NSScreen.main)?.visibleFrame ?? panel.frame
         let target = min(height.rounded(.up), visible.height - 16)
-        if abs(target - panel.frame.height) < 1 || (model.running && target < panel.frame.height) { return }
+        guard Self.shouldFit(target: target, current: panel.frame.height, running: model.running,
+                             fittedThisOpen: takesHeight > 0) else { return }
         takesHeight = target
         // Grow away from the text box: a panel above it keeps its bottom edge, any other keeps its top edge.
         var frame = panel.frame
@@ -255,6 +258,13 @@ final class PanelController {
             frame.origin = origin(for: frame.size)
         }
         panel.setFrame(frame, display: true, animate: false)
+    }
+
+    /// Whether the takes screen should change to `target`. While a run is writing it only grows, but the first fit
+    /// after the panel opens may shrink it: the size it opened at was a guess, not this run's.
+    nonisolated static func shouldFit(target: CGFloat, current: CGFloat, running: Bool, fittedThisOpen: Bool) -> Bool {
+        if abs(target - current) < 1 { return false }
+        return !(running && fittedThisOpen && target < current)
     }
 
     private func keepClear(on visible: CGRect) -> CGRect? {

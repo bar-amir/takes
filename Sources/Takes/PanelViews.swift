@@ -787,7 +787,8 @@ struct TakesView: View {
             Spacer(minLength: 0)
             if model.running {
                 TimelineView(.periodic(from: model.startedAt, by: 0.1)) { context in
-                    Text(String(format: NSLocalizedString("Writing… %.1f s", comment: ""), locale: .current, context.date.timeIntervalSince(model.startedAt)))
+                    let seconds = String(format: NSLocalizedString("%.1f s", comment: "Seconds"), locale: .current, context.date.timeIntervalSince(model.startedAt))
+                    Text(model.retry.map { "\($0.label) · \(seconds)" } ?? String(format: NSLocalizedString("Writing… %.1f s", comment: ""), locale: .current, context.date.timeIntervalSince(model.startedAt)))
                         .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).monospacedDigit()
                 }
             } else if !model.timing.isEmpty {

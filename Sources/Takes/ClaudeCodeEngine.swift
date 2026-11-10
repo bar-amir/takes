@@ -96,6 +96,10 @@ struct ClaudeCodeEngine: TakesEngine {
                             if firstTextMs == nil { firstTextMs = elapsedMs() }
                             text += chunk
                             onUpdate(TakeSplitter.split(text, streaming: true))
+                        case "system":
+                            // Claude Code retries a rate-limited or overloaded request on its own, for a minute
+                            // or more, and says so only here.
+                            if let retry = Self.retry(from: json) { request.onRetry?(retry) }
                         case "result":
                             resultLine = json
                         default:
@@ -149,6 +153,13 @@ struct ClaudeCodeEngine: TakesEngine {
             stop.cancel()
         }
         return result
+    }
+
+    /// A `{"type":"system","subtype":"api_retry",…}` line: Claude Code is waiting to try the request again.
+    static func retry(from json: [String: Any]) -> EngineRetry? {
+        guard json["type"] as? String == "system", json["subtype"] as? String == "api_retry" else { return nil }
+        return EngineRetry(attempt: json["attempt"] as? Int ?? 1, maxAttempts: json["max_retries"] as? Int,
+                           status: json["error_status"] as? Int)
     }
 
     static let usageURL = URL(string: "https://claude.ai/settings/usage")!

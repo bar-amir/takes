@@ -41,6 +41,8 @@ final class PanelModel: ObservableObject {
     @Published var refineText = ""
     @Published var timing = ""
     @Published var startedAt = Date()
+    /// Set while the engine waits to try again, so the footer says why the run is slow.
+    @Published var retry: EngineRetry?
     /// The draft the shown takes were written from, for "Changes".
     @Published var sourceDraft = ""
 
@@ -311,7 +313,7 @@ final class PanelModel: ObservableObject {
     private func run(_ mode: PromptBuilder.Mode) {
         let draft = self.draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !draft.isEmpty else { return }
-        let request = EngineRequest(
+        var request = EngineRequest(
             system: PromptBuilder.system(preset: preset, takes: takeCount, rules: store.settings.voiceRules,
                                          hasContext: promptContext != nil),
             user: PromptBuilder.user(draft: draft, mode: mode, takes: takeCount, context: promptContext),
@@ -320,7 +322,14 @@ final class PanelModel: ObservableObject {
 
         runToken += 1
         let token = runToken
+        request.onRetry = { retry in
+            Task { @MainActor in
+                guard self.runToken == token, self.running else { return }
+                self.retry = retry
+            }
+        }
         running = true
+        retry = nil
         error = nil
         limit = nil
         takes = []

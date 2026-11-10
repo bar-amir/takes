@@ -6,6 +6,29 @@ struct EngineRequest {
     var takes: Int
     var model: String
     var effort: String
+    /// Called, off the main thread, each time the engine waits to try again (rate limited, overloaded, no answer),
+    /// so a slow run says why instead of looking stuck.
+    var onRetry: (@Sendable (EngineRetry) -> Void)? = nil
+}
+
+/// The engine is waiting to try the request again.
+struct EngineRetry: Equatable, Sendable {
+    var attempt: Int
+    var maxAttempts: Int?
+    /// The HTTP status that caused it, when there was one: 429 rate limited, 529 overloaded.
+    var status: Int?
+
+    /// Short, for the panel's footer: "Rate limited · retry 2 of 10".
+    var label: String {
+        let reason: String = switch status {
+        case 429: String(localized: "Rate limited")
+        case 529: String(localized: "Claude is busy")
+        case nil: String(localized: "No answer yet")
+        default: String(localized: "Server error")
+        }
+        let retry = maxAttempts.map { String(localized: "retry \(attempt) of \($0)") } ?? String(localized: "retry \(attempt)")
+        return "\(reason) · \(retry)"
+    }
 }
 
 struct EngineResult {

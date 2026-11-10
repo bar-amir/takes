@@ -400,6 +400,7 @@ private struct TryItPanel: View {
     @State private var sample = "ya thursday works but i need the specs by wed eod otherwise qa slips again"
     @State private var takes: [String] = []
     @State private var running = false
+    @State private var retry: EngineRetry?
     @State private var error: String?
 
     var body: some View {
@@ -416,7 +417,7 @@ private struct TryItPanel: View {
                         .accessibilityLabel("Sample draft")
                 }
                 Button(action: run) {
-                    Text(running ? "Writing…" : "Run with these settings").lineLimit(1).frame(maxWidth: .infinity)
+                    Text(running ? retry.map { "\($0.label)…" } ?? String(localized: "Writing…") : String(localized: "Run with these settings")).lineLimit(1).frame(maxWidth: .infinity)
                 }
                 .buttonStyle(PrimaryButtonStyle(height: 32))
                 .disabled(running || sample.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -441,12 +442,14 @@ private struct TryItPanel: View {
 
     private func run() {
         let store = Store.shared
-        let request = EngineRequest(
+        var request = EngineRequest(
             system: PromptBuilder.system(preset: preset, takes: preset.takes, rules: store.settings.voiceRules),
             user: PromptBuilder.user(draft: sample, mode: .fresh, takes: preset.takes),
             takes: preset.takes, model: preset.model, effort: preset.effort)
+        request.onRetry = { retry in Task { @MainActor in if running { self.retry = retry } } }
         let engine = Engines.current(store.settings)
         running = true
+        retry = nil
         error = nil
         takes = []
         Task { @MainActor in
