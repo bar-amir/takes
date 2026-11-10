@@ -99,14 +99,15 @@ final class ClaudeCodeRunTests: XCTestCase {
     }
 
     func testWorkFolderIsMadeAgainIfMacOSCleanedIt() async throws {
-        try? FileManager.default.removeItem(at: ClaudeCodeEngine.workFolder())
-        try? FileManager.default.removeItem(at: FileManager.default.temporaryDirectory.appendingPathComponent("takes-engine"))
-        let path = try fakeClaude(Self.result("Thursday works."))
-        let result = try await engine(path).run(Self.request) { _ in }
+        // A folder that isn't there yet, as after macOS cleared the temporary folder.
+        let work = folder.appendingPathComponent("work", isDirectory: true)
+        let path = try fakeClaude([Self.result("Thursday works."), "pwd > \"$dir/pwd\""].joined(separator: "\n"))
+        var engine = engine(path)
+        engine.workFolder = work
+        let result = try await engine.run(Self.request) { _ in }
         XCTAssertEqual(result.takes, ["Thursday works."])
-        var isFolder: ObjCBool = false
-        XCTAssertTrue(FileManager.default.fileExists(atPath: ClaudeCodeEngine.workFolder().path, isDirectory: &isFolder))
-        XCTAssertTrue(isFolder.boolValue)
+        let pwd = try String(contentsOf: folder.appendingPathComponent("pwd"), encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
+        XCTAssertEqual(URL(fileURLWithPath: pwd).resolvingSymlinksInPath(), work.resolvingSymlinksInPath())
     }
 
     // MARK: Cut short
@@ -175,7 +176,92 @@ final class ClaudeCodeRunTests: XCTestCase {
         let started = Date()
         let result = try await engine(path, idle: 2).run(Self.request) { _ in }
         XCTAssertLessThan(Date().timeIntervalSince(started), 10)
-        XCTAssertTrue(result.cutShort)
+        // Stopped right after a separator: the one take is whole.
+        XCTAssertEqual(result.takes, ["Thursday works."])
+        XCTAssertFalse(result.cutShort)
+    }
+
+    /// `claude` exits, but something it started ignores SIGTERM and keeps standard output open. The run must still
+    /// end, through the process group: the leader is gone, so only a group kill reaches the child.
+    func testAChildHoldingTheOutputCantKeepTheRunGoing() async throws {
+        let child = folder.appendingPathComponent("child")
+        let path = try fakeClaude([
+            "sh -c 'echo $$ > \"\(child.path)\"; trap \"\" TERM; exec sleep 60' &",
+            Self.delta("Thursday works."), Self.result("Thursday works."),
+            "exit 0",
+        ].joined(separator: "\n"))
+        let started = Date()
+        let result = try await engine(path).run(Self.request) { _ in }
+        XCTAssertLessThan(Date().timeIntervalSince(started), 8)
+        XCTAssertEqual(result.takes, ["Thursday works."])
+        try assertGone(child)
+        try assertPromptFileGone()
+    }
+
+    func testCancelEndsEvenWithAChildHoldingTheOutput() async throws {
+        let child = folder.appendingPathComponent("child")
+        let path = try fakeClaude([
+            "sh -c 'echo $$ > \"\(child.path)\"; trap \"\" TERM; exec sleep 60' &",
+            Self.delta("Thurs"), "exec sleep 60",
+        ].joined(separator: "\n"))
+        let task = Task { try await engine(path).run(Self.request) { _ in } }
+        try await Task.sleep(for: .milliseconds(500))
+        let cancelled = Date()
+        task.cancel()
+        do {
+            _ = try await task.value
+            XCTFail("should be cancelled")
+        } catch {
+            XCTAssertTrue(error is CancellationError, "\(error)")
+        }
+        XCTAssertLessThan(Date().timeIntervalSince(cancelled), 8)
+        try assertGone(child)
+        try assertPromptFileGone()
+    }
+
+    /// The group kill relies on this: `Process` makes each child the leader of a process group of its own.
+    func testProcessStartsItsChildInAGroupOfItsOwn() throws {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = ["-c", "ps -o pgid= -p $$"]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        try process.run()
+        process.waitUntilExit()
+        let pgid = Int32(String(decoding: pipe.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
+            .trimmingCharacters(in: .whitespacesAndNewlines))
+        XCTAssertEqual(pgid, process.processIdentifier)
+        XCTAssertNotEqual(pgid, getpgrp())
+    }
+
+    func testAnErrorPrintedBeforeAHangIsShown() async throws {
+        let path = try fakeClaude([Self.result("5-hour limit reached ∙ resets 3pm", isError: true), "exec sleep 30"].joined(separator: "\n"))
+        let message = await failure(engine(path, idle: 2))
+        XCTAssertEqual(message, "You've reached your Claude plan's usage limit. It resets at 3pm. Pick another engine to keep going.")
+    }
+
+    func testARefusalIsDeclinedEvenAfterSomeText() async throws {
+        let path = try fakeClaude([
+            Self.delta("Thursday works.\n===\nSure"),
+            Self.line(["type": "stream_event", "event": ["type": "message_delta", "delta": ["stop_reason": "refusal"]]]),
+            Self.result("Thursday works.\n===\nSure"),
+        ].joined(separator: "\n"))
+        let message = await failure(engine(path))
+        XCTAssertEqual(message, "Claude declined to rewrite this draft.")
+    }
+
+    /// The process `pidFile` names is gone within a few seconds.
+    private func assertGone(_ pidFile: URL, file: StaticString = #filePath, line: UInt = #line) throws {
+        let pid = try XCTUnwrap(Int32(String(contentsOf: pidFile, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)),
+                                file: file, line: line)
+        for _ in 0..<50 where kill(pid, 0) == 0 { Thread.sleep(forTimeInterval: 0.1) }
+        XCTAssertNotEqual(kill(pid, 0), 0, "the child is still running", file: file, line: line)
+    }
+
+    private func assertPromptFileGone(file: StaticString = #filePath, line: UInt = #line) throws {
+        let args = try String(contentsOf: folder.appendingPathComponent("args"), encoding: .utf8).split(separator: "\n").map(String.init)
+        let prompt = try XCTUnwrap(args.firstIndex(of: "--system-prompt-file").map { args[$0 + 1] }, file: file, line: line)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: prompt), file: file, line: line)
     }
 
     func testCancelStopsTheRun() async throws {
@@ -352,6 +438,19 @@ final class ShellLookupTests: XCTestCase {
             if kill(pid, 0) != 0 { gone.fulfill() }
         }
         wait(for: [gone], timeout: 6)
+    }
+
+    /// The shell ends on SIGTERM but a child it started ignores it: only the group kill reaches the child.
+    func testATimedOutLookupKillsWhatTheShellStarted() throws {
+        let marker = FileManager.default.temporaryDirectory.appendingPathComponent("shell-child-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: marker) }
+        let script = "sh -c 'echo $$ > \"\(marker.path)\"; trap \"\" TERM; exec sleep 60' & while true; do sleep 1; done"
+        let result = ClaudeLocator.shellPath(shell: "/bin/sh", arguments: ["-c", script], timeout: 1)
+        XCTAssertTrue(result.timedOut)
+        for _ in 0..<20 where !FileManager.default.fileExists(atPath: marker.path) { Thread.sleep(forTimeInterval: 0.1) }
+        let pid = try XCTUnwrap(Int32(String(contentsOf: marker, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)))
+        for _ in 0..<50 where kill(pid, 0) == 0 { Thread.sleep(forTimeInterval: 0.1) }
+        XCTAssertNotEqual(kill(pid, 0), 0, "the shell's child is still running")
     }
 
     func testAProgramLeftHoldingThePipeDoesNotHoldTheLookup() {

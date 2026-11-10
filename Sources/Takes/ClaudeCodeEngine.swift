@@ -17,10 +17,11 @@ struct ClaudeCodeEngine: TakesEngine {
     /// However much it prints, a run is stopped after this long.
     static let runTimeout: TimeInterval = 600
 
-    /// An empty folder, so Claude Code finds no CLAUDE.md or project settings. Made again before each launch:
-    /// macOS clears old files from the temporary folder.
-    static func workFolder() -> URL {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("takes-engine", isDirectory: true)
+    /// An empty folder, so Claude Code finds no CLAUDE.md or project settings.
+    static var defaultWorkFolder: URL { FileManager.default.temporaryDirectory.appendingPathComponent("takes-engine", isDirectory: true) }
+
+    /// `url`, made again before each launch: macOS clears old files from the temporary folder.
+    static func workFolder(_ url: URL = defaultWorkFolder) -> URL {
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
         return url
     }
@@ -31,6 +32,8 @@ struct ClaudeCodeEngine: TakesEngine {
     var executable: String?
     var idleLimit = ClaudeCodeEngine.idleTimeout
     var runLimit = ClaudeCodeEngine.runTimeout
+    /// Where `claude` runs (tests use their own folder).
+    var workFolder = ClaudeCodeEngine.defaultWorkFolder
 
     func run(_ request: EngineRequest, onUpdate: @escaping @Sendable ([String]) -> Void) async throws -> EngineResult {
         guard let claudePath = executable ?? Self.claudePath else {
@@ -64,7 +67,7 @@ struct ClaudeCodeEngine: TakesEngine {
             args += ["--tools", "", "--strict-mcp-config", "--setting-sources", ""]
         }
 
-        let process = Self.process(claudePath, args)
+        let process = Self.process(claudePath, args, in: workFolder)
         let stdin = Pipe(), stdout = Pipe(), stderr = Pipe()
         process.standardInput = stdin
         process.standardOutput = stdout
@@ -80,6 +83,8 @@ struct ClaudeCodeEngine: TakesEngine {
         let result: EngineResult = try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
                 DispatchQueue.global().async {
+                    let exited = DispatchSemaphore(value: 0)
+                    process.terminationHandler = { _ in exited.signal() }
                     do {
                         try process.run()
                     } catch {
@@ -101,32 +106,24 @@ struct ClaudeCodeEngine: TakesEngine {
                     // pipe while Takes waits for standard output to end. Only the end is kept.
                     let errors = PipeTail(stderr.fileHandleForReading, keep: 8_000) { stop.touch() }
 
-                    var stream = ClaudeStream()
-                    var buffer = Data()
-                    let reader = stdout.fileHandleForReading
-
-                    func handle(line: Data) {
-                        switch stream.read(line, elapsedMs: elapsedMs) {
-                        case .text: onUpdate(TakeSplitter.split(stream.text, streaming: true))
+                    let reader = ClaudeStreamReader(stdout.fileHandleForReading, elapsedMs: elapsedMs, onData: { stop.touch() }) { event, text in
+                        switch event {
+                        case .text: onUpdate(TakeSplitter.split(text, streaming: true))
                         case .retry(let retry): request.onRetry?(retry)
-                        case .none: break
                         }
                     }
 
-                    while true {
-                        let data = reader.availableData
-                        if data.isEmpty { break }
-                        stop.touch()
-                        buffer.append(data)
-                        while let newline = buffer.firstIndex(of: 0x0A) {
-                            handle(line: buffer[buffer.startIndex..<newline])
-                            buffer.removeSubrange(buffer.startIndex...newline)
-                        }
-                    }
-                    if !buffer.isEmpty { handle(line: buffer) }
-                    process.waitUntilExit()
+                    // The process ends on its own, or when the watchdog or a cancel stops it (SIGKILL in the end).
+                    exited.wait()
                     stop.finished()
-                    let errorOutput = errors.text(waiting: 2)
+                    // Something it started can keep standard output open after it's gone; that must not keep the
+                    // run going. Its process group is killed, and the run ends with what was read.
+                    if !reader.wait(2) {
+                        ProcessStopper.killGroup(process)
+                        _ = reader.wait(1)
+                    }
+                    let stream = reader.close()
+                    let errorOutput = errors.text(waiting: 1)
 
                     if stop.wasCancelled {
                         continuation.resume(throwing: CancellationError())
@@ -151,41 +148,50 @@ struct ClaudeCodeEngine: TakesEngine {
     static func outcome(of stream: ClaudeStream, expired: ProcessStopper.Expiry?, errorOutput: String, status: Int32,
                         signaled: Bool, wallMs: Int, idleLimit: TimeInterval = idleTimeout,
                         runLimit: TimeInterval = runTimeout) throws -> EngineResult {
+        let stopReason = stream.result?["stop_reason"] as? String ?? stream.stopReason
+        // Declined, with or without text so far: a partial answer from a refusal isn't a take.
+        if stopReason == "refusal" { throw EngineError.failed(APIEngine.declinedMessage) }
+        // A result line is the CLI's last word, even when it hung after printing it (a plan limit, say).
+        if let result = stream.result { return try finished(result, stream: stream, stopReason: stopReason, status: status, wallMs: wallMs) }
         if let expired {
             // The answer was done and only the CLI hung on exit: the takes are whole.
-            if stream.messageStopped, !APIEngine.ranOutOfRoom(stream.stopReason) {
+            if stream.messageStopped, !APIEngine.ranOutOfRoom(stopReason) {
                 let takes = TakeSplitter.split(stream.text, streaming: false)
                 if !takes.isEmpty { return EngineResult(takes: takes, wallMs: wallMs, firstTextMs: stream.firstTextMs) }
             }
             if TakeSplitter.hasWholeTake(stream.text) {
+                let cutShort = TakeSplitter.cutShort(stream.text, stoppedEarly: true)
                 return EngineResult(takes: TakeSplitter.split(stream.text, streaming: true), wallMs: wallMs,
-                                    firstTextMs: stream.firstTextMs, cutShort: true)
+                                    firstTextMs: stream.firstTextMs, cutShort: cutShort)
             }
             throw EngineError.failed(timeoutMessage(expired, idleLimit: idleLimit, runLimit: runLimit))
         }
-        guard let result = stream.result else {
-            throw EngineError.failed(failureMessage(errorOutput: errorOutput, stdoutNoise: stream.noise, status: status, signaled: signaled))
-        }
+        throw EngineError.failed(failureMessage(errorOutput: errorOutput, stdoutNoise: stream.noise, status: status, signaled: signaled))
+    }
+
+    private static func finished(_ result: [String: Any], stream: ClaudeStream, stopReason: String?, status: Int32,
+                                 wallMs: Int) throws -> EngineResult {
+        let ranOut = APIEngine.ranOutOfRoom(stopReason)
         if result["is_error"] as? Bool == true {
             // Claude Code calls a reply that hit its output cap an error; the takes written so far still count.
             let partial = TakeSplitter.split(stream.text, streaming: true)
-            if APIEngine.ranOutOfRoom(stream.stopReason), !partial.isEmpty {
-                return EngineResult(takes: partial, wallMs: wallMs, firstTextMs: stream.firstTextMs, cutShort: true)
+            if ranOut, !partial.isEmpty {
+                return EngineResult(takes: partial, wallMs: wallMs, firstTextMs: stream.firstTextMs,
+                                    cutShort: TakeSplitter.cutShort(stream.text, stoppedEarly: true))
             }
             throw resultError(resultMessage(result, status: status))
         }
-        let stopReason = result["stop_reason"] as? String ?? stream.stopReason
-        let cutShort = APIEngine.ranOutOfRoom(stopReason)
         // The result line holds the full text; prefer it over the streamed pieces, unless the answer was cut off
         // (the streamed text is then what the model wrote).
-        let text = cutShort && !stream.text.isEmpty ? stream.text : result["result"] as? String ?? stream.text
-        let takes = TakeSplitter.split(text, streaming: cutShort)
+        let text = ranOut && !stream.text.isEmpty ? stream.text : result["result"] as? String ?? stream.text
+        let takes = TakeSplitter.split(text, streaming: ranOut)
         guard !takes.isEmpty else {
             throw EngineError.failed(
-                cutShort ? String(localized: "Claude ran out of room before writing a take. Try again, or pick a lower effort.")
-                         : String(localized: "Claude returned no takes."))
+                ranOut ? String(localized: "Claude ran out of room before writing a take. Try again, or pick a lower effort.")
+                       : String(localized: "Claude returned no takes."))
         }
-        return EngineResult(takes: takes, wallMs: wallMs, firstTextMs: stream.firstTextMs, cutShort: cutShort)
+        return EngineResult(takes: takes, wallMs: wallMs, firstTextMs: stream.firstTextMs,
+                            cutShort: TakeSplitter.cutShort(text, stoppedEarly: ranOut))
     }
 
     static func timeoutMessage(_ expiry: ProcessStopper.Expiry, idleLimit: TimeInterval = idleTimeout,
@@ -502,14 +508,16 @@ struct ClaudeCodeEngine: TakesEngine {
             ProcessStopper.kill(process)
             return .timedOut
         }
-        return .output(output.text(waiting: 2))
+        // Something it started still holds the pipe: stop it, and go on with what was read.
+        if !output.wait(2) { ProcessStopper.killGroup(process) }
+        return .output(output.text(waiting: 0.5))
     }
 
-    static func process(_ path: String, _ arguments: [String]) -> Process {
+    static func process(_ path: String, _ arguments: [String], in folder: URL = defaultWorkFolder) -> Process {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: path)
         process.arguments = arguments
-        process.currentDirectoryURL = workFolder()
+        process.currentDirectoryURL = workFolder(folder)
         var env = ProcessInfo.processInfo.environment
         // Apps launched from Finder get a bare PATH; keep claude's own folder on it.
         let claudeDir = (path as NSString).deletingLastPathComponent
@@ -576,6 +584,53 @@ struct ClaudeStream {
     }
 }
 
+/// Reads `claude`'s standard output line by line on its own thread, so the run can stop waiting for it: a program
+/// `claude` started can hold the pipe open after `claude` is gone. Lines read after `close()` are dropped.
+final class ClaudeStreamReader: @unchecked Sendable {
+    private let lock = NSLock()
+    private var stream = ClaudeStream()
+    private var closed = false
+    private let group = DispatchGroup()
+
+    init(_ handle: FileHandle, elapsedMs: @escaping @Sendable () -> Int, onData: @escaping @Sendable () -> Void,
+         onEvent: @escaping @Sendable (ClaudeStream.Event, String) -> Void) {
+        group.enter()
+        DispatchQueue.global().async { [self] in
+            var buffer = Data()
+            func take(_ line: Data) {
+                // Under the lock, so nothing reaches the panel after `close()`.
+                self.lock.withLock {
+                    guard !self.closed, let event = self.stream.read(line, elapsedMs: elapsedMs) else { return }
+                    onEvent(event, self.stream.text)
+                }
+            }
+            while true {
+                let data = handle.availableData
+                if data.isEmpty { break }
+                onData()
+                buffer.append(data)
+                while let newline = buffer.firstIndex(of: 0x0A) {
+                    take(buffer[buffer.startIndex..<newline])
+                    buffer.removeSubrange(buffer.startIndex...newline)
+                }
+            }
+            if !buffer.isEmpty { take(buffer) }
+            group.leave()
+        }
+    }
+
+    /// Waits up to `seconds` for the end of the output; false if it hasn't ended.
+    func wait(_ seconds: TimeInterval) -> Bool { group.wait(timeout: .now() + seconds) == .success }
+
+    /// What was read; nothing more is passed on after this.
+    func close() -> ClaudeStream {
+        lock.withLock {
+            closed = true
+            return stream
+        }
+    }
+}
+
 /// The system prompt for one `claude` run, in a file only this user can read (0600) in a folder only this user can
 /// open (0700). It's passed with `--system-prompt-file`, so the prompt never shows in `ps`, and removed afterwards.
 enum PromptFile {
@@ -638,6 +693,9 @@ final class PipeTail: @unchecked Sendable {
             group.leave()
         }
     }
+
+    /// Waits up to `seconds` for the end; false if the pipe is still open.
+    func wait(_ seconds: TimeInterval) -> Bool { group.wait(timeout: .now() + seconds) == .success }
 
     /// What was read, after waiting up to `seconds` for the end: a process the writer started can keep the pipe open
     /// after the writer itself has exited, and that mustn't hold Takes up.
@@ -728,17 +786,22 @@ final class ProcessStopper: @unchecked Sendable {
         timer?.cancel()
     }
 
-    /// Asks the process to stop (SIGTERM). If it's still there a moment later, it and everything it started (its
-    /// process group: `Process` starts each child in a group of its own) are killed, so nothing keeps a pipe open.
+    /// Asks the process to stop (SIGTERM), then a moment later kills it and everything it started, whether or not
+    /// the process itself ended on the SIGTERM: a child that ignores it could otherwise keep a pipe open.
     static func kill(_ process: Process, grace: TimeInterval = 2) {
-        guard process.isRunning else { return }
+        guard process.processIdentifier > 1 else { return }
+        if process.isRunning { process.terminate() }
+        DispatchQueue.global().asyncAfter(deadline: .now() + grace) { killGroup(process) }
+    }
+
+    /// SIGKILL to the process and its process group. `Process` starts each child as the leader of a group of its own
+    /// (pgid == pid; `ClaudeCodeRunTests.testProcessStartsItsChildInAGroupOfItsOwn`), so this reaches what it started
+    /// and nothing of Takes. Never for a process that wasn't started: `kill(0)` or `kill(-1)` would reach far more.
+    static func killGroup(_ process: Process) {
         let pid = process.processIdentifier
-        process.terminate()
-        DispatchQueue.global().asyncAfter(deadline: .now() + grace) {
-            guard process.isRunning else { return }
-            Darwin.kill(-pid, SIGKILL)
-            Darwin.kill(pid, SIGKILL)
-        }
+        guard pid > 1, pid != getpid(), pid != getpgrp() else { return }
+        Darwin.kill(-pid, SIGKILL)
+        if process.isRunning { Darwin.kill(pid, SIGKILL) }
     }
 }
 
@@ -880,7 +943,9 @@ final class ClaudeLocator: @unchecked Sendable {
             ProcessStopper.kill(shell, grace: 0.5)
             return (nil, true)
         }
-        return (parse(output.text(waiting: 0.5)), false)
+        // A program the shell's startup files left running with the pipe open: stop it, and go on with what was read.
+        if !output.wait(0.5) { ProcessStopper.killGroup(shell) }
+        return (parse(output.text(waiting: 0.2)), false)
     }
 
     /// The path in `command -v` output: the last line, or the target of an `alias claude=…`.
