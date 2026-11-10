@@ -265,6 +265,8 @@
 "Copy “%@”" = "Copiați „%@”";
 "Costs" = "Costă";
 "Couldn't check the tone: %@" = "Nu s-a putut verifica tonul: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "Caseta de text din %@ nu a putut fi confirmată, așa că nu s-a lipit nimic.";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "Caseta de text din %@ nu a putut fi confirmată. Varianta %lld este în clipboard: apăsați ⌘V";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Comanda `claude` nu a fost găsită. Instalați Claude Code sau treceți la o cheie API în Configurări › Model.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Nu s-a putut reveni la %@. Varianta %lld este în clipboard: apăsați ⌘V";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "Nu s-a putut reveni la %@. Varianta este în clipboard: apăsați ⌘V.";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "Raportați o problemă…";
 "Report…" = "Raportați…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Caseta de text din %@ s-a schimbat în timp ce Takes scria, așa că nu s-a lipit nimic.";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "Caseta de text din %@ s-a schimbat. Varianta %lld este în clipboard: apăsați ⌘V";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "Caseta de text din %@ conține prea mult text pentru a fi rescris deodată. Selectați partea dorită și încercați din nou.";
 "The text is too long. Select part of it first" = "Textul e prea lung. Selectați mai întâi o parte";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "Claude Code s-a instalat, dar Takes nu îl găsește. Închideți și redeschideți Takes, apoi încercați din nou.";

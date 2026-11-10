@@ -265,6 +265,8 @@
 "Copy “%@”" = "„%@” másolása";
 "Costs" = "Költség";
 "Couldn't check the tone: %@" = "Nem sikerült ellenőrizni a hangnemet: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "A szövegmezőt itt nem sikerült megerősíteni: %@, ezért semmi sem lett beillesztve.";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "A szövegmezőt itt nem sikerült megerősíteni: %@. A(z) %lld. változat a vágólapon van: nyomja meg a ⌘V billentyűt";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "A `claude` parancs nem található. Telepítse a Claude Code-ot, vagy váltson API-kulcsra a Beállítások › Modell lapon.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Nem sikerült visszatérni ide: %@. A(z) %lld. változat a vágólapon van: nyomja meg a ⌘V billentyűt";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "Nem sikerült visszatérni ide: %@. A változat a vágólapon van: nyomja meg a ⌘V billentyűt.";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "Probléma jelentése…";
 "Report…" = "Jelentés…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "A szövegmező megváltozott itt: %@, miközben a Takes írt, ezért semmi sem lett beillesztve.";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "A szövegmező megváltozott itt: %@. A(z) %lld. változat a vágólapon van: nyomja meg a ⌘V billentyűt";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "Ebben a szövegmezőben (%@) túl sok a szöveg az egyszerre történő átíráshoz. Jelölje ki a kívánt részt, és próbálja újra.";
 "The text is too long. Select part of it first" = "A szöveg túl hosszú. Előbb jelöljön ki egy részt";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "A Claude Code telepítve lett, de a Takes nem találja. Lépjen ki a Takesből, nyissa meg újra, majd próbálja újra.";

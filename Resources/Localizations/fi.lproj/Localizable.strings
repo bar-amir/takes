@@ -265,6 +265,8 @@
 "Copy “%@”" = "Kopioi “%@”";
 "Costs" = "Hinta";
 "Couldn't check the tone: %@" = "Sävyä ei voitu tarkistaa: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "Kohteen %@ tekstikenttää ei voitu vahvistaa, joten mitään ei liitetty.";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "Kohteen %@ tekstikenttää ei voitu vahvistaa. Versio %lld on leikepöydällä: paina ⌘V";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Komentoa `claude` ei löytynyt. Asenna Claude Code tai vaihda API-avaimeen kohdassa Asetukset › Malli.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Paluu kohteeseen %@ ei onnistunut. Versio %lld on leikepöydällä: paina ⌘V";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "Paluu kohteeseen %@ ei onnistunut. Versio on leikepöydällä: paina ⌘V.";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "Ilmoita ongelmasta…";
 "Report…" = "Ilmoita…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Tekstikenttä kohteessa %@ muuttui, kun Takes kirjoitti, joten mitään ei liitetty.";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "Tekstikenttä kohteessa %@ muuttui. Versio %lld on leikepöydällä: paina ⌘V";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "Tekstikentässä kohteessa %@ on liikaa tekstiä kirjoitettavaksi uudelleen kerralla. Valitse haluamasi osa ja yritä uudelleen.";
 "The text is too long. Select part of it first" = "Teksti on liian pitkä. Valitse ensin osa siitä";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "Claude Code on asennettu, mutta Takes ei löydä sitä. Lopeta Takes ja avaa se uudelleen, ja yritä sitten uudelleen.";

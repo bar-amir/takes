@@ -265,6 +265,8 @@
 "Copy “%@”" = "“%@” kopyala";
 "Costs" = "Maliyet";
 "Couldn't check the tone: %@" = "Ton kontrol edilemedi: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "%@ uygulamasındaki metin kutusu doğrulanamadı, bu yüzden hiçbir şey yapıştırılmadı.";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "%@ uygulamasındaki metin kutusu doğrulanamadı. %lld. öneri panoda: ⌘V tuşuna basın";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "`claude` komutu bulunamadı. Claude Code’u yükleyin ya da Ayarlar › Model’de API anahtarına geçin.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "%@ uygulamasına geri dönülemedi. %lld. öneri panoda: ⌘V tuşuna basın";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "%@ uygulamasına geri dönülemedi. Öneri panoda: ⌘V tuşuna basın.";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "Sorun Bildir…";
 "Report…" = "Bildir…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Takes yazarken %@ içindeki metin kutusu değişti, bu yüzden hiçbir şey yapıştırılmadı.";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "%@ uygulamasındaki metin kutusu değişti. %lld. öneri panoda: ⌘V tuşuna basın";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "%@ uygulamasındaki metin kutusunda tek seferde yeniden yazılamayacak kadar çok metin var. İstediğiniz bölümü seçip yeniden deneyin.";
 "The text is too long. Select part of it first" = "Metin çok uzun. Önce bir kısmını seçin";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "Claude Code yüklendi ama Takes onu bulamıyor. Takes’ten çıkıp yeniden açın, sonra yeniden deneyin.";

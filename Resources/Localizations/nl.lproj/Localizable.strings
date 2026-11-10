@@ -265,6 +265,8 @@
 "Copy “%@”" = "Kopieer ‘%@’";
 "Costs" = "Kost";
 "Couldn't check the tone: %@" = "Kon de toon niet controleren: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "Het tekstvak in %@ kon niet worden bevestigd, dus er is niets geplakt.";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "Het tekstvak in %@ kon niet worden bevestigd. Versie %lld staat op het klembord: druk op ⌘V";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Kan de opdracht `claude` niet vinden. Installeer Claude Code, of stap over op een API-sleutel in Instellingen › Model.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Kon niet terug naar %@. Versie %lld staat op het klembord: druk op ⌘V";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "Kon niet terug naar %@. De versie staat op het klembord: druk op ⌘V.";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "Meld een probleem…";
 "Report…" = "Meld…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Het tekstvak in %@ is veranderd terwijl Takes aan het schrijven was, dus er is niets geplakt.";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "Het tekstvak in %@ is gewijzigd. Versie %lld staat op het klembord: druk op ⌘V";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "Het tekstvak in %@ bevat te veel tekst om in één keer te herschrijven. Selecteer het deel dat je wilt en probeer het opnieuw.";
 "The text is too long. Select part of it first" = "De tekst is te lang. Selecteer eerst een deel";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "Claude Code is geïnstalleerd, maar Takes kan het niet vinden. Stop Takes en open het opnieuw, en probeer het dan nog eens.";

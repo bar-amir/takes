@@ -265,6 +265,8 @@
 "Copy “%@”" = "“%@” కాపీ చేయి";
 "Costs" = "ఖర్చు";
 "Couldn't check the tone: %@" = "టోన్‌ను తనిఖీ చేయలేకపోయింది: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "%@ లోని టెక్స్ట్ బాక్స్‌ను నిర్ధారించడం సాధ్యం కాలేదు, కాబట్టి ఏదీ పేస్ట్ కాలేదు.";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "%@ లోని టెక్స్ట్ బాక్స్‌ను నిర్ధారించడం సాధ్యం కాలేదు. రూపం %lld క్లిప్‌బోర్డ్‌లో ఉంది: ⌘V నొక్కండి";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "`claude` కమాండ్ కనిపించలేదు. Claude Code ఇన్‌స్టాల్ చేయండి, లేదా సెట్టింగ్‌లు › మోడల్‌లో API కీకి మారండి.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "%@ కు తిరిగి వెళ్లలేకపోయింది. రూపం %lld క్లిప్‌బోర్డ్‌లో ఉంది: ⌘V నొక్కండి";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "%@ కు తిరిగి వెళ్లలేకపోయింది. రూపం క్లిప్‌బోర్డ్‌లో ఉంది: ⌘V నొక్కండి.";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "సమస్యను నివేదించు…";
 "Report…" = "నివేదించు…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Takes రాస్తున్నప్పుడు %@ లోని టెక్స్ట్ బాక్స్ మారింది, కాబట్టి ఏదీ పేస్ట్ కాలేదు.";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "%@ లోని టెక్స్ట్ బాక్స్ మారింది. రూపం %lld క్లిప్‌బోర్డ్‌లో ఉంది: ⌘V నొక్కండి";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "%@ లోని టెక్స్ట్ బాక్స్‌లో ఒకేసారి తిరిగి రాయడానికి చాలా ఎక్కువ టెక్స్ట్ ఉంది. మీకు కావలసిన భాగాన్ని ఎంచుకుని మళ్లీ ప్రయత్నించండి.";
 "The text is too long. Select part of it first" = "టెక్స్ట్ చాలా పొడవుగా ఉంది. ముందుగా కొంత భాగాన్ని ఎంచుకోండి";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "Claude Code ఇన్‌స్టాల్ అయింది, కానీ Takes దాన్ని కనుగొనలేకపోతోంది. Takesను మూసివేసి మళ్లీ తెరవండి, ఆపై మళ్లీ ప్రయత్నించండి.";

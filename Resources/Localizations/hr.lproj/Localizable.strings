@@ -265,6 +265,8 @@
 "Copy “%@”" = "Kopiraj „%@”";
 "Costs" = "Košta";
 "Couldn't check the tone: %@" = "Provjera tona nije uspjela: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "Tekstno polje u aplikaciji %@ nije moguće potvrditi, pa ništa nije zalijepljeno.";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "Tekstno polje u %@ nije moguće potvrditi. Varijanta %lld je u međuspremniku: pritisnite ⌘V";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Naredba `claude` nije pronađena. Instalirajte Claude Code ili prijeđite na API ključ u Postavkama › Model.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Povratak u %@ nije uspio. Varijanta %lld je u međuspremniku: pritisnite ⌘V";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "Povratak u %@ nije uspio. Varijanta je u međuspremniku: pritisnite ⌘V.";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "Prijavi problem…";
 "Report…" = "Prijavi…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Tekstno polje u aplikaciji %@ promijenilo se dok je Takes pisao, pa ništa nije zalijepljeno.";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "Tekstno polje u %@ promijenilo se. Varijanta %lld je u međuspremniku: pritisnite ⌘V";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "Tekstno polje u %@ ima previše teksta za preradu odjednom. Označite dio koji želite i pokušajte ponovno.";
 "The text is too long. Select part of it first" = "Tekst je predug. Najprije označite dio";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "Claude Code je instaliran, ali ga Takes ne može pronaći. Zatvorite Takes, ponovno ga otvorite i pokušajte ponovno.";

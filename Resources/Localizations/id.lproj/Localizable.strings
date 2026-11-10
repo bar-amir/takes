@@ -265,6 +265,8 @@
 "Copy “%@”" = "Salin “%@”";
 "Costs" = "Biaya";
 "Couldn't check the tone: %@" = "Tidak dapat memeriksa nada: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "Tidak dapat memastikan kotak teks di %@, jadi tidak ada yang ditempel.";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "Tidak dapat memastikan kotak teks di %@. Versi %lld ada di papan klip: tekan ⌘V";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Perintah `claude` tidak ditemukan. Instal Claude Code, atau beralih ke kunci API di Pengaturan › Model.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Tidak dapat kembali ke %@. Versi %lld ada di papan klip: tekan ⌘V";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "Tidak dapat kembali ke %@. Versi ada di papan klip: tekan ⌘V.";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "Laporkan Masalah…";
 "Report…" = "Laporkan…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Kotak teks di %@ berubah saat Takes sedang menulis, jadi tidak ada yang ditempel.";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "Kotak teks di %@ berubah. Versi %lld ada di papan klip: tekan ⌘V";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "Kotak teks di %@ berisi terlalu banyak teks untuk ditulis ulang sekaligus. Pilih bagian yang Anda inginkan dan coba lagi.";
 "The text is too long. Select part of it first" = "Teks terlalu panjang. Pilih sebagian dulu";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "Claude Code sudah terinstal, tetapi Takes tidak dapat menemukannya. Keluar dan buka lagi Takes, lalu coba lagi.";

@@ -265,6 +265,8 @@
 "Copy “%@”" = "کپی «%@»";
 "Costs" = "هزینه";
 "Couldn't check the tone: %@" = "لحن بررسی نشد: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "تأیید کادر متنی در %@ ممکن نبود، پس چیزی جای‌گذاری نشد.";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "تأیید کادر متنی در %@ ممکن نبود. نسخهٔ %lld در کلیپ‌بورد است: ⁦⌘V⁩ را بزنید";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "فرمان `claude` پیدا نشد. Claude Code را نصب کنید، یا در تنظیمات › مدل به کلید API بروید.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "بازگشت به %@ ممکن نشد. نسخهٔ %lld در کلیپ‌بورد است: ⁦⌘V⁩ را بزنید";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "بازگشت به %@ ممکن نشد. نسخه در کلیپ‌بورد است: ⁦⌘V⁩ را بزنید.";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "گزارش مشکل…";
 "Report…" = "گزارش…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "کادر متن در %@ هنگام نوشتن Takes تغییر کرد، پس چیزی جای‌گذاری نشد.";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "کادر متنی در %@ تغییر کرد. نسخهٔ %lld در کلیپ‌بورد است: ⁦⌘V⁩ را بزنید";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "کادر متنی در %@ بیش از حد متن دارد و یک‌جا بازنویسی نمی‌شود. بخشی را که می‌خواهید انتخاب کنید و دوباره امتحان کنید.";
 "The text is too long. Select part of it first" = "متن خیلی طولانی است. ابتدا بخشی از آن را انتخاب کنید";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "‏Claude Code نصب شد، اما Takes آن را پیدا نمی‌کند. از Takes خارج شوید و دوباره بازش کنید، سپس دوباره امتحان کنید.";

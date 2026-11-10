@@ -265,6 +265,8 @@
 "Copy “%@”" = "Copiar “%@”";
 "Costs" = "Custa";
 "Couldn't check the tone: %@" = "Não foi possível verificar o tom: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "Não foi possível confirmar a caixa de texto em %@, então nada foi colado.";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "Não foi possível confirmar a caixa de texto em %@. A versão %lld está na área de transferência: pressione ⌘V";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Não foi possível encontrar o comando `claude`. Instale o Claude Code ou mude para uma chave de API em Ajustes › Modelo.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Não foi possível voltar para %@. A versão %lld está na área de transferência: pressione ⌘V";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "Não foi possível voltar para %@. A versão está na área de transferência: pressione ⌘V.";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "Relatar um problema…";
 "Report…" = "Relatar…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "A caixa de texto em %@ mudou enquanto o Takes escrevia, então nada foi colado.";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "A caixa de texto em %@ mudou. A versão %lld está na área de transferência: pressione ⌘V";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "A caixa de texto em %@ tem texto demais para reescrever de uma vez. Selecione a parte que quer e tente de novo.";
 "The text is too long. Select part of it first" = "Texto longo demais. Selecione uma parte primeiro";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "O Claude Code foi instalado, mas o Takes não o encontra. Encerre e reabra o Takes e tente de novo.";

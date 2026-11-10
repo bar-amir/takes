@@ -265,6 +265,8 @@
 "Copy “%@”" = "Скопировать «%@»";
 "Costs" = "Стоит";
 "Couldn't check the tone: %@" = "Не удалось проверить тон: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "Не удалось подтвердить текстовое поле в %@, поэтому ничего не вставлено.";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "Не удалось подтвердить текстовое поле в %@. Вариант %lld в буфере обмена: нажмите ⌘V";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Команда `claude` не найдена. Установите Claude Code или перейдите на ключ API в разделе «Настройки › Модель».";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Не удалось вернуться в %@. Вариант %lld в буфере обмена: нажмите ⌘V";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "Не удалось вернуться в %@. Вариант в буфере обмена: нажмите ⌘V.";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "Сообщить о проблеме…";
 "Report…" = "Сообщить…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Текстовое поле в %@ изменилось, пока Takes писал, поэтому ничего не вставлено.";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "Текстовое поле в %@ изменилось. Вариант %lld в буфере обмена: нажмите ⌘V";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "Текстовое поле в %@ содержит слишком много текста, чтобы переписать его целиком. Выделите нужную часть и повторите.";
 "The text is too long. Select part of it first" = "Текст слишком длинный. Сначала выделите часть";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "Claude Code установлен, но Takes не может его найти. Закройте и снова откройте Takes, затем повторите.";

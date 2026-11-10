@@ -265,6 +265,8 @@
 "Copy “%@”" = "“%@” 복사";
 "Costs" = "비용";
 "Couldn't check the tone: %@" = "어조를 확인할 수 없습니다: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "%@의 텍스트 상자를 확인할 수 없어 아무것도 붙여넣지 않았습니다.";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "%@의 텍스트 상자를 확인할 수 없습니다. 버전 %lld이(가) 클립보드에 있습니다. ⌘V를 누르세요";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "`claude` 명령어를 찾을 수 없습니다. Claude Code를 설치하거나 설정 › 모델에서 API 키로 전환하세요.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "%@(으)로 돌아갈 수 없습니다. 버전 %lld이(가) 클립보드에 있습니다. ⌘V를 누르세요";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "%@(으)로 돌아갈 수 없습니다. 버전이 클립보드에 있습니다. ⌘V를 누르세요.";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "문제 보고…";
 "Report…" = "보고…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Takes가 작성하는 동안 %@의 텍스트 상자가 바뀌어 아무것도 붙여넣지 않았습니다.";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "%@의 텍스트 상자가 바뀌었습니다. 버전 %lld이(가) 클립보드에 있습니다. ⌘V를 누르세요";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "%@의 텍스트 상자에 한 번에 다시 쓰기에는 텍스트가 너무 많습니다. 원하는 부분을 선택하고 다시 시도하세요.";
 "The text is too long. Select part of it first" = "텍스트가 너무 깁니다. 먼저 일부를 선택하세요";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "Claude Code가 설치되었지만 Takes가 찾지 못합니다. Takes를 종료했다가 다시 열고 다시 시도하세요.";

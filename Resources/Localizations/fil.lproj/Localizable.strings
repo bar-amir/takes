@@ -265,6 +265,8 @@
 "Copy “%@”" = "Kopyahin ang “%@”";
 "Costs" = "Gastos";
 "Couldn't check the tone: %@" = "Hindi masuri ang tono: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "Hindi makumpirma ang text box sa %@, kaya walang na-paste.";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "Hindi makumpirma ang text box sa %1$@. Nasa clipboard ang bersyon %2$lld: pindutin ang ⌘V";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Hindi mahanap ang `claude` command. I-install ang Claude Code, o lumipat sa API key sa Settings › Modelo.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Hindi makabalik sa %1$@. Nasa clipboard ang bersyon %2$lld: pindutin ang ⌘V";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "Hindi makabalik sa %@. Nasa clipboard ang bersyon: pindutin ang ⌘V.";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "Mag-ulat ng Problema…";
 "Report…" = "Mag-ulat…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Nagbago ang text box sa %@ habang nagsusulat ang Takes, kaya walang na-paste.";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "Nagbago ang text box sa %1$@. Nasa clipboard ang bersyon %2$lld: pindutin ang ⌘V";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "Masyadong maraming text ang text box sa %@ para maisulat muli nang sabay-sabay. Piliin ang bahaging gusto mo at subukan ulit.";
 "The text is too long. Select part of it first" = "Masyadong mahaba ang text. Piliin muna ang bahagi nito";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "Naka-install na ang Claude Code, pero hindi ito mahanap ng Takes. I-quit at buksan ulit ang Takes, saka subukan ulit.";

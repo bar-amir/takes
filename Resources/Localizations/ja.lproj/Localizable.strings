@@ -265,6 +265,8 @@
 "Copy “%@”" = "「%@」をコピー";
 "Costs" = "費用";
 "Couldn't check the tone: %@" = "トーンをチェックできませんでした: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "%@のテキストボックスを確認できなかったため、何も貼り付けていません。";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "%@のテキストボックスを確認できませんでした。案%lldはクリップボードにあります: ⌘Vを押してください";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "`claude`コマンドが見つかりません。Claude Codeをインストールするか、設定 › モデルでAPIキーに切り替えてください。";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "%@に戻れませんでした。案%lldはクリップボードにあります: ⌘Vを押してください";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "%@に戻れませんでした。案はクリップボードにあります: ⌘Vを押してください。";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "問題を報告…";
 "Report…" = "報告…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Takesが書いている間に%@のテキストボックスが変わったため、何も貼り付けていません。";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "%@のテキストボックスが変わりました。案%lldはクリップボードにあります: ⌘Vを押してください";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "%@のテキストボックスは文章が多すぎて、一度に書き直せません。必要な部分を選択して、もう一度お試しください。";
 "The text is too long. Select part of it first" = "テキストが長すぎます。先に一部を選択してください";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "Claude Codeはインストールされましたが、Takesが見つけられません。Takesを終了して再度開いてから、もう一度お試しください。";

@@ -265,6 +265,8 @@
 "Copy “%@”" = "Kopeeri “%@”";
 "Costs" = "Hind";
 "Couldn't check the tone: %@" = "Tooni ei saanud kontrollida: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "Rakenduse %@ tekstivälja ei saanud kinnitada, seega midagi ei kleebitud.";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "Rakenduse %@ tekstivälja ei saanud kinnitada. Variant %lld on lõikelaual: vajutage ⌘V";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Käsku `claude` ei leitud. Installige Claude Code või minge üle API-võtmele: Seaded › Mudel.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Rakendusse %@ ei saanud naasta. Variant %lld on lõikelaual: vajutage ⌘V";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "Rakendusse %@ ei saanud naasta. Variant on lõikelaual: vajutage ⌘V.";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "Teata probleemist…";
 "Report…" = "Teata…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Rakenduse %@ tekstiväli muutus, kui Takes kirjutas, seega midagi ei kleebitud.";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "Tekstiväli rakenduses %@ muutus. Variant %lld on lõikelaual: vajutage ⌘V";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "Rakenduse %@ tekstiväljal on liiga palju teksti, et seda korraga ümber kirjutada. Valige soovitud osa ja proovige uuesti.";
 "The text is too long. Select part of it first" = "Tekst on liiga pikk. Valige esmalt osa sellest";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "Claude Code on installitud, kuid Takes ei leia seda. Sulgege Takes ja avage see uuesti, seejärel proovige uuesti.";

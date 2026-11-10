@@ -265,6 +265,8 @@
 "Copy “%@”" = "Copier « %@ »";
 "Costs" = "Coût";
 "Couldn't check the tone: %@" = "Impossible de vérifier le ton : %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "Impossible de confirmer le champ de texte de %@, rien n’a donc été collé.";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "Impossible de confirmer le champ de texte de %@. La variante %lld est dans le presse-papiers : appuyez sur ⌘V";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Commande `claude` introuvable. Installez Claude Code ou passez à une clé API dans Réglages › Modèle.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Impossible de revenir à %@. La variante %lld est dans le presse-papiers : appuyez sur ⌘V";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "Impossible de revenir à %@. La variante est dans le presse-papiers : appuyez sur ⌘V.";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "Signaler un problème…";
 "Report…" = "Signaler…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Le champ de texte de %@ a changé pendant que Takes écrivait, rien n’a donc été collé.";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "Le champ de texte de %@ a changé. La variante %lld est dans le presse-papiers : appuyez sur ⌘V";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "Le champ de texte de %@ contient trop de texte pour être réécrit d’un coup. Sélectionnez la partie voulue et réessayez.";
 "The text is too long. Select part of it first" = "Texte trop long. Sélectionnez-en d’abord une partie";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "Claude Code est installé, mais Takes ne le trouve pas. Quittez et rouvrez Takes, puis réessayez.";

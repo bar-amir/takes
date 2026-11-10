@@ -265,6 +265,8 @@
 "Copy “%@”" = "“%@” कॉपी करें";
 "Costs" = "खर्च";
 "Couldn't check the tone: %@" = "लहजा नहीं जाँच सके: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "%@ में टेक्स्ट बॉक्स की पुष्टि नहीं हो सकी, इसलिए कुछ भी पेस्ट नहीं हुआ।";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "%@ में टेक्स्ट बॉक्स की पुष्टि नहीं हो सकी। विकल्प %lld क्लिपबोर्ड पर है: ⌘V दबाएँ";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "`claude` कमांड नहीं मिला। Claude Code इंस्टॉल करें, या सेटिंग्स › मॉडल में API की पर स्विच करें।";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "%1$@ पर वापस नहीं जा सके। विकल्प %2$lld क्लिपबोर्ड पर है: ⌘V दबाएँ";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "%@ पर वापस नहीं जा सके। विकल्प क्लिपबोर्ड पर है: ⌘V दबाएँ।";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "समस्या की रिपोर्ट करें…";
 "Report…" = "रिपोर्ट करें…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Takes के लिखते समय %@ में टेक्स्ट बॉक्स बदल गया, इसलिए कुछ भी पेस्ट नहीं हुआ।";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "%@ में टेक्स्ट बॉक्स बदल गया। विकल्प %lld क्लिपबोर्ड पर है: ⌘V दबाएँ";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "%@ के टेक्स्ट बॉक्स में एक साथ दोबारा लिखने के लिए बहुत ज़्यादा टेक्स्ट है। जो हिस्सा चाहिए उसे चुनें और फिर कोशिश करें।";
 "The text is too long. Select part of it first" = "टेक्स्ट बहुत लंबा है। पहले कुछ हिस्सा चुनें";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "Claude Code इंस्टॉल हो गया, पर Takes उसे ढूँढ नहीं पा रहा। Takes बंद करके फिर से खोलें, फिर कोशिश करें।";

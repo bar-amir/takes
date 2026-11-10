@@ -265,6 +265,8 @@
 "Copy “%@”" = "คัดลอก “%@”";
 "Costs" = "ค่าใช้จ่าย";
 "Couldn't check the tone: %@" = "ตรวจน้ำเสียงไม่ได้: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "ยืนยันช่องข้อความใน %@ ไม่ได้ จึงไม่มีการวาง";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "ยืนยันช่องข้อความใน %@ ไม่ได้ แบบที่ %lld อยู่ในคลิปบอร์ด: กด ⌘V";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "ไม่พบคำสั่ง `claude` ติดตั้ง Claude Code หรือเปลี่ยนไปใช้คีย์ API ในการตั้งค่า › โมเดล";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "กลับไปที่ %@ ไม่ได้ แบบที่ %lld อยู่ในคลิปบอร์ด: กด ⌘V";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "กลับไปที่ %@ ไม่ได้ ข้อความอยู่ในคลิปบอร์ด: กด ⌘V";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "รายงานปัญหา…";
 "Report…" = "รายงาน…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "ช่องข้อความใน %@ เปลี่ยนไประหว่างที่ Takes กำลังเขียน จึงไม่มีการวาง";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "ช่องข้อความใน %@ เปลี่ยนไป แบบที่ %lld อยู่ในคลิปบอร์ด: กด ⌘V";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "ช่องข้อความใน %@ มีข้อความมากเกินกว่าจะเขียนใหม่ทีเดียว เลือกส่วนที่ต้องการแล้วลองอีกครั้ง";
 "The text is too long. Select part of it first" = "ข้อความยาวเกินไป เลือกบางส่วนก่อน";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "ติดตั้ง Claude Code แล้ว แต่ Takes หาไม่เจอ ออกจาก Takes แล้วเปิดใหม่ จากนั้นลองอีกครั้ง";

@@ -265,6 +265,8 @@
 "Copy “%@”" = "Kopijuoti „%@“";
 "Costs" = "Kainuoja";
 "Couldn't check the tone: %@" = "Nepavyko patikrinti tono: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "Teksto lauko programoje %@ nepavyko patvirtinti, todėl nieko neįklijuota.";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "Teksto lauko programoje %@ nepavyko patvirtinti. Variantas %lld yra iškarpinėje: paspauskite ⌘V";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Nepavyko rasti komandos `claude`. Įdiekite Claude Code arba pereikite prie API rakto skiltyje Nustatymai › Modelis.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Nepavyko grįžti į %@. Variantas %lld yra iškarpinėje: paspauskite ⌘V";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "Nepavyko grįžti į %@. Variantas yra iškarpinėje: paspauskite ⌘V.";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "Pranešti apie problemą…";
 "Report…" = "Pranešti…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Teksto laukas programoje %@ pasikeitė, kol Takes rašė, todėl nieko neįklijuota.";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "Teksto laukas programoje %@ pasikeitė. Variantas %lld yra iškarpinėje: paspauskite ⌘V";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "Teksto lauke programoje %@ per daug teksto, kad jį būtų galima perrašyti iš karto. Pažymėkite norimą dalį ir bandykite dar kartą.";
 "The text is too long. Select part of it first" = "Tekstas per ilgas. Pirmiausia pažymėkite jo dalį";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "Claude Code įdiegtas, bet Takes jo neranda. Išeikite iš Takes ir vėl jį atidarykite, tada bandykite dar kartą.";

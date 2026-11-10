@@ -265,6 +265,8 @@
 "Copy “%@”" = "Salin “%@”";
 "Costs" = "Kos";
 "Couldn't check the tone: %@" = "Tidak dapat menyemak nada: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "Kotak teks dalam %@ tidak dapat disahkan, jadi tiada apa-apa ditampal.";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "Kotak teks dalam %@ tidak dapat disahkan. Versi %lld ada dalam papan klip: tekan ⌘V";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Arahan `claude` tidak ditemui. Pasang Claude Code, atau tukar kepada kunci API dalam Seting › Model.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Tidak dapat kembali ke %@. Versi %lld ada dalam papan klip: tekan ⌘V";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "Tidak dapat kembali ke %@. Versi ada dalam papan klip: tekan ⌘V.";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "Laporkan Masalah…";
 "Report…" = "Laporkan…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Kotak teks dalam %@ berubah semasa Takes sedang menulis, jadi tiada apa-apa ditampal.";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "Kotak teks dalam %@ berubah. Versi %lld ada dalam papan klip: tekan ⌘V";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "Kotak teks dalam %@ mempunyai terlalu banyak teks untuk ditulis semula sekali gus. Pilih bahagian yang anda mahu dan cuba lagi.";
 "The text is too long. Select part of it first" = "Teks terlalu panjang. Pilih sebahagian dahulu";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "Claude Code telah dipasang, tetapi Takes tidak dapat menemuinya. Keluar dan buka semula Takes, kemudian cuba lagi.";

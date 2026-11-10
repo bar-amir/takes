@@ -265,6 +265,8 @@
 "Copy “%@”" = "Αντιγραφή «%@»";
 "Costs" = "Κόστος";
 "Couldn't check the tone: %@" = "Δεν ήταν δυνατός ο έλεγχος του τόνου: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "Δεν ήταν δυνατή η επιβεβαίωση του πεδίου κειμένου στο %@, οπότε δεν επικολλήθηκε τίποτα.";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "Δεν ήταν δυνατή η επιβεβαίωση του πεδίου κειμένου στο %@. Η εκδοχή %lld είναι στο πρόχειρο: πατήστε ⌘V";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Δεν βρέθηκε η εντολή `claude`. Εγκαταστήστε το Claude Code ή χρησιμοποιήστε κλειδί API στις Ρυθμίσεις › Μοντέλο.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Δεν ήταν δυνατή η επιστροφή στο %@. Η εκδοχή %lld είναι στο πρόχειρο: πατήστε ⌘V";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "Δεν ήταν δυνατή η επιστροφή στο %@. Η εκδοχή είναι στο πρόχειρο: πατήστε ⌘V.";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "Αναφορά προβλήματος…";
 "Report…" = "Αναφορά…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Το πεδίο κειμένου στο %@ άλλαξε ενώ το Takes έγραφε, οπότε δεν επικολλήθηκε τίποτα.";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "Το πεδίο κειμένου στο %@ άλλαξε. Η εκδοχή %lld είναι στο πρόχειρο: πατήστε ⌘V";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "Το πεδίο κειμένου στο %@ έχει πάρα πολύ κείμενο για να ξαναγραφεί με τη μία. Επιλέξτε το μέρος που θέλετε και δοκιμάστε ξανά.";
 "The text is too long. Select part of it first" = "Το κείμενο είναι πολύ μεγάλο. Επιλέξτε πρώτα ένα μέρος του";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "Το Claude Code εγκαταστάθηκε, αλλά το Takes δεν μπορεί να το βρει. Κλείστε και ανοίξτε ξανά το Takes και δοκιμάστε ξανά.";

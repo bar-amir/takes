@@ -265,6 +265,8 @@
 "Copy “%@”" = "Kopier «%@»";
 "Costs" = "Koster";
 "Couldn't check the tone: %@" = "Kunne ikke sjekke tonen: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "Tekstfeltet i %@ kunne ikke bekreftes, så ingenting ble limt inn.";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "Tekstfeltet i %@ kunne ikke bekreftes. Versjon %lld ligger på utklippstavlen: trykk på ⌘V";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "Fant ikke kommandoen `claude`. Installer Claude Code, eller bytt til en API-nøkkel i Innstillinger › Modell.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "Kom ikke tilbake til %@. Versjon %lld ligger på utklippstavlen: trykk på ⌘V";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "Kom ikke tilbake til %@. Versjonen ligger på utklippstavlen: trykk på ⌘V.";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "Rapporter et problem…";
 "Report…" = "Rapporter…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Tekstfeltet i %@ endret seg mens Takes skrev, så ingenting ble limt inn.";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "Tekstfeltet i %@ endret seg. Versjon %lld ligger på utklippstavlen: trykk på ⌘V";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "Tekstfeltet i %@ har for mye tekst til å skrive om på én gang. Marker delen du vil ha og prøv igjen.";
 "The text is too long. Select part of it first" = "Teksten er for lang. Marker først en del av den";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "Claude Code er installert, men Takes finner det ikke. Avslutt og åpne Takes på nytt, og prøv igjen.";

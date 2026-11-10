@@ -265,6 +265,8 @@
 "Copy “%@”" = "“%@” ஐ நகலெடு";
 "Costs" = "செலவு";
 "Couldn't check the tone: %@" = "தொனியைச் சரிபார்க்க முடியவில்லை: %@";
+"Couldn't confirm the text box in %@, so nothing was pasted." = "%@ இல் உள்ள உரைப் பெட்டியை உறுதிப்படுத்த முடியவில்லை, எனவே எதுவும் ஒட்டப்படவில்லை.";
+"Couldn't confirm the text box in %@. Take %lld is on the clipboard: press ⌘V" = "%@ இல் உள்ள உரைப் பெட்டியை உறுதிப்படுத்த முடியவில்லை. வடிவம் %lld கிளிப்போர்டில் உள்ளது: ⌘V அழுத்தவும்";
 "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model." = "`claude` கட்டளை கிடைக்கவில்லை. Claude Code-ஐ நிறுவவும், அல்லது அமைப்புகள் › மாடல் இல் API சாவிக்கு மாறவும்.";
 "Couldn't get back to %@. Take %lld is on the clipboard: press ⌘V" = "%@ க்குத் திரும்ப முடியவில்லை. வடிவம் %lld கிளிப்போர்டில் உள்ளது: ⌘V அழுத்தவும்";
 "Couldn't get back to %@. The take is on the clipboard: press ⌘V." = "%@ க்குத் திரும்ப முடியவில்லை. வடிவம் கிளிப்போர்டில் உள்ளது: ⌘V அழுத்தவும்.";
@@ -1077,8 +1079,6 @@
 "⌘Z" = "⌘Z";
 "Report a Problem…" = "சிக்கலைப் புகாரளி…";
 "Report…" = "புகாரளி…";
-"The text box in %@ changed while Takes was writing, so nothing was pasted." = "Takes எழுதிக்கொண்டிருந்தபோது %@ இல் உள்ள உரைப் பெட்டி மாறியதால் எதுவும் ஒட்டப்படவில்லை.";
-"The text box in %@ changed. Take %lld is on the clipboard: press ⌘V" = "%@ இல் உள்ள உரைப் பெட்டி மாறிவிட்டது. வடிவம் %lld கிளிப்போர்டில் உள்ளது: ⌘V அழுத்தவும்";
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "%@ இல் உள்ள உரைப் பெட்டியில் ஒரே நேரத்தில் மீண்டும் எழுத முடியாத அளவு உரை உள்ளது. தேவையான பகுதியைத் தேர்ந்தெடுத்து மீண்டும் முயலவும்.";
 "The text is too long. Select part of it first" = "உரை மிக நீளம். முதலில் ஒரு பகுதியைத் தேர்ந்தெடுக்கவும்";
 "Claude Code installed, but Takes can't find it. Quit and reopen Takes, then try again." = "Claude Code நிறுவப்பட்டது, ஆனால் Takes அதைக் கண்டறிய முடியவில்லை. Takes-ஐ மூடி மீண்டும் திறந்து, பிறகு மீண்டும் முயலவும்.";
