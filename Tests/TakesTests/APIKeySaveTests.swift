@@ -72,6 +72,18 @@ final class APIKeySaveTests: XCTestCase {
         XCTAssertEqual(asked, 2, "Asked again after a while")
     }
 
+    func testAnExplicitSaveAlwaysAsks() async {
+        let cache = APIKeyCheckCache()
+        var asked = 0
+        cache.ask = { _ in asked += 1; return asked == 1 ? .invalid("refused") : .valid }
+        _ = await cache.check("sk-ant-1")
+        let kept = await cache.check("sk-ant-1")
+        XCTAssertEqual(kept, .invalid("refused"), "Setup's checks reuse the answer")
+        let saved = await APIKeySave.save("sk-ant-1", check: { await cache.check($0, fresh: true) }, store: store(true))
+        XCTAssertEqual(saved, .saved, "Saving the same key again asks again: the refusal may have been passing")
+        XCTAssertEqual(asked, 2)
+    }
+
     func testSetupSaysWhenTheKeyIsRefused() async {
         let refused = await SetupMonitor.apiKeyStatus(key: "sk-ant-bad", check: { _ in .invalid("no") })
         XCTAssertEqual(refused, .problem("The key was refused"))

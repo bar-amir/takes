@@ -39,6 +39,16 @@ final class MoveToApplicationsTests: XCTestCase {
         XCTAssertEqual(left, ["Takes.app"], "No temporary copy is left behind")
     }
 
+    func testACopyLeftByAStoppedMoveIsRemoved() throws {
+        let source = try app(at: folder.appendingPathComponent("dmg/Takes.app"), identifier: "com.baramir.takes")
+        let applications = folder.appendingPathComponent("Applications", isDirectory: true)
+        _ = try app(at: applications.appendingPathComponent(".Takes-6F1D0C9E.app"), identifier: "com.baramir.takes")
+        _ = try app(at: applications.appendingPathComponent(".Other-1.app"), identifier: "com.example.other")
+        _ = try AppLocation.copyToApplications(from: source, applications: applications)
+        let left = try FileManager.default.contentsOfDirectory(atPath: applications.path).sorted()
+        XCTAssertEqual(left, [".Other-1.app", "Takes.app"], "Only Takes's own leftover goes")
+    }
+
     func testANewerTakesIsLeftAsItIsAndOpened() throws {
         let source = try app(at: folder.appendingPathComponent("dmg/Takes.app"), identifier: "com.baramir.takes", version: "1.2")
         let applications = folder.appendingPathComponent("Applications", isDirectory: true)

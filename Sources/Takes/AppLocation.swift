@@ -72,8 +72,13 @@ enum AppLocation {
             ?? (fm.isWritableFile(atPath: system.path) ? system : fm.homeDirectoryForCurrentUser.appendingPathComponent("Applications", isDirectory: true))
         let destination = folder.appendingPathComponent(source.lastPathComponent)
         guard destination.standardizedFileURL != source.standardizedFileURL else { throw MoveError.alreadyThere }
+        let partial = ".\(source.deletingPathExtension().lastPathComponent)-"
         do {
             try fm.createDirectory(at: folder, withIntermediateDirectories: true)
+            // A move stopped part-way (Takes quit or was killed) left its hidden copy behind.
+            for name in (try? fm.contentsOfDirectory(atPath: folder.path)) ?? [] where name.hasPrefix(partial) && name.hasSuffix(".app") {
+                try? fm.removeItem(at: folder.appendingPathComponent(name))
+            }
             let replacing = fm.fileExists(atPath: destination.path)
             if replacing {
                 // Only an older Takes is replaced, never something else with the same name, and never a newer Takes.
@@ -82,7 +87,7 @@ enum AppLocation {
                 }
                 if isNewer(destination, than: source) { return .newerThere(destination) }
             }
-            let temporary = folder.appendingPathComponent(".\(source.deletingPathExtension().lastPathComponent)-\(UUID().uuidString).app")
+            let temporary = folder.appendingPathComponent("\(partial)\(UUID().uuidString).app")
             do {
                 try fm.copyItem(at: source, to: temporary)
                 if replacing {

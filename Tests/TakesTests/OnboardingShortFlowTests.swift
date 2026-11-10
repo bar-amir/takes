@@ -162,14 +162,29 @@ final class OnboardingShortFlowTests: XCTestCase {
         XCTAssertTrue(RefuseRequests.seen.isEmpty, "No request: \(RefuseRequests.seen)")
     }
 
-    func testTheProviderIsAskedOnlyAfterTheConsent() async {
+    /// A returning user whose consent is already saved: the provider still hears nothing until its own button.
+    func testTheProviderIsAskedOnlyByItsOwnButton() async {
+        let models = ProviderModels.shared
+        let (hadKey, hadState) = (models.hasKey, models.state)
+        defer { models.hasKey = hadKey; models.state = hadState }
+        models.hasKey = true
+        models.state = .idle
         let model = OnboardingModel(progress: OnboardingProgress(step: .engine, history: [.accessibility]),
                                     conditions: OnboardingConditions(accessibility: true, privacyAccepted: true))
-        var providers: [Bool] = []
+        var providers: [Bool] = [], keyReads = 0, written: [EngineKind] = []
         model.refreshProvider = { providers.append($0) }
+        model.readProviderKey = { keyReads += 1 }
+        model.writeEngine = { written.append($0) }
+        model.choose(.provider)
         model.providerShown()
+        for _ in 0..<5 { await Task.yield() }
+        XCTAssertEqual(providers, [], "Shown, not asked")
+        XCTAssertEqual(keyReads, 1)
+        XCTAssertEqual(model.primaryTitle, "Continue")
+        model.primary()
         for _ in 0..<20 where providers.isEmpty { await Task.yield() }
-        XCTAssertEqual(providers, [false], "After the consent the list loads, from the cache if it's fresh")
+        XCTAssertEqual(written, [.provider])
+        XCTAssertEqual(providers, [true], "Its own button asks, not from the cache")
     }
 
     // MARK: Move to Applications
