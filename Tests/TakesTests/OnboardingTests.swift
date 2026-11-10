@@ -392,6 +392,8 @@ final class OnboardingPracticeTests: XCTestCase {
         model.engineKind = .apiKey
         XCTAssertEqual(model.primaryTitle, "Save key")
         model.engineKind = .local
+        XCTAssertEqual(model.primaryTitle, "Continue", "Not saved yet: pressing saves it and checks it")
+        model.savedEngine = .local
         XCTAssertEqual(model.primaryTitle, "Check again")
         model.engineStatus = .checking
         XCTAssertEqual(model.primaryTitle, "Checking…")

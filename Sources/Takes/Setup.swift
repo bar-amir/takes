@@ -515,6 +515,7 @@ struct SetupView: View {
     @State private var copied = false
     @State private var suggestions: [KeyCombo] = []
     @State private var moveError: String?
+    @State private var moving = false
     @ObservedObject var installer = ClaudeInstaller.shared
 
     var body: some View {
@@ -575,10 +576,15 @@ struct SetupView: View {
                         .buttonStyle(PrimaryButtonStyle())
                     if AppLocation.needsMove {
                         Button("Move Takes to Applications") {
+                            // One move at a time: a second would remove the copy the first is opening.
+                            guard !moving else { return }
+                            moving = true
                             Task {
                                 do { try await AppLocation.moveToApplications(); moveError = nil } catch { moveError = error.localizedDescription }
+                                moving = false
                             }
                         }
+                        .disabled(moving)
                     } else {
                         Button("Show Takes in Finder") {
                             NSWorkspace.shared.activateFileViewerSelecting([Bundle.main.bundleURL])

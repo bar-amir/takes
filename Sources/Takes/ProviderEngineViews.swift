@@ -254,7 +254,7 @@ struct ProviderOnboardingDetail: View {
                                 model.providerKeyNotSaved = false
                                 addressInput = ""
                                 addressError = nil
-                                models.select(id)
+                                model.selectProvider(id)
                             }))
                 if let console = provider.consoleURL {
                     Button("Get a key") { NSWorkspace.shared.open(console) }
@@ -280,7 +280,7 @@ struct ProviderOnboardingDetail: View {
             }
         }
         .padding(.top, 4)
-        .task { if !models.checked { await models.refresh() } }
+        .onAppear { model.providerShown() }
     }
 
     private var address: some View {
@@ -300,6 +300,9 @@ struct ProviderOnboardingDetail: View {
     /// With a key saved: the model to write with, picked from the provider's list or typed when there's none.
     @ViewBuilder private var saved: some View {
         switch models.state {
+        case .idle where !model.flow.conditions.privacyAccepted:
+            // Not asked yet: the provider hears from Takes only after the button below.
+            StepNote(String(localized: "Key saved in your keychain"))
         case .checking, .idle:
             StepNote(String(localized: "Key saved. Looking up \(provider.name)'s models…"))
         case .refused(let message):
@@ -349,10 +352,8 @@ struct ProviderOnboardingDetail: View {
         addressInput = url
         store.settings.providerBaseURL = url
         store.settings.providerModel = ""
-        Task {
-            await models.refresh()
-            await SetupMonitor.shared.refreshEngine()
-        }
+        // The server hears from Takes only after the consent above the step's button.
+        model.providerShown()
     }
 
     private func saveModel() {

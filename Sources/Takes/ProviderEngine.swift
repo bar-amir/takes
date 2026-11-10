@@ -815,8 +815,25 @@ final class ProviderModels: ObservableObject {
         }
     }
 
-    /// Switches provider. The model is per provider, so it's picked again from the new list.
-    func select(_ id: String) {
+    /// Whether a key is saved for the current provider, read from the keychain without asking the provider anything
+    /// (onboarding, before the user has agreed to send anything).
+    func readKey() {
+        guard !frozen else { return }
+        let provider = Provider.current(Store.shared.settings)
+        test = .idle
+        models = []
+        guard ProviderEndpoint.url(provider.baseURL, "models") != nil else {
+            hasKey = false
+            state = .noAddress
+            return
+        }
+        hasKey = provider.key != nil
+        state = hasKey ? .idle : .noKey
+    }
+
+    /// Switches provider. The model is per provider, so it's picked again from the new list (asked for only with
+    /// `refresh`).
+    func select(_ id: String, refresh shouldRefresh: Bool = true) {
         let settings = Store.shared.settings
         guard id != settings.providerID else { return }
         Store.shared.settings.providerID = id
@@ -826,6 +843,7 @@ final class ProviderModels: ObservableObject {
             Store.shared.settings.providerBaseURL = ""
         }
         Store.shared.settings.providerModel = ""
+        guard shouldRefresh else { return }
         Task {
             await refresh()
             await SetupMonitor.shared.refreshEngine()

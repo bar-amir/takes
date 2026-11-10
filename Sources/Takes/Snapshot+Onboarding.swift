@@ -81,11 +81,13 @@ extension Snapshot {
         screens.append(("2-engine-api-key", apiKey))
         let refused = model(.engine, granted)
         refused.engineKind = .apiKey
+        refused.savedEngine = .apiKey
         refused.engineStatus = .problem("No API key saved yet")
         refused.apiKeySave = .refused("Anthropic refused this key. Check it in the Anthropic Console and paste it again.")
         screens.append(("2-engine-api-key-refused", refused))
         let local = model(.engine, ready)
         local.engineKind = .local
+        local.savedEngine = .local
         local.localRunning = true
         local.engineStatus = .ready("Ollama · llama3.2")
         screens.append(("2-engine-local", local))
@@ -98,6 +100,16 @@ extension Snapshot {
         taken.hotKeyOwner = "macOS: Select next source in Input menu"
         taken.hotKeySuggestions = Array(HotKeyChoice.candidates.prefix(3))
         screens.append(("3-practice-hotkey-taken", taken))
+        // The longest combo the recorder takes, free and taken: no key may wrap.
+        let longCombo = KeyCombo(keyCode: 49, modifiers: 0x1B00, display: "⌃⌥⇧⌘Space")
+        let long = model(.practice, all)
+        long.hotKey = longCombo
+        screens.append(("3-practice-long-hotkey", long))
+        let longTaken = model(.practice, practiceTaken)
+        longTaken.hotKey = longCombo
+        longTaken.hotKeyOwner = "macOS: Select next source in Input menu"
+        longTaken.hotKeySuggestions = Array(HotKeyChoice.candidates.prefix(3))
+        screens.append(("3-practice-long-hotkey-taken", longTaken))
         let open = model(.practice, all)
         open.practiceStage = .panelOpen
         screens.append(("3-practice-panel-open", open))
@@ -124,6 +136,7 @@ extension Snapshot {
         provider.engineStatus = .problem("No API key saved yet")
         let providerModels = model(.engine, granted)
         providerModels.engineKind = .provider
+        providerModels.savedEngine = .provider
         providerModels.engineStatus = .problem("Pick a model")
         func write(_ name: String, _ model: OnboardingModel) {
             for scheme in [ColorScheme.light, .dark] {

@@ -16,10 +16,10 @@ final class MoveToApplicationsTests: XCTestCase {
     }
 
     /// A minimal app bundle with `identifier`.
-    private func app(at url: URL, identifier: String) throws -> URL {
+    private func app(at url: URL, identifier: String, version: String = "1.0") throws -> URL {
         let contents = url.appendingPathComponent("Contents", isDirectory: true)
         try FileManager.default.createDirectory(at: contents, withIntermediateDirectories: true)
-        let plist: [String: Any] = ["CFBundleIdentifier": identifier, "CFBundlePackageType": "APPL"]
+        let plist: [String: Any] = ["CFBundleIdentifier": identifier, "CFBundlePackageType": "APPL", "CFBundleShortVersionString": version]
         try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
             .write(to: contents.appendingPathComponent("Info.plist"))
         return url
@@ -31,9 +31,47 @@ final class MoveToApplicationsTests: XCTestCase {
         let source = try app(at: folder.appendingPathComponent("dmg/Takes.app"), identifier: "com.baramir.takes")
         let applications = folder.appendingPathComponent("Applications", isDirectory: true)
         _ = try app(at: applications.appendingPathComponent("Takes.app"), identifier: "com.baramir.takes")
-        let copied = try AppLocation.copyToApplications(from: source, applications: applications)
-        XCTAssertEqual(copied.lastPathComponent, "Takes.app")
+        let placed = try AppLocation.copyToApplications(from: source, applications: applications)
+        let copied = applications.appendingPathComponent("Takes.app")
+        XCTAssertEqual(placed, .copied(copied))
         XCTAssertTrue(FileManager.default.fileExists(atPath: copied.appendingPathComponent("Contents/Info.plist").path))
+        let left = try FileManager.default.contentsOfDirectory(atPath: applications.path)
+        XCTAssertEqual(left, ["Takes.app"], "No temporary copy is left behind")
+    }
+
+    func testANewerTakesIsLeftAsItIsAndOpened() throws {
+        let source = try app(at: folder.appendingPathComponent("dmg/Takes.app"), identifier: "com.baramir.takes", version: "1.2")
+        let applications = folder.appendingPathComponent("Applications", isDirectory: true)
+        let installed = try app(at: applications.appendingPathComponent("Takes.app"), identifier: "com.baramir.takes", version: "1.10")
+        guard case .newerThere(let opened) = try AppLocation.copyToApplications(from: source, applications: applications) else {
+            return XCTFail("A newer Takes is opened, not replaced")
+        }
+        XCTAssertEqual(opened.standardizedFileURL.path, installed.standardizedFileURL.path)
+        let plist = NSDictionary(contentsOf: installed.appendingPathComponent("Contents/Info.plist"))
+        XCTAssertEqual(plist?["CFBundleShortVersionString"] as? String, "1.10", "Not replaced by the older one")
+    }
+
+    func testAFailedCopyLeavesTheOldTakesInPlace() throws {
+        let source = folder.appendingPathComponent("dmg/Takes.app")
+        let applications = folder.appendingPathComponent("Applications", isDirectory: true)
+        let installed = try app(at: applications.appendingPathComponent("Takes.app"), identifier: "com.baramir.takes")
+        _ = try app(at: source, identifier: "com.baramir.takes", version: "1.1")
+        // A part of the new copy can't be read, so copying it fails part-way.
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: source.appendingPathComponent("Contents").path)
+        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: source.appendingPathComponent("Contents").path) }
+        XCTAssertThrowsError(try AppLocation.copyToApplications(from: source, applications: applications))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: installed.appendingPathComponent("Contents/Info.plist").path),
+                      "Applications still has a Takes")
+        let left = try FileManager.default.contentsOfDirectory(atPath: applications.path)
+        XCTAssertEqual(left, ["Takes.app"], "The half-made copy is removed")
+    }
+
+    func testVersionsCompareNumerically() throws {
+        let older = try app(at: folder.appendingPathComponent("a/Takes.app"), identifier: "x", version: "0.9.5")
+        let newer = try app(at: folder.appendingPathComponent("b/Takes.app"), identifier: "x", version: "0.10.0")
+        XCTAssertTrue(AppLocation.isNewer(newer, than: older))
+        XCTAssertFalse(AppLocation.isNewer(older, than: newer))
+        XCTAssertFalse(AppLocation.isNewer(older, than: older))
     }
 
     func testSomethingElseWithTheSameNameIsNeverReplaced() throws {

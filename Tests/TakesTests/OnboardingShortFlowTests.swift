@@ -73,15 +73,127 @@ final class OnboardingShortFlowTests: XCTestCase {
         XCTAssertFalse(model.engineChosen, "No company is favoured")
     }
 
-    func testWhatIsAlreadySetUpIsPicked() {
+    func testWhatIsAlreadySetUpIsHighlightedOnly() {
         let model = engineModel()
         var written: [EngineKind] = []
-        model.onEngineKindChange = { written.append($0) }
+        model.writeEngine = { written.append($0) }
+        model.detected = true
+        model.engineStatus = .problem("Claude Code isn't installed")
         model.setUpEngines = [.local]
         model.preselect()
         XCTAssertTrue(model.isChosen(.local))
-        XCTAssertEqual(written, [.local])
+        XCTAssertEqual(written, [], "Highlighting writes nothing")
         XCTAssertTrue(model.needsConsent)
+        XCTAssertEqual(model.primaryTitle, "Continue", "Set up but not saved: pressing saves it")
+        model.primary()
+        XCTAssertEqual(written, [.local], "The button saves the engine")
+    }
+
+    func testAWorkingClaudeCodeIsNotPassedOverForAnOldKey() {
+        let model = engineModel()
+        var written: [EngineKind] = []
+        model.writeEngine = { written.append($0) }
+        var asked = 0
+        model.checkAPIKey = { _ in asked += 1; return .valid }
+        model.detected = true
+        model.setUpEngines = [.apiKey]
+        model.preselect()
+        XCTAssertFalse(model.engineChosen, "Waits for the saved engine's first check")
+        model.savedEngineChanged(.claudeCode, needsChoice: false, status: .ready("Claude Code signed in · Max plan"))
+        XCTAssertTrue(model.isChosen(.claudeCode), "The saved engine works, so it's the one")
+        XCTAssertTrue(model.flow.conditions.engineReady)
+        XCTAssertEqual(written, [])
+        XCTAssertEqual(asked, 0)
+    }
+
+    func testAWorkingSavedEngineDoesntCarryAnotherOption() {
+        let model = engineModel()
+        model.detected = true
+        model.savedEngineChanged(.claudeCode, needsChoice: false, status: .ready("Claude Code signed in"))
+        XCTAssertTrue(model.flow.conditions.engineReady)
+        model.choose(.apiKey)
+        XCTAssertFalse(model.flow.conditions.engineReady, "Continue mustn't go on with Claude Code while the key row is picked")
+        XCTAssertEqual(model.primaryTitle, "Save key")
+        model.choose(.claudeCode)
+        XCTAssertTrue(model.flow.conditions.engineReady)
+    }
+
+    func testTheOldEnginesReadyIsNotTakenForTheNewOne() {
+        let model = engineModel()
+        model.autoAdvanceDelay = 0
+        model.detected = true
+        model.savedEngineChanged(.claudeCode, needsChoice: false, status: .ready("Claude Code signed in"))
+        model.choose(.local)
+        model.primary()  // the consent, and saves the local model
+        XCTAssertTrue(model.flow.conditions.privacyAccepted)
+        // The settings change can reach the window before the monitor has started the new check.
+        model.savedEngineChanged(.local, needsChoice: false, status: .ready("Claude Code signed in"))
+        XCTAssertEqual(model.step, .engine, "Claude Code's answer doesn't pass the local model")
+        XCTAssertFalse(model.flow.conditions.engineReady)
+        model.savedEngineChanged(.local, needsChoice: false, status: .checking)
+        model.savedEngineChanged(.local, needsChoice: false, status: .ready("Ollama · llama3.2"))
+        XCTAssertEqual(model.step, .practice, "Its own answer does")
+    }
+
+    /// Before the button below the consent line is pressed, Takes sends nothing anywhere: nothing is saved (which
+    /// would start the saved engine's check), no key is checked, no provider is asked.
+    func testNothingIsSentBeforeTheButton() {
+        URLProtocol.registerClass(RefuseRequests.self)
+        defer { URLProtocol.unregisterClass(RefuseRequests.self) }
+        RefuseRequests.seen = []
+        let model = engineModel()
+        var written: [EngineKind] = [], keys = 0, providers = 0, engines = 0, keyReads = 0
+        model.writeEngine = { written.append($0) }
+        model.checkAPIKey = { _ in keys += 1; return .valid }
+        model.refreshProvider = { _ in providers += 1 }
+        model.refreshEngine = { engines += 1 }
+        model.readProviderKey = { keyReads += 1 }
+        model.detected = true
+        model.setUpEngines = [.apiKey, .provider]
+        model.savedEngineChanged(.claudeCode, needsChoice: false, status: .problem("Claude Code isn't installed"))
+        XCTAssertTrue(model.isChosen(.apiKey), "Highlighted")
+        model.choose(.provider)
+        model.providerShown()
+        model.choose(.local)
+        model.choose(.apiKey)
+        XCTAssertEqual(written, [])
+        XCTAssertEqual(keys + providers + engines, 0)
+        XCTAssertEqual(keyReads, 1, "Only the keychain was read")
+        XCTAssertTrue(RefuseRequests.seen.isEmpty, "No request: \(RefuseRequests.seen)")
+    }
+
+    func testTheProviderIsAskedOnlyAfterTheConsent() async {
+        let model = OnboardingModel(progress: OnboardingProgress(step: .engine, history: [.accessibility]),
+                                    conditions: OnboardingConditions(accessibility: true, privacyAccepted: true))
+        var providers: [Bool] = []
+        model.refreshProvider = { providers.append($0) }
+        model.providerShown()
+        for _ in 0..<20 where providers.isEmpty { await Task.yield() }
+        XCTAssertEqual(providers, [false], "After the consent the list loads, from the cache if it's fresh")
+    }
+
+    // MARK: Move to Applications
+
+    func testASecondClickDoesNothingWhileMoving() async {
+        let model = OnboardingModel(progress: OnboardingProgress(step: .accessibility))
+        var moves = 0
+        var finish: CheckedContinuation<Void, Never>?
+        model.move = {
+            moves += 1
+            await withCheckedContinuation { finish = $0 }
+            throw AppLocation.MoveError.couldNotOpen
+        }
+        model.moveToApplications()
+        for _ in 0..<20 where finish == nil { await Task.yield() }
+        XCTAssertTrue(model.moving)
+        model.moveToApplications()
+        model.moveToApplications()
+        for _ in 0..<5 { await Task.yield() }
+        XCTAssertEqual(moves, 1, "A second move would remove the copy the first is opening")
+        finish?.resume()
+        for _ in 0..<20 where model.moving { await Task.yield() }
+        XCTAssertFalse(model.moving)
+        XCTAssertEqual(model.moveError, AppLocation.MoveError.couldNotOpen.localizedDescription)
     }
 
     func testTheUsersOwnPickIsKept() {
@@ -110,15 +222,14 @@ final class OnboardingShortFlowTests: XCTestCase {
             XCTAssertFalse(model.primaryTitle.contains("Understood"), "\(kind): \(model.primaryTitle)")
         }
         model.engineKind = .chatGPT
-        if ChatGPTSignIn.shared.state != .signingIn, !ChatGPTSignIn.shared.canUsePlan {
-            XCTAssertEqual(model.primaryTitle, "Continue with ChatGPT")
-        }
+        XCTAssertEqual(ChatGPTSignIn.shared.state, .signedOut, "Tests use an empty in-memory keychain")
+        XCTAssertEqual(model.primaryTitle, "Continue with ChatGPT")
     }
 
     // MARK: The provider path stays in onboarding
 
     func testTheProviderButtonSavesTheKeyRatherThanOpeningSettings() {
-        guard !ProviderModels.shared.hasKey else { return }
+        ProviderModels.shared.hasKey = false
         let model = engineModel()
         model.choose(.provider)
         XCTAssertEqual(model.primaryTitle, "Save key")
@@ -131,18 +242,32 @@ final class OnboardingShortFlowTests: XCTestCase {
 
     func testTroubleshootingWaitsForAFailedCheck() async {
         let model = OnboardingModel(progress: OnboardingProgress(step: .accessibility))
-        var asked = 0
+        var asked = 0, checks = 0
         model.requestAccess = { asked += 1 }
+        model.isTrusted = { checks += 1; return false }
         model.accessibilityHelpDelay = 0
         XCTAssertFalse(model.accessibilityHelp, "Nothing to troubleshoot before a check")
         model.primary()
         XCTAssertEqual(asked, 1)
-        for _ in 0..<100 where !model.accessibilityHelp { try? await Task.sleep(nanoseconds: 5_000_000) }
-        XCTAssertTrue(model.accessibilityHelp)
+        for _ in 0..<100 where checks == 0 { await Task.yield() }
+        XCTAssertEqual(checks, 1)
+        XCTAssertTrue(model.accessibilityHelp, "The check found no access")
+    }
+
+    func testNoTroubleshootingWhenTheCheckFindsAccess() async {
+        let model = OnboardingModel(progress: OnboardingProgress(step: .accessibility))
+        var checks = 0
+        model.isTrusted = { checks += 1; return true }
+        model.accessibilityHelpDelay = 0
+        model.primary()
+        for _ in 0..<100 where checks == 0 { await Task.yield() }
+        XCTAssertEqual(checks, 1)
+        XCTAssertFalse(model.accessibilityHelp)
     }
 
     func testNoTroubleshootingOnceAccessIsAllowed() async {
         let model = OnboardingModel(progress: OnboardingProgress(step: .accessibility))
+        model.isTrusted = { false }
         model.accessibilityHelpDelay = 0.05
         model.autoAdvanceDelay = 0
         model.primary()
@@ -250,16 +375,26 @@ final class OnboardingEngineActionTests: XCTestCase {
         XCTAssertEqual(model.apiKeyInput, "sk-ant-good", "Left in the field, so pressing again retries")
     }
 
-    func testOnboardingPickingTheSameKindStillWritesIt() {
+    func testTheButtonReplacesAnEngineFromANewerVersion() {
         let model = OnboardingModel(progress: OnboardingProgress(step: .engine, history: [.accessibility]),
                                     conditions: OnboardingConditions(accessibility: true))
         var written: [EngineKind] = []
-        model.onEngineKindChange = { written.append($0) }
-        XCTAssertEqual(model.engineKind, .claudeCode)
+        model.writeEngine = { written.append($0) }
+        model.savedEngineChanged(.claudeCode, needsChoice: true, status: .problem("Pick a model"))
+        XCTAssertFalse(model.engineChosen, "Nothing is picked over an engine this version doesn't know")
         model.choose(.claudeCode)
-        XCTAssertEqual(written, [.claudeCode], "So an engine saved by a newer version is replaced")
         XCTAssertTrue(model.isChosen(.claudeCode))
-        model.choose(.local)
-        XCTAssertEqual(written, [.claudeCode, .local])
+        XCTAssertEqual(written, [], "Picking only highlights")
+        model.primary()
+        XCTAssertEqual(written, [.claudeCode], "The button saves it, though it's what the setting already reads as")
+    }
+}
+
+/// Records any request that reaches URLSession's loading system and fails it.
+private final class RefuseRequests: URLProtocol {
+    nonisolated(unsafe) static var seen: [String] = []
+    override class func canInit(with request: URLRequest) -> Bool {
+        seen.append(request.url?.absoluteString ?? "?")
+        return false
     }
 }

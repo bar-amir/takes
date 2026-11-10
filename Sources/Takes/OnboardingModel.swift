@@ -22,14 +22,24 @@ final class OnboardingModel: ObservableObject {
     @Published var localRunning = false
     /// Ways to connect that are already set up on this Mac (signed in, a key saved, a model running).
     @Published var setUpEngines: Set<EngineKind> = []
-    /// An option is picked on Connect a model. Until the user picks one, or one is already set up, none is.
+    /// Looking for what's set up on this Mac has finished.
+    var detected = false
+    /// An option is highlighted on Connect a model. Until the user picks one, or one is already set up, none is.
+    /// Highlighting writes nothing: the engine is saved, and checked, only when the step's button is pressed.
     @Published var engineChosen = false
+    /// The status of the saved engine, from `SetupMonitor`.
     @Published var engineStatus = SetupMonitor.EngineStatus.checking
     /// Claude Code's state from the last check, which picks its button; nil before a check.
     @Published var claudeState: ClaudeCodeEngine.Status.State?
-    @Published var engineKind = EngineKind.claudeCode {
-        didSet { if engineKind != oldValue { onEngineKindChange(engineKind) } }
-    }
+    /// The highlighted option.
+    @Published var engineKind = EngineKind.claudeCode
+    /// The engine saved in settings, and whether it's one this version doesn't know.
+    @Published var savedEngine = EngineKind.claudeCode
+    var savedNeedsChoice = false
+    /// The saved engine works.
+    private(set) var savedReady = false
+    /// The button just saved an engine: a status from before its check started is about the old engine.
+    private var awaitingCheck = false
     @Published var hotKey = AppSettings().summonHotKey
     /// Who already uses the hotkey ("macOS: Show Finder search window", "Raycast", "another app"), or nil when it's free.
     @Published var hotKeyOwner: String?
@@ -45,6 +55,10 @@ final class OnboardingModel: ObservableObject {
     /// Takes runs from the disk image or a temporary copy (AppLocation); Allow access offers to move it first.
     @Published var needsMove = false
     @Published var moveError: String?
+    /// "Move Takes to Applications" is under way; its button is off meanwhile.
+    @Published private(set) var moving = false
+    /// Moves Takes to Applications; tests pass a fake.
+    var move: () async throws -> Void = { try await AppLocation.moveToApplications() }
     /// "Open System Settings" was pressed and access still isn't there a while later: the troubleshooting shows.
     @Published var accessibilityHelp = false
     var accessibilityHelpDelay: TimeInterval = 8
@@ -71,7 +85,8 @@ final class OnboardingModel: ObservableObject {
     // Seams: the app wires these to the real Mac; tests and snapshots leave them or use fakes.
     var save: (OnboardingProgress) -> Void = { _ in }
     var onStepChange: (OnboardingStep) -> Void = { _ in }
-    var onEngineKindChange: (EngineKind) -> Void = { _ in }
+    /// Saves the engine to settings, when the step's button is pressed.
+    var writeEngine: (EngineKind) -> Void = { _ in }
     var onClose: () -> Void = {}
     var onFinish: () -> Void = {}
     /// Opens the panel on the practice box: (text, box frame on screen, paste, cancel).
@@ -83,17 +98,26 @@ final class OnboardingModel: ObservableObject {
     var recordPrivacyAccepted: () -> Void = {}
     /// Shows macOS's Accessibility prompt and its Settings pane.
     var requestAccess: () -> Void = {}
+    /// Reads whether Accessibility access is allowed now (the app: `FocusReader.isTrusted`).
+    var isTrusted: () -> Bool = { false }
     /// Asks Anthropic about a key, and saves one to the keychain; the app uses the real ones.
     var checkAPIKey: (String) async -> APIKeyCheck = { _ in .couldNotCheck("") }
     var storeAPIKey: (String) -> Bool = { _ in false }
     /// Checks the engine again (the app: `SetupMonitor.refreshEngine`).
     var refreshEngine: () async -> Void = {}
+    /// Asks the provider for its models (`force`: not from the cache), and reads whether a key is saved without
+    /// asking the provider anything; the app uses `ProviderModels`.
+    var refreshProvider: (_ force: Bool) async -> Void = { _ in }
+    var readProviderKey: () -> Void = {}
+    /// Looks for Ollama and LM Studio on this Mac (the app: `LocalModels.refresh`).
+    var refreshLocal: () async -> Void = {}
 
     private var subscriptions: Set<AnyCancellable> = []
     private var installerSubscription: AnyCancellable?
 
     init(progress: OnboardingProgress = OnboardingProgress(), conditions: OnboardingConditions = OnboardingConditions()) {
         flow = OnboardingFlow(progress: progress, conditions: conditions)
+        savedReady = conditions.engineReady
         observeInstaller()
     }
 
@@ -102,11 +126,15 @@ final class OnboardingModel: ObservableObject {
     }
 
     /// What Claude Code's button does: install, update, sign in or check again. Before a check has said which,
-    /// the status line decides between installing and signing in.
+    /// the saved engine's status line decides, or else whether Claude Code was found.
     var claudeAction: ClaudeCodeAction {
         if let state = claudeState { return ClaudeCodeAction(state) ?? .checkAgain }
-        return engineStatus == .problem(SetupMonitor.claudeMissing) ? .install : .signIn
+        if savedEngine == .claudeCode, case .problem(let line) = engineStatus { return line == SetupMonitor.claudeMissing ? .install : .signIn }
+        return claudeInstalled ? .signIn : .install
     }
+
+    /// The highlighted option is the engine saved in settings, so the monitor's status is about it.
+    var pickedIsSaved: Bool { engineKind == savedEngine && !savedNeedsChoice }
 
     /// Claude Code isn't on this Mac, so Connect a model offers to install it.
     var claudeMissing: Bool { claudeAction == .install }
@@ -116,12 +144,50 @@ final class OnboardingModel: ObservableObject {
     /// The option shown as picked.
     func isChosen(_ kind: EngineKind) -> Bool { engineChosen && engineKind == kind }
 
-    /// Picks a way to connect. Picking also replaces an engine saved by a newer version that this one doesn't know.
+    /// The user clicked an option. It's highlighted only; the button saves it.
     func choose(_ kind: EngineKind) {
-        engineChosen = true
         apiKeySave = nil
         providerKeyNotSaved = false
-        if engineKind != kind { engineKind = kind } else { onEngineKindChange(kind) }
+        highlight(kind)
+    }
+
+    private func highlight(_ kind: EngineKind) {
+        engineChosen = true
+        engineKind = kind
+        updateEngineReady()
+    }
+
+    /// The step counts as done only for the option on screen: a working saved engine doesn't carry another one.
+    private func updateEngineReady() {
+        var conditions = flow.conditions
+        conditions.engineReady = savedReady && (!engineChosen || pickedIsSaved)
+        if conditions != flow.conditions { setConditions(conditions) }
+    }
+
+    /// The step's button: saves the highlighted engine (also replacing one saved by a newer version), which starts
+    /// its check. Before this nothing is written and nothing is asked of any service.
+    private func commitEngine() {
+        guard !pickedIsSaved else { return }
+        writeEngine(engineKind)
+        savedEngine = engineKind
+        savedNeedsChoice = false
+        savedReady = false
+        engineStatus = .checking
+        awaitingCheck = true
+    }
+
+    /// The saved engine or its status changed (`SetupMonitor`).
+    func savedEngineChanged(_ kind: EngineKind, needsChoice: Bool, status: SetupMonitor.EngineStatus) {
+        // Until the monitor says it's checking the engine just saved, its answer is still the old engine's.
+        if awaitingCheck, status == .checking { awaitingCheck = false }
+        let status = awaitingCheck ? .checking : status
+        savedEngine = kind
+        savedNeedsChoice = needsChoice
+        engineStatus = status
+        savedReady = status.isReady && !needsChoice
+        if !engineChosen { engineKind = kind }
+        preselect()
+        updateEngineReady()
     }
 
     // MARK: Live
@@ -131,15 +197,18 @@ final class OnboardingModel: ObservableObject {
         let monitor = SetupMonitor.shared
         let store = Store.shared
         engineKind = store.settings.engine
-        engineChosen = monitor.engine.isReady && !store.settings.engineNeedsChoice
         claudeInstalled = ClaudeCodeEngine.claudePath != nil
         hotKey = store.settings.summonHotKey
         recordPrivacyAccepted = { store.settings.privacyAccepted = true }
         save = { progress in if store.settings.onboarding != progress { store.settings.onboarding = progress } }
         requestAccess = { monitor.requestAccessibility() }
-        checkAPIKey = { await APIEngine.checkKey($0) }
+        isTrusted = { FocusReader.isTrusted(prompt: false) }
+        checkAPIKey = { await APIKeyCheckCache.shared.check($0) }
         storeAPIKey = { Keychain.setAPIKey($0) }
         refreshEngine = { await monitor.refreshEngine() }
+        refreshProvider = { await ProviderModels.shared.refresh(force: $0) }
+        readProviderKey = { ProviderModels.shared.readKey() }
+        refreshLocal = { await LocalModels.shared.refresh() }
         launchAtLogin = LaunchAtLogin.isEnabled
         needsMove = AppLocation.needsMove
         setLaunchAtLogin = { [weak self] on in
@@ -151,23 +220,19 @@ final class OnboardingModel: ObservableObject {
                 if self?.launchAtLogin != LaunchAtLogin.isEnabled { self?.launchAtLogin = LaunchAtLogin.isEnabled }
             }
         }
-        onEngineKindChange = { [weak self] kind in
+        writeEngine = { kind in
             if store.settings.engine != kind || store.settings.engineNeedsChoice { store.settings.engine = kind }
-            if kind == .local { self?.checkLocalEngine() }
         }
 
         func read(_ accessibility: Bool, _ engine: SetupMonitor.EngineStatus, _ taken: [KeyCombo], _ settings: AppSettings) -> OnboardingConditions {
-            engineStatus = engine
-            claudeState = monitor.claudeCode?.state
-            if engineKind != settings.engine { engineKind = settings.engine }
-            // Set up while this window was open (signed in to Claude Code in Terminal): that's the one.
-            if engine.isReady, !settings.engineNeedsChoice, !engineChosen { engineChosen = true }
+            if let state = monitor.claudeCode?.state { claudeState = state }
+            savedEngineChanged(settings.engine, needsChoice: settings.engineNeedsChoice, status: engine)
             hotKey = settings.summonHotKey
             let clash = taken.contains(settings.summonHotKey)
             hotKeyOwner = clash ? HotKeyChoice.owner(of: settings.summonHotKey) : nil
             // Registering a candidate is how "free" is known, so only look while there's a reason to show them.
             hotKeySuggestions = clash ? HotKeyChoice.suggestions(current: settings.summonHotKey, taken: taken) : []
-            return OnboardingConditions(accessibility: accessibility, engineReady: engine.isReady && !settings.engineNeedsChoice,
+            return OnboardingConditions(accessibility: accessibility, engineReady: savedReady && (!engineChosen || pickedIsSaved),
                                         privacyAccepted: settings.privacyAccepted, hotKeyFree: !clash)
         }
         // Start from how things are now, so a step finished while Takes was closed isn't asked again.
@@ -187,24 +252,30 @@ final class OnboardingModel: ObservableObject {
             .store(in: &subscriptions)
         monitor.$claudeCode
             .receive(on: RunLoop.main)
-            .sink { [weak self] status in self?.claudeState = status?.state }
+            .sink { [weak self] status in if let status { self?.claudeState = status.state } }
             .store(in: &subscriptions)
         detectEngine()
     }
 
-    /// Before Connect a model is reached, looks for what's already set up on this Mac, and opens on it.
+    /// Before Connect a model is reached, looks for what's already set up on this Mac (no request to any service:
+    /// the keychain, the sign-in kept on this Mac, Claude Code's own status, and the local model servers), then
+    /// highlights it once the saved engine's first check is in.
     private func detectEngine() {
-        guard flow.index <= OnboardingStep.allCases.firstIndex(of: .engine) ?? 0, !flow.conditions.engineReady else { return }
+        guard flow.index <= OnboardingStep.allCases.firstIndex(of: .engine) ?? 0, !flow.conditions.engineReady else {
+            detected = true
+            return
+        }
         let settings = Store.shared.settings
         Task { [weak self] in
             await LocalModels.shared.refresh()
             let claudePath = await ClaudeCodeEngine.locate()
             let running = LocalModels.shared.running.contains { !($0.models ?? []).isEmpty }
             var setUp: Set<EngineKind> = []
-            // The engine already picked is checked by SetupMonitor; Claude Code is asked here only otherwise.
-            if claudePath != nil, settings.engine != .claudeCode || settings.engineNeedsChoice,
-               await ClaudeCodeEngine.status().state == .ready {
-                setUp.insert(.claudeCode)
+            // The saved engine is checked by SetupMonitor; Claude Code is asked here only when it isn't that one.
+            var claude: ClaudeCodeEngine.Status?
+            if claudePath != nil, settings.engine != .claudeCode || settings.engineNeedsChoice {
+                claude = await ClaudeCodeEngine.status()
+                if claude?.state == .ready { setUp.insert(.claudeCode) }
             }
             if Keychain.apiKey?.isEmpty == false { setUp.insert(.apiKey) }
             if ChatGPTSignIn.shared.canUsePlan { setUp.insert(.chatGPT) }
@@ -212,17 +283,22 @@ final class OnboardingModel: ObservableObject {
             if running { setUp.insert(.local) }
             guard let self else { return }
             claudeInstalled = claudePath != nil
+            if let claude { claudeState = claude.state }
             localRunning = running
             setUpEngines = setUp
+            detected = true
             preselect()
         }
     }
 
-    /// Picks the option already set up on this Mac, if any and if the user hasn't picked one.
+    /// Highlights the option already set up on this Mac, if the user hasn't picked one: the saved engine when it
+    /// works, else the first one set up. Waits for the saved engine's first check, so a working Claude Code isn't
+    /// passed over for an old key. Writes nothing.
     func preselect() {
-        guard !engineChosen else { return }
-        let ready = engineStatus.isReady && !Store.shared.settings.engineNeedsChoice
-        if let pick = Onboarding.preselectedEngine(current: engineKind, currentReady: ready, setUp: setUpEngines) { choose(pick) }
+        guard !engineChosen, detected, engineStatus != .checking else { return }
+        if let pick = Onboarding.preselectedEngine(current: savedEngine, currentReady: savedReady, setUp: setUpEngines) {
+            highlight(pick)
+        }
     }
 
     /// Get started on the opening screen.
@@ -284,24 +360,33 @@ final class OnboardingModel: ObservableObject {
     /// is the consent.
     var needsConsent: Bool { step == .engine && engineChosen && !flow.conditions.privacyAccepted }
 
-    /// What Connect a model's button does for the picked engine.
+    /// What Connect a model's button does for the highlighted option. An option that's set up but not saved yet says
+    /// Continue: pressing saves it and checks it.
     private var engineAction: String {
+        let checking = pickedIsSaved && engineStatus == .checking
         switch engineKind {
-        case .apiKey: return checkingKey ? String(localized: "Checking your key…") : String(localized: "Save key")
+        case .apiKey:
+            if checkingKey { return String(localized: "Checking your key…") }
+            if apiKeyInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, setUpEngines.contains(.apiKey) {
+                return checking ? String(localized: "Checking…") : pickedIsSaved ? String(localized: "Check again") : String(localized: "Continue")
+            }
+            return String(localized: "Save key")
         case .local:
-            if engineStatus == .checking { return String(localized: "Checking…") }
-            return String(localized: "Check again")
+            if checking { return String(localized: "Checking…") }
+            return pickedIsSaved ? String(localized: "Check again") : String(localized: "Continue")
         case .chatGPT:
             if ChatGPTSignIn.shared.state == .signingIn { return String(localized: "Waiting for the browser…") }
             // Signed in but no model yet (the list couldn't be fetched): ask OpenAI again, not for another sign-in.
-            if ChatGPTSignIn.shared.canUsePlan { return String(localized: "Check again") }
+            if ChatGPTSignIn.shared.canUsePlan { return pickedIsSaved ? String(localized: "Check again") : String(localized: "Continue") }
             return String(localized: "Continue with ChatGPT")
         case .provider:
             if !ProviderModels.shared.hasKey { return String(localized: "Save key") }
-            return ProviderModels.shared.state == .checking ? String(localized: "Checking…") : String(localized: "Check again")
+            if checking || ProviderModels.shared.state == .checking { return String(localized: "Checking…") }
+            return pickedIsSaved ? String(localized: "Check again") : String(localized: "Continue")
         case .claudeCode:
-            if engineStatus == .checking { return String(localized: "Checking…") }
+            if checking { return String(localized: "Checking…") }
             if installer.state.isBusy { return String(localized: "Installing…") }
+            if claudeState == .ready, !pickedIsSaved { return String(localized: "Continue") }
             return claudeAction.title
         }
     }
@@ -323,13 +408,16 @@ final class OnboardingModel: ObservableObject {
             if flow.isCurrentSatisfied { return true }
             guard engineChosen else { return false }
             if flow.conditions.engineReady { return true }
+            let checking = pickedIsSaved && engineStatus == .checking
             switch engineKind {
-            case .apiKey: return !checkingKey && !apiKeyInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            case .apiKey:
+                let typed = !apiKeyInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                return !checkingKey && !checking && (typed || setUpEngines.contains(.apiKey))
             case .chatGPT: return ChatGPTSignIn.shared.state != .signingIn
             case .provider:
                 if !ProviderModels.shared.hasKey { return !providerKeyInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-                return ProviderModels.shared.state != .checking
-            case .local, .claudeCode: return engineStatus != .checking && !installer.state.isBusy
+                return !checking && ProviderModels.shared.state != .checking
+            case .local, .claudeCode: return !checking && !installer.state.isBusy
             }
         case .practice: return practiceStage != .panelOpen
         default: return true
@@ -344,12 +432,15 @@ final class OnboardingModel: ObservableObject {
         case .engine:
             acceptPrivacy()
             if flow.isCurrentSatisfied { go { $0.next() }; return }
+            // From here the highlighted engine is saved and checked: the consent above the button was given.
+            let typedKey = !apiKeyInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            commitEngine()
             switch engineKind {
-            case .apiKey: saveAPIKey()
+            case .apiKey: if typedKey { saveAPIKey() } else { Task { await refreshEngine() } }
             case .local: checkLocalEngine()
             case .chatGPT: ChatGPTSignIn.shared.canUsePlan ? checkChatGPTModels() : ChatGPTSignIn.shared.start()
             case .provider: ProviderModels.shared.hasKey ? checkProvider() : saveProviderKey()
-            case .claudeCode: runClaude(claudeAction)
+            case .claudeCode: if claudeState == .ready { Task { await refreshEngine() } } else { runClaude(claudeAction) }
             }
         case .practice:
             if practiceStage == .pasted { go { $0.next() } } else { startPractice() }
@@ -360,15 +451,15 @@ final class OnboardingModel: ObservableObject {
 
     // MARK: Steps
 
-    /// "Open System Settings" on Allow access. If access still isn't there a while later, the troubleshooting
-    /// (Takes listed but switched on after an update) shows; before that it would only be in the way.
+    /// "Open System Settings" on Allow access. A while later access is checked again; if that check fails, the
+    /// troubleshooting (Takes listed but switched on after an update) shows. Before that it would only be in the way.
     func requestAccessibility() {
         requestAccess()
         let delay = accessibilityHelpDelay
         Task { @MainActor [weak self] in
             if delay > 0 { try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000)) }
             guard let self, self.step == .accessibility, !self.flow.conditions.accessibility else { return }
-            self.accessibilityHelp = true
+            if !isTrusted() { accessibilityHelp = true }
         }
     }
 
@@ -384,7 +475,7 @@ final class OnboardingModel: ObservableObject {
     /// Looks for Ollama / LM Studio again; picks the first installed model if none is picked yet.
     func checkLocalEngine() {
         Task {
-            await LocalModels.shared.refresh()
+            await refreshLocal()
             await refreshEngine()
         }
     }
@@ -401,9 +492,21 @@ final class OnboardingModel: ObservableObject {
     /// Asks the provider again, not answered from the cache.
     func checkProvider() {
         Task {
-            await ProviderModels.shared.refresh(force: true)
+            await refreshProvider(true)
             await refreshEngine()
         }
+    }
+
+    /// The provider option opened: what's saved is read from the keychain; the provider itself is asked only once
+    /// the consent above the button has been given.
+    func providerShown() {
+        if flow.conditions.privacyAccepted { Task { await refreshProvider(false) } } else { readProviderKey() }
+    }
+
+    /// Another provider picked in the menu; asked only after the consent, as above.
+    func selectProvider(_ id: String) {
+        ProviderModels.shared.select(id, refresh: flow.conditions.privacyAccepted)
+        if !flow.conditions.privacyAccepted { readProviderKey() }
     }
 
     func saveProviderKey() {
@@ -413,14 +516,18 @@ final class OnboardingModel: ObservableObject {
         providerKeyNotSaved = !ProviderModels.shared.saveKey(key)
     }
 
+    /// One move at a time: a second click would remove the copy the first is opening.
     func moveToApplications() {
+        guard !moving else { return }
+        moving = true
         Task {
             do {
-                try await AppLocation.moveToApplications()
+                try await move()
                 moveError = nil
             } catch {
                 moveError = error.localizedDescription
             }
+            moving = false
         }
     }
 

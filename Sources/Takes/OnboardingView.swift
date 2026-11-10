@@ -305,6 +305,7 @@ struct MoveToApplicationsNote: View {
             HStack(spacing: Spacing.item) {
                 Button("Move Takes to Applications", action: model.moveToApplications)
                     .buttonStyle(PrimaryButtonStyle(height: 32))
+                    .disabled(model.moving)
                     .accessibilityHint("Copies Takes to the Applications folder and opens it from there")
                 Text(String(localized: "Takes is running from \(AppLocation.whereItRuns). Move it first, so the access you allow stays with it."))
                     .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
@@ -481,7 +482,8 @@ private struct EngineStep: View {
                         .stroke(selected ? Theme.accent : Theme.controlBorder, lineWidth: selected ? 5 : 1.5)
                         .frame(width: 16, height: 16)
                     Text(title(kind)).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.text).lineLimit(1)
-                    if selected {
+                    // The status line is the saved engine's; a highlighted option that isn't saved yet has none.
+                    if selected, model.pickedIsSaved {
                         let installing = kind == .claudeCode && model.installer.state.isBusy
                         StatusPill(text: statusText, good: model.engineStatus.isReady, waiting: model.engineStatus == .checking || installing)
                     } else if found(kind) {
@@ -520,9 +522,12 @@ private struct EngineStep: View {
         }
     }
 
+    /// The saved engine's check is under way for the highlighted option.
+    private var checking: Bool { model.pickedIsSaved && model.engineStatus == .checking }
+
     @ViewBuilder private var claudeCodeDetail: some View {
         let install = model.installer.state
-        if !ready, model.engineStatus != .checking {
+        if !ready, !checking, !(model.claudeState == .ready && !model.pickedIsSaved) {
             VStack(alignment: .leading, spacing: 6) {
                 if let progress = install.progress {
                     HStack(spacing: Spacing.item) {
@@ -566,9 +571,10 @@ private struct EngineStep: View {
     }
 
     @ViewBuilder private var localDetail: some View {
-        if !ready, model.engineStatus != .checking {
+        if !ready, !checking, model.pickedIsSaved || !model.localRunning {
             VStack(alignment: .leading, spacing: 6) {
-                if case .problem(let text) = model.engineStatus, text == String(localized: "\(LocalServerKind.displayName(Store.shared.settings.localBaseURL)) isn't running") {
+                if !model.pickedIsSaved
+                    || model.engineStatus == .problem(String(localized: "\(LocalServerKind.displayName(Store.shared.settings.localBaseURL)) isn't running")) {
                     StepNote(String(localized: "Open Ollama or LM Studio, then press Check again. Takes doesn't download or install anything."))
                     Button("Get Ollama") { NSWorkspace.shared.open(URL(string: "https://ollama.com")!) }
                         .buttonStyle(SecondaryButtonStyle(height: 28))
@@ -643,28 +649,28 @@ private struct PracticeStep: View {
     }
 }
 
-/// The hotkey, where it's first used: its keycaps, whether it's free, and a recorder to change it. When something
-/// else has it, the free ones are offered and Open Takes still works.
+/// The hotkey, where it's first used: a recorder that shows it and changes it, and whether it's free. (The keycaps
+/// are in the first line above.) When something else has it, the free ones are offered and Open Takes still works.
 private struct PracticeHotKey: View {
     @ObservedObject var model: OnboardingModel
 
     var body: some View {
         let free = model.hotKeyOwner == nil
         VStack(alignment: .leading, spacing: Spacing.item) {
+            // Each piece keeps its own width, so a long combo (⌃⌥⇧⌘Space) never wraps inside a key.
             HStack(spacing: Spacing.inner) {
                 Text("Your hotkey").font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.secondaryText).fixedSize()
-                BigKeysMini(combo: model.hotKey)
-                StatusPill(text: free ? String(localized: "Free to use")
-                                      : String(localized: "Taken", comment: "The hotkey is already used by something else"),
-                           good: free)
-                Spacer(minLength: 0)
-                Text("Change:").font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
                 HotKeyRecorder(combo: Binding(get: { model.hotKey }, set: { combo in
                     guard let combo else { return }
                     Store.shared.settings.summonHotKey = combo
                 }), allowClear: false, height: 28)
                 .fixedSize()
                 .accessibilityLabel("Change hotkey")
+                StatusPill(text: free ? String(localized: "Free to use")
+                                      : String(localized: "Taken", comment: "The hotkey is already used by something else"),
+                           good: free)
+                    .fixedSize()
+                Spacer(minLength: 0)
             }
             if !free {
                 StepNote(String(localized: "Also used by \(model.hotKeyOwner ?? String(localized: "another app")). Pick another, or turn that one off in System Settings › Keyboard."))
