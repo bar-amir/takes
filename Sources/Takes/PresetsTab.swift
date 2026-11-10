@@ -176,21 +176,12 @@ struct PresetsTab: View {
         panel.allowedContentTypes = [.json]
         panel.allowsMultipleSelection = true
         guard panel.runModal() == .OK else { return }
-        let settings = store.settings
-        var reports: [PresetImport.FileReport] = []
-        for url in panel.urls {
-            let result = PresetImport.read(url, defaultModel: settings.defaultModel, defaultEffort: settings.defaultEffort)
-            for preset in result.presets {
-                store.presets.append(preset)
-                state.selectedPresetID = preset.id
-            }
-            reports.append(PresetImport.FileReport(file: url.lastPathComponent, result: result))
-        }
-        let summary = PresetImport.summary(reports)
+        let result = PresetImport.importFiles(panel.urls, into: store)
+        if let id = result.lastID { state.selectedPresetID = id }
         let alert = NSAlert()
-        alert.messageText = summary.title
-        alert.informativeText = summary.message
-        alert.alertStyle = summary.imported > 0 ? .informational : .warning
+        alert.messageText = result.summary.title
+        alert.informativeText = result.summary.message
+        alert.alertStyle = result.summary.imported > 0 ? .informational : .warning
         alert.addButton(withTitle: String(localized: "OK"))
         alert.runModal()
     }
@@ -203,6 +194,8 @@ struct PresetImportResult {
     var changes: [(name: String, notes: [String])] = []
     /// Presets in the file that couldn't be read.
     var skipped = 0
+    /// Presets beyond `PresetImport.maxPresets`, left out.
+    var leftOut = 0
     /// Nothing in the file could be read as a preset.
     var unreadable = false
     /// A removed hotkey, app binding or paste-right-away setting, which the summary explains how to set again.
@@ -213,12 +206,34 @@ struct PresetImportResult {
 enum PresetImport {
     /// A preset file is a few kilobytes; a bigger one isn't one.
     static let maxFileSize = 1_000_000
+    /// One file adds at most this many presets.
+    static let maxPresets = 50
     /// Every example is sent with every run, so a pasted-in essay isn't kept whole.
     static let maxExampleLength = 2000
+    /// The same goes for the rest of what a preset says: its name, instruction and Do and Avoid rules.
+    static let maxNameLength = 80
+    static let maxInstructionLength = 4000
+    static let maxRules = 20
+    static let maxRuleLength = 200
 
     struct FileReport {
         var file: String
         var result: PresetImportResult
+    }
+
+    /// Reads each file and adds what it holds to the store in one go (so the presets are saved once), and says what
+    /// happened. `lastID` is the preset to select.
+    static func importFiles(_ urls: [URL], into store: Store) -> (summary: (title: String, message: String, imported: Int), lastID: String?) {
+        let settings = store.settings
+        var reports: [FileReport] = []
+        var added: [Preset] = []
+        for url in urls {
+            let result = read(url, defaultModel: settings.defaultModel, defaultEffort: settings.defaultEffort)
+            added += result.presets
+            reports.append(FileReport(file: url.lastPathComponent, result: result))
+        }
+        if !added.isEmpty { store.presets += added }
+        return (summary(reports), added.last?.id)
     }
 
     static func read(_ url: URL, defaultModel: String, defaultEffort: String) -> PresetImportResult {
@@ -227,21 +242,40 @@ enum PresetImport {
         return read(data, defaultModel: defaultModel, defaultEffort: defaultEffort)
     }
 
-    /// A file holds a list of presets (an export) or one preset. A preset that can't be read is skipped.
+    /// A file holds a list of presets (an export) or one preset. A preset that can't be read is skipped, and a value
+    /// in one that can't be read is reset and reported.
     static func read(_ data: Data, defaultModel: String, defaultEffort: String) -> PresetImportResult {
         var result = PresetImportResult()
-        let decoder = JSONDecoder()
         var found: [Preset] = []
-        if let list = try? decoder.decode(LossyList<Preset>.self, from: data) {
+        var resets: [[String]] = []
+        let listProblems = DecodeProblems()
+        let listDecoder = JSONDecoder()
+        listDecoder.userInfo[.decodeProblems] = listProblems
+        let oneProblems = DecodeProblems()
+        let oneDecoder = JSONDecoder()
+        oneDecoder.userInfo[.decodeProblems] = oneProblems
+        if let list = try? listDecoder.decode(LossyList<Preset>.self, from: data) {
             found = list.elements
+            resets = list.resets
             result.skipped = list.skipped
-        } else if let one = try? decoder.decode(Preset.self, from: data) {
+        } else if let one = try? oneDecoder.decode(Preset.self, from: data) {
             found = [one]
+            resets = [oneProblems.keys]
         } else {
             result.unreadable = true
         }
-        for imported in found {
-            let (preset, notes, removed) = checked(imported, defaultModel: defaultModel, defaultEffort: defaultEffort)
+        if found.count > maxPresets {
+            result.leftOut = found.count - maxPresets
+            found = Array(found.prefix(maxPresets))
+        }
+        for (index, imported) in found.enumerated() {
+            let (preset, checkedNotes, removed) = checked(imported, defaultModel: defaultModel, defaultEffort: defaultEffort)
+            var notes = checkedNotes
+            let reset = resets[index].reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }
+            if !reset.isEmpty {
+                let keys = reset.joined(separator: ", ")
+                notes.insert(String(localized: "couldn't read \(keys), which were reset"), at: 0)
+            }
             result.presets.append(preset)
             if !notes.isEmpty { result.changes.append((preset.name.isEmpty ? String(localized: "Untitled") : preset.name, notes)) }
             if removed { result.removedBindings = true }
@@ -301,7 +335,30 @@ enum PresetImport {
             examples = examples.map { String($0.prefix(maxExampleLength)) }
         }
         preset.examples = examples
+
+        if preset.name.count > maxNameLength {
+            preset.name = String(preset.name.prefix(maxNameLength))
+            notes.append(String(localized: "name shortened"))
+        }
+        if preset.instruction.count > maxInstructionLength {
+            preset.instruction = String(preset.instruction.prefix(maxInstructionLength))
+            notes.append(String(localized: "instruction shortened"))
+        }
+        let dos = limited(preset.dos)
+        if dos.cutRules { notes.append(String(localized: "extra Do rules left out")) }
+        if dos.shortened { notes.append(String(localized: "long Do rules shortened")) }
+        preset.dos = dos.rules
+        let avoid = limited(preset.avoid)
+        if avoid.cutRules { notes.append(String(localized: "extra Avoid rules left out")) }
+        if avoid.shortened { notes.append(String(localized: "long Avoid rules shortened")) }
+        preset.avoid = avoid.rules
         return (preset, notes, removed)
+    }
+
+    private static func limited(_ rules: [String]) -> (rules: [String], cutRules: Bool, shortened: Bool) {
+        let kept = Array(rules.prefix(maxRules))
+        let shortened = kept.contains { $0.count > maxRuleLength }
+        return (kept.map { String($0.prefix(maxRuleLength)) }, rules.count > maxRules, shortened)
     }
 
     /// The alert after an import: what was added, what was changed and what couldn't be read.
@@ -322,6 +379,10 @@ enum PresetImport {
                 lines.append(String(localized: "“\(report.file)” isn't a preset file Takes can read."))
             } else if result.presets.isEmpty && result.skipped == 0 {
                 lines.append(String(localized: "“\(report.file)” has no presets."))
+            }
+            if result.leftOut > 0 {
+                let total = result.presets.count + result.leftOut
+                lines.append(String(localized: "“\(report.file)”: only the first \(maxPresets) of \(total) presets were imported."))
             }
             if result.skipped == 1 {
                 lines.append(String(localized: "“\(report.file)”: 1 preset couldn't be read and was skipped."))
@@ -365,7 +426,9 @@ struct SetAsideBanner: View {
                 }
                 HStack(spacing: 8) {
                     Button("Show in Finder") { store.revealSetAside() }.buttonStyle(SecondaryButtonStyle(height: 28)).fixedSize()
-                    Button("Dismiss") { store.dismissSetAside() }.buttonStyle(SecondaryButtonStyle(height: 28)).fixedSize()
+                    if store.canDismissSetAside {
+                        Button("Dismiss") { store.dismissSetAside() }.buttonStyle(SecondaryButtonStyle(height: 28)).fixedSize()
+                    }
                 }
                 .padding(.leading, 27)
             }

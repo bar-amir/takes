@@ -146,4 +146,119 @@ final class PresetImportTests: XCTestCase {
         XCTAssertEqual(summary.title, "No presets imported")
         XCTAssertTrue(summary.message.contains("2 presets couldn't be read"))
     }
+
+    // MARK: What the limits do
+
+    func testNameInstructionAndRulesAreLimited() {
+        let long = String(repeating: "x", count: 500)
+        let result = checked(
+            preset {
+                $0.name = long
+                $0.instruction = String(repeating: "word ", count: 2000)
+                $0.dos = (1...30).map { "do \($0)" }
+                $0.avoid = [long, "short"]
+            })
+        XCTAssertEqual(result.preset.name.count, PresetImport.maxNameLength)
+        XCTAssertEqual(result.preset.instruction.count, PresetImport.maxInstructionLength)
+        XCTAssertEqual(result.preset.dos.count, PresetImport.maxRules)
+        XCTAssertEqual(result.preset.dos.first, "do 1")
+        XCTAssertEqual(result.preset.avoid.map(\.count), [PresetImport.maxRuleLength, 5])
+        XCTAssertEqual(
+            Set(result.notes),
+            ["name shortened", "instruction shortened", "extra Do rules left out", "long Avoid rules shortened"],
+            "each one is reported")
+    }
+
+    func testAnOrdinaryPresetIsNotLimited() {
+        let result = checked(preset { $0.dos = (1...PresetImport.maxRules).map { "do \($0)" } })
+        XCTAssertTrue(result.notes.isEmpty)
+        XCTAssertEqual(result.preset.dos.count, PresetImport.maxRules)
+    }
+
+    func testValuesThatCouldntBeReadAreResetAndReported() throws {
+        let text = #"[{"name":"Odd","instruction":"Do it.","takes":"lots","model":5,"examples":[1,"keep me"]},{"name":"Fine","instruction":"Do it."}]"#
+        let result = PresetImport.read(Data(text.utf8), defaultModel: Models.sonnet, defaultEffort: "low")
+        XCTAssertEqual(result.presets.map(\.name), ["Odd", "Fine"])
+        XCTAssertEqual(result.presets[0].takes, 3)
+        XCTAssertEqual(result.presets[0].model, Models.sonnet)
+        XCTAssertEqual(result.presets[0].examples, ["keep me"])
+        XCTAssertEqual(result.changes.map(\.name), ["Odd"], "only the one that had a problem")
+        let note = try XCTUnwrap(result.changes.first?.notes.first)
+        for key in ["takes", "model", "examples"] { XCTAssertTrue(note.contains(key), note) }
+        XCTAssertTrue(PresetImport.summary([.init(file: "odd.json", result: result)]).message.contains("“Odd”: couldn't read"))
+    }
+
+    func testASinglePresetReportsWhatWasReset() throws {
+        let text = #"{"name":"One","instruction":"Do it.","effort":false}"#
+        let result = PresetImport.read(Data(text.utf8), defaultModel: Models.sonnet, defaultEffort: "low")
+        XCTAssertEqual(result.presets.count, 1)
+        XCTAssertTrue(try XCTUnwrap(result.changes.first?.notes.first).contains("effort"))
+    }
+
+    // MARK: The import itself
+
+    private var folder: URL!
+
+    override func setUpWithError() throws {
+        folder = FileManager.default.temporaryDirectory.appendingPathComponent("takes-import-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+    }
+
+    override func tearDownWithError() throws {
+        try? FileManager.default.removeItem(at: folder)
+    }
+
+    func testAnImportAddsAtMostFiftyPresetsAndSavesOnce() throws {
+        let wasReadOnly = Store.readOnly
+        Store.readOnly = false
+        defer { Store.readOnly = wasReadOnly }
+        let store = Store(folder: folder)
+        let before = store.presets.count
+
+        var many = (1...60).map { #"{"name":"P\#($0)","instruction":"Do it."}"# }
+        many[0] = #"{"name":"P1","instruction":"Do it.","takes":"lots","model":5,"examples":[1,"ok"]}"#
+        let manyURL = folder.appendingPathComponent("many.json")
+        try Data("[\(many.joined(separator: ","))]".utf8).write(to: manyURL)
+        let oneURL = folder.appendingPathComponent("one.json")
+        try JSONEncoder().encode(preset { $0.name = "Single" }).write(to: oneURL)
+        let junkURL = folder.appendingPathComponent("junk.json")
+        try Data("nope".utf8).write(to: junkURL)
+
+        var changes = 0
+        let watch = store.objectWillChange.sink { changes += 1 }
+        let result = PresetImport.importFiles([manyURL, junkURL, oneURL], into: store)
+        watch.cancel()
+
+        XCTAssertEqual(store.presets.count, before + PresetImport.maxPresets + 1)
+        XCTAssertEqual(changes, 1, "the presets go in with one assignment, so they are saved once")
+        XCTAssertEqual(result.lastID, store.presets.last?.id)
+        XCTAssertEqual(store.presets.last?.name, "Single")
+        XCTAssertEqual(store.presets[before].name, "P1")
+        XCTAssertEqual(store.presets[before].takes, 3, "the value that couldn't be read was reset")
+        XCTAssertEqual(Set(store.presets.map(\.id)).count, store.presets.count, "every one has an id of its own")
+
+        let message = result.summary.message
+        XCTAssertTrue(message.contains("only the first 50 of 60 presets were imported"), message)
+        XCTAssertTrue(message.contains("“junk.json” isn't a preset file Takes can read."), message)
+        XCTAssertTrue(message.contains("“P1”: couldn't read"), message)
+        XCTAssertEqual(result.summary.imported, PresetImport.maxPresets + 1)
+
+        let saved = try JSONDecoder().decode([Preset].self, from: Data(contentsOf: folder.appendingPathComponent("presets.json")))
+        XCTAssertEqual(saved.count, store.presets.count, "and the file has them")
+    }
+
+    func testAnImportOfNothingChangesNothing() throws {
+        let store = Store(folder: folder)
+        let before = store.presets
+        let junk = folder.appendingPathComponent("junk.json")
+        try Data("nope".utf8).write(to: junk)
+        var changes = 0
+        let watch = store.objectWillChange.sink { changes += 1 }
+        let result = PresetImport.importFiles([junk], into: store)
+        watch.cancel()
+        XCTAssertEqual(store.presets, before)
+        XCTAssertEqual(changes, 0)
+        XCTAssertNil(result.lastID)
+        XCTAssertEqual(result.summary.title, "No presets imported")
+    }
 }
