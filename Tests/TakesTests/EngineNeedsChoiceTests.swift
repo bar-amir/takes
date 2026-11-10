@@ -36,10 +36,25 @@ final class EngineNeedsChoiceTests: XCTestCase {
     }
 
     @MainActor
-    func testSetupSaysToPickAModel() {
-        XCTAssertEqual(SetupMonitor.pickAModel, "Pick a model")
-        XCTAssertFalse(SetupMonitor.EngineStatus.problem(SetupMonitor.pickAModel).isReady)
-        XCTAssertEqual(SetupMonitor.missingSummary(accessibility: true, engine: .problem(SetupMonitor.pickAModel), privacyAccepted: true,
-                                                   hotKeyFree: true), "One thing left: connect a model.")
+    func testSetupSaysToPickAModel() async throws {
+        let store = Store.shared
+        let saved = store.settings
+        defer { store.settings = saved }
+        store.settings = try newerSettings()
+        var checks = 0
+        let monitor = SetupMonitor(accessibility: true) { _ in checks += 1; return (.ready("Claude Code signed in"), nil) }
+        await monitor.refreshEngine()
+        XCTAssertEqual(monitor.engine, .problem("Pick a model"))
+        XCTAssertEqual(checks, 0, "Claude Code isn't checked on a guess")
+        XCTAssertEqual(SetupMonitor.missingSummary(accessibility: true, engine: monitor.engine, privacyAccepted: true, hotKeyFree: true),
+                       "One thing left: connect a model.")
+    }
+
+    @MainActor
+    func testTheMenuSaysToPickAModel() throws {
+        XCTAssertEqual(AppDelegate.modelStatus(try newerSettings()), "Pick a model", "Not \"Model: Claude Code\"")
+        var settings = AppSettings()
+        settings.engine = .claudeCode
+        XCTAssertTrue(AppDelegate.modelStatus(settings).hasPrefix("Model: Claude Code"))
     }
 }

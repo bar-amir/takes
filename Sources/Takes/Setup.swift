@@ -10,7 +10,9 @@ final class SetupMonitor: ObservableObject {
     @Published private(set) var accessibility = FocusReader.isTrusted(prompt: false)
     @Published private(set) var engine: EngineStatus = .checking
     /// Shortcuts macOS refused because another app already uses them, or that a macOS shortcut also fires on.
-    @Published var takenHotKeys: [KeyCombo] = []
+    @Published var takenHotKeys: [KeyCombo] = [] {
+        didSet { updateHotKeyRecheck() }
+    }
     /// Re-registers the hotkeys once a taken one is free, so a shortcut freed in System Settings is picked up.
     var recheckHotKeys: (() -> Void)?
 
@@ -89,22 +91,35 @@ final class SetupMonitor: ObservableObject {
     @Published private(set) var claudeCode: ClaudeCodeEngine.Status?
 
     private var timer: Timer?
+    /// While a hotkey is taken and no setup window is open: a slow look at whether it has come free (the app that held
+    /// it quit). Registering a combo starts no process.
+    private var hotKeyTimer: Timer?
     private var polling = SetupPolling()
     /// Windows that show setup state and are open now ("setup", "onboarding", "settings"). Only while there is one
-    /// does the monitor look every second; otherwise it checks when the panel is summoned or the menu opens.
+    /// does the monitor look every second; otherwise it checks when the setup window opens or the menu opens.
     private(set) var watchers: Set<String> = []
-    /// Counts `refreshEngine` calls, so a slow answer from an earlier check can't overwrite a newer one.
-    private var engineCheck = 0
+    /// The engine check under way. There's one at a time: a check asked for meanwhile waits for this one.
+    private var inFlight: Task<Void, Never>?
+    /// The engine changed while a check was under way, so its answer is about the old one: check once more.
+    private var checkAgain = false
+    /// Checks the engine the settings name; tests pass a fake.
+    private let checkEngine: @MainActor (AppSettings) async -> (EngineStatus, ClaudeCodeEngine.Status?)
     private var settingsSubscription: AnyCancellable?
 
     private init() {
+        checkEngine = { await SetupMonitor.check($0) }
         settingsSubscription = Store.shared.$settings
             .map { EngineChoice(kind: $0.engine, needsChoice: $0.engineNeedsChoice) }
             .removeDuplicates()
             .sink { [weak self] _ in
+                // The status is about the engine that was saved; until the new one is checked it's unknown. Said at
+                // once, so nothing reads the old engine's "ready" as the new one's.
+                if Thread.isMainThread { MainActor.assumeIsolated { self?.engine = .checking } }
                 Task { @MainActor in
-                    self?.polling.reset()
-                    await self?.refreshEngine()
+                    guard let self else { return }
+                    self.polling.reset()
+                    if self.inFlight != nil { self.checkAgain = true }
+                    await self.refreshEngine()
                 }
             }
     }
@@ -114,7 +129,16 @@ final class SetupMonitor: ObservableObject {
         self.accessibility = accessibility
         self.engine = engine
         self.claudeCode = claudeCode
+        checkEngine = { _ in (engine, claudeCode) }
         frozen = true
+    }
+
+    /// For tests: a monitor that checks the engine with `check`, and doesn't follow the settings.
+    init(accessibility: Bool, engine: EngineStatus = .checking,
+         check: @escaping @MainActor (AppSettings) async -> (EngineStatus, ClaudeCodeEngine.Status?)) {
+        self.accessibility = accessibility
+        self.engine = engine
+        checkEngine = check
     }
 
     /// Set for a monitor made with fixed state: nothing is checked or polled.
@@ -144,18 +168,34 @@ final class SetupMonitor: ObservableObject {
             timer?.invalidate()
             timer = nil
         }
+        updateHotKeyRecheck()
     }
 
     /// Whether the once-a-second check is running.
     var isPolling: Bool { timer != nil }
 
-    private func tick() {
+    /// Whether the slow look at taken hotkeys is running (no setup window open).
+    var isRecheckingHotKeys: Bool { hotKeyTimer != nil }
+
+    private func updateHotKeyRecheck() {
+        let slow = !takenHotKeys.isEmpty && watchers.isEmpty && !Store.readOnly
+        if slow, hotKeyTimer == nil {
+            hotKeyTimer = Timer.scheduledTimer(withTimeInterval: SetupPolling.hotKeyRecheck, repeats: true) { [weak self] _ in
+                Task { @MainActor in self?.recheckHotKeys?() }
+            }
+        } else if !slow {
+            hotKeyTimer?.invalidate()
+            hotKeyTimer = nil
+        }
+    }
+
+    /// The once-a-second look while a setup window is open.
+    func tick(now: Date = Date()) {
         refreshAccessibility()
         if !takenHotKeys.isEmpty { recheckHotKeys?() }
-        // The model is checked less often, and less often again while it keeps failing: it can run a process.
-        if polling.engineDue(ready: engine.isReady, now: Date()) {
-            Task { await refreshEngine() }
-        }
+        // The model is checked less often, and less often again while it keeps failing: it can run a process. Never
+        // while a check is still under way.
+        if inFlight == nil, polling.engineDue(ready: engine.isReady, now: now) { startCheck() }
     }
 
     /// Reads Accessibility access again; it's cheap.
@@ -169,18 +209,29 @@ final class SetupMonitor: ObservableObject {
     func checkOnce() {
         refreshAccessibility()
         if !takenHotKeys.isEmpty { recheckHotKeys?() }
-        if !engine.isReady, Date().timeIntervalSince(polling.lastCheck) > SetupPolling.recentCheck {
-            Task { await refreshEngine() }
-        }
+        if !engine.isReady, Date().timeIntervalSince(polling.lastCheck) > SetupPolling.recentCheck { startCheck() }
     }
 
-    /// `refreshEngine`, unless a check finished moments ago (the panel's hotkey checked just before opening setup).
+    /// `refreshEngine`, unless a check started moments ago.
     func refreshEngineUnlessRecent() async {
         guard Date().timeIntervalSince(polling.lastCheck) > SetupPolling.recentCheck else { return }
         await refreshEngine()
     }
 
     nonisolated static let claudeMissing = String(localized: "Claude Code isn't installed")
+
+    enum SummonRoute: Equatable { case panel, setup, pickModel }
+
+    /// Where a hotkey press goes, decided at once from what's known: the setup window while something it needs is
+    /// missing (it checks the model as it opens), Settings › Model for an engine this version doesn't know, else the
+    /// panel. A model still being checked doesn't hold the press up.
+    nonisolated static func summonRoute(accessibility: Bool, privacyAccepted: Bool, needsChoice: Bool,
+                                        engine: EngineStatus) -> SummonRoute {
+        if !accessibility || !privacyAccepted { return .setup }
+        if needsChoice { return .pickModel }
+        if case .problem = engine { return .setup }
+        return .panel
+    }
 
     /// Whether launch should check the model again before opening the setup window: when it's the only thing
     /// missing. A check can fail once and pass seconds later (a busy Mac right after an update), and the window
@@ -207,61 +258,63 @@ final class SetupMonitor: ObservableObject {
     /// Why, in setup and Settings › Model.
     static let needsChoiceNote = String(localized: "Your settings name a model this version of Takes doesn't have. Pick one to go on.")
 
-    /// Checks the chosen engine. Snapshots never do: it would start `claude` or reach a model server.
+    /// Checks the chosen engine, or waits for the check already under way. Snapshots never check: it would start
+    /// `claude` or reach a model server.
     func refreshEngine() async {
-        guard !frozen, !Store.readOnly else { return }
-        engineCheck += 1
-        let check = engineCheck
-        let settings = Store.shared.settings
-        let result: EngineStatus
-        var claude: ClaudeCodeEngine.Status?
-        if settings.engineNeedsChoice {
-            result = .problem(Self.pickAModel)
-        } else {
-            switch settings.engine {
-            case .local:
-                result = await Self.localEngineStatus()
-            case .provider:
-                result = await Self.providerEngineStatus()
-            case .chatGPT:
-                result = await Self.chatGPTEngineStatus()
-            case .apiKey:
-                result = await Self.apiKeyStatus()
-            case .claudeCode:
-                let status = await ClaudeCodeEngine.status()
-                claude = status
-                result = Self.claudeCodeStatus(status)
-            }
-        }
-        // Checks overlap (the timer, opening a window, a settings change); only the newest one counts.
-        guard check == engineCheck else { return }
-        polling.checked(ready: result.isReady, at: Date())
-        if let claude, claude != claudeCode { claudeCode = claude }
-        engine = result
+        await startCheck()?.value
     }
 
-    /// A hash of the key whose check last passed, kept only in memory, so opening a window doesn't ask Anthropic
-    /// about the same key again.
-    private static var checkedAPIKey: Int?
+    /// Starts a check unless one is under way, and returns the one to wait for.
+    @discardableResult
+    private func startCheck() -> Task<Void, Never>? {
+        guard !frozen, !Store.readOnly else { return nil }
+        if let inFlight { return inFlight }
+        let task = Task { @MainActor [weak self] in
+            guard let self else { return }
+            repeat {
+                checkAgain = false
+                // The back-off counts from when a check starts, so a slow one isn't started again on top of itself.
+                polling.started(at: Date())
+                let settings = Store.shared.settings
+                let answer: (EngineStatus, ClaudeCodeEngine.Status?) = settings.engineNeedsChoice
+                    ? (.problem(Self.pickAModel), nil) : await checkEngine(settings)
+                if checkAgain { continue }
+                polling.checked(ready: answer.0.isReady)
+                if let claude = answer.1, claude != claudeCode { claudeCode = claude }
+                engine = answer.0
+            } while checkAgain
+            inFlight = nil
+        }
+        inFlight = task
+        return task
+    }
 
-    /// Forgets which key passed (tests).
-    static func forgetCheckedAPIKey() { checkedAPIKey = nil }
+    /// Whether an engine check is under way.
+    var isChecking: Bool { inFlight != nil }
+
+    /// The status of the engine `settings` name, and Claude Code's own status when that's the engine.
+    static func check(_ settings: AppSettings) async -> (EngineStatus, ClaudeCodeEngine.Status?) {
+        switch settings.engine {
+        case .local: return (await localEngineStatus(), nil)
+        case .provider: return (await providerEngineStatus(), nil)
+        case .chatGPT: return (await chatGPTEngineStatus(), nil)
+        case .apiKey: return (await apiKeyStatus(), nil)
+        case .claudeCode:
+            let status = await ClaudeCodeEngine.status()
+            return (claudeCodeStatus(status), status)
+        }
+    }
 
     /// Ready when a key is saved and Anthropic doesn't refuse it. A key that couldn't be checked (offline) counts as
-    /// ready: a run says what's wrong if it still fails.
+    /// ready: a run says what's wrong if it still fails. Answers come from `APIKeyCheckCache`, so a key just checked
+    /// on saving isn't asked about again.
     static func apiKeyStatus(key: String? = Keychain.apiKey,
-                             check: (String) async -> APIKeyCheck = { await APIEngine.checkKey($0) }) async -> EngineStatus {
+                             check: (String) async -> APIKeyCheck = { await APIKeyCheckCache.shared.check($0) })
+        async -> EngineStatus {
         guard let key, !key.isEmpty else { return .problem(String(localized: "No API key saved yet")) }
-        let saved = EngineStatus.ready(String(localized: "Anthropic API key saved"))
-        if checkedAPIKey == key.hashValue { return saved }
         switch await check(key) {
-        case .valid:
-            checkedAPIKey = key.hashValue
-            return saved
-        case .couldNotCheck:
-            return saved
-        case .invalid:
-            return .problem(String(localized: "The key was refused"))
+        case .valid, .couldNotCheck: return .ready(String(localized: "Anthropic API key saved"))
+        case .invalid: return .problem(String(localized: "The key was refused"))
         }
     }
 
@@ -298,11 +351,14 @@ final class SetupMonitor: ObservableObject {
 struct SetupPolling: Equatable {
     static let firstRetry: TimeInterval = 5
     static let longestRetry: TimeInterval = 60
-    /// A check this recent is answer enough for a window that has just opened or the menu.
+    /// A check started this recently is answer enough for a window that has just opened or the menu.
     static let recentCheck: TimeInterval = 2
+    /// How often a taken hotkey is tried again while no setup window is open.
+    static let hotKeyRecheck: TimeInterval = 10
 
     /// Checks in a row that found the model not ready.
     private(set) var failures = 0
+    /// When the last check started.
     private(set) var lastCheck = Date.distantPast
 
     static func retryDelay(failures: Int) -> TimeInterval {
@@ -314,10 +370,9 @@ struct SetupPolling: Equatable {
         !ready && now.timeIntervalSince(lastCheck) >= Self.retryDelay(failures: failures)
     }
 
-    mutating func checked(ready: Bool, at date: Date) {
-        lastCheck = date
-        failures = ready ? 0 : failures + 1
-    }
+    mutating func started(at date: Date) { lastCheck = date }
+
+    mutating func checked(ready: Bool) { failures = ready ? 0 : failures + 1 }
 
     mutating func reset() { failures = 0 }
 }

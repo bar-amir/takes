@@ -42,40 +42,59 @@ final class APIKeySaveTests: XCTestCase {
         XCTAssertEqual(result.note?.problem, true)
     }
 
-    // MARK: Setup's status
+    // MARK: Setup's status, and one request per save
 
-    func testSetupAsksAnthropicOnceAboutTheSameKey() async {
-        SetupMonitor.forgetCheckedAPIKey()
-        defer { SetupMonitor.forgetCheckedAPIKey() }
-        var checks = 0
-        let check: (String) async -> APIKeyCheck = { _ in checks += 1; return .valid }
-        let status1 = await SetupMonitor.apiKeyStatus(key: "sk-ant-1", check: check)
-        XCTAssertEqual(status1, .ready("Anthropic API key saved"))
-        let status2 = await SetupMonitor.apiKeyStatus(key: "sk-ant-1", check: check)
-        XCTAssertEqual(status2, .ready("Anthropic API key saved"))
-        XCTAssertEqual(checks, 1)
-        _ = await SetupMonitor.apiKeyStatus(key: "sk-ant-2", check: check)
-        XCTAssertEqual(checks, 2, "A new key is checked")
+    func testOneSaveAsksAnthropicOnce() async {
+        let cache = APIKeyCheckCache()
+        var asked = 0
+        cache.ask = { _ in asked += 1; return .valid }
+        let result = await APIKeySave.save("sk-ant-1", check: { await cache.check($0) }, store: store(true))
+        XCTAssertEqual(result, .saved)
+        // The setup check that follows the save uses the answer the save got.
+        let status = await SetupMonitor.apiKeyStatus(key: "sk-ant-1", check: { await cache.check($0) })
+        XCTAssertEqual(status, .ready("Anthropic API key saved"))
+        _ = await SetupMonitor.apiKeyStatus(key: "sk-ant-1", check: { await cache.check($0) })
+        XCTAssertEqual(asked, 1)
+        _ = await SetupMonitor.apiKeyStatus(key: "sk-ant-2", check: { await cache.check($0) })
+        XCTAssertEqual(asked, 2, "A new key is asked about")
+    }
+
+    func testAnOfflineKeyIsNotAskedAboutOnEveryRefresh() async {
+        let cache = APIKeyCheckCache()
+        var asked = 0
+        cache.ask = { _ in asked += 1; return .couldNotCheck("offline") }
+        let start = Date()
+        let first = await cache.check("sk-ant-1", now: start)
+        XCTAssertEqual(first, .couldNotCheck("offline"))
+        _ = await cache.check("sk-ant-1", now: start.addingTimeInterval(60))
+        XCTAssertEqual(asked, 1)
+        _ = await cache.check("sk-ant-1", now: start.addingTimeInterval(APIKeyCheckCache.retryAfter))
+        XCTAssertEqual(asked, 2, "Asked again after a while")
     }
 
     func testSetupSaysWhenTheKeyIsRefused() async {
-        SetupMonitor.forgetCheckedAPIKey()
-        let status3 = await SetupMonitor.apiKeyStatus(key: "sk-ant-bad", check: { _ in .invalid("no") })
-        XCTAssertEqual(status3, .problem("The key was refused"))
-        let status4 = await SetupMonitor.apiKeyStatus(key: nil, check: { _ in .valid })
-        XCTAssertEqual(status4, .problem("No API key saved yet"))
-        let status5 = await SetupMonitor.apiKeyStatus(key: "", check: { _ in .valid })
-        XCTAssertEqual(status5, .problem("No API key saved yet"))
+        let refused = await SetupMonitor.apiKeyStatus(key: "sk-ant-bad", check: { _ in .invalid("no") })
+        XCTAssertEqual(refused, .problem("The key was refused"))
+        let none = await SetupMonitor.apiKeyStatus(key: nil, check: { _ in .valid })
+        XCTAssertEqual(none, .problem("No API key saved yet"))
+        let empty = await SetupMonitor.apiKeyStatus(key: "", check: { _ in .valid })
+        XCTAssertEqual(empty, .problem("No API key saved yet"))
+        let offline = await SetupMonitor.apiKeyStatus(key: "sk-ant-1", check: { _ in .couldNotCheck("offline") })
+        XCTAssertEqual(offline, .ready("Anthropic API key saved"), "Offline counts as ready; a run says what's wrong")
     }
 
-    func testOfflineCountsAsReadyButIsAskedAgain() async {
-        SetupMonitor.forgetCheckedAPIKey()
-        defer { SetupMonitor.forgetCheckedAPIKey() }
-        var checks = 0
-        let offline: (String) async -> APIKeyCheck = { _ in checks += 1; return .couldNotCheck("offline") }
-        let status6 = await SetupMonitor.apiKeyStatus(key: "sk-ant-1", check: offline)
-        XCTAssertEqual(status6, .ready("Anthropic API key saved"))
-        _ = await SetupMonitor.apiKeyStatus(key: "sk-ant-1", check: offline)
-        XCTAssertEqual(checks, 2)
+    func testRemoveKeySaysWhenTheKeychainKeepsIt() {
+        XCTAssertEqual(APIKeySave.notRemoved.note?.text, "Takes couldn't remove the key from your keychain. Try again.")
+        XCTAssertEqual(APIKeySave.notRemoved.note?.problem, true)
+    }
+
+    func testTestsNeverTouchTheRealKeychain() {
+        XCTAssertTrue(Store.runningTests)
+        XCTAssertTrue(Keychain.setAPIKey("sk-ant-test"))
+        XCTAssertEqual(Keychain.apiKey, "sk-ant-test")
+        XCTAssertEqual(Keychain.memoryLock.withLock { Keychain.memory["anthropic-api-key"] }, Data("sk-ant-test".utf8),
+                       "Saved in memory, not the login keychain")
+        XCTAssertTrue(Keychain.setAPIKey(nil))
+        XCTAssertNil(Keychain.apiKey)
     }
 }

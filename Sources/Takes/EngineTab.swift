@@ -86,6 +86,8 @@ struct ModelTab: View {
 
     /// Where the draft goes with the chosen engine, in one sentence.
     private var privacyText: String {
+        // The engine reads as Claude Code until one is picked, but nothing is sent before that.
+        if store.settings.engineNeedsChoice { return String(localized: "Nothing is sent until you pick a model.") }
         switch store.settings.engine {
         case .local: return String(localized: "With a local model, your drafts stay on this Mac.")
         case .claudeCode, .apiKey: return String(localized: "Takes sends your draft only to Anthropic, under your own account.")
@@ -203,9 +205,8 @@ struct ModelTab: View {
                     guard confirmDestructive(String(localized: "Remove your Anthropic API key?"),
                                              message: String(localized: "Takes deletes it from your keychain. You'll need to paste it again to write with it."),
                                              button: String(localized: "Remove Key")) else { return }
-                    Keychain.setAPIKey(nil)
+                    keySave = Keychain.setAPIKey(nil) ? nil : .notRemoved
                     hasKey = Keychain.apiKey != nil
-                    keySave = nil
                     Task { await SetupMonitor.shared.refreshEngine() }
                 }
                 .buttonStyle(DestructiveButtonStyle(height: 26))
@@ -238,7 +239,7 @@ struct ModelTab: View {
         checkingKey = true
         keySave = nil
         Task {
-            let result = await APIKeySave.save(key, check: { await APIEngine.checkKey($0) }, store: { Keychain.setAPIKey($0) })
+            let result = await APIKeySave.save(key, check: { await APIKeyCheckCache.shared.check($0) }, store: { Keychain.setAPIKey($0) })
             checkingKey = false
             keySave = result
             if result != .notSaved { keyInput = "" }
@@ -246,6 +247,34 @@ struct ModelTab: View {
             await SetupMonitor.shared.refreshEngine()
         }
     }
+}
+
+/// What Anthropic last said about a key, kept in memory under a hash of the key, so saving a key and the setup check
+/// after it make one request between them, and setup doesn't ask about the same key on every check. An answer that
+/// couldn't be had (offline) is asked for again after `retryAfter`.
+@MainActor
+final class APIKeyCheckCache {
+    static let shared = APIKeyCheckCache()
+    static let retryAfter: TimeInterval = 5 * 60
+
+    /// Asks Anthropic; tests pass a fake.
+    var ask: (String) async -> APIKeyCheck = { await APIEngine.checkKey($0) }
+    private var last: (key: Int, at: Date, answer: APIKeyCheck)?
+
+    func check(_ key: String, now: Date = Date()) async -> APIKeyCheck {
+        if let last, last.key == key.hashValue {
+            if case .couldNotCheck = last.answer, now.timeIntervalSince(last.at) >= Self.retryAfter {
+                // Asked again below.
+            } else {
+                return last.answer
+            }
+        }
+        let answer = await ask(key)
+        last = (key.hashValue, now, answer)
+        return answer
+    }
+
+    func forget() { last = nil }
 }
 
 /// Saving an Anthropic API key, from Settings or onboarding. Anthropic is asked about the key first (no tokens
@@ -256,6 +285,8 @@ enum APIKeySave: Equatable {
     case refused(String)
     /// The keychain didn't take it.
     case notSaved
+    /// Remove Key: the keychain wouldn't delete it.
+    case notRemoved
 
     static func save(_ key: String, check: (String) async -> APIKeyCheck, store: (String) -> Bool) async -> APIKeySave {
         let result = await check(key)
@@ -266,6 +297,7 @@ enum APIKeySave: Equatable {
     }
 
     static let keychainRefused = String(localized: "Takes couldn't save the key to your keychain. Try again.")
+    static let keychainKept = String(localized: "Takes couldn't remove the key from your keychain. Try again.")
 
     /// The line under the key field, and whether it's a problem; nil when the key was saved and works.
     var note: (text: String, problem: Bool)? {
@@ -274,6 +306,7 @@ enum APIKeySave: Equatable {
         case .savedUnchecked(let why): (String(localized: "Key saved, but not checked. \(why)"), false)
         case .refused(let why): (why, true)
         case .notSaved: (Self.keychainRefused, true)
+        case .notRemoved: (Self.keychainKept, true)
         }
     }
 }
