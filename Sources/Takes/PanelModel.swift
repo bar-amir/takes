@@ -26,6 +26,8 @@ final class PanelModel: ObservableObject {
     @Published var error: String?
     /// Set with `error` when the engine's account is out of credit or at a limit: the panel offers a way to fix it.
     @Published var limit: UsageLimitError?
+    /// The last take of the shown run was cut short (`EngineResult.cutShort`), so the takes screen can say so.
+    @Published var cutShort = false
     @Published var selected = 0
     @Published var changesShown: Set<Int> = []
     /// ⌥ held on the takes screen: every card flips between its changes and the clean take.

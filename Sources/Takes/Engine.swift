@@ -37,6 +37,9 @@ struct EngineResult {
     let wallMs: Int
     /// Request start to the first streamed word.
     let firstTextMs: Int?
+    /// The engine stopped before the answer was finished (it reached its length limit, or ran out of time), so
+    /// the last take is incomplete. The takes before it are whole.
+    var cutShort = false
 }
 
 enum EngineError: LocalizedError {
