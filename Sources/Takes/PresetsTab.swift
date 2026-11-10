@@ -9,23 +9,26 @@ struct PresetsTab: View {
     @ObservedObject var store = Store.shared
 
     var body: some View {
-        HStack(spacing: 0) {
-            sidebar.frame(width: 210)
-            Rectangle().fill(Theme.formGroupBorder).frame(width: 1)
-            if let index = store.presets.firstIndex(where: { $0.id == state.selectedPresetID }) {
-                VStack(spacing: 0) {
-                    if PresetGallery.isUntouchedNew(store.presets[index], blank: store.newPreset()) {
-                        GalleryHintBar { state.showGallery = true }
+        VStack(spacing: 0) {
+            SetAsideBanner(store: store)
+            HStack(spacing: 0) {
+                sidebar.frame(width: 210)
+                Rectangle().fill(Theme.formGroupBorder).frame(width: 1)
+                if let index = store.presets.firstIndex(where: { $0.id == state.selectedPresetID }) {
+                    VStack(spacing: 0) {
+                        if PresetGallery.isUntouchedNew(store.presets[index], blank: store.newPreset()) {
+                            GalleryHintBar { state.showGallery = true }
+                        }
+                        PresetEditor(preset: $store.presets[index])
+                            .id(store.presets[index].id)
                     }
-                    PresetEditor(preset: $store.presets[index])
-                        .id(store.presets[index].id)
+                } else {
+                    VStack(spacing: 12) {
+                        Text("Choose a preset, or start from a ready-made one.").font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
+                        Button("Browse presets…") { state.showGallery = true }.buttonStyle(SecondaryButtonStyle(height: 30)).fixedSize()
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-            } else {
-                VStack(spacing: 12) {
-                    Text("Choose a preset, or start from a ready-made one.").font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
-                    Button("Browse presets…") { state.showGallery = true }.buttonStyle(SecondaryButtonStyle(height: 30)).fixedSize()
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .background(Theme.formBackground)
@@ -173,18 +176,205 @@ struct PresetsTab: View {
         panel.allowedContentTypes = [.json]
         panel.allowsMultipleSelection = true
         guard panel.runModal() == .OK else { return }
+        let settings = store.settings
+        var reports: [PresetImport.FileReport] = []
         for url in panel.urls {
-            guard let data = try? Data(contentsOf: url) else { continue }
-            let decoded = (try? JSONDecoder().decode([Preset].self, from: data))
-                ?? (try? JSONDecoder().decode(Preset.self, from: data)).map { [$0] } ?? []
-            for var preset in decoded {
-                preset.id = UUID().uuidString
-                preset.hotKey = nil
-                // A file can't turn on paste-without-looking; the user does that themselves (PRIVACY.md).
-                preset.instantMode = nil
+            let result = PresetImport.read(url, defaultModel: settings.defaultModel, defaultEffort: settings.defaultEffort)
+            for preset in result.presets {
                 store.presets.append(preset)
                 state.selectedPresetID = preset.id
             }
+            reports.append(PresetImport.FileReport(file: url.lastPathComponent, result: result))
+        }
+        let summary = PresetImport.summary(reports)
+        let alert = NSAlert()
+        alert.messageText = summary.title
+        alert.informativeText = summary.message
+        alert.alertStyle = summary.imported > 0 ? .informational : .warning
+        alert.addButton(withTitle: String(localized: "OK"))
+        alert.runModal()
+    }
+}
+
+/// What a preset file turned into: the presets kept (checked, see `PresetImport.checked`), and what was left out or changed.
+struct PresetImportResult {
+    var presets: [Preset] = []
+    /// What changed in each preset, in words, by name.
+    var changes: [(name: String, notes: [String])] = []
+    /// Presets in the file that couldn't be read.
+    var skipped = 0
+    /// Nothing in the file could be read as a preset.
+    var unreadable = false
+    /// A removed hotkey, app binding or paste-right-away setting, which the summary explains how to set again.
+    var removedBindings = false
+}
+
+/// Reading a preset file someone else wrote: it comes from outside, so what it asks for is checked first.
+enum PresetImport {
+    /// A preset file is a few kilobytes; a bigger one isn't one.
+    static let maxFileSize = 1_000_000
+    /// Every example is sent with every run, so a pasted-in essay isn't kept whole.
+    static let maxExampleLength = 2000
+
+    struct FileReport {
+        var file: String
+        var result: PresetImportResult
+    }
+
+    static func read(_ url: URL, defaultModel: String, defaultEffort: String) -> PresetImportResult {
+        let size = (try? url.resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0
+        guard size <= maxFileSize, let data = try? Data(contentsOf: url) else { return PresetImportResult(unreadable: true) }
+        return read(data, defaultModel: defaultModel, defaultEffort: defaultEffort)
+    }
+
+    /// A file holds a list of presets (an export) or one preset. A preset that can't be read is skipped.
+    static func read(_ data: Data, defaultModel: String, defaultEffort: String) -> PresetImportResult {
+        var result = PresetImportResult()
+        let decoder = JSONDecoder()
+        var found: [Preset] = []
+        if let list = try? decoder.decode(LossyList<Preset>.self, from: data) {
+            found = list.elements
+            result.skipped = list.skipped
+        } else if let one = try? decoder.decode(Preset.self, from: data) {
+            found = [one]
+        } else {
+            result.unreadable = true
+        }
+        for imported in found {
+            let (preset, notes, removed) = checked(imported, defaultModel: defaultModel, defaultEffort: defaultEffort)
+            result.presets.append(preset)
+            if !notes.isEmpty { result.changes.append((preset.name.isEmpty ? String(localized: "Untitled") : preset.name, notes)) }
+            if removed { result.removedBindings = true }
+        }
+        return result
+    }
+
+    /// The preset as it may come in: a new id, takes inside what the picker offers, a model and effort this version has,
+    /// a few short examples, and nothing that acts without the user seeing it. A file can't bring a hotkey, apps that pick
+    /// the preset automatically, or paste-right-away; the user sets those in the preset. Returns what it changed, in words.
+    static func checked(_ imported: Preset, defaultModel: String, defaultEffort: String) -> (preset: Preset, notes: [String], removedBindings: Bool) {
+        var preset = imported
+        var notes: [String] = []
+        var removed = false
+        preset.id = UUID().uuidString
+
+        if preset.hotKey != nil {
+            preset.hotKey = nil
+            notes.append(String(localized: "hotkey removed"))
+            removed = true
+        }
+        if !preset.apps.isEmpty {
+            let names = preset.apps.map(\.name).joined(separator: ", ")
+            notes.append(String(localized: "app bindings removed (\(names))"))
+            preset.apps = []
+            removed = true
+        }
+        if preset.instantMode == true {
+            notes.append(String(localized: "“Write and paste right away” turned off"))
+            removed = true
+        }
+        preset.instantMode = nil
+
+        let takes = min(max(preset.takes, Preset.takesRange.lowerBound), Preset.takesRange.upperBound)
+        if takes != preset.takes {
+            notes.append(String(localized: "takes set to \(takes) (was \(preset.takes))"))
+            preset.takes = takes
+        }
+        if !Models.all.contains(where: { $0.id == preset.model }) {
+            let model = Models.all.contains { $0.id == defaultModel } ? defaultModel : Models.sonnet
+            notes.append(String(localized: "model set to \(Models.label(model))"))
+            preset.model = model
+        }
+        if !Models.efforts.contains(preset.effort) {
+            let effort = Models.efforts.contains(defaultEffort) ? defaultEffort : "low"
+            notes.append(String(localized: "effort set to \(Models.effortLabel(effort))"))
+            preset.effort = effort
+        }
+
+        var examples = preset.examples
+        if examples.count > Preset.maxExamples {
+            notes.append(String(localized: "examples cut to \(Preset.maxExamples) (had \(examples.count))"))
+            examples = Array(examples.prefix(Preset.maxExamples))
+        }
+        if examples.contains(where: { $0.count > maxExampleLength }) {
+            notes.append(String(localized: "long examples shortened"))
+            examples = examples.map { String($0.prefix(maxExampleLength)) }
+        }
+        preset.examples = examples
+        return (preset, notes, removed)
+    }
+
+    /// The alert after an import: what was added, what was changed and what couldn't be read.
+    static func summary(_ reports: [FileReport]) -> (title: String, message: String, imported: Int) {
+        let imported = reports.reduce(0) { $0 + $1.result.presets.count }
+        let title: String
+        if imported == 0 {
+            title = String(localized: "No presets imported")
+        } else if imported == 1 {
+            title = String(localized: "Imported 1 preset")
+        } else {
+            title = String(localized: "Imported \(imported) presets")
+        }
+        var lines: [String] = []
+        for report in reports {
+            let result = report.result
+            if result.unreadable {
+                lines.append(String(localized: "“\(report.file)” isn't a preset file Takes can read."))
+            } else if result.presets.isEmpty && result.skipped == 0 {
+                lines.append(String(localized: "“\(report.file)” has no presets."))
+            }
+            if result.skipped == 1 {
+                lines.append(String(localized: "“\(report.file)”: 1 preset couldn't be read and was skipped."))
+            } else if result.skipped > 1 {
+                lines.append(String(localized: "“\(report.file)”: \(result.skipped) presets couldn't be read and were skipped."))
+            }
+        }
+        let changes = reports.flatMap(\.result.changes)
+        let shown = 6
+        lines += changes.prefix(shown).map { "“\($0.name)”: \($0.notes.joined(separator: ", "))." }
+        if changes.count > shown { lines.append(String(localized: "And \(changes.count - shown) more were adjusted.")) }
+        if reports.contains(where: \.result.removedBindings) {
+            lines.append(String(localized: "A file can't bring a hotkey, apps or “Write and paste right away”. Set them in the preset."))
+        }
+        return (title, lines.joined(separator: "\n"), imported)
+    }
+}
+
+/// Shown at the top of Presets and History while a file Takes set aside at launch hasn't been dismissed:
+/// what happened and where the original is.
+struct SetAsideBanner: View {
+    @ObservedObject var store: Store
+    /// A card (in a page) rather than a strip across the window.
+    var rounded = false
+
+    var body: some View {
+        if !store.setAside.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: "exclamationmark.triangle.fill").font(.system(size: 13)).foregroundStyle(Theme.avoidText)
+                        .padding(.top, 1)
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(store.setAside) { file in
+                            Text(file.message).font(.system(size: 13)).foregroundStyle(Theme.controlText)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .textSelection(.enabled)
+                        }
+                    }
+                    Spacer(minLength: 0)
+                }
+                HStack(spacing: 8) {
+                    Button("Show in Finder") { store.revealSetAside() }.buttonStyle(SecondaryButtonStyle(height: 28)).fixedSize()
+                    Button("Dismiss") { store.dismissSetAside() }.buttonStyle(SecondaryButtonStyle(height: 28)).fixedSize()
+                }
+                .padding(.leading, 27)
+            }
+            .padding(.horizontal, rounded ? 14 : 28)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Theme.avoidFill)
+            .clipShape(RoundedRectangle(cornerRadius: rounded ? 10 : 0))
+            .accessibilityElement(children: .contain)
         }
     }
 }
@@ -249,7 +439,7 @@ private struct PresetEditor: View {
                     FormSection(header: String(localized: "Run", comment: "Preset run settings")) {
                         FormRow(String(localized: "Takes · Model · Effort")) {
                             HStack(spacing: 6) {
-                                MenuPicker(options: (1...5).map { (value: $0, title: "\($0)") }, selection: $preset.takes)
+                                MenuPicker(options: Preset.takesRange.map { (value: $0, title: "\($0)") }, selection: $preset.takes)
                                 MenuPicker(options: Models.all.map { (value: $0.id, title: $0.label) }, selection: $preset.model)
                                 MenuPicker(options: Models.efforts.map { (value: $0, title: Models.effortLabel($0)) }, selection: $preset.effort)
                             }
