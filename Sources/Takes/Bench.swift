@@ -5,9 +5,11 @@ import Security
 /// Runs the engine N times on a sample draft and prints timings.
 ///
 /// A developer tool: it spends the signed-in plan or the saved API key on text the caller picks, and any local
-/// program can launch the installed app. So it only runs in a development build (see `isAllowed`).
+/// program can launch the installed app. So it only runs in a development build (see `isAllowed`). That stops the
+/// installed app being used this way; it doesn't stop a copy of the app that someone re-signed ad hoc, which carries
+/// no team identifier.
 enum Bench {
-    static let developmentOnlyMessage = "--bench is only available in development builds (./build.sh)."
+    static let developmentOnlyMessage = "--bench only runs in development builds with no team identifier (plain ./build.sh)."
 
     /// Whether this is a development build, from what `SecCodeCopySigningInformation` says about the app's own code
     /// signature (`nil` when it couldn't be read). A Developer ID build, as distributed, carries the developer's team

@@ -338,9 +338,12 @@ struct ClaudeCodeEngine: TakesEngine {
             try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: url.path)
             NSWorkspace.shared.open(url)
         } catch {
-            // Copy the full command instead, so pasting it in Terminal works too.
+            // Copy the full command instead, so pasting it in Terminal works too. It is Takes' own copy, not
+            // something the user copied to reply to (`ClipboardWatch`, which is asked on the main thread only).
+            if Thread.isMainThread { ClipboardWatch.aboutToWrite() }
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(signInCommand(claudePath: claude), forType: .string)
+            if Thread.isMainThread { ClipboardWatch.ownWrite(.take) }
             NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Utilities/Terminal.app"))
         }
     }

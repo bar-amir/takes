@@ -97,6 +97,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 StatusPopoverController.shared.showCrashOffer(crash, from: button)
             }
         }
+        // A settings, presets, history or coach file Takes couldn't read was set aside at launch: say so once,
+        // so it isn't only found by opening Settings.
+        if !Store.shared.setAside.isEmpty {
+            Task { @MainActor in
+                NSApp.activate(ignoringOtherApps: true)
+                Store.shared.announceSetAside()
+            }
+        }
     }
 
     /// Opening Takes again (Finder, Spotlight, Launchpad) while it's running: resume onboarding if it isn't

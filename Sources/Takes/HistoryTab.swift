@@ -131,8 +131,11 @@ struct HistoryTab: View {
                             Text(take).font(.system(size: 13)).lineSpacing(2).textSelection(.enabled)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             Button {
+                                // Takes' own copy, not something the user copied to reply to (`ClipboardWatch`).
+                                ClipboardWatch.aboutToWrite()
                                 NSPasteboard.general.clearContents()
                                 NSPasteboard.general.setString(take, forType: .string)
+                                ClipboardWatch.ownWrite(.take)
                             } label: { Image(systemName: "doc.on.doc").font(.system(size: 11, weight: .medium)) }
                             .buttonStyle(SecondaryButtonStyle(height: 24))
                             .help("Copy take")
