@@ -24,6 +24,7 @@ struct HistoryTab: View {
 
     var body: some View {
         SettingsPage {
+            SetAsideBanner(store: store, rounded: true)
             if !store.history.isEmpty {
                 StyledTextField(placeholder: String(localized: "Search drafts and takes"), text: $search, height: 30)
                     .accessibilityLabel("Search history")
@@ -61,7 +62,7 @@ struct HistoryTab: View {
                 FormRow(String(localized: "Delete all history")) {
                     Button("Clear History…", action: clear)
                         .buttonStyle(DestructiveButtonStyle())
-                        .disabled(store.history.isEmpty)
+                        .disabled(store.history.isEmpty && !store.keepsHistoryCopy)
                 }
             }
         }
@@ -146,10 +147,17 @@ struct HistoryTab: View {
     }
 
     private func clear() {
-        guard confirmDestructive(String(localized: "Clear all history?"),
-                                 message: String(localized: "This deletes every draft and take Takes has kept on this Mac. You can't undo this."),
-                                 button: String(localized: "Clear History")) else { return }
-        store.history = []
+        let message = String(localized: "This deletes every draft and take in History, and any copy Takes set aside from an unreadable history file. Presets and English coach notes stay. You can't undo this.")
+        guard confirmDestructive(String(localized: "Clear all history?"), message: message, button: String(localized: "Clear History")) else { return }
+        let removedAll = store.clearHistory()
         expanded = []
+        if !removedAll {
+            let alert = NSAlert()
+            alert.messageText = String(localized: "Some history couldn't be deleted")
+            alert.informativeText = String(localized: "Takes couldn't remove all of its history files. Delete the history files in the Takes folder in Finder.")
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: String(localized: "OK"))
+            alert.runModal()
+        }
     }
 }
