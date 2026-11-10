@@ -42,6 +42,21 @@ struct EngineResult {
     var cutShort = false
 }
 
+/// How many tokens an engine lets the model write for one request. A fixed cap cut long drafts short: three takes of
+/// a 10,000-character draft are about 7,500 tokens before any thinking. So the cap grows with the request.
+enum OutputBudget {
+    /// A generous token count for `text`: one token per 3 bytes of UTF-8. English runs near 4 characters a token and
+    /// Chinese or Japanese near 1 (3 bytes each), so this errs on the side of room.
+    static func tokens(in text: String) -> Int { (text.utf8.count + 2) / 3 }
+
+    /// Room for every take at twice the length of the user message (a take can run longer than the draft), plus
+    /// `reserve` for thinking; never below `floor` (short drafts keep the cap they always had) or above `ceiling`.
+    static func maxTokens(for request: EngineRequest, floor: Int, ceiling: Int, reserve: Int = 0) -> Int {
+        let room = tokens(in: request.user) * max(request.takes, 1) * 2 + reserve
+        return min(max(room, floor), ceiling)
+    }
+}
+
 enum EngineError: LocalizedError {
     case failed(String)
     var errorDescription: String? {
@@ -122,5 +137,20 @@ enum TakeSplitter {
         return takes
             .map { $0.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
+    }
+
+    /// Whether `text` has at least one take followed by a finished separator line: a take known to be whole.
+    static func hasWholeTake(_ text: String) -> Bool {
+        var sawText = false
+        // The last line may still be coming, so only lines that ended count.
+        for line in text.split(separator: "\n", omittingEmptySubsequences: false).dropLast() {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed == separator {
+                if sawText { return true }
+            } else if !trimmed.isEmpty {
+                sawText = true
+            }
+        }
+        return false
     }
 }
