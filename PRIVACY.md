@@ -49,7 +49,7 @@ It goes **straight from your Mac** to that engine. Nothing goes through a server
 - **To whom:** OpenAI's API, under **your own** ChatGPT plan, through OpenAI's Sign in with ChatGPT.
 - **How:** you sign in in your browser, on OpenAI's pages. Takes never asks for your ChatGPT password. Requests are sent from your Mac with `store: false`, so OpenAI doesn't save the response for later use in its API.
 - **Terms:** your ChatGPT plan's terms and its usage limits. You can see and cap what Takes uses, or revoke it, in ChatGPT › Settings.
-- **Stored:** the sign-in tokens, in your macOS keychain only. Signing out deletes them and asks OpenAI to revoke them.
+- **Stored:** the sign-in tokens, in your macOS keychain only. Signing out deletes them and asks OpenAI to revoke them. The random install ID in `chatgpt-host.json` (see [What stays on your Mac](#what-stays-on-your-mac)) stays.
 - **Data use:** [OpenAI's privacy policy](https://openai.com/policies/privacy-policy/).
 
 Plus and Pro plans can use it. OpenAI calls Sign in with ChatGPT a preview, so its limits and rules may change.
@@ -109,7 +109,7 @@ The words you dictate become part of your draft, and like any draft they're sent
 | History of drafts and takes (last 30 days; never the context you replied to) | `~/Library/Application Support/Takes/history.json` | Settings › History › Clear History…, or turn history off in Settings › History |
 | English coach notes, if you turn it on (short excerpts of mistakes, never whole drafts; 30 days) | `~/Library/Application Support/Takes/coach.json` | Settings › Coach › Clear coach data…, or turn the coach off |
 | Which kinds of fix showed up in your English drafts while the coach is off, and when (30 days; no text), and your answer to the coach offer | `~/Library/Application Support/Takes/coach-invite.json` | Delete the file |
-| A random ID for this Mac that OpenAI asks for when you sign in with ChatGPT (not tied to you) | `~/Library/Application Support/Takes/chatgpt-host.json` | Settings › Model › Sign out removes it |
+| A random install ID for this Mac that Sign in with ChatGPT sends to OpenAI at sign-in. It holds no account data and isn't tied to you, and it stays on your Mac after you sign out | `~/Library/Application Support/Takes/chatgpt-host.json` | Delete the file or the Takes folder; the next sign-in makes a new ID |
 | A copy of a file Takes couldn't read, kept so nothing is lost: `presets.unreadable-<date>.json`, `settings.unreadable-<date>.json`, `history.unreadable-<date>.json`, `coach.unreadable-<date>.json` (at most 3 per file) | `~/Library/Application Support/Takes/` | Delete the copy. Takes tells you at launch when it has set a file aside. The history and coach copies hold the same text as the originals: they expire 30 days after the original was last written, and Clear History and Clear coach data delete them too |
 | Run timings (model, effort, engine, number of takes, timing, the app you were in; no text). Capped at about 512 KB: the oldest lines are dropped | `~/Library/Logs/Takes/runs.jsonl` | Delete the file |
 | Field-reading log (app, kind of text box, how it was read, character count, caret position; a line for each paste, sent or not, with which check let it through or why it wasn't sent; no text). Capped at about 512 KB: the oldest lines are dropped | `~/Library/Logs/Takes/focus.log` | Delete the file |

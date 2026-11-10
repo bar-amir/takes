@@ -54,9 +54,6 @@ Setup status: ready "ChatGPT · GPT-5.4"; problems "Not signed in to ChatGPT", "
 **OAuth** (`ChatGPTAuth.swift`):
 - `ext_agent_host_id`: a `urn:uuid:` UUIDv4 made once and kept in `~/Library/Application Support/Takes/chatgpt-host.json`
   (survives sign-out; contains nothing about the user).
-  *Update, 10 November 2026: it no longer survives sign-out. Signing out deletes `chatgpt-host.json`, and the next
-  sign-in makes a new ID. The issued client ID is still kept, and sign-out now also asks OpenAI to revoke the refresh
-  token.*
 - Authorize (`https://auth.openai.com/api/accounts/authorize`): first time `client_id=dynamic_agent_client` +
   `agent_name_hint=Takes`; later the issued `oaiapp_…` client ID with `id_token_hint`/`login_hint` when a previous
   sign-in is still saved. Always `ext_agent_host_id`, `response_type=code`, fresh `state` and `nonce`, PKCE S256,

@@ -229,9 +229,6 @@ What OpenAI requires, mapped to Takes:
 | Use the app's own name at sign-in; no OpenAI logos or implied endorsement; say "Using ChatGPT plan" and offer "Manage usage" (opens ChatGPT Settings › Usage) | Text button "Continue with ChatGPT" in house style; a "Manage usage" link on the card. |
 | Privacy notice before processing; reasonable security; report vulnerabilities to OpenAI | `PRIVACY.md` subsection + the onboarding privacy step; `SECURITY.md` gains the OpenAI contact. |
 
-*Update, 10 November 2026: the host ID in the first row is no longer kept for good. Signing out deletes
-`chatgpt-host.json` and the next sign-in makes a new one; the issued client ID is still saved.*
-
 Estimate: **2–3 days** on top of phase 1–6 (OAuth listener + PKCE + refresh 1 day; Responses-API engine 0.5–1; card,
 onboarding, errors, privacy copy 0.5–1). Risks: the program is labelled *preview* and "selected" for private apps,
 so limits and rules can change; weekly per-app allowances are set by the user in ChatGPT and may run out mid-use (the
