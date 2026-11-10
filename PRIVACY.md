@@ -11,13 +11,13 @@ Only when you press the Takes hotkey (or a preset's hotkey), Takes reads:
 - **The text box you're typing in:** the selected text, or the text already in the box, depending on your "Start with" setting. It reads this through macOS Accessibility, which you grant in System Settings. Takes only ever reads a real text box, never the page or window around it.
 - **The clipboard, briefly:** if an app doesn't expose its text box to Accessibility, Takes copies the text with ⌘A ⌘C and then puts your previous clipboard back. When pasting a take, it puts the take on the clipboard, sends ⌘V, and then restores your clipboard (unless you turn this off).
 - **What you're replying to, only if you add it:** in the panel you can add the message you're answering (⌘J to type or paste it, ⇧⌘V to use the clipboard's text). Nothing is added unless you do it, and it's cleared every time the panel opens.
-- **The clipboard as context, only if you turn it on** (Settings › Engine › Reply context, off by default): when the panel opens, Takes checks whether the clipboard changed in the last 2 minutes and holds plain text. Only then does it read that text, and it attaches it only if it looks like a message (a few words, under 4,000 characters, not a link, number or code). Passwords marked as private by password managers, files and images are skipped. While this is on, Takes notes when the clipboard changes (not what's on it) so it can tell a fresh copy from an old one. The chip in the panel says "copied just now", and one click or ⇧⌘⌫ removes it.
+- **The clipboard as context, only if you turn it on** (Settings › General › Clipboard › "Use the clipboard as context when it looks like a message", off by default): when the panel opens, Takes checks whether the clipboard changed in the last 2 minutes and holds plain text. Only then does it read that text, and it attaches it only if it looks like a message (a few words, under 4,000 characters, not a link, number or code). Passwords marked as private by password managers, files and images are skipped. While this is on, Takes notes when the clipboard changes (not what's on it) so it can tell a fresh copy from an old one. The chip in the panel says "copied just now", and one click or ⇧⌘⌫ removes it.
 
 Takes doesn't read anything in the background, and it doesn't take screenshots. It never reads the screen or other windows for context.
 
 ## Where your text goes
 
-Takes sends your text only when you ask for takes, and only to the engine you chose in Settings › Engine. Whichever engine you use, it sends:
+Takes sends your text only when you ask for takes, and only to the engine you chose in Settings › Model. Whichever engine you use, it sends:
 
 - your draft;
 - the chosen preset (instruction, Do and Avoid rules, your "write like me" examples);
@@ -66,7 +66,7 @@ With a **custom address**, your drafts go to whatever server is at that address.
 If you choose **Local model**, Takes sends the same draft, preset and voice rules to a model server running **on your own Mac** (Ollama or LM Studio), and nothing leaves your Mac:
 
 - Takes only connects to addresses on this Mac (`localhost`, `127.0.0.1`, `::1`). It refuses any other address, ignores system proxies for these requests, and won't follow a redirect to another machine.
-- To find a server, Takes asks `localhost:11434` (Ollama) and `localhost:1234` (LM Studio) which models are installed, when you open Settings › Engine or the panel. It never downloads or installs models or apps.
+- To find a server, Takes asks `localhost:11434` (Ollama) and `localhost:1234` (LM Studio) which models are installed, when you open Settings › Model or the panel. It never downloads or installs models or apps.
 - What the server and model do with your text is up to them. Ollama and LM Studio run models locally, but check their own settings if you've connected them to anything else.
 
 ### Tone notes
@@ -75,7 +75,7 @@ If you choose **Local model**, Takes sends the same draft, preset and voice rule
 
 ### English coach
 
-The English coach is **off until you turn it on** in Settings › English coach. While it's on, each draft you send for takes that is mostly English (and from a preset you chose to count) goes once more, in one short request, to your engine's quick model, alongside the takes. That request carries only the draft and the list of patterns you chose to watch; it never includes what you're replying to. The answer is checked against the draft on your Mac, and lessons are put together on your Mac from a built-in guide, so they send nothing.
+The English coach is **off until you turn it on** in Settings › Coach. While it's on, each draft you send for takes that is mostly English (and from a preset you chose to count) goes once more, in one short request, to your engine's quick model, alongside the takes. That request carries only the draft and the list of patterns you chose to watch; it never includes what you're replying to. The answer is checked against the draft on your Mac, and lessons are put together on your Mac from a built-in guide, so they send nothing.
 
 When you paste a take, Takes keeps on your Mac, in `coach.json`: the short phrase around each mistake, its correction and reason, the app you were in, the date and the draft's word count. It never keeps your whole draft. Entries older than 30 days are deleted, phrases you mark "Not a mistake" are kept so they aren't flagged again, and monthly token estimates are kept for a year. Turning the coach off deletes `coach.json`.
 
