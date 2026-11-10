@@ -1,9 +1,9 @@
 import AppKit
 
-// `Takes --bench …` measures the engine from the terminal without the UI.
+// `Takes --bench …` measures the engine from the terminal without the UI. Development builds only: it spends the
+// user's accounts, and any local program can launch the installed app. `Bench.run` refuses in a distributed build.
 if CommandLine.arguments.contains("--bench") {
-    Bench.run(arguments: CommandLine.arguments)
-    exit(0)
+    exit(Bench.run(arguments: CommandLine.arguments) ? 0 : 1)
 }
 
 // Dry run of field reading on the frontmost app: prints how its text box was read, never sends keys.

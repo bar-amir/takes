@@ -6,6 +6,9 @@ import SwiftUI
 @MainActor
 enum Snapshot {
     static func run(arguments: [String]) {
+        // First, before anything touches the store: a snapshot changes settings in memory to show other states, and
+        // runs in distributed builds too. It must never write the user's files or read their Keychain items.
+        Store.readOnly = true
         let folder = arguments.firstIndex(of: "--snapshot").flatMap { arguments.indices.contains($0 + 1) ? arguments[$0 + 1] : nil }
             ?? FileManager.default.temporaryDirectory.path
         let url = URL(fileURLWithPath: folder, isDirectory: true)
