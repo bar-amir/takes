@@ -35,7 +35,7 @@ Copies you build yourself never check for updates.
 
 ## Screenshots
 
-`build/Takes.app/Contents/MacOS/Takes --snapshot <folder>` renders every screen with sample data to PNGs. Include the relevant ones in pull requests that change the UI. The images in `site/img` come from it.
+`build/Takes.app/Contents/MacOS/Takes --snapshot <folder>` renders every screen with sample data to PNGs. It uses starter presets and default settings and writes nothing to your Takes folders, so it works in a distributed build too. Include the relevant ones in pull requests that change the UI. The images in `site/img` come from it.
 
 ## Translations
 
