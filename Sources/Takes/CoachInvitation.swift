@@ -94,6 +94,10 @@ enum FixHeuristic {
         let fix: WordDiff.Fix
     }
 
+    /// Diff steps per take. This runs on the main thread once a run finishes, so a very long draft gets a coarse
+    /// diff (and no invitation) rather than a pause.
+    static let stepBudget = WordDiff.stepBudget / 10
+
     /// The fixes the takes agree on: a kind of fix counts when at least half the takes make it. Each pattern
     /// appears once, with the shortest example.
     static func analyse(draft: String, takes: [String]) -> [Found] {
@@ -104,7 +108,7 @@ enum FixHeuristic {
         var order: [String] = []
         for take in takes {
             var seen = Set<String>()
-            for fix in WordDiff.readableFixes(from: draft, to: take) {
+            for fix in WordDiff.readableFixes(from: draft, to: take, budget: stepBudget) {
                 guard let pattern = classify(fix, draft: draft) else { continue }
                 if !order.contains(pattern) { order.append(pattern) }
                 if let old = examples[pattern] {

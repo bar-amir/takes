@@ -28,9 +28,11 @@ final class WordDiffTests: XCTestCase {
         XCTAssertEqual(rebuilt(segments, keeping: ["added"]), "I Thursday ")
     }
 
-    func testSpacingChangesAloneAreNotChanges() {
+    /// Spacing changes what gets pasted, so it's a change; only the extra space is marked.
+    func testSpacingChangesAreChanges() {
         let segments = WordDiff.segments(from: "Thursday  works", to: "Thursday works")
-        XCTAssertTrue(segments.allSatisfy { $0.kind == .same })
+        XCTAssertEqual(rebuilt(segments, keeping: ["removed"]), " ")
+        XCTAssertEqual(rebuilt(segments, keeping: ["same", "added"]), "Thursday works")
     }
 
     func testEmptyOldTextIsAllAdded() {
@@ -78,8 +80,9 @@ final class WordDiffProofreadTests: XCTestCase {
         XCTAssertEqual(WordDiff.fixes(from: "a b c", to: "x y z"), [WordDiff.Fix(removed: "a b c", added: "x y z")])
     }
 
-    func testLineBreakChangesAreNotFixes() {
-        XCTAssertTrue(WordDiff.fixes(from: "Hi Dana,\n\nThursday works", to: "Hi Dana, Thursday works").isEmpty)
+    func testLineBreakChangesAreFixes() {
+        let fixes = WordDiff.fixes(from: "Hi Dana,\n\nThursday works", to: "Hi Dana, Thursday works")
+        XCTAssertEqual(fixes, [WordDiff.Fix(removed: "\n\n", added: " ")])
     }
 
     func testEmojiAndLinksAreKept() {
