@@ -147,6 +147,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         rebuildStatusMenu()
     }
 
+    /// The model check the hotkey is waiting for before it decides between the panel and setup.
+    private var summonCheck: Task<Void, Never>?
+
     /// Opens the panel, or the setup window when Takes can't work yet.
     private func summonPanel(presetID: String? = nil) {
         let monitor = SetupMonitor.shared
@@ -155,9 +158,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             OnboardingWindowController.shared.hotKeyPressed()
             return
         }
-        if !monitor.accessibility || !monitor.privacyAccepted || { if case .problem = monitor.engine { return true }; return false }() {
+        // Nothing polls while no setup window is open, so look again now.
+        monitor.refreshAccessibility()
+        if !monitor.accessibility || !monitor.privacyAccepted {
             // Next to what you were typing in, not where the pointer happens to be.
             openSetup(on: ScreenChoice.focused)
+            return
+        }
+        // Settings from a newer version name an engine this one doesn't know: nothing runs until one is picked.
+        if Store.shared.settings.engineNeedsChoice {
+            SettingsWindowController.shared.show(tab: .model)
+            return
+        }
+        if case .problem = monitor.engine {
+            // It may have been fixed since the last check (signed in in Terminal, a model server started): check it
+            // once, then open the panel or setup.
+            guard summonCheck == nil else { return }
+            summonCheck = Task { [weak self] in
+                await monitor.refreshEngine()
+                guard let self else { return }
+                summonCheck = nil
+                if monitor.engine.isReady { summonPanel(presetID: presetID) } else { openSetup(on: ScreenChoice.focused) }
+            }
             return
         }
         // Pressed again while the panel is open on this text box: it keeps its draft and takes instead of starting
@@ -270,7 +292,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         modelItem.title = Self.modelStatus(settings)
     }
 
-    func menuNeedsUpdate(_ menu: NSMenu) { updateStatusRows() }
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        updateStatusRows()
+        // Nothing polls while no setup window is open; opening the menu is a moment to look.
+        SetupMonitor.shared.checkOnce()
+    }
 
     /// Lessons the coach has put together that haven't been opened yet.
     private static func lessonsReady() -> Int {

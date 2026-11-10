@@ -486,13 +486,18 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
         guard let model else { return }
         let window = self.window ?? makeWindow(model: model)
         self.window = window
-        Task { await SetupMonitor.shared.refreshEngine() }
+        SetupMonitor.shared.window("onboarding", visible: true)
+        Task { await SetupMonitor.shared.refreshEngineUnlessRecent() }
         window.moveToActiveScreen(screen)
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
     }
 
     func hotKeyPressed() { model?.startPractice() }
+
+    func windowWillClose(_ notification: Notification) {
+        SetupMonitor.shared.window("onboarding", visible: false)
+    }
 
     private func makeModel() -> OnboardingModel {
         let model = OnboardingModel(progress: Store.shared.settings.onboarding)

@@ -76,8 +76,14 @@ final class SettingsWindowController: NSObject, NSWindowDelegate, NSToolbarDeleg
         self.window = window
         if firstShow { window.center() }
         window.moveToActiveScreen()
+        // Settings shows what setup finds (Accessibility, the model), so it's kept current while the window is open.
+        SetupMonitor.shared.window("settings", visible: true)
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        SetupMonitor.shared.window("settings", visible: false)
     }
 
     private func makeWindow() -> NSWindow {

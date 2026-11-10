@@ -71,8 +71,11 @@ enum Snapshot {
         render(PanelRootView(model: signedOut), size: CGSize(width: 1060, height: fittedHeight(signedOut)), to: url.appendingPathComponent("4-takes-signed-out.png"))
 
         renderSettings(to: url)
-        render(SetupView(monitor: SetupMonitor.shared, onDone: {}), size: CGSize(width: 640, height: 820),
-               to: url.appendingPathComponent("6-setup.png"))
+        // Fixed state: a snapshot never checks this Mac's Accessibility access or its Claude Code.
+        let signedIn = ClaudeCodeEngine.Status(found: true, signedIn: true, plan: "max", version: "2.1.310")
+        let setup = SetupView(monitor: SetupMonitor(accessibility: true, engine: .ready("Claude Code signed in · Max plan"), claudeCode: signedIn),
+                              onDone: {})
+        render(setup, size: NSHostingView(rootView: setup).fittingSize, to: url.appendingPathComponent("6-setup.png"))
         runLocalModels(to: url)
         runProviders(to: url)
         runChatGPT(to: url)

@@ -130,7 +130,12 @@ struct ProviderEngineSettings: View {
         case .ready, .failed, .noKey, .noAddress:
             VStack(alignment: .leading, spacing: 8) {
                 if case .failed(let message) = models.state {
-                    hint(String(localized: "Couldn't load the model list. \(message)"), warning: true)
+                    // A typed model that answered the test is what counts; the list failing isn't a problem then.
+                    if case .passed = models.test {
+                        hint(String(localized: "\(provider.name) didn't list any models. Type the model ID instead."))
+                    } else {
+                        hint(String(localized: "Couldn't load the model list. \(message)"), warning: true)
+                    }
                 } else {
                     hint(String(localized: "\(provider.name) didn't list any models. Type the model ID instead."))
                 }
@@ -141,8 +146,13 @@ struct ProviderEngineSettings: View {
                         .buttonStyle(SecondaryButtonStyle(height: 30))
                         .disabled(modelInput.trimmingCharacters(in: .whitespaces).isEmpty)
                     testButton
-                    Button("Check again") { Task { await models.refresh() } }
-                        .buttonStyle(SecondaryButtonStyle(height: 30))
+                    Button("Check again") {
+                        Task {
+                            await models.refresh(force: true)
+                            await SetupMonitor.shared.refreshEngine()
+                        }
+                    }
+                    .buttonStyle(SecondaryButtonStyle(height: 30))
                 }
                 testResult
             }
@@ -194,7 +204,8 @@ struct ProviderEngineSettings: View {
         guard !key.isEmpty else { return }
         keyNote = provider.keyNote(key)
         keyInput = ""
-        models.saveKey(key)
+        // Whether the provider takes the key shows as the model list loads (or "Key refused").
+        if !models.saveKey(key) { keyNote = APIKeySave.keychainRefused }
     }
 
     private func saveAddress() {

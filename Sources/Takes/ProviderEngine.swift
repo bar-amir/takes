@@ -744,7 +744,9 @@ final class ProviderModels: ObservableObject {
     /// Snapshots set the state by hand and keep it.
     var frozen = false
 
-    func refresh() async {
+    /// Loads the models for the saved provider and key. `force` asks the provider again instead of using the list
+    /// kept for a few minutes (a "Check again" button).
+    func refresh(force: Bool = false) async {
         guard !frozen else { return }
         let settings = Store.shared.settings
         let provider = Provider.current(settings)
@@ -768,7 +770,7 @@ final class ProviderModels: ObservableObject {
         state = .checking
         let result: State, found: [String]
         do {
-            found = try await ProviderEngine.models(provider: provider, key: key)
+            found = try await ProviderEngine.models(provider: provider, key: key, force: force)
             result = .ready
         } catch let error as ProviderError where error.kind == .keyRefused {
             found = []
@@ -792,14 +794,17 @@ final class ProviderModels: ObservableObject {
         Store.shared.settings.providerModel = pick
     }
 
-    func saveKey(_ key: String) {
+    /// Saves the key and checks it by loading the model list. False when the keychain refused it.
+    @discardableResult
+    func saveKey(_ key: String) -> Bool {
         let provider = Provider.current(Store.shared.settings)
-        provider.setKey(key)
+        let saved = provider.setKey(key)
         hasKey = provider.key != nil
         Task {
             await refresh()
             await SetupMonitor.shared.refreshEngine()
         }
+        return saved
     }
 
     func removeKey() {

@@ -55,6 +55,9 @@ final class OnboardingBugsTests: XCTestCase {
                        .ready("Claude Code signed in · Max plan"))
         // No version known (the CLI didn't say): the sign-in decides.
         XCTAssertEqual(SetupMonitor.claudeCodeStatus(S(found: true, signedIn: true)), .ready("Claude Code signed in"))
+        // Found but couldn't be started: said so, not "didn't answer" or "not signed in".
+        XCTAssertEqual(SetupMonitor.claudeCodeStatus(S(found: true, timedOut: true, launchError: "Takes couldn't start Claude Code: denied")),
+                       .problem("Claude Code couldn't start"))
     }
 
     // MARK: The sign-in command

@@ -8,15 +8,21 @@ struct ModelTab: View {
     @State private var status: ClaudeCodeEngine.Status?
     @State private var keyInput = ""
     @State private var hasKey = Keychain.apiKey != nil
+    /// Anthropic is being asked about the key just pasted.
+    @State private var checkingKey = false
+    /// What saving the key found; nil when it was saved and works.
+    @State private var keySave: APIKeySave?
     @ObservedObject var installer = ClaudeInstaller.shared
     /// For snapshots: shown instead of asking Claude Code.
     var fixedStatus: ClaudeCodeEngine.Status?
+    /// For snapshots of the whole window, which build this tab themselves: shown instead of asking Claude Code.
+    static var snapshotStatus: ClaudeCodeEngine.Status?
 
     var body: some View {
         SettingsPage {
-            FormSection(String(localized: "Where your takes are written")) {
+            FormSection(header: String(localized: "Where your takes are written")) {
                 EngineRow(engine: .claudeCode, title: String(localized: "Claude Code on this Mac"),
-                          summary: String(localized: "Uses your Claude subscription; each run counts toward its usage limits. Personal build only.")) {
+                          summary: String(localized: "Uses your Claude subscription; each run counts toward its usage limits.")) {
                     claudeCodeBadge
                 } details: { claudeCodeDetails }
                 FormDivider(inset: 40)
@@ -39,14 +45,21 @@ struct ModelTab: View {
                           summary: String(localized: "Runs on this Mac with Ollama or LM Studio, so your drafts never leave it. Small models write plainer takes than Claude. It's free, but uses this Mac's memory and battery.")) {
                     LocalEngineBadge()
                 } details: { LocalEngineSettings() }
+            } footer: {
+                if store.settings.engineNeedsChoice {
+                    Text(SetupMonitor.needsChoiceNote).foregroundStyle(Theme.avoidText)
+                }
             }
 
-            FormSection(header: String(localized: "Defaults for new presets")) {
-                FormRow(String(localized: "Takes · Model · Effort")) {
+            // Model and effort are Claude's; with a one-model engine only the number of takes applies.
+            FormSection(String(localized: "Defaults for new presets")) {
+                FormRow(store.settings.engine.isClaude ? String(localized: "Takes · Model · Effort") : String(localized: "Takes")) {
                     HStack(spacing: 6) {
                         MenuPicker(options: (1...5).map { (value: $0, title: "\($0)") }, selection: $store.settings.defaultTakes)
-                        MenuPicker(options: Models.all.map { (value: $0.id, title: $0.label) }, selection: $store.settings.defaultModel)
-                        MenuPicker(options: Models.efforts.map { (value: $0, title: Models.effortLabel($0)) }, selection: $store.settings.defaultEffort)
+                        if store.settings.engine.isClaude {
+                            MenuPicker(options: Models.all.map { (value: $0.id, title: $0.label) }, selection: $store.settings.defaultModel)
+                            MenuPicker(options: Models.efforts.map { (value: $0, title: Models.effortLabel($0)) }, selection: $store.settings.defaultEffort)
+                        }
                     }
                 }
                 if let ms = store.settings.lastFirstTextMs {
@@ -56,8 +69,6 @@ struct ModelTab: View {
                             .font(.system(size: 12.5)).foregroundStyle(Theme.secondaryText)
                     }
                 }
-            } footer: {
-                LocalEngineModelNote()
             }
 
             FormSection(String(localized: "Privacy"),
@@ -69,7 +80,8 @@ struct ModelTab: View {
                 }
             }
         }
-        .task { if fixedStatus == nil { status = await ClaudeCodeEngine.status() } }
+        // Snapshots never run `claude`.
+        .task { if fixedStatus == nil, !Store.readOnly { status = await ClaudeCodeEngine.status() } }
     }
 
     /// Where the draft goes with the chosen engine, in one sentence.
@@ -91,24 +103,14 @@ struct ModelTab: View {
 
     // MARK: Claude Code
 
-    private var claudeStatus: ClaudeCodeEngine.Status? { fixedStatus ?? status }
+    private var claudeStatus: ClaudeCodeEngine.Status? { fixedStatus ?? status ?? (Store.readOnly ? Self.snapshotStatus : nil) }
 
     @ViewBuilder private var claudeCodeBadge: some View {
         if installer.state.isBusy {
             StatusBadge(text: String(localized: "Installing…"), good: false)
         } else if let status = claudeStatus {
-            if !status.found {
-                StatusBadge(text: String(localized: "Not installed"), good: false)
-            } else if let version = status.version, !ClaudeCodeEngine.isSupported(version: version) {
-                StatusBadge(text: String(localized: "Too old (\(version))"), good: false)
-            } else if status.timedOut {
-                StatusBadge(text: String(localized: "Didn't answer"), good: false)
-            } else if status.signedIn {
-                StatusBadge(text: status.plan.map { String(localized: "Signed in · \($0.capitalized) plan") } ?? String(localized: "Signed in"),
-                            good: true)
-            } else {
-                StatusBadge(text: String(localized: "Not signed in"), good: false)
-            }
+            let badge = ClaudeCodeAction.badge(for: status)
+            StatusBadge(text: badge.text, good: badge.good)
         } else {
             ProgressView().controlSize(.mini).accessibilityLabel("Checking Claude Code")
         }
@@ -123,7 +125,7 @@ struct ModelTab: View {
                 }
                 Text("This takes about a minute. Then Terminal opens so you can sign in.")
                     .font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
-            } else if let status = claudeStatus, !status.found {
+            } else if claudeStatus?.state == .notInstalled {
                 if let error = installer.state.error {
                     Text(error).font(.system(size: 12)).foregroundStyle(Theme.avoidText)
                         .fixedSize(horizontal: false, vertical: true)
@@ -142,22 +144,25 @@ struct ModelTab: View {
                             .fixedSize()
                     }
                 }
-            } else if let status = claudeStatus, let version = status.version, !ClaudeCodeEngine.isSupported(version: version) {
-                Text("Claude Code \(version) is too old for Takes. Run `claude update` in Terminal, then check again.")
-                    .font(.system(size: 12)).foregroundStyle(Theme.avoidText)
-                    .fixedSize(horizontal: false, vertical: true)
-                checkAgain
-            } else if let status = claudeStatus, status.timedOut {
-                Text("Claude Code didn't answer. Check again in a moment.").font(.system(size: 12)).foregroundStyle(Theme.avoidText)
-                checkAgain
-            } else if let status = claudeStatus, !status.signedIn {
-                Text("Sign in once: Terminal opens and takes you to your browser. Then press Check again.")
-                    .font(.system(size: 12)).foregroundStyle(Theme.avoidText)
-                    .fixedSize(horizontal: false, vertical: true)
+            } else if let state = claudeStatus?.state, state != .ready {
+                if let note = ClaudeCodeAction.note(for: state) {
+                    Text(note)
+                        .font(.system(size: 12)).foregroundStyle(state == .stillLooking ? Theme.secondaryText : Theme.avoidText)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 HStack(spacing: 8) {
-                    Button("Sign in to Claude", action: ClaudeCodeEngine.openSignIn)
-                        .buttonStyle(PrimaryButtonStyle(height: 28))
-                        .fixedSize()
+                    switch ClaudeCodeAction(state) {
+                    case .update:
+                        Button(ClaudeCodeAction.update.title, action: ClaudeCodeEngine.openUpdate)
+                            .buttonStyle(PrimaryButtonStyle(height: 28))
+                            .fixedSize()
+                    case .signIn:
+                        Button(ClaudeCodeAction.signIn.title, action: ClaudeCodeEngine.openSignIn)
+                            .buttonStyle(PrimaryButtonStyle(height: 28))
+                            .fixedSize()
+                    default:
+                        EmptyView()
+                    }
                     checkAgain
                 }
             } else {
@@ -167,7 +172,14 @@ struct ModelTab: View {
     }
 
     private var checkAgain: some View {
-        Button("Check again") { Task { status = nil; status = await ClaudeCodeEngine.status() } }
+        Button("Check again") {
+            Task {
+                status = nil
+                status = await ClaudeCodeEngine.status()
+                // Setup and the menu-bar icon follow the new answer too.
+                if store.settings.engine == .claudeCode { await SetupMonitor.shared.refreshEngine() }
+            }
+        }
             .buttonStyle(SecondaryButtonStyle(height: 26))
             .fixedSize()
     }
@@ -192,7 +204,9 @@ struct ModelTab: View {
                                              message: String(localized: "Takes deletes it from your keychain. You'll need to paste it again to write with it."),
                                              button: String(localized: "Remove Key")) else { return }
                     Keychain.setAPIKey(nil)
-                    hasKey = false
+                    hasKey = Keychain.apiKey != nil
+                    keySave = nil
+                    Task { await SetupMonitor.shared.refreshEngine() }
                 }
                 .buttonStyle(DestructiveButtonStyle(height: 26))
             }
@@ -201,18 +215,66 @@ struct ModelTab: View {
                 StyledTextField(placeholder: String(localized: "Paste your key"), text: $keyInput, secure: true, height: 30, onSubmit: saveKey)
                     .frame(maxWidth: 360)
                     .accessibilityLabel("Anthropic API key")
-                Button("Save", action: saveKey)
-                    .buttonStyle(SecondaryButtonStyle(height: 30))
-                    .fixedSize()
-                    .disabled(keyInput.trimmingCharacters(in: .whitespaces).isEmpty)
+                if checkingKey {
+                    ProgressView().controlSize(.small).accessibilityLabel("Checking your key")
+                } else {
+                    Button("Save", action: saveKey)
+                        .buttonStyle(SecondaryButtonStyle(height: 30))
+                        .fixedSize()
+                        .disabled(keyInput.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
             }
+        }
+        if let note = keySave?.note {
+            Text(note.text).font(.system(size: 12)).foregroundStyle(note.problem ? Theme.avoidText : Theme.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
+    /// Asks Anthropic about the key (no tokens spent), then saves it unless it was refused.
     private func saveKey() {
-        Keychain.setAPIKey(keyInput.trimmingCharacters(in: .whitespacesAndNewlines))
-        keyInput = ""
-        hasKey = Keychain.apiKey != nil
+        let key = keyInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !key.isEmpty, !checkingKey else { return }
+        checkingKey = true
+        keySave = nil
+        Task {
+            let result = await APIKeySave.save(key, check: { await APIEngine.checkKey($0) }, store: { Keychain.setAPIKey($0) })
+            checkingKey = false
+            keySave = result
+            if result != .notSaved { keyInput = "" }
+            hasKey = Keychain.apiKey != nil
+            await SetupMonitor.shared.refreshEngine()
+        }
+    }
+}
+
+/// Saving an Anthropic API key, from Settings or onboarding. Anthropic is asked about the key first (no tokens
+/// spent): a key it refuses isn't kept, and a key that couldn't be checked (offline) is kept and said so.
+enum APIKeySave: Equatable {
+    case saved
+    case savedUnchecked(String)
+    case refused(String)
+    /// The keychain didn't take it.
+    case notSaved
+
+    static func save(_ key: String, check: (String) async -> APIKeyCheck, store: (String) -> Bool) async -> APIKeySave {
+        let result = await check(key)
+        if case .invalid(let message) = result { return .refused(message) }
+        guard store(key) else { return .notSaved }
+        if case .couldNotCheck(let message) = result { return .savedUnchecked(message) }
+        return .saved
+    }
+
+    static let keychainRefused = String(localized: "Takes couldn't save the key to your keychain. Try again.")
+
+    /// The line under the key field, and whether it's a problem; nil when the key was saved and works.
+    var note: (text: String, problem: Bool)? {
+        switch self {
+        case .saved: nil
+        case .savedUnchecked(let why): (String(localized: "Key saved, but not checked. \(why)"), false)
+        case .refused(let why): (why, true)
+        case .notSaved: (Self.keychainRefused, true)
+        }
     }
 }
 
@@ -226,7 +288,8 @@ private struct EngineRow<Status: View, Details: View>: View {
     @ViewBuilder var status: Status
     @ViewBuilder var details: Details
 
-    private var selected: Bool { store.settings.engine == engine }
+    /// An engine saved by a newer version that this one doesn't know reads as Claude Code; no row is picked then.
+    private var selected: Bool { store.settings.engine == engine && !store.settings.engineNeedsChoice }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
