@@ -278,6 +278,35 @@ final class LocalEngineServerTests: XCTestCase {
         XCTAssertFalse(updates.all.flatMap { $0 }.contains { $0.contains("Here are") || $0.contains("=") })
     }
 
+    func testLengthKeepsTheTakesAndSaysCutShort() async throws {
+        let sse = [
+            #"data: {"choices":[{"delta":{"content":"Thursday works.\n===\nSure, Thurs"}}]}"#, "",
+            #"data: {"choices":[{"delta":{},"finish_reason":"length"}]}"#, "",
+            "data: [DONE]", "", "",
+        ].joined(separator: "\n")
+        let server = try MockServer { _, body in
+            let json = try? JSONSerialization.jsonObject(with: body) as? [String: Any]
+            XCTAssertEqual(json?["max_tokens"] as? Int, 4000)
+            return .init(status: 200, contentType: "text/event-stream", chunks: [Data(sse.utf8)])
+        }
+        defer { server.stop() }
+        let result = try await LocalEngine(baseURL: server.baseURL).run(request(takes: 2)) { _ in }
+        XCTAssertEqual(result.takes, ["Thursday works.", "Sure, Thurs"])
+        XCTAssertTrue(result.cutShort)
+    }
+
+    func testCapGrowsWithTheDraft() {
+        XCTAssertEqual(LocalEngine.maxTokens(for: request(takes: 3)), 4000)
+        let long = EngineRequest(system: "", user: String(repeating: "word ", count: 2000), takes: 3, model: "m", effort: "low")
+        XCTAssertEqual(LocalEngine.maxTokens(for: long), 16_000)
+        let medium = EngineRequest(system: "", user: String(repeating: "word ", count: 1000), takes: 2, model: "m", effort: "low")
+        XCTAssertEqual(LocalEngine.maxTokens(for: medium), 6668)
+        XCTAssertTrue(LocalChunk(finishReason: "length").ranOutOfRoom)
+        XCTAssertTrue(LocalChunk(finishReason: "model_length").ranOutOfRoom)
+        XCTAssertFalse(LocalChunk(finishReason: "stop").ranOutOfRoom)
+        XCTAssertFalse(LocalChunk().ranOutOfRoom)
+    }
+
     func testStreamErrorIsReported() async throws {
         let sse = #"data: {"error":{"message":"model requires more system memory"}}"# + "\n\n"
         let server = try MockServer { _, _ in .init(status: 200, contentType: "text/event-stream", chunks: [Data(sse.utf8)]) }

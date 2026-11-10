@@ -141,6 +141,27 @@ final class ProviderRequestTests: XCTestCase {
         XCTAssertNil(noTemp?.adjusted(after: "temperature again"))
     }
 
+    func testTooLargeCapIsLoweredNotRenamed() {
+        let start = ProviderRequestOptions()
+        let openAI = "max_tokens is too large: 20004. This model supports at most 16384 completion tokens, whereas you provided 20004."
+        let lowered = start.adjusted(after: openAI, maxTokens: 20004)
+        XCTAssertEqual(lowered?.tokenLimit, 16384)
+        XCTAssertEqual(lowered?.tokenField, "max_tokens")
+        let groq = "`max_tokens` must be less than or equal to `8192`, the maximum value for `max_tokens` is less than the `context_window` for this model"
+        XCTAssertEqual(start.adjusted(after: groq, maxTokens: 20004)?.tokenLimit, 8192)
+        // No number in the message: fall back to the cap that always worked.
+        XCTAssertEqual(start.adjusted(after: "max_tokens exceeds the model limit", maxTokens: 20004)?.tokenLimit, 8000)
+        XCTAssertNil(start.adjusted(after: "max_tokens exceeds the model limit", maxTokens: 8000))
+        // The cap a model said it takes wins over the budget.
+        let request = EngineRequest(system: "", user: String(repeating: "word ", count: 2000), takes: 3, model: "m", effort: "low")
+        XCTAssertEqual(ProviderEngine.maxTokens(for: request, options: start), 20004)
+        XCTAssertEqual(ProviderEngine.maxTokens(for: request, options: lowered!), 16384)
+        // Short drafts keep the 8,000 they always had; reasoning models get room to think.
+        let short = EngineRequest(system: "", user: "hi", takes: 3, model: "m", effort: "low")
+        XCTAssertEqual(ProviderEngine.maxTokens(for: short, options: start), 8000)
+        XCTAssertEqual(ProviderEngine.maxTokens(for: request, options: .initial(provider: .openAI, model: "gpt-5.4")), 24004)
+    }
+
     func testErrorWording() {
         struct Wording { let message: String; let kind: ProviderError.Kind? }
         func error(_ status: Int, _ body: String, _ provider: Provider = .openAI, model: String = "gpt-x") -> Wording {
@@ -312,7 +333,11 @@ final class ProviderSettingsTests: XCTestCase {
 // MARK: - Against a mock server on 127.0.0.1
 
 final class ProviderEngineServerTests: XCTestCase {
-    override func setUp() { ProviderEndpoint.allowInsecureForTests = true }
+    override func setUp() async throws {
+        ProviderEndpoint.allowInsecureForTests = true
+        // A model list cached by an earlier test on the same port and key must not answer for this one.
+        await ProviderModelCache.shared.removeAll()
+    }
     override func tearDown() { ProviderEndpoint.allowInsecureForTests = false }
 
     /// A provider that talks like OpenAI (no strict format) at the mock server's address.
@@ -379,6 +404,56 @@ final class ProviderEngineServerTests: XCTestCase {
         } catch {
             XCTAssertEqual(error.localizedDescription, "The provider declined to rewrite this draft.")
         }
+    }
+
+    func testLengthKeepsTheTakesAndSaysCutShort() async throws {
+        let sse = [
+            #"data: {"choices":[{"delta":{"content":"Thursday works.\n===\nSure, Thurs"}}]}"#, "",
+            #"data: {"choices":[{"delta":{},"finish_reason":"length"}]}"#, "",
+            "data: [DONE]", "", "",
+        ].joined(separator: "\n")
+        let server = try ProviderMockServer { _, _, _ in .init(status: 200, contentType: "text/event-stream", chunks: [Data(sse.utf8)]) }
+        defer { server.stop() }
+        let result = try await ProviderEngine(settings: AppSettings(), key: "k", provider: provider(server)).run(request(takes: 2)) { _ in }
+        XCTAssertEqual(result.takes, ["Thursday works.", "Sure, Thurs"])
+        XCTAssertTrue(result.cutShort)
+    }
+
+    func testAModelWithASmallerCapIsAskedAgainWithLess() async throws {
+        let caps = ProviderUpdateLog()
+        let server = try ProviderMockServer { _, _, body in
+            let json = (try? JSONSerialization.jsonObject(with: body) as? [String: Any]) ?? [:]
+            let cap = json["max_tokens"] as? Int ?? 0
+            caps.add(["\(cap)"])
+            if cap > 16384 {
+                return .init(status: 400, contentType: "application/json", chunks: [Data(
+                    #"{"error":{"message":"max_tokens is too large: \#(cap). This model supports at most 16384 completion tokens, whereas you provided \#(cap)."}}"#.utf8)])
+            }
+            let sse = #"data: {"choices":[{"delta":{"content":"Thursday works."},"finish_reason":"stop"}]}"# + "\n\ndata: [DONE]\n\n"
+            return .init(status: 200, contentType: "text/event-stream", chunks: [Data(sse.utf8)])
+        }
+        defer { server.stop() }
+        let long = EngineRequest(system: "Rewrite.", user: String(repeating: "word ", count: 2000), takes: 3, model: "gpt-4o-mini", effort: "low")
+        let result = try await ProviderEngine(settings: AppSettings(), key: "k", provider: provider(server, id: "custom")).run(long) { _ in }
+        XCTAssertEqual(result.takes, ["Thursday works."])
+        XCTAssertFalse(result.cutShort)
+        XCTAssertEqual(caps.all.flatMap { $0 }, ["20004", "16384"])
+    }
+
+    func testModelListIsAskedOnceAndKept() async throws {
+        let asks = ProviderUpdateLog()
+        let server = try ProviderMockServer { path, _, _ in
+            asks.add([path])
+            return .init(status: 200, contentType: "application/json", chunks: [Data(#"{"data":[{"id":"gpt-5.4"}]}"#.utf8)])
+        }
+        defer { server.stop() }
+        let cache = ProviderModelCache()
+        for _ in 0..<3 { _ = try await ProviderEngine.models(provider: provider(server), key: "k", cache: cache) }
+        XCTAssertEqual(asks.all.count, 1)
+        _ = try await ProviderEngine.models(provider: provider(server), key: "other", cache: cache)
+        XCTAssertEqual(asks.all.count, 2)
+        _ = try await ProviderEngine.models(provider: provider(server), key: "k", force: true, cache: cache)
+        XCTAssertEqual(asks.all.count, 3)
     }
 
     func testRefusedKeyAndMissingModel() async throws {
@@ -466,6 +541,76 @@ private enum LocalEngineServerTestsChunks {
 
 private func request(takes: Int, model: String = "gpt-5.4") -> EngineRequest {
     EngineRequest(system: "Rewrite.", user: "<draft>\nhi\n</draft>", takes: takes, model: model, effort: "low")
+}
+
+/// The model-list cache on its own, with a fake fetch and a clock the test moves.
+final class ProviderModelCacheTests: XCTestCase {
+    private final class Clock: @unchecked Sendable {
+        private let lock = NSLock()
+        private var time = Date(timeIntervalSince1970: 1_000_000)
+        var now: Date { lock.withLock { time } }
+        func advance(_ seconds: TimeInterval) { lock.withLock { time += seconds } }
+    }
+
+    private final class Counter: @unchecked Sendable {
+        private let lock = NSLock()
+        private var value = 0
+        var count: Int { lock.withLock { value } }
+        func next() -> Int { lock.withLock { value += 1; return value } }
+    }
+
+    func testListIsKeptForItsLifetime() async throws {
+        let clock = Clock(), fetches = Counter()
+        let cache = ProviderModelCache(now: { clock.now })
+        let fetch: @Sendable () async throws -> [String] = { ["m\(fetches.next())"] }
+        let first = try await cache.models(baseURL: "https://api.example.com/v1/", key: "k", fetch: fetch)
+        let again = try await cache.models(baseURL: "https://api.example.com/v1", key: "k", fetch: fetch)
+        XCTAssertEqual(first, ["m1"])
+        XCTAssertEqual(again, ["m1"])
+        clock.advance(ProviderModelCache.lifetime + 1)
+        let later = try await cache.models(baseURL: "https://api.example.com/v1", key: "k", fetch: fetch)
+        XCTAssertEqual(later, ["m2"])
+        XCTAssertEqual(fetches.count, 2)
+    }
+
+    func testAFailureIsNotAskedAgainForAWhile() async throws {
+        let clock = Clock(), fetches = Counter()
+        let cache = ProviderModelCache(now: { clock.now })
+        let failing: @Sendable () async throws -> [String] = {
+            _ = fetches.next()
+            throw ProviderError(kind: .keyRefused, message: "The key was refused.")
+        }
+        for _ in 0..<3 {
+            do {
+                _ = try await cache.models(baseURL: "https://api.example.com/v1", key: "k", fetch: failing)
+                XCTFail("should fail")
+            } catch let error as ProviderError {
+                XCTAssertEqual(error.kind, .keyRefused)
+            }
+        }
+        XCTAssertEqual(fetches.count, 1)
+        clock.advance(ProviderModelCache.failurePause + 1)
+        _ = try? await cache.models(baseURL: "https://api.example.com/v1", key: "k", fetch: failing)
+        XCTAssertEqual(fetches.count, 2)
+        // "Check again" asks now.
+        _ = try? await cache.models(baseURL: "https://api.example.com/v1", key: "k", force: true, fetch: failing)
+        XCTAssertEqual(fetches.count, 3)
+    }
+
+    func testAsksOnTheirWayAreShared() async throws {
+        let fetches = Counter()
+        let cache = ProviderModelCache()
+        let slow: @Sendable () async throws -> [String] = {
+            _ = fetches.next()
+            try await Task.sleep(for: .milliseconds(200))
+            return ["m"]
+        }
+        async let a = cache.models(baseURL: "https://api.example.com/v1", key: "k", fetch: slow)
+        async let b = cache.models(baseURL: "https://api.example.com/v1", key: "k", fetch: slow)
+        let both = try await [a, b]
+        XCTAssertEqual(both, [["m"], ["m"]])
+        XCTAssertEqual(fetches.count, 1)
+    }
 }
 
 private final class ProviderUpdateLog: @unchecked Sendable {

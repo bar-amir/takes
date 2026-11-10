@@ -131,6 +131,10 @@ struct LocalChunk: Equatable {
     var finishReason: String?
     var error: String?
 
+    /// The model stopped at its token cap or the end of its context, not because it was done: "length" (OpenAI,
+    /// Ollama and LM Studio), "max_tokens" or Mistral's "model_length".
+    var ranOutOfRoom: Bool { ["length", "max_tokens", "model_length"].contains(finishReason ?? "") }
+
     static func parse(_ payload: String) -> LocalChunk? {
         guard let json = (try? JSONSerialization.jsonObject(with: Data(payload.utf8))) as? [String: Any] else { return nil }
         if let message = errorMessage(json) { return LocalChunk(error: message) }
@@ -331,7 +335,8 @@ struct LocalEngine: TakesEngine {
 
         let urlRequest = try Self.chatRequest(url: url, model: request.model,
                                               system: request.system + "\n" + LocalPrompt.formatRules(takes: request.takes),
-                                              user: request.user, stream: true, maxTokens: 4000)
+                                              user: request.user, stream: true,
+                                              maxTokens: Self.maxTokens(for: request))
         let started = Date()
         let elapsedMs = { Int(Date().timeIntervalSince(started) * 1000) }
 
@@ -351,12 +356,14 @@ struct LocalEngine: TakesEngine {
         var parser = SSEParser()
         var text = ""
         var firstTextMs: Int?
+        var cutShort = false
         var line = Data()
 
         func handle(_ events: [SSEParser.Event]) throws {
             for event in events {
                 guard case .data(let payload) = event, let chunk = LocalChunk.parse(payload) else { continue }
                 if let error = chunk.error { throw EngineError.failed(String(localized: "\(server): \(error)")) }
+                if chunk.ranOutOfRoom { cutShort = true }
                 guard let piece = chunk.text, !piece.isEmpty else { continue }
                 if firstTextMs == nil { firstTextMs = elapsedMs() }
                 text += piece
@@ -380,9 +387,22 @@ struct LocalEngine: TakesEngine {
             throw Self.friendly(error, server: server, baseURL: baseURL)
         }
 
-        let takes = LocalTakeCleaner.split(text, streaming: false, expected: request.takes)
-        guard !takes.isEmpty else { throw EngineError.failed(String(localized: "The local model returned no takes. Try again, or pick another model.")) }
-        return EngineResult(takes: takes, wallMs: elapsedMs(), firstTextMs: firstTextMs)
+        // A cut-off answer is split like one still streaming, so a half-written separator isn't kept as text.
+        let takes = LocalTakeCleaner.split(text, streaming: cutShort, expected: request.takes)
+        guard !takes.isEmpty else {
+            if cutShort {
+                throw EngineError.failed(
+                    String(localized: "The local model ran out of room before writing a take. Try a shorter draft, or a model with a longer context."))
+            }
+            throw EngineError.failed(String(localized: "The local model returned no takes. Try again, or pick another model."))
+        }
+        return EngineResult(takes: takes, wallMs: elapsedMs(), firstTextMs: firstTextMs, cutShort: cutShort)
+    }
+
+    /// Room for every take, at least the 4,000 tokens that always worked and at most 16,000: local models have short
+    /// contexts, and the server stops at the end of its context anyway (and says "length").
+    static func maxTokens(for request: EngineRequest) -> Int {
+        OutputBudget.maxTokens(for: request, floor: 4000, ceiling: 16_000)
     }
 
     static func chatRequest(url: URL, model: String, system: String, user: String, stream: Bool, maxTokens: Int) throws -> URLRequest {
