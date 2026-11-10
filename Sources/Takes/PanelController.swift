@@ -295,19 +295,26 @@ final class PanelController {
             return
         }
         let focus = model.focus
-        let replaceAll = focus?.source == .field && !(focus?.text.isEmpty ?? true)
+        let number = index + 1
+        let app = focus?.app?.localizedName ?? String(localized: "the app")
         let restore = Store.shared.settings.restoreClipboard
         let nudge = model.coachNudge
         model.coachNudge = nil
         close()
-        Paster.paste(text, into: focus, replaceAll: replaceAll, restoreClipboard: restore) { [weak self] pasted in
+        guard case .paste(let replaceAll) = Self.pasteAction(for: focus) else {
+            // ⌘V would change nothing there, so no keys are sent and the toast doesn't claim a paste.
+            putOnClipboard(text)
+            toast.show(message: Self.notPastedMessage(.readOnly, app: app, number: number), showUndo: false, near: caretRect, onSaveExample: nil)
+            return
+        }
+        Paster.paste(text, into: focus, replaceAll: replaceAll, restoreClipboard: restore) { [weak self] outcome in
             guard let self else { return }
-            let number = index + 1
-            guard pasted else {
-                // The field's app couldn't be brought back; nothing was typed anywhere.
-                let app = focus?.app?.localizedName ?? String(localized: "the app")
-                self.toast.show(message: String(localized: "Couldn't get back to \(app). Take \(number) is on the clipboard: press ⌘V"),
-                                showUndo: false, near: self.caretRect, onSaveExample: nil)
+            guard outcome == .pasted else {
+                // Nothing was typed anywhere: the field's app couldn't be brought back, or it came back without the
+                // text box the draft was read from (another chat, say) or without the text that was read.
+                let reason: NotPasted = outcome == .fieldChanged ? .fieldChanged : .couldNotReturn
+                let message = Self.notPastedMessage(reason, app: app, number: number)
+                self.toast.show(message: message, showUndo: false, near: self.caretRect, onSaveExample: nil)
                 return
             }
             self.toast.show(message: restore ? String(localized: "Pasted take \(number) · your clipboard is back")
@@ -319,11 +326,44 @@ final class PanelController {
         }
     }
 
+    /// What choosing a take does, from what was read when the panel opened.
+    enum PasteAction: Equatable {
+        /// The text can't be edited: the take is left on the clipboard.
+        case copyOnly
+        /// `replaceAll` (⌘A ⌘V) only for a text box whose whole text was read. One that was empty, too long to
+        /// read, or not read at all gets the take at the caret (⌘V).
+        case paste(replaceAll: Bool)
+    }
+
+    nonisolated static func pasteAction(for focus: FocusSnapshot?) -> PasteAction {
+        guard let focus else { return .paste(replaceAll: false) }
+        if !focus.editable { return .copyOnly }
+        return .paste(replaceAll: focus.source == .field && !focus.text.isEmpty)
+    }
+
+    /// Why a chosen take wasn't typed into the text box. Each one leaves it on the clipboard.
+    enum NotPasted { case couldNotReturn, fieldChanged, readOnly }
+
+    nonisolated static func notPastedMessage(_ reason: NotPasted, app: String, number: Int) -> String {
+        switch reason {
+        case .couldNotReturn: return String(localized: "Couldn't get back to \(app). Take \(number) is on the clipboard: press ⌘V")
+        case .fieldChanged: return String(localized: "The text box in \(app) changed. Take \(number) is on the clipboard: press ⌘V")
+        case .readOnly: return String(localized: "This text can't be edited. Take \(number) is on the clipboard: press ⌘V")
+        }
+    }
+
     private func copy(index: Int, text: String) {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(text, forType: .string)
+        putOnClipboard(text)
         close()
         toast.show(message: String(localized: "Copied take \(index + 1)"), showUndo: false, near: caretRect, onSaveExample: nil)
+    }
+
+    /// Takes' own copy: not something the user copied to reply to (`ClipboardWatch`).
+    private func putOnClipboard(_ text: String) {
+        ClipboardWatch.aboutToWrite()
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        ClipboardWatch.ownWrite(.take)
     }
 
     private func showMoreMenu() {

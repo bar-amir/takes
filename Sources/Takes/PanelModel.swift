@@ -123,6 +123,9 @@ final class PanelModel: ObservableObject {
         switch focus?.source {
         case .selection: return String(localized: "From your selection")
         case .field: return draft.isEmpty ? String(localized: "The field was empty") : String(localized: "From the field")
+        // Not an empty field: its text is still there, unread. A take pasted from here goes in at the caret.
+        case .tooLong: return String(localized: "The text is too long. Select part of it first")
+        case .secure: return String(localized: "Takes doesn't read password fields")
         default: return focus?.app == nil ? "" : String(localized: "Couldn't read the field")
         }
     }

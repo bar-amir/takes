@@ -3,13 +3,50 @@ import Carbon
 
 /// Pastes text into the field the draft came from, then optionally puts the user's clipboard back.
 enum Paster {
-    /// `done(true)` once ⌘V was sent to the field's app; `done(false)` when that app couldn't be brought
-    /// back to the front, so nothing was typed anywhere and the take is left on the clipboard.
-    static func paste(_ text: String, into target: FocusSnapshot?, replaceAll: Bool, restoreClipboard: Bool,
-                      done: @escaping (Bool) -> Void = { _ in }) {
-        let pasteboard = NSPasteboard.general
-        let saved = restoreClipboard ? snapshot(pasteboard) : []
+    enum Outcome: Equatable {
+        /// ⌘V was sent to the text box.
+        case pasted
+        /// The box's app couldn't be brought back to the front. Nothing was typed; the take is on the clipboard.
+        case couldNotReturn
+        /// The app is in front, but the text box the draft was read from couldn't be confirmed: it is gone, another
+        /// one has focus, or its text changed. Nothing was typed.
+        case fieldChanged
+    }
 
+    /// Everything `paste` touches outside Takes, so tests can run it on a clipboard of their own, with no app to type into.
+    struct Environment {
+        var pasteboard = NSPasteboard.general
+        var refocus: (FocusSnapshot?) -> Bool = { FocusReader.refocus($0) }
+        var isFrontmost: (pid_t?) -> Bool = { Paster.targetIsFrontmost($0) }
+        var heldModifiers: () -> CGEventFlags = { CGEventSource.flagsState(.combinedSessionState) }
+        var confirm: (FocusSnapshot?, Bool) -> Bool = { FocusReader.confirmed($0, replaceAll: $1) }
+        var press: (CGKeyCode) -> Void = { Paster.press($0) }
+        var clipboardWillChange: () -> Void = { ClipboardWatch.aboutToWrite() }
+        var clipboardChanged: (ClipboardFreshness.OwnWrite) -> Void = { ClipboardWatch.ownWrite($0) }
+        /// Notes why a paste wasn't sent (the focus log: the app and the reason, never text).
+        var notSent: (FocusSnapshot?, String) -> Void = { FocusLog.pasteNotSent($0, reason: $1) }
+        /// How long the app may take to come to the front.
+        var frontTimeout: TimeInterval = 1.5
+        /// Time for the app to settle keyboard focus into the field.
+        var settle: TimeInterval = 0.08
+        /// How long the field may take to report focus again.
+        var confirmTimeout: TimeInterval = 0.4
+        /// Time for the app to read the clipboard before it is restored.
+        var restoreDelay: TimeInterval = 0.6
+    }
+
+    /// `done(.pasted)` once ⌘V was sent to the text box. Any other outcome means nothing was typed anywhere.
+    /// The take is then left on the clipboard for the user to paste, except on `.fieldChanged` with
+    /// `keepTakeIfFieldChanged` off: that puts the user's clipboard back, for a caller that says nothing was pasted.
+    static func paste(
+        _ text: String, into target: FocusSnapshot?, replaceAll: Bool, restoreClipboard: Bool,
+        keepTakeIfFieldChanged: Bool = true, environment env: Environment = Environment(),
+        done: @escaping (Outcome) -> Void = { _ in }
+    ) {
+        let pasteboard = env.pasteboard
+        let saved = restoreClipboard ? snapshot(pasteboard) : nil
+
+        env.clipboardWillChange()
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
         // The take is only on the clipboard for a moment: ask clipboard-history apps not to keep it (nspasteboard.org).
@@ -18,27 +55,57 @@ enum Paster {
                 pasteboard.setData(Data(), forType: NSPasteboard.PasteboardType(marker))
             }
         }
+        // The clipboard as Takes left it. The old one goes back only while this is still what's there: anything
+        // copied since then is the user's.
+        let ours = pasteboard.changeCount
+        env.clipboardChanged(.take)
+        func putBack() {
+            guard let saved, restore(saved, to: pasteboard, ifCount: ours) else { return }
+            env.clipboardChanged(.putBack)
+        }
 
         // Web-based apps can drop the field's focus while the panel had the keyboard, and another app
         // (a macOS shortcut on the same keys, say) can have come forward; put the field back first.
-        FocusReader.refocus(target)
+        let boxThere = env.refocus(target)
         let pid = target?.app?.processIdentifier
-        waitUntil(timeout: 1.5, { targetIsFrontmost(pid) && interferingFlags(CGEventSource.flagsState(.combinedSessionState)).isEmpty }) { _ in
+        waitUntil(timeout: env.frontTimeout, { env.isFrontmost(pid) && interferingFlags(env.heldModifiers()).isEmpty }) { _ in
             // Never type ⌘A ⌘V blind into whatever app is in front instead.
-            guard targetIsFrontmost(pid) else { return done(false) }
-            // Let the app settle keyboard focus into the field before the keys arrive.
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-                if replaceAll { press(CGKeyCode(kVK_ANSI_A)) }
-                press(CGKeyCode(kVK_ANSI_V))
-                done(true)
-                guard restoreClipboard else { return }
-                // Give the target app time to read the clipboard before restoring it.
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                    pasteboard.clearContents()
-                    if !saved.isEmpty { pasteboard.writeObjects(saved) }
+            guard env.isFrontmost(pid) else {
+                env.notSent(target, "app not in front")
+                return done(.couldNotReturn)
+            }
+            // Let the app settle keyboard focus into the field before it is checked and the keys arrive.
+            DispatchQueue.main.asyncAfter(deadline: .now() + env.settle) {
+                // Nor into another text box of the same app (another chat), or one whose text changed meanwhile.
+                waitUntil(timeout: boxThere ? env.confirmTimeout : 0, { boxThere && env.confirm(target, replaceAll) }) { confirmed in
+                    guard confirmed else {
+                        env.notSent(target, boxThere ? FocusReader.lastRefusal ?? "text box not confirmed" : "text box gone")
+                        if !keepTakeIfFieldChanged { putBack() }
+                        return done(.fieldChanged)
+                    }
+                    // The check can take a moment, and the app must still be in front when the keys go out.
+                    guard env.isFrontmost(pid) else {
+                        env.notSent(target, "app not in front")
+                        return done(.couldNotReturn)
+                    }
+                    if replaceAll { env.press(CGKeyCode(kVK_ANSI_A)) }
+                    env.press(CGKeyCode(kVK_ANSI_V))
+                    done(.pasted)
+                    // Give the target app time to read the clipboard before restoring it.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + env.restoreDelay) { putBack() }
                 }
             }
         }
+    }
+
+    /// Puts `saved` back on the clipboard, but only while it still holds what Takes left there (`count`): anything
+    /// copied since then is the user's, and stays. Returns whether it was put back.
+    @discardableResult
+    static func restore(_ saved: [NSPasteboardItem], to pasteboard: NSPasteboard, ifCount count: Int) -> Bool {
+        guard pasteboard.changeCount == count else { return false }
+        pasteboard.clearContents()
+        if !saved.isEmpty { pasteboard.writeObjects(saved) }
+        return true
     }
 
     private static func targetIsFrontmost(_ pid: pid_t?) -> Bool {
@@ -62,9 +129,19 @@ enum Paster {
         }
     }
 
-    /// Sends ⌘+key to the frontmost app.
-    static func press(_ key: CGKeyCode) {
-        commandKeyEvents(key).forEach { $0.post(tap: .cghidEventTap) }
+    /// The events for a key on its own: no ⌘ ⌥ ⌃ ⇧, whatever the user is still holding.
+    static func plainKeyEvents(_ key: CGKeyCode) -> [CGEvent] {
+        let source = CGEventSource(stateID: .privateState)
+        return [true, false].compactMap { down in
+            let event = CGEvent(keyboardEventSource: source, virtualKey: key, keyDown: down)
+            if let event { event.flags = event.flags.subtracting([.maskCommand, .maskShift, .maskControl, .maskAlternate]) }
+            return event
+        }
+    }
+
+    /// Sends ⌘+key to the frontmost app. `command: false` sends the key alone (→, to let go of a selection).
+    static func press(_ key: CGKeyCode, command: Bool = true) {
+        (command ? commandKeyEvents(key) : plainKeyEvents(key)).forEach { $0.post(tap: .cghidEventTap) }
     }
 
     /// Blocks (briefly) until the user has let go of ⇧ ⌃ ⌥, for keys sent while the hotkey may still be held.

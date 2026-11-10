@@ -19,9 +19,13 @@ final class InstantModeTests: XCTestCase {
     private var pasted: [String] = []
 
     private func runner(_ engine: FakeEngine, inField: Bool = true, pasteWorks: Bool = true) -> InstantRun {
-        InstantRun(engine: engine,
-                   paste: { [unowned self] take, done in pasted.append(take); done(pasteWorks) },
-                   stillInField: { inField })
+        InstantRun(
+            engine: engine,
+            paste: { [unowned self] take, done in
+                pasted.append(take)
+                done(pasteWorks ? .pasted : .couldNotReturn)
+            },
+            stillInField: { inField })
     }
 
     private let request = InstantMode.request(preset: Store.defaultPresets[0], draft: "ya thursday works", rules: [])
@@ -73,10 +77,14 @@ final class InstantModeTests: XCTestCase {
 
     func testUnchangedTakePastesNothing() async {
         let draft = "ya thursday works"
-        let run = InstantRun(engine: FakeEngine(takes: ["ya  thursday works"]),
-                             paste: { [unowned self] take, done in pasted.append(take); done(true) },
-                             stillInField: { false },
-                             unchanged: { Proofread.nothingToFix(draft: draft, takes: [$0]) })
+        let run = InstantRun(
+            engine: FakeEngine(takes: ["ya  thursday works"]),
+            paste: { [unowned self] take, done in
+                pasted.append(take)
+                done(.pasted)
+            },
+            stillInField: { false },
+            unchanged: { Proofread.nothingToFix(draft: draft, takes: [$0]) })
         let outcome = await run.run(request)
         XCTAssertEqual(outcome, .unchanged, "Checked before the field, so a take that changes nothing never pastes anywhere")
         XCTAssertTrue(pasted.isEmpty)
