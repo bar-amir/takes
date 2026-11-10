@@ -53,6 +53,25 @@ final class HotKeyChoiceTests: XCTestCase {
         XCTAssertTrue(offered.allSatisfy { stockMac($0) == nil })
     }
 
+    func testPresetSuggestionsSkipTakesOwnAndTakenHotkeys() {
+        let first = HotKeyChoice.presetCandidates[0]
+        XCTAssertEqual(first.display, "⌃⌥1")
+        // ⌃⌥1 is another preset's, ⌃⌥2 is this one's, another app has ⌃⌥3.
+        let offered = HotKeyChoice.suggestions(from: HotKeyChoice.presetCandidates, current: HotKeyChoice.presetCandidates[1],
+                                               taken: [first], systemOwner: stockMac,
+                                               isFree: { $0 != HotKeyChoice.presetCandidates[2] })
+        XCTAssertEqual(offered.map(\.display), ["⌃⌥4", "⌃⌥5", "⌃⌥6"])
+    }
+
+    func testPresetCandidatesAreFreeOnAStockMac() {
+        XCTAssertEqual(Set(HotKeyChoice.presetCandidates).count, HotKeyChoice.presetCandidates.count)
+        for combo in HotKeyChoice.presetCandidates {
+            XCTAssertNil(stockMac(combo), combo.display)
+            XCTAssertNil(HotKeyChoice.knownApp(using: combo, installed: { _ in true }), combo.display)
+            XCTAssertNotNil(combo.menuKeyEquivalent, combo.display)
+        }
+    }
+
     func testOwnerNamesMacOSFirstThenAKnownApp() {
         let optSpace = HotKeyChoice.combo(kVK_Space, optionKey, "⌥Space")
         XCTAssertEqual(HotKeyChoice.owner(of: optSpace, macOS: "Show Spotlight search", installed: { _ in true }), "macOS: Show Spotlight search")

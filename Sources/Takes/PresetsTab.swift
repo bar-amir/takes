@@ -192,6 +192,7 @@ struct PresetsTab: View {
 private struct PresetEditor: View {
     @Binding var preset: Preset
     @ObservedObject var monitor = SetupMonitor.shared
+    @State private var suggestions: [KeyCombo] = []
 
     /// Who else has this preset's hotkey: the Open Takes hotkey, another preset, macOS or another app.
     private var hotKeyNote: String? {
@@ -215,6 +216,10 @@ private struct PresetEditor: View {
                         FormRow(String(localized: "Color")) { colors }
                         FormDivider()
                         FormRow(String(localized: "Own hotkey"), detail: hotKeyNote) { HotKeyRecorder(combo: $preset.hotKey, height: 28) }
+                        if preset.hotKey == nil || hotKeyNote != nil, !suggestions.isEmpty {
+                            HotKeySuggestionChips(suggestions: suggestions) { preset.hotKey = $0 }
+                                .formRowPadding()
+                        }
                         FormDivider()
                         FormRow(String(localized: "Picked automatically in")) {
                             AppsEditor(apps: $preset.apps).frame(maxWidth: 280, alignment: .trailing)
@@ -269,6 +274,18 @@ private struct PresetEditor: View {
             Rectangle().fill(Theme.formGroupBorder).frame(width: 1)
             TryItPanel(preset: preset).frame(width: 270)
         }
+        .onAppear(perform: refreshSuggestions)
+        .onChange(of: preset.id) { _, _ in refreshSuggestions() }
+        .onChange(of: preset.hotKey) { _, _ in refreshSuggestions() }
+        .onChange(of: monitor.takenHotKeys) { _, _ in refreshSuggestions() }
+    }
+
+    /// Free hotkeys for this preset: not the Open Takes hotkey, another preset's, or one macOS or an app has.
+    private func refreshSuggestions() {
+        let store = Store.shared
+        let taken = [store.settings.summonHotKey] + monitor.takenHotKeys
+            + store.presets.filter { $0.id != preset.id }.compactMap(\.hotKey)
+        suggestions = HotKeyChoice.suggestions(from: HotKeyChoice.presetCandidates, current: preset.hotKey, taken: taken)
     }
 
     private var colors: some View {
