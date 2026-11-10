@@ -691,7 +691,7 @@ struct TakesView: View {
         withAnimation(Motion.animation()) { model.moveSelection(delta) }
     }
 
-    /// ⌥ held shows every take's changes at once.
+    /// ⌥ held flips every take between its changes and the clean text.
     private func watchOption() {
         guard flagsMonitor == nil else { return }
         flagsMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [model] event in
@@ -813,7 +813,9 @@ struct TakesView: View {
 
     private func keyHints(_ count: Int) -> some View {
         var hints: [KeyHint] = [KeyHint(keys: ["←", "→"], label: String(localized: "move", comment: "Key hint: arrows move between takes"))]
-        if !model.showsFixes { hints.append(KeyHint(keys: ["⌥"], label: String(localized: "changes", comment: "Key hint: ⌥ shows each take's changes"))) }
+        hints.append(model.showsFixes
+            ? KeyHint(keys: ["⌥"], label: String(localized: "hide changes", comment: "Key hint: holding ⌥ shows each take without its changes marked"))
+            : KeyHint(keys: ["⌥"], label: String(localized: "changes", comment: "Key hint: ⌥ shows each take's changes")))
         hints.append(KeyHint(keys: ["⌘", "C"], label: String(localized: "copy", comment: "Key hint: ⌘C copies the take")))
         hints.append(KeyHint(keys: ["esc"], label: String(localized: "back", comment: "Key hint: esc goes back")))
         let shown = Array(hints.prefix(count))
@@ -851,7 +853,7 @@ private struct TakeCard: View {
         let isSelected = model.selected == index
         let finished = model.isFinished(index)
         let hasText = index < model.takes.count
-        let showChanges = finished && (model.changesShown.contains(index) || model.optionHeld)
+        let showChanges = model.showsChanges(index)
 
         VStack(alignment: .leading, spacing: Spacing.inner) {
             HStack(spacing: Spacing.item) {
@@ -919,8 +921,8 @@ private struct TakeCard: View {
     private func tooltip(finished: Bool) -> String {
         guard finished else { return "" }
         let count = WordCounter.count(model.takes[index])
-        let hints = String(localized: "\(count) words · ⌥ shows changes · ⌘C copies")
-        return model.showsFixes ? Proofread.fixLabel(model.fixCount(index)) + " · " + hints : hints
+        guard model.showsFixes else { return String(localized: "\(count) words · ⌥ shows changes · ⌘C copies") }
+        return Proofread.fixLabel(model.fixCount(index)) + " · " + String(localized: "\(count) words · ⌥ hides changes · ⌘C copies")
     }
 }
 

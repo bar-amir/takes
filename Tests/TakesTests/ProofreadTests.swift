@@ -128,6 +128,25 @@ final class ProofreadTests: XCTestCase {
         XCTAssertEqual(Proofread.fixLabel(0), "No fixes")
     }
 
+    @MainActor
+    func testOptionFlipsChangesBothWays() {
+        let model = PanelModel()
+        model.takes = ["One.", "Two."]
+        model.changesShown = [0, 1]
+        XCTAssertTrue(model.showsChanges(0))
+        model.optionHeld = true
+        XCTAssertFalse(model.showsChanges(0), "⌥ shows a proofread take without its changes")
+
+        model.changesShown = []
+        XCTAssertTrue(model.showsChanges(1), "⌥ shows a regular take's changes")
+        model.optionHeld = false
+        XCTAssertFalse(model.showsChanges(1))
+
+        model.optionHeld = true
+        model.running = true
+        XCTAssertFalse(model.showsChanges(1), "a take still being written never shows changes")
+    }
+
     func testSpokenDescription() {
         let spoken = WordDiff.spoken(from: "i think teh specs", to: "I think the specs, ok")
         XCTAssertEqual(spoken, "3 changes: capitalised I; teh changed to the; added , ok. Result: I think the specs, ok")
