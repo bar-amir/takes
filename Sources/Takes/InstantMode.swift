@@ -76,6 +76,12 @@ enum InstantMode {
             case .cutShort: return String(localized: "The take was cut off before it was finished, so nothing was pasted.")
             }
         }
+
+        /// Why a paste sent no keys: the text box had changed by the time the paste checked it, or its app couldn't
+        /// be brought back to the front.
+        static func notPasted(_ outcome: Paster.Outcome, take: String) -> Failure {
+            outcome == .fieldChanged ? .fieldChanged(take: take) : .couldNotReturn(take: take)
+        }
     }
 
     /// `model` is the one the current engine runs (a local model with the local engine); nil uses the preset's.
@@ -90,25 +96,31 @@ enum InstantMode {
 /// are passed in, so tests can run it without Claude or another app.
 @MainActor
 final class InstantRun {
-    typealias Paste = (_ take: String, _ done: @escaping (Paster.Outcome) -> Void) -> Void
+    typealias Paste = (_ take: String, _ done: @escaping (Bool) -> Void) -> Void
 
     private let engine: TakesEngine
     private let paste: Paste
     private let stillInField: () -> Bool
     private let sameField: () -> Bool
     private let unchanged: (String) -> Bool
+    private let notPasted: (String) -> InstantMode.Failure
     private(set) var isCancelled = false
     private(set) var result: EngineResult?
 
     /// `unchanged` says whether a take is the draft as written; such a take is never pasted.
     /// `sameField` says whether the text box read from still has focus with the text that was read.
-    init(engine: TakesEngine, paste: @escaping Paste, stillInField: @escaping () -> Bool,
-         sameField: @escaping () -> Bool = { true }, unchanged: @escaping (String) -> Bool = { _ in false }) {
+    /// `notPasted` says why a paste sent no keys. Unless told otherwise, the app couldn't be brought back.
+    init(
+        engine: TakesEngine, paste: @escaping Paste, stillInField: @escaping () -> Bool,
+        sameField: @escaping () -> Bool = { true }, unchanged: @escaping (String) -> Bool = { _ in false },
+        notPasted: @escaping (String) -> InstantMode.Failure = { .couldNotReturn(take: $0) }
+    ) {
         self.engine = engine
         self.paste = paste
         self.stillInField = stillInField
         self.sameField = sameField
         self.unchanged = unchanged
+        self.notPasted = notPasted
     }
 
     /// Nothing is pasted after this, even if the take arrives a moment later.
@@ -130,15 +142,10 @@ final class InstantRun {
         if unchanged(take) { return .unchanged }
         guard stillInField() else { return .failed(.leftField(take: take)) }
         guard sameField() else { return .failed(.fieldChanged(take: take)) }
-        let outcome = await withCheckedContinuation { continuation in
+        let pasted = await withCheckedContinuation { continuation in
             paste(take) { continuation.resume(returning: $0) }
         }
-        switch outcome {
-        case .pasted: return .pasted(take: take)
-        case .couldNotReturn: return .failed(.couldNotReturn(take: take))
-        // The paste checks the text box once more, after bringing it back; it put the clipboard back too.
-        case .fieldChanged: return .failed(.fieldChanged(take: take))
-        }
+        return pasted ? .pasted(take: take) : .failed(notPasted(take))
     }
 }
 
@@ -219,16 +226,22 @@ final class InstantModeController {
         caret = focus.caretRect
         let pid = focus.app?.processIdentifier
         let restore = store.settings.restoreClipboard
+        // The paste checks the text box once more after bringing it back; what it reports picks the failure toast.
+        var pasteOutcome = Paster.Outcome.pasted
         let run = InstantRun(
             engine: Engines.current(store.settings),
             paste: { take, done in
                 // When the box can't be confirmed the toast says nothing was pasted, so the clipboard goes back.
-                Paster.paste(take, into: focus, replaceAll: replaceAll, restoreClipboard: restore, keepTakeIfFieldChanged: false, done: done)
+                Paster.paste(take, into: focus, replaceAll: replaceAll, restoreClipboard: restore, keepTakeIfFieldChanged: false) { outcome in
+                    pasteOutcome = outcome
+                    done(outcome == .pasted)
+                }
             },
             stillInField: { pid == nil || NSWorkspace.shared.frontmostApplication?.processIdentifier == pid },
             // Select all and paste must not wipe another text box (another Slack channel) or text typed meanwhile.
             sameField: { !replaceAll || FocusReader.stillEditing(focus) },
-            unchanged: { take in Proofread.nothingToFix(draft: draft, takes: [take]) })
+            unchanged: { take in Proofread.nothingToFix(draft: draft, takes: [take]) },
+            notPasted: { take in InstantMode.Failure.notPasted(pasteOutcome, take: take) })
         self.run = run
         show(.writing(preset: preset.name), near: focus.caretRect)
         listenForEscape()

@@ -21,9 +21,11 @@ final class InstantSafetyTests: XCTestCase {
         InstantRun(
             engine: engine,
             paste: { [unowned self] take, done in
-                pasted.append(take); done(outcome)
+                pasted.append(take)
+                done(outcome == .pasted)
             },
-            stillInField: { true })
+            stillInField: { true },
+            notPasted: { InstantMode.Failure.notPasted(outcome, take: $0) })
     }
 
     func testCutShortTakeIsNotPasted() async {
@@ -37,7 +39,8 @@ final class InstantSafetyTests: XCTestCase {
         let run = InstantRun(
             engine: CutShortEngine(),
             paste: { [unowned self] take, done in
-                pasted.append(take); done(.pasted)
+                pasted.append(take)
+                done(true)
             },
             stillInField: { false }, unchanged: { _ in true })
         let outcome = await run.run(request)

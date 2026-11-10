@@ -94,7 +94,7 @@ final class LaunchFixesTests: XCTestCase {
         let run = InstantRun(
             engine: QuickEngine(),
             paste: { take, done in
-                pasted.append(take); done(.pasted)
+                pasted.append(take); done(true)
             },
             stillInField: { true }, sameField: { false })
         let request = InstantMode.request(preset: Store.defaultPresets[0], draft: "ya thursday works", rules: [])
