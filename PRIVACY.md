@@ -1,6 +1,6 @@
 # Privacy
 
-Last updated: 2026-11-09
+Last updated: 2026-11-10
 
 Takes runs entirely on your Mac. The developer runs no server and never receives your text, your settings or anything about how you use the app. Takes has no analytics, automatic crash reporting or tracking. Apart from the engine you choose, the only connection it makes is the optional update check described below. If Takes crashes, it can help you report it yourself (see [Crash reports](#crash-reports)).
 
@@ -9,9 +9,9 @@ Takes runs entirely on your Mac. The developer runs no server and never receives
 Only when you press the Takes hotkey (or a preset's hotkey), Takes reads:
 
 - **The text box you're typing in:** the selected text, or the text already in the box, depending on your "Start with" setting. It reads this through macOS Accessibility, which you grant in System Settings. Takes only ever reads a real text box, never the page or window around it.
-- **The clipboard, briefly:** if an app doesn't expose its text box to Accessibility, Takes copies the text with ⌘A ⌘C and then puts your previous clipboard back. When pasting a take, it puts the take on the clipboard, sends ⌘V, and then restores your clipboard (unless you turn this off).
+- **The clipboard, briefly:** if an app doesn't expose its text box to Accessibility, Takes copies the text with ⌘A ⌘C and then puts your previous clipboard back. When pasting a take, it puts the take on the clipboard, sends ⌘V, and then restores your clipboard (unless you turn this off). Your old clipboard goes back only if nothing else was copied in the meantime; anything you copy then stays. Before it sends keys, Takes checks that the text box you read from still has focus (and, when it replaces all your text, that the text hasn't changed). If the app says otherwise, Takes sends no keys.
 - **What you're replying to, only if you add it:** in the panel you can add the message you're answering (⌘J to type or paste it, ⇧⌘V to use the clipboard's text). Nothing is added unless you do it, and it's cleared every time the panel opens.
-- **The clipboard as context, only if you turn it on** (Settings › General › Clipboard › "Use the clipboard as context when it looks like a message", off by default): when the panel opens, Takes checks whether the clipboard changed in the last 2 minutes and holds plain text. Only then does it read that text, and it attaches it only if it looks like a message (a few words, under 4,000 characters, not a link, number or code). Passwords marked as private by password managers, files and images are skipped. While this is on, Takes notes when the clipboard changes (not what's on it) so it can tell a fresh copy from an old one. The chip in the panel says "copied just now", and one click or ⇧⌘⌫ removes it.
+- **The clipboard as context, only if you turn it on** (Settings › General › Clipboard › "Use the clipboard as context when it looks like a message", off by default): when the panel opens, Takes checks whether the clipboard changed in the last 2 minutes and holds plain text. Only then does it read that text, and it attaches it only if it looks like a message (a few words, under 4,000 characters, not a link, number or code). Passwords marked as private by password managers, files and images are skipped. While this is on, Takes notes when the clipboard changes (not what's on it) so it can tell a fresh copy from an old one. A take Takes pastes, or an old clipboard it puts back, doesn't count as a fresh copy. The chip in the panel says "copied just now", and one click or ⇧⌘⌫ removes it.
 
 Takes doesn't read anything in the background, and it doesn't take screenshots. It never reads the screen or other windows for context.
 
@@ -30,7 +30,7 @@ It goes **straight from your Mac** to that engine. Nothing goes through a server
 
 - **To whom:** Anthropic, under **your own** Claude account.
 - **How:** Takes runs the Claude Code you installed and signed in to, unmodified. You sign in through Anthropic's own flow; Takes never sees your Claude credentials.
-- **Installing:** if Claude Code isn't on your Mac and you press Install Claude Code, Takes runs Anthropic's official installer (`curl -fsSL https://claude.ai/install.sh | bash`), which downloads Claude Code from Anthropic. Nothing about you is sent. Sign-in then happens in Terminal, in Claude Code itself.
+- **Installing:** if Claude Code isn't on your Mac and you press Install Claude Code, Takes runs Anthropic's official installer (`curl --proto '=https' --tlsv1.2 -fsSL https://claude.ai/install.sh | bash`), which downloads Claude Code from Anthropic. Nothing about you is sent. Sign-in then happens in Terminal, in Claude Code itself.
 - **Terms:** your Claude subscription and Anthropic's terms for it.
 - **Stored:** nothing new. Claude Code keeps its own sign-in; Takes doesn't read or copy it.
 - **Data use:** [Anthropic's privacy policy](https://www.anthropic.com/legal/privacy).
@@ -47,7 +47,7 @@ It goes **straight from your Mac** to that engine. Nothing goes through a server
 - **To whom:** OpenAI's API, under **your own** ChatGPT plan, through OpenAI's Sign in with ChatGPT.
 - **How:** you sign in in your browser, on OpenAI's pages. Takes never asks for your ChatGPT password. Requests are sent from your Mac with `store: false`, so OpenAI doesn't save the response for later use in its API.
 - **Terms:** your ChatGPT plan's terms and its usage limits. You can see and cap what Takes uses, or revoke it, in ChatGPT › Settings.
-- **Stored:** the sign-in tokens, in your macOS keychain only.
+- **Stored:** the sign-in tokens, in your macOS keychain only. Signing out deletes them and asks OpenAI to revoke them.
 - **Data use:** [OpenAI's privacy policy](https://openai.com/policies/privacy-policy/).
 
 Plus and Pro plans can use it. OpenAI calls Sign in with ChatGPT a preview, so its limits and rules may change.
@@ -77,7 +77,9 @@ If you choose **Local model**, Takes sends the same draft, preset and voice rule
 
 The English coach is **off until you turn it on** in Settings › Coach. While it's on, each draft you send for takes that is mostly English (and from a preset you chose to count) goes once more, in one short request, to your engine's quick model, alongside the takes. That request carries only the draft and the list of patterns you chose to watch; it never includes what you're replying to. The answer is checked against the draft on your Mac, and lessons are put together on your Mac from a built-in guide, so they send nothing.
 
-When you paste a take, Takes keeps on your Mac, in `coach.json`: the short phrase around each mistake, its correction and reason, the app you were in, the date and the draft's word count. It never keeps your whole draft. Entries older than 30 days are deleted, phrases you mark "Not a mistake" are kept so they aren't flagged again, and monthly token estimates are kept for a year. Turning the coach off deletes `coach.json`.
+When you paste a take, Takes keeps on your Mac, in `coach.json`: a short excerpt of each mistake and its correction (cut to about 100 characters each), the reason (about 140), the app you were in, the date and the draft's word count. Takes never saves your whole draft here. Entries older than 30 days are deleted, phrases you mark "Not a mistake" are kept so they aren't flagged again, and monthly token estimates are kept for a year. Turning the coach off deletes `coach.json`.
+
+While the coach is off, Takes still compares each English draft with its takes on your Mac, with no model and no network, to see whether the same kind of fix keeps coming up. If it does, a strip can offer the coach, at most once a week. For that, `coach-invite.json` keeps only which kinds of fix were seen (such as articles or prepositions) and when, for 30 days, plus your answer to the offer. It never holds text.
 
 What a provider does with your text is covered by its own privacy policy and the terms of your account with it, not by Takes.
 
@@ -99,12 +101,19 @@ The words you dictate become part of your draft, and like any draft they're sent
 
 | What | Where | How to remove it |
 |---|---|---|
-| Presets, voice rules, settings | `~/Library/Application Support/Takes/` | Delete the folder |
-| History of drafts and takes (last 30 days; never the context you replied to) | `~/Library/Application Support/Takes/history.json` | Settings › History › Clear history, or turn history off in Settings › Engine |
-| English coach notes, if you turn it on (phrases around mistakes, never whole drafts; 30 days) | `~/Library/Application Support/Takes/coach.json` | Settings › English coach › Clear coach data, or turn the coach off |
-| Run timings (model, timing, the app you were in; no text) | `~/Library/Logs/Takes/runs.jsonl` | Delete the file |
-| Field-reading log (app, kind of text box, how it was read, character count; no text) | `~/Library/Logs/Takes/focus.log` | Delete the file |
-| API keys and ChatGPT sign-in tokens, if you add them | macOS keychain, service "com.baramir.takes" | Settings › Engine › Remove or Sign out |
+| Presets (instructions, Do and Avoid rules, examples, hotkeys, apps) | `~/Library/Application Support/Takes/presets.json` | Delete the file |
+| Settings, including your voice rules (never keys or tokens) | `~/Library/Application Support/Takes/settings.json` | Delete the file |
+| History of drafts and takes (last 30 days; never the context you replied to) | `~/Library/Application Support/Takes/history.json` | Settings › History › Clear History…, or turn history off in Settings › History |
+| English coach notes, if you turn it on (short excerpts of mistakes, never whole drafts; 30 days) | `~/Library/Application Support/Takes/coach.json` | Settings › Coach › Clear coach data…, or turn the coach off |
+| Which kinds of fix showed up in your English drafts while the coach is off, and when (30 days; no text), and your answer to the coach offer | `~/Library/Application Support/Takes/coach-invite.json` | Delete the file |
+| A random ID for this Mac that OpenAI asks for when you sign in with ChatGPT (not tied to you) | `~/Library/Application Support/Takes/chatgpt-host.json` | Settings › Model › Sign out removes it |
+| A copy of a file Takes couldn't read, kept so nothing is lost: `presets.unreadable-<date>.json`, `settings.unreadable-<date>.json`, `history.unreadable-<date>.json`, `coach.unreadable-<date>.json` (at most 3 per file) | `~/Library/Application Support/Takes/` | Delete the copy. The history and coach copies hold the same text as the originals: they expire after 30 days, and Clear History and Clear coach data delete them too |
+| Run timings (model, effort, engine, number of takes, timing, the app you were in; no text). Capped at about 512 KB: the oldest lines are dropped | `~/Library/Logs/Takes/runs.jsonl` | Delete the file |
+| Field-reading log (app, kind of text box, how it was read, character count, caret position; a line with the reason when a paste wasn't sent; no text) | `~/Library/Logs/Takes/focus.log` | Delete the file |
+| Probe of one app's text box, only if a developer runs Takes with `--ax-probe` (lengths only, no text) | `~/Library/Logs/Takes/ax-probe.txt` | Delete the file |
+| API keys and ChatGPT sign-in tokens, if you add them | macOS keychain, service "com.baramir.takes" | Settings › Model › Remove Key… or Sign out |
+
+While Claude Code writes takes, its instructions (the preset and your voice rules, not your draft) are in a file in your Mac's temporary folder that only you can read. Takes deletes it when the run ends.
 
 ## AI output
 
@@ -126,11 +135,11 @@ Downloaded copies of Takes can check for new versions with [Sparkle](https://spa
 
 When an app crashes, macOS saves a crash report on your Mac, in `~/Library/Logs/DiagnosticReports`. Apple doesn't pass these on to developers of apps outside the App Store, so the developer of Takes never gets them on their own.
 
-The next time you open Takes after a crash, it reads its own crash report there and asks whether you want to report it. Report… opens a new bug report on GitHub in your browser, filled in with a short summary: the Takes and macOS versions, the kind of crash and where in Takes's code it stopped. It also shows the full report in Finder so you can attach it. Crash reports hold the app's code and the state of your Mac when it crashed (such as its model and memory), not your text. Nothing is sent unless you submit the bug report on GitHub, where it's public. Takes asks once per crash, only about crashes in the version you're running from the last two weeks, and "Don't ask again" stops it asking. "Report a Problem…" in the menu adds the latest crash the same way.
+The next time you open Takes after a crash, it reads its own crash report there and asks whether you want to report it. Report… opens a new bug report on GitHub in your browser, filled in with a short summary: the Takes and macOS versions, the kind of crash and where in Takes's code it stopped. The link is kept under 8,000 characters, so a long summary is cut and says so. Takes also shows the full report in Finder so you can attach it. Crash reports hold the app's code and the state of your Mac when it crashed (such as its model and memory), not your text. Nothing is sent unless you submit the bug report on GitHub, where it's public. Takes asks once per crash, only about crashes in the version you're running from the last two weeks, and "Don't ask again" stops it asking. "Report a Problem…" in the menu adds the latest crash the same way.
 
 ## The website
 
-This notice is about the app. The Takes website (the landing page on GitHub Pages) counts visits with [GoatCounter](https://www.goatcounter.com), which uses no cookies and stores no IP addresses or personal data: only the page, the site you came from, your country, screen size and browser, and clicks on the download and film buttons. The film on the site is served from the site itself too. The app never loads it. Its fonts and images are served from the site itself, not from Google Fonts or another third party. The developer also keeps GitHub's own counts of release downloads, update-feed downloads and repository visits, which say nothing about who you are.
+This notice is about the app. The Takes website (the landing page on GitHub Pages) counts visits with [GoatCounter](https://www.goatcounter.com). GoatCounter sets no cookies and doesn't store IP addresses. It records the page, the site you came from, your country (worked out from your IP address, which isn't kept), language, screen width, browser and operating system, and clicks on the download, film and Support Takes buttons. The film on the site is served from the site itself too. The app never loads it. The site's fonts and images are served from the site itself, not from Google Fonts. The one other file it loads from outside is the three.js library for the live 3D product picture, from the jsDelivr network, which sees your IP address as any web host does. The developer also keeps GitHub's own counts of release downloads, update-feed downloads and repository visits, which say nothing about who you are.
 
 ## Changes
 
