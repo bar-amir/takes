@@ -12,6 +12,8 @@ extension Snapshot {
             ("failed-engine", .failed(message: InstantMode.Failure.engine("Claude Code: You've hit your usage limit. It resets at 4 pm.").message(app: "Slack"), hotKey: hotKey)),
             ("failed-left", .failed(message: InstantMode.Failure.leftField(take: "").message(app: "Slack"), hotKey: hotKey)),
             ("cancelled", .cancelled),
+            ("failed-too-long", .failed(message: InstantMode.tooLongMessage(app: "Notes"), hotKey: nil)),
+            ("failed-cut-short", .failed(message: InstantMode.Failure.cutShort(take: "").message(app: "Slack"), hotKey: hotKey)),
         ]
         var preset = Store.defaultPresets[1]
         preset.hotKey = KeyCombo(keyCode: 19, modifiers: 0, display: hotKey)

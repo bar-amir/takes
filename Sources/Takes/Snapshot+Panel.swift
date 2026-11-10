@@ -112,6 +112,22 @@ extension Snapshot {
         let toast = ToastView(message: "Pasted take 1 · your clipboard is back", showUndo: true,
                               coachNote: "“If you will send” → “If you send” · 4th time this month",
                               onSaveExample: {}, onDone: {})
+        // The text box changed before the paste: the take waits on the clipboard instead.
+        let notPasted = ToastView(message: PanelController.notPastedMessage(.fieldChanged, app: "Slack", number: 2), showUndo: false,
+                                  onSaveExample: nil, onDone: {})
+
+        // What the compose row says when the text box wasn't read: too long, a password field, nothing selected.
+        func unread(_ source: FocusSnapshot.Source, method: String = "") -> PanelModel {
+            let model = PanelModel()
+            var focus = FocusSnapshot(app: nil, text: "", source: source, caretRect: nil)
+            focus.method = method
+            model.reset(focus: focus, presetID: store.presets.first?.id)
+            model.previewAppName = "Slack"
+            model.previewAppURL = AppGlyph.url(forBundleID: "com.tinyspeck.slackmacgap")
+            return model
+        }
+        let unreadBoxes = [("1b-compose-too-long", unread(.tooLong)), ("1c-compose-password", unread(.secure)),
+                           ("1d-compose-nothing-selected", unread(.field, method: FocusSnapshot.noSelection))]
 
         for (dark, suffix) in [(false, "light"), (true, "dark")] {
             func write<V: View>(_ view: V, _ size: CGSize, _ name: String) {
@@ -123,6 +139,7 @@ extension Snapshot {
             write(PanelRootView(model: options), compose720, "2-compose-options")
             write(PanelRootView(model: changed), compose720, "3-compose-options-changed")
             write(PanelRootView(model: withHotKey), compose720, "3b-compose-preset-hotkey")
+            for (name, model) in unreadBoxes { write(PanelRootView(model: model), compose720, name) }
             for (name, model) in [("4-takes-coach-collapsed", collapsed), ("5-takes-coach-expanded", expanded),
                                   ("6-takes-coach-checking", checking), ("7-takes-changes-option-held", changes),
                                   ("8-takes-coach-invitation", invited)] + limits + ends {
@@ -130,6 +147,8 @@ extension Snapshot {
             }
             write(toast.padding(20).frame(width: 820, height: 140).background(Color(hex: dark ? "#3A3A3F" : "#E9E7E1")),
                   CGSize(width: 820, height: 140), "9-toast")
+            write(notPasted.padding(20).frame(width: 820, height: 100).background(Color(hex: dark ? "#3A3A3F" : "#E9E7E1")),
+                  CGSize(width: 820, height: 100), "9b-toast-not-pasted")
         }
     }
 

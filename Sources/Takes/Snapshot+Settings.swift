@@ -42,6 +42,17 @@ extension Snapshot {
                 renderSettingsTab(.presets, dark: dark, to: url.appendingPathComponent("5-settings-presets-hotkey-\(suffix).png"))
                 store.presets[0].hotKey = hotKey
             }
+            // A presets file that couldn't be read was set aside: the banner at the top of Presets.
+            store.noteSetAside(SetAsideFile(name: "presets.json", copy: "presets.unreadable-20261110-101530.json", skipped: nil))
+            renderSettingsTab(.presets, dark: dark, to: url.appendingPathComponent("5-settings-presets-set-aside-\(suffix).png"))
+            store.dismissSetAside()
+            // An engine saved by a newer version: no row is picked, and the note says to pick one.
+            let current = store.settings
+            if let newer = try? JSONDecoder().decode(AppSettings.self, from: Data(#"{"engine":"someFutureEngine"}"#.utf8)) {
+                store.settings = newer
+                renderSettingsTab(.model, dark: dark, to: url.appendingPathComponent("5-settings-model-needs-choice-\(suffix).png"))
+                store.settings = current
+            }
             signIn.state = .signedIn(email: "sam@example.com", sharing: true)
             renderSettingsTab(.model, dark: dark, to: url.appendingPathComponent("5-settings-model-chatgpt-not-selected-\(suffix).png"))
             store.settings.engine = .apiKey
