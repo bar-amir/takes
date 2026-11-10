@@ -14,7 +14,7 @@ On first launch Takes opens a guided setup:
 
 You can close it at any time; it reopens where you left off (menu-bar icon › Finish setting up Takes…). People who used Takes before onboarding existed never see it.
 
-After that, Takes watches everything it needs and opens a "Set up Takes" window when something's missing: Accessibility access, a working engine (Claude Code signed in, an Anthropic API key saved, signed in with ChatGPT, a provider key saved with a model picked, or a local model server running with a model) and a free hotkey. The window updates live as each step is done. While something is missing, the menu-bar icon shows an exclamation mark and the hotkey opens this window instead of the panel. You can open it any time from the menu-bar icon › Setup and permissions.
+After that, Takes keeps checking that everything it needs is in place and opens a "Set up Takes" window when something's missing: Accessibility access, a working engine (Claude Code signed in, an Anthropic API key saved, signed in with ChatGPT, a provider key saved with a model picked, or a local model server running with a model) and a free hotkey. The window updates live as each step is done. While something is missing, the menu-bar icon shows an exclamation mark and the hotkey opens this window instead of the panel. You can open it any time from the menu-bar icon › Setup and permissions.
 
 ## The panel
 
