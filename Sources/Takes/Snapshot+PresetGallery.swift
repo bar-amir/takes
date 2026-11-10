@@ -22,6 +22,14 @@ extension Snapshot {
             render(PanelRootView(model: picker), size: CGSize(width: 800, height: 640), dark: dark,
                    to: url.appendingPathComponent("7-picker-browse-\(suffix).png"))
 
+            // A Do item longer than the preview column wraps inside its chip.
+            let proofread = PanelModel()
+            proofread.reset(focus: FocusSnapshot(app: nil, text: draft, source: .field, caretRect: nil), presetID: Store.shared.presets.first?.id)
+            proofread.openPicker()
+            proofread.highlighted = proofread.filteredPresets.firstIndex { $0.id == Preset.proofread.id || $0.name == Preset.proofread.name } ?? 1
+            render(PanelRootView(model: proofread), size: CGSize(width: 800, height: 560), dark: dark,
+                   to: url.appendingPathComponent("7-picker-proofread-\(suffix).png"))
+
             let state = SettingsState()
             state.selectedPresetID = Store.shared.presets.first?.id
             render(SettingsView(state: state), size: CGSize(width: 1040, height: 660), dark: dark,
