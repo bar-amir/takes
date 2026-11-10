@@ -39,11 +39,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         SetupMonitor.shared.recheckHotKeys = { [weak self] in self?.recheckTakenHotKeys() }
 
         // Build Electron apps' accessibility trees as they come forward, so the hotkey can read their fields.
+        // Each process is asked once (`FocusReader.prepare`), until it quits.
         if let front = NSWorkspace.shared.frontmostApplication { FocusReader.prepare(front) }
         NSWorkspace.shared.notificationCenter
             .publisher(for: NSWorkspace.didActivateApplicationNotification)
             .compactMap { $0.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication }
             .sink { FocusReader.prepare($0) }
+            .store(in: &subscriptions)
+        NSWorkspace.shared.notificationCenter
+            .publisher(for: NSWorkspace.didTerminateApplicationNotification)
+            .compactMap { $0.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication }
+            .sink { FocusReader.forget($0.processIdentifier) }
             .store(in: &subscriptions)
 
         // Keep the menu-bar icon in step with setup, and walk the user through anything missing.

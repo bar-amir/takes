@@ -38,7 +38,7 @@ enum FocusReader {
         // Electron and Chromium apps (Slack, Claude…) only build their accessibility tree when asked to,
         // and build it asynchronously. `prepare` asks as soon as an app comes forward; this covers an app
         // that was already in front. The first build can take well over 240 ms, so wait up to ~0.7 s.
-        prepare(app)
+        prepare(app, again: true)
         let systemWide = AXUIElementCreateSystemWide()
         AXUIElementSetMessagingTimeout(systemWide, 1)
         func focusedElement() -> AXUIElement? {
@@ -116,12 +116,23 @@ enum FocusReader {
 
     /// Turns on an Electron or Chromium app's accessibility tree ahead of time, so the first summon
     /// in it can read the field. Harmless for native apps.
-    static func prepare(_ app: NSRunningApplication) {
-        guard app.bundleIdentifier != Bundle.main.bundleIdentifier, isTrusted(prompt: false) else { return }
-        let appElement = AXUIElementCreateApplication(app.processIdentifier)
+    ///
+    /// Each process is asked once as it comes forward, not on every activation: the tree stays on for the life
+    /// of the process. `again` asks regardless; the hotkey does, so a summon never depends on what was asked earlier.
+    static func prepare(_ app: NSRunningApplication, again: Bool = false) {
+        let pid = app.processIdentifier
+        guard app.bundleIdentifier != Bundle.main.bundleIdentifier, again || prepared.needs(pid), isTrusted(prompt: false) else { return }
+        let appElement = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(appElement, 0.25)
-        AXUIElementSetAttributeValue(appElement, "AXManualAccessibility" as CFString, kCFBooleanTrue)
+        let result = AXUIElementSetAttributeValue(appElement, "AXManualAccessibility" as CFString, kCFBooleanTrue)
+        // An app still launching can't be reached yet; it is asked again the next time it comes forward.
+        prepared.asked(pid, answered: result != .cannotComplete && result != .apiDisabled)
     }
+
+    /// The app quit; its process id can come back as another app.
+    static func forget(_ pid: pid_t) { prepared.forget(pid) }
+
+    private static var prepared = PreparedApps()
 
     /// Brings the field the text came from back to the front with keyboard focus in it, before pasting.
     static func refocus(_ snapshot: FocusSnapshot?) {
@@ -268,6 +279,20 @@ enum FocusReader {
               let value else { return nil }
         return value as? T
     }
+}
+
+/// Which processes were already asked to build their accessibility tree (`FocusReader.prepare`).
+struct PreparedApps {
+    private var asked: Set<pid_t> = []
+
+    func needs(_ pid: pid_t) -> Bool { !asked.contains(pid) }
+
+    /// An app that didn't answer (still launching, or busy) is asked again next time.
+    mutating func asked(_ pid: pid_t, answered: Bool) {
+        if answered { asked.insert(pid) }
+    }
+
+    mutating func forget(_ pid: pid_t) { asked.remove(pid) }
 }
 
 /// One line per summon in ~/Library/Logs/Takes/focus.log: which app, what kind of element, how its text was read.
