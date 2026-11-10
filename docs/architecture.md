@@ -50,7 +50,7 @@ Takes is one executable target (`Sources/Takes`) with no server. It's an `LSUIEl
 | Storage | `Store` (`Store.swift`) | Presets, settings and history as JSON in `~/Library/Application Support/Takes`. A file it can't read is first copied to `<name>.unreadable-<date>.json`, so nothing is saved over it. Secrets go in the Keychain, never here. |
 | Settings | `SettingsWindow` and `*Tab.swift`, `*Views.swift` | One tab per area: General, Presets, Writing, Coach, Model, History. |
 | First run | `Onboarding*`, `Setup.swift` (`SetupMonitor`) | Accessibility, engine connection, privacy notice, hotkey, starter presets and practice. |
-| Crash reports | `CrashReports`, `CrashOfferView` (`StatusPopover.swift`) | After a crash, offers once to open a GitHub bug report with a summary of macOS's crash report and shows the file in Finder. Reads only; sends nothing. `ReportProblem` builds the link and keeps it under 8,000 characters, cutting a longer summary and saying so. |
+| Crash reports | `CrashReports`, `CrashOfferView` (`StatusPopover.swift`) | After a crash, offers once to open a GitHub bug report with a summary of macOS's crash report and shows the file in Finder. Reads only; sends nothing. `ReportProblem` builds the link and keeps it to 8,000 characters at most, cutting a longer summary and saying so. |
 | Updates | `Updater` (Sparkle) | Only in signed release builds, and only after the user agrees. |
 | Screenshots | `Snapshot*.swift` | `--snapshot <folder>` renders every screen with sample data. |
 
