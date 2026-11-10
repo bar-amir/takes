@@ -279,8 +279,13 @@ final class HotKeyRecording: ObservableObject {
     var removeMonitor: (Any) -> Void = { NSEvent.removeMonitor($0) }
     var notifications = NotificationCenter.default
 
-    /// Starts recording in `window` (any window when nil). `onKey` gets each key press and returns true once it has
-    /// what it wanted, which stops recording.
+    /// The window the recorder's view is in, as AppKit reports it.
+    weak var hostWindow: NSWindow?
+
+    /// Starts recording in `window`, whose closing or losing the keyboard stops it. With no window known, no window
+    /// stops it (Esc, a press and the recorder going away still do): another window closing, the panel or a
+    /// popover, must not end a recording it has nothing to do with. `onKey` gets each key press and returns true
+    /// once it has what it wanted, which stops recording.
     func start(in window: NSWindow?, onKey: @escaping (NSEvent) -> Bool) {
         guard !isRecording else { return }
         isRecording = true
@@ -291,6 +296,7 @@ final class HotKeyRecording: ObservableObject {
             }
             return nil
         }
+        guard let window else { return }
         for name in [NSWindow.willCloseNotification, NSWindow.didResignKeyNotification] {
             observers.append(notifications.addObserver(forName: name, object: window, queue: nil) { [weak self] _ in
                 MainActor.assumeIsolated { self?.stop() }
@@ -314,6 +320,27 @@ final class HotKeyRecording: ObservableObject {
         // The suspension ends as it's let go; the monitor would otherwise swallow every key press in Takes.
         if let monitor { removeMonitor(monitor) }
         observers.forEach(notifications.removeObserver)
+    }
+}
+
+/// Tells its view which window it's in, as AppKit reports it.
+private struct HostWindowReader: NSViewRepresentable {
+    let found: (NSWindow?) -> Void
+
+    func makeNSView(context: Context) -> NSView {
+        let view = WindowReportingView()
+        view.onWindow = found
+        return view
+    }
+
+    func updateNSView(_ view: NSView, context: Context) {}
+
+    final class WindowReportingView: NSView {
+        var onWindow: ((NSWindow?) -> Void)?
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            onWindow?(window)
+        }
     }
 }
 
@@ -348,6 +375,7 @@ struct HotKeyRecorder: View {
                 .accessibilityLabel("Clear shortcut")
             }
         }
+        .background(HostWindowReader { recorder.hostWindow = $0 })
         .onDisappear(perform: recorder.stop)
     }
 
@@ -356,7 +384,7 @@ struct HotKeyRecorder: View {
     private func start() {
         // Takes's own hotkeys are let go while recording: a registered one never reaches the window (macOS
         // handles it first), so pressing it would open the panel instead of recording it.
-        recorder.start(in: NSApp.keyWindow) { event in
+        recorder.start(in: recorder.hostWindow) { event in
             if event.keyCode == 53 { return true }  // Esc
             if event.keyCode == 51 && allowClear { combo = nil; return true }  // ⌫
             guard let recorded = KeyCombo(event: event) else { return false }

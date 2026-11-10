@@ -95,6 +95,16 @@ final class HotKeyRecorderTests: XCTestCase {
         XCTAssertFalse(HotKeyCenter.shared.suspended)
     }
 
+    func testWithNoWindowKnownNoOtherWindowStopsIt() {
+        let center = NotificationCenter()
+        let recording = recording(center)
+        recording.start(in: nil) { _ in false }
+        center.post(name: NSWindow.willCloseNotification, object: window())
+        center.post(name: NSWindow.didResignKeyNotification, object: window())
+        XCTAssertTrue(recording.isRecording, "The panel or a popover closing has nothing to do with it")
+        recording.stop()
+    }
+
     func testAfterStoppingTheWindowIsNoLongerWatched() {
         let center = NotificationCenter()
         let window = window()
