@@ -155,7 +155,7 @@ enum ClipboardHeuristic {
     }
 
     /// The context to attach on summon, or nil. `draft` and `lastOffered` keep Takes from attaching its own
-    /// field read, or the same copy twice (pasting a take restores the clipboard, which looks like a new copy).
+    /// field read, or the same copy twice.
     static func context(from candidate: ClipboardCandidate, draft: String, lastOffered: String?) -> ReplyContext? {
         guard worthReading(types: candidate.types, age: candidate.age), let text = candidate.text else { return nil }
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -165,6 +165,54 @@ enum ClipboardHeuristic {
     }
 }
 
+/// When the clipboard's contents were copied, from its change count alone. Takes changes the clipboard itself
+/// (a take on its way into the text box, the old clipboard put back, the ⌘A ⌘C fallback), and none of that is the
+/// user copying something: an old clipboard that Takes put back must not look "copied just now".
+struct ClipboardFreshness: Equatable {
+    enum OwnWrite {
+        /// Takes put its own text on the clipboard: a take being pasted or copied.
+        case take
+        /// Takes put back what the clipboard held before its take.
+        case putBack
+        /// Takes copied from the text box and put the clipboard back, in one go.
+        case borrowed
+    }
+
+    private(set) var lastCount: Int
+    /// When the user copied what's on the clipboard. Nil when Takes never saw it change, or it holds Takes' own text.
+    private(set) var changedAt: Date?
+    /// `changedAt` for what the clipboard held before a take replaced it, for when that is put back.
+    private var setAside: Date?
+
+    init(count: Int) { lastCount = count }
+
+    /// The change count as seen now. A change that isn't one of Takes' own writes is a copy.
+    mutating func observe(count: Int, now: Date) {
+        guard count != lastCount else { return }
+        lastCount = count
+        changedAt = now
+        setAside = nil
+    }
+
+    /// Takes just changed the clipboard itself, leaving it at `count`.
+    mutating func ownWrite(_ kind: OwnWrite, count: Int) {
+        lastCount = count
+        switch kind {
+        case .take:
+            setAside = changedAt
+            changedAt = nil
+        case .putBack:
+            changedAt = setAside
+            setAside = nil
+        case .borrowed:
+            break
+        }
+    }
+
+    /// Seconds since the user copied what's on the clipboard.
+    func age(now: Date) -> TimeInterval? { changedAt.map { now.timeIntervalSince($0) } }
+}
+
 /// Notes when the clipboard changes (its change count only, never its contents), so the opt-in setting can tell a
 /// fresh copy from an old one. Runs only while the setting is on.
 @MainActor
@@ -172,8 +220,7 @@ final class ClipboardWatch {
     static let shared = ClipboardWatch()
 
     private var timer: Timer?
-    private var lastCount = NSPasteboard.general.changeCount
-    private var changedAt: Date?
+    private var freshness = ClipboardFreshness(count: NSPasteboard.general.changeCount)
     /// The text last attached automatically, so one copy is offered once.
     private(set) var lastOffered: String?
     private var settings: AnyCancellable?
@@ -190,8 +237,7 @@ final class ClipboardWatch {
 
     private func start() {
         guard timer == nil else { return }
-        lastCount = NSPasteboard.general.changeCount
-        changedAt = nil
+        freshness = ClipboardFreshness(count: NSPasteboard.general.changeCount)
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             Task { @MainActor in ClipboardWatch.shared.tick() }
         }
@@ -200,13 +246,29 @@ final class ClipboardWatch {
     private func stop() {
         timer?.invalidate()
         timer = nil
-        changedAt = nil
+        freshness = ClipboardFreshness(count: NSPasteboard.general.changeCount)
         lastOffered = nil
     }
 
     private func tick() {
-        let count = NSPasteboard.general.changeCount
-        if count != lastCount { lastCount = count; changedAt = Date() }
+        freshness.observe(count: NSPasteboard.general.changeCount, now: Date())
+    }
+
+    /// Takes is about to change the clipboard itself: anything the user copied since the last look is noted first.
+    /// Called on the main thread, like `ownWrite`.
+    nonisolated static func aboutToWrite() {
+        MainActor.assumeIsolated {
+            guard shared.timer != nil else { return }
+            shared.tick()
+        }
+    }
+
+    /// Takes just changed the clipboard itself, which isn't the user copying something.
+    nonisolated static func ownWrite(_ kind: ClipboardFreshness.OwnWrite) {
+        MainActor.assumeIsolated {
+            guard shared.timer != nil else { return }
+            shared.freshness.ownWrite(kind, count: NSPasteboard.general.changeCount)
+        }
     }
 
     /// Called on summon before the field is read. Reads the clipboard's text only when the setting is on and
@@ -216,7 +278,7 @@ final class ClipboardWatch {
         tick()
         let pasteboard = NSPasteboard.general
         let types = (pasteboard.types ?? []).map(\.rawValue)
-        let age = changedAt.map { Date().timeIntervalSince($0) }
+        let age = freshness.age(now: Date())
         guard ClipboardHeuristic.worthReading(types: types, age: age) else { return nil }
         return ClipboardCandidate(text: pasteboard.string(forType: .string), types: types, age: age)
     }
