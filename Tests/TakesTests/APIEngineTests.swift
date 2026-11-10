@@ -89,10 +89,41 @@ final class APIEngineCutShortTests: XCTestCase {
     }
 
     func testContextWindowIsCutShortToo() async throws {
-        let result = try await run([Self.text("Thursday works.\n=="), Self.stop("model_context_window_exceeded")])
-        // The half-written separator isn't kept as text.
-        XCTAssertEqual(result.takes, ["Thursday works."])
+        let result = try await run([Self.text("Thursday works.\n===\nSure"), Self.stop("model_context_window_exceeded")])
+        XCTAssertEqual(result.takes, ["Thursday works.", "Sure"])
         XCTAssertTrue(result.cutShort)
+    }
+
+    func testStoppingRightAfterASeparatorLeavesWholeTakes() async throws {
+        // A separator, finished or half-written, ends the take before it: nothing is unfinished.
+        for text in ["Thursday works.\n===\n", "Thursday works.\n=="] {
+            let result = try await run([Self.text(text), Self.stop("max_tokens")])
+            XCTAssertEqual(result.takes, ["Thursday works."])
+            XCTAssertFalse(result.cutShort, text)
+        }
+    }
+
+    func testARefusalAfterSomeTextIsDeclined() async throws {
+        for events in [[Self.text("Thursday works.\n===\nSure"), Self.stop("refusal")], [Self.stop("refusal")]] {
+            do {
+                _ = try await run(events)
+                XCTFail("should be declined")
+            } catch {
+                XCTAssertEqual(error.localizedDescription, "Claude declined to rewrite this draft.")
+            }
+        }
+    }
+
+    func testAStreamThatEndsWithoutAStopReasonIsUnfinished() async throws {
+        let result = try await run([Self.text("Thursday works.\n===\nSure, Thu")])
+        XCTAssertEqual(result.takes, ["Thursday works.", "Sure, Thu"])
+        XCTAssertTrue(result.cutShort)
+        do {
+            _ = try await run([["type": "message_start", "message": [:] as [String: Any]]])
+            XCTFail("should fail")
+        } catch {
+            XCTAssertEqual(error.localizedDescription, "The connection to Claude dropped before the takes were done. Try again.")
+        }
     }
 
     func testFinishedAnswerIsNotCutShort() async throws {
@@ -183,65 +214,97 @@ final class APIKeyCheckTests: XCTestCase {
     }
 }
 
-/// `Keychain.set` with fake keychain calls: the user's keychain is never touched.
+/// `Keychain.set` against a fake keychain that holds values: the user's keychain is never touched.
 final class KeychainWriteTests: XCTestCase {
-    private final class Calls {
+    private final class FakeKeychain {
+        var items: [String: Data] = [:]
         var log: [String] = []
         var attributes: [[String: Any]] = []
-        var update = errSecSuccess
-        var add = errSecSuccess
-        var delete = errSecSuccess
+        /// Forced results; nil does what a keychain would.
+        var update: OSStatus?
+        var add: OSStatus?
+        var delete: OSStatus?
 
-        var items: Keychain.Items {
+        private func account(_ query: [String: Any]) -> String { query[kSecAttrAccount as String] as? String ?? "" }
+
+        var calls: Keychain.Items {
             Keychain.Items(
-                update: { [self] _, attributes in log.append("update"); self.attributes.append(attributes); return update },
-                add: { [self] item in log.append("add"); attributes.append(item); return add },
-                delete: { [self] _ in log.append("delete"); return delete })
+                update: { [self] query, attributes in
+                    log.append("update")
+                    self.attributes.append(attributes)
+                    if let update { return update }
+                    guard items[account(query)] != nil else { return errSecItemNotFound }
+                    items[account(query)] = attributes[kSecValueData as String] as? Data
+                    return errSecSuccess
+                },
+                add: { [self] item in
+                    log.append("add")
+                    attributes.append(item)
+                    if let add { return add }
+                    items[account(item)] = item[kSecValueData as String] as? Data
+                    return errSecSuccess
+                },
+                delete: { [self] query in
+                    log.append("delete")
+                    if let delete { return delete }
+                    return items.removeValue(forKey: account(query)) == nil ? errSecItemNotFound : errSecSuccess
+                })
         }
     }
 
-    private func accessible(_ attributes: [String: Any]?) -> String? {
-        (attributes?[kSecAttrAccessible as String] as? String)
+    func testUpdatesInPlace() {
+        let keychain = FakeKeychain()
+        keychain.items["test"] = Data("old".utf8)
+        XCTAssertTrue(Keychain.set("sk-1", account: "test", items: keychain.calls))
+        XCTAssertEqual(keychain.log, ["update"])
+        XCTAssertEqual(keychain.items["test"], Data("sk-1".utf8))
+        // The login keychain ignores an accessibility attribute, so none is sent.
+        XCTAssertNil(keychain.attributes.first?[kSecAttrAccessible as String])
     }
 
-    func testUpdatesInPlaceWithDeviceOnlyAccess() {
-        let calls = Calls()
-        XCTAssertTrue(Keychain.set("sk-1", account: "test", items: calls.items))
-        XCTAssertEqual(calls.log, ["update"])
-        XCTAssertEqual(accessible(calls.attributes.first), kSecAttrAccessibleWhenUnlockedThisDeviceOnly as String)
-        XCTAssertEqual(calls.attributes.first?[kSecValueData as String] as? Data, Data("sk-1".utf8))
+    func testAddsANewItem() {
+        let keychain = FakeKeychain()
+        XCTAssertTrue(Keychain.set("sk-1", account: "test", items: keychain.calls))
+        XCTAssertEqual(keychain.log, ["update", "add"])
+        XCTAssertEqual(keychain.items["test"], Data("sk-1".utf8))
+        XCTAssertEqual(keychain.attributes.last?[kSecAttrService as String] as? String, "com.baramir.takes")
     }
 
-    func testAddsANewItemWithDeviceOnlyAccess() {
-        let calls = Calls()
-        calls.update = errSecItemNotFound
-        XCTAssertTrue(Keychain.set("sk-1", account: "test", items: calls.items))
-        XCTAssertEqual(calls.log, ["update", "add"])
-        XCTAssertEqual(accessible(calls.attributes.last), kSecAttrAccessibleWhenUnlockedThisDeviceOnly as String)
-        XCTAssertEqual(calls.attributes.last?[kSecAttrAccount as String] as? String, "test")
+    func testARefusedWriteKeepsTheOldKey() {
+        for refusal in [errSecInteractionNotAllowed, errSecAuthFailed, errSecParam] {
+            let keychain = FakeKeychain()
+            keychain.items["test"] = Data("old".utf8)
+            keychain.update = refusal
+            XCTAssertFalse(Keychain.set("sk-new", account: "test", items: keychain.calls))
+            XCTAssertEqual(keychain.items["test"], Data("old".utf8))
+            XCTAssertFalse(keychain.log.contains("delete"), "\(keychain.log)")
+        }
     }
 
-    func testAnItemThatCantBeUpdatedIsSavedAfresh() {
-        let calls = Calls()
-        calls.update = errSecParam
-        XCTAssertTrue(Keychain.set("sk-1", account: "test", items: calls.items))
-        XCTAssertEqual(calls.log, ["update", "delete", "add"])
+    func testAFailedAddIsReported() {
+        let keychain = FakeKeychain()
+        keychain.add = errSecInteractionNotAllowed
+        XCTAssertFalse(Keychain.set("sk-1", account: "test", items: keychain.calls))
+        XCTAssertNil(keychain.items["test"])
     }
 
-    func testFailuresAreReported() {
-        let calls = Calls()
-        calls.update = errSecItemNotFound
-        calls.add = errSecInteractionNotAllowed
-        XCTAssertFalse(Keychain.set("sk-1", account: "test", items: calls.items))
-        let refusedDelete = Calls()
-        refusedDelete.delete = errSecAuthFailed
-        XCTAssertFalse(Keychain.set(nil, account: "test", items: refusedDelete.items))
+    func testRemoving() {
+        let keychain = FakeKeychain()
+        keychain.items["test"] = Data("old".utf8)
+        XCTAssertTrue(Keychain.set("", account: "test", items: keychain.calls))
+        XCTAssertNil(keychain.items["test"])
+        // Removing a key that isn't there is fine; a refused removal isn't.
+        XCTAssertTrue(Keychain.set(nil, account: "test", items: keychain.calls))
+        keychain.items["test"] = Data("old".utf8)
+        keychain.delete = errSecAuthFailed
+        XCTAssertFalse(Keychain.set(nil, account: "test", items: keychain.calls))
     }
 
-    func testRemovingAMissingKeyIsFine() {
-        let calls = Calls()
-        calls.delete = errSecItemNotFound
-        XCTAssertTrue(Keychain.set("", account: "test", items: calls.items))
-        XCTAssertEqual(calls.log, ["delete"])
+    func testChatGPTTokensUseTheSameWrite() {
+        let keychain = FakeKeychain()
+        keychain.items["chatgpt-credentials"] = Data("old".utf8)
+        keychain.update = errSecInteractionNotAllowed
+        XCTAssertFalse(Keychain.setData(Data("new".utf8), account: "chatgpt-credentials", items: keychain.calls))
+        XCTAssertEqual(keychain.items["chatgpt-credentials"], Data("old".utf8))
     }
 }

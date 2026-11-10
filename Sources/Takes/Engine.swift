@@ -37,8 +37,9 @@ struct EngineResult {
     let wallMs: Int
     /// Request start to the first streamed word.
     let firstTextMs: Int?
-    /// The engine stopped before the answer was finished (it reached its length limit, or ran out of time), so
-    /// the last take is incomplete. The takes before it are whole.
+    /// The engine stopped before the answer was finished (it reached its length limit, ran out of time, or its
+    /// stream ended early), so the last take is incomplete. The takes before it are whole. Set through
+    /// `TakeSplitter.cutShort`, so an answer that stopped right after a separator isn't marked.
     var cutShort = false
 }
 
@@ -137,6 +138,18 @@ enum TakeSplitter {
         return takes
             .map { $0.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
+    }
+
+    /// `EngineResult.cutShort` for an answer: true only when it stopped early (`stoppedEarly`: out of room, out of
+    /// time, or a stream that ended without saying it was done) and something was written after the last separator,
+    /// so the last take is unfinished. An answer that stopped right after a separator has only whole takes. Every
+    /// engine sets `cutShort` through this. `endsTake` says which lines end a take (small models also write `---` or
+    /// "Version 2:"); a line of only `=` counts too, as a separator still being written.
+    static func cutShort(_ text: String, stoppedEarly: Bool, endsTake: (String) -> Bool = { $0 == separator }) -> Bool {
+        guard stoppedEarly else { return false }
+        let lines = text.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) }
+        guard let last = lines.last(where: { !$0.isEmpty }) else { return false }
+        return !(last.allSatisfy { $0 == "=" } || endsTake(last))
     }
 
     /// Whether `text` has at least one take followed by a finished separator line: a take known to be whole.

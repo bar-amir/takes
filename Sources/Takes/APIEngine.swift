@@ -95,19 +95,25 @@ struct APIEngine: TakesEngine {
             }
         }
 
-        if stopReason == "refusal" && text.isEmpty {
-            throw EngineError.failed(String(localized: "Claude declined to rewrite this draft."))
-        }
-        let cutShort = Self.ranOutOfRoom(stopReason)
-        let takes = TakeSplitter.split(text, streaming: cutShort)
+        // A refusal at the end means no fallback took over; text before it is a partial answer, not takes.
+        if stopReason == "refusal" { throw EngineError.failed(Self.declinedMessage) }
+        // No stop reason: the stream ended before the message did (a dropped connection), so it's unfinished too.
+        let stoppedEarly = Self.ranOutOfRoom(stopReason) || stopReason == nil
+        let takes = TakeSplitter.split(text, streaming: stoppedEarly)
         guard !takes.isEmpty else {
-            if cutShort {
+            if stopReason == nil {
+                throw EngineError.failed(String(localized: "The connection to Claude dropped before the takes were done. Try again."))
+            }
+            if stoppedEarly {
                 throw EngineError.failed(String(localized: "Claude ran out of room before writing a take. Try again, or pick a lower effort."))
             }
             throw EngineError.failed(String(localized: "Claude returned no takes."))
         }
-        return EngineResult(takes: takes, wallMs: elapsedMs(), firstTextMs: firstTextMs, cutShort: cutShort)
+        return EngineResult(takes: takes, wallMs: elapsedMs(), firstTextMs: firstTextMs,
+                            cutShort: TakeSplitter.cutShort(text, stoppedEarly: stoppedEarly))
     }
+
+    static let declinedMessage = String(localized: "Claude declined to rewrite this draft.")
 
     /// The model stopped because it reached `max_tokens` or the end of its context window, not because it was done.
     static func ranOutOfRoom(_ stopReason: String?) -> Bool {
@@ -188,11 +194,12 @@ extension APIEngine {
 /// API keys live in the login keychain, never in the settings file. One item per account: the Anthropic key, and
 /// one per other provider host ("provider-api.openai.com").
 enum Keychain {
-    private static let service = "com.baramir.takes"
+    static let service = "com.baramir.takes"
     private static let anthropicAccount = "anthropic-api-key"
 
-    /// Readable only while the Mac is unlocked, and never copied to another Mac in a backup or migration.
-    static let accessibility = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+    // No `kSecAttrAccessible`: the login keychain (file-based) accepts it but doesn't store it, and the data protection
+    // keychain, which would honour it, needs an entitlement ad-hoc builds don't have (SecItemAdd returns -34018).
+    // Checked on macOS 27 with a throwaway item.
 
     /// The keychain calls `set` makes; tests swap in fakes so they never touch the user's keychain.
     struct Items {
@@ -224,24 +231,25 @@ enum Keychain {
     }
 
     /// Replaces the item; nil or empty removes it. True when the keychain did it (removing a missing item counts).
-    /// The value is updated in place, so a failed write never loses the key that was there; items saved by older
-    /// builds stay readable and get the device-only, when-unlocked accessibility the next time they're saved.
     @discardableResult
     static func set(_ value: String?, account: String, items: Items = .system) -> Bool {
+        setData(value.flatMap { $0.isEmpty ? nil : Data($0.utf8) }, account: account, items: items)
+    }
+
+    /// Writes the item in place, or adds it when there's none; nil removes it. Never deletes to make room, so a write
+    /// the keychain refuses (locked, or access denied) leaves the old value as it was. True when the keychain did it.
+    @discardableResult
+    static func setData(_ data: Data?, account: String, items: Items = .system) -> Bool {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service, kSecAttrAccount as String: account,
         ]
-        guard let value, !value.isEmpty else {
+        guard let data, !data.isEmpty else {
             let status = items.delete(query)
             return status == errSecSuccess || status == errSecItemNotFound
         }
-        let attributes: [String: Any] = [kSecValueData as String: Data(value.utf8), kSecAttrAccessible as String: accessibility]
+        let attributes: [String: Any] = [kSecValueData as String: data]
         var status = items.update(query, attributes)
         if status == errSecItemNotFound {
-            status = items.add(query.merging(attributes) { $1 })
-        } else if status != errSecSuccess {
-            // An item that can't be changed in place (its accessibility can't be updated): save it afresh.
-            _ = items.delete(query)
             status = items.add(query.merging(attributes) { $1 })
         }
         return status == errSecSuccess
