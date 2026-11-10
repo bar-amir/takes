@@ -243,6 +243,13 @@ enum LocalTakeCleaner {
         return result
     }
 
+    /// A line that ends a take, for `TakeSplitter.cutShort`: a separator, a label with nothing after it ("Version 2:"),
+    /// or a separator still being written (`--`, `*`).
+    static func endsTake(_ line: String) -> Bool {
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        return isSeparator(trimmed) || labelRest(trimmed) == "" || (!trimmed.isEmpty && trimmed.allSatisfy { "=-*_".contains($0) })
+    }
+
     /// `===`, `====`, `=== Take 2 ===`, `---`, `***`, `___`.
     static func isSeparator(_ line: String) -> Bool {
         if line.hasPrefix("===") { return true }
@@ -333,37 +340,51 @@ struct LocalEngine: TakesEngine {
         }
         guard !request.model.isEmpty else { throw EngineError.failed(String(localized: "Pick a local model in Settings › Model.")) }
 
-        let urlRequest = try Self.chatRequest(url: url, model: request.model,
-                                              system: request.system + "\n" + LocalPrompt.formatRules(takes: request.takes),
-                                              user: request.user, stream: true,
-                                              maxTokens: Self.maxTokens(for: request))
         let started = Date()
         let elapsedMs = { Int(Date().timeIntervalSince(started) * 1000) }
 
-        let bytes: URLSession.AsyncBytes, response: URLResponse
-        do {
-            (bytes, response) = try await LocalEndpoint.session.bytes(for: urlRequest)
-        } catch {
-            throw Self.friendly(error, server: server, baseURL: baseURL)
-        }
-        guard let http = response as? HTTPURLResponse else { throw EngineError.failed(String(localized: "No answer from \(server).")) }
-        if http.statusCode != 200 {
+        var maxTokens = Self.maxTokens(for: request)
+        let system = request.system + "\n" + LocalPrompt.formatRules(takes: request.takes)
+        var bytes: URLSession.AsyncBytes!
+        // A server loaded with a short context can refuse the cap ("maximum context length is 4096 tokens"): one
+        // more try with a cap that fits, or the 4,000 that always worked.
+        for attempt in 0..<2 {
+            let urlRequest = try Self.chatRequest(url: url, model: request.model, system: system, user: request.user, stream: true,
+                                                  maxTokens: maxTokens)
+            let response: URLResponse
+            do {
+                (bytes, response) = try await LocalEndpoint.session.bytes(for: urlRequest)
+            } catch {
+                throw Self.friendly(error, server: server, baseURL: baseURL)
+            }
+            guard let http = response as? HTTPURLResponse else { throw EngineError.failed(String(localized: "No answer from \(server).")) }
+            if http.statusCode == 200 { break }
             var data = Data()
             for try await byte in bytes { data.append(byte) }
+            let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+            let message = json.flatMap(LocalChunk.errorMessage) ?? String(decoding: data.prefix(300), as: UTF8.self)
+            if http.statusCode == 400, attempt == 0,
+               let limit = ProviderRequestOptions.tokenLimit(in: message, asked: maxTokens, fallback: 4000) {
+                maxTokens = limit
+                continue
+            }
             throw Self.httpError(status: http.statusCode, body: data, server: server, model: request.model)
         }
 
         var parser = SSEParser()
         var text = ""
         var firstTextMs: Int?
-        var cutShort = false
+        var ranOut = false
+        var done = false
         var line = Data()
 
         func handle(_ events: [SSEParser.Event]) throws {
             for event in events {
+                if event == .done { done = true }
                 guard case .data(let payload) = event, let chunk = LocalChunk.parse(payload) else { continue }
                 if let error = chunk.error { throw EngineError.failed(String(localized: "\(server): \(error)")) }
-                if chunk.ranOutOfRoom { cutShort = true }
+                if chunk.finishReason != nil { done = true }
+                if chunk.ranOutOfRoom { ranOut = true }
                 guard let piece = chunk.text, !piece.isEmpty else { continue }
                 if firstTextMs == nil { firstTextMs = elapsedMs() }
                 text += piece
@@ -387,15 +408,21 @@ struct LocalEngine: TakesEngine {
             throw Self.friendly(error, server: server, baseURL: baseURL)
         }
 
-        // A cut-off answer is split like one still streaming, so a half-written separator isn't kept as text.
-        let takes = LocalTakeCleaner.split(text, streaming: cutShort, expected: request.takes)
+        // Out of room, or a stream that ended with neither a finish reason nor [DONE]: the answer is unfinished, and
+        // split like one still streaming so a half-written separator isn't kept as text.
+        let stoppedEarly = ranOut || !done
+        let takes = LocalTakeCleaner.split(text, streaming: stoppedEarly, expected: request.takes)
         guard !takes.isEmpty else {
-            if cutShort {
+            if !done {
+                throw EngineError.failed(String(localized: "The connection to \(server) dropped before the takes were done. Try again."))
+            }
+            if ranOut {
                 throw EngineError.failed(
                     String(localized: "The local model ran out of room before writing a take. Try a shorter draft, or a model with a longer context."))
             }
             throw EngineError.failed(String(localized: "The local model returned no takes. Try again, or pick another model."))
         }
+        let cutShort = TakeSplitter.cutShort(text, stoppedEarly: stoppedEarly, endsTake: LocalTakeCleaner.endsTake)
         return EngineResult(takes: takes, wallMs: elapsedMs(), firstTextMs: firstTextMs, cutShort: cutShort)
     }
 

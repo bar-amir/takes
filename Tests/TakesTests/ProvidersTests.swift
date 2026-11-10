@@ -162,6 +162,28 @@ final class ProviderRequestTests: XCTestCase {
         XCTAssertEqual(ProviderEngine.maxTokens(for: request, options: .initial(provider: .openAI, model: "gpt-5.4")), 24004)
     }
 
+    func testCapLimitsReadFromMessages() {
+        func limit(_ message: String, asked: Int = 32000) -> Int? { ProviderRequestOptions.tokenLimit(in: message, asked: asked) }
+        // Thousands separators are one number, not two.
+        XCTAssertEqual(limit("max_tokens: 32000 > 16,384, which is the maximum allowed number of output tokens"), 16384)
+        XCTAssertEqual(ProviderRequestOptions.joiningDigitGroups("16,384 and 1_000_000, not 2, 3"), "16384 and 1000000, not 2, 3")
+        // The prompt and the cap must fit the context: ask for what the context leaves.
+        let openAI = "This model's maximum context length is 32768 tokens. However, you requested 34000 tokens "
+            + "(2000 in the messages, 32000 in the completion)."
+        XCTAssertEqual(limit(openAI), 32768 - 2000 - 64)
+        let vLLM = "'max_tokens' or 'max_completion_tokens' is too large: 32000. This model's maximum context length is 8192 tokens "
+            + "and your request has 2000 input tokens (32000 > 8192 - 2000)."
+        XCTAssertEqual(limit(vLLM), 8192 - 2000 - 64)
+        // The prompt alone fills the context: no cap helps.
+        let full = "This model's maximum context length is 4096 tokens. However, you requested 9000 tokens (5000 in the messages, 4000 in the completion)."
+        XCTAssertNil(limit(full, asked: 4000))
+        // No usable numbers: the cap that always worked.
+        XCTAssertEqual(limit("context_length_exceeded"), 8000)
+        XCTAssertEqual(limit("max_tokens is too large for gpt-4o-2024-08-06"), 8000)
+        // Never below a sane floor.
+        XCTAssertEqual(limit("max_tokens must be at most 100"), 8000)
+    }
+
     func testErrorWording() {
         struct Wording { let message: String; let kind: ProviderError.Kind? }
         func error(_ status: Int, _ body: String, _ provider: Provider = .openAI, model: String = "gpt-x") -> Wording {
@@ -438,6 +460,54 @@ final class ProviderEngineServerTests: XCTestCase {
         XCTAssertEqual(result.takes, ["Thursday works."])
         XCTAssertFalse(result.cutShort)
         XCTAssertEqual(caps.all.flatMap { $0 }, ["20004", "16384"])
+    }
+
+    /// A smaller cap doesn't use up the retries for rejected fields: two fields and a cap, one per 400, still work.
+    func testCapRetriesDontUseUpFieldRetries() async throws {
+        let asks = ProviderUpdateLog()
+        let server = try ProviderMockServer { _, _, body in
+            let json = (try? JSONSerialization.jsonObject(with: body) as? [String: Any]) ?? [:]
+            asks.add([json.keys.sorted().joined(separator: ",")])
+            func refuse(_ message: String) -> ProviderMockServer.Response {
+                .init(status: 400, contentType: "application/json", chunks: [try! JSONSerialization.data(withJSONObject: ["error": ["message": message]])])
+            }
+            if json["temperature"] != nil { return refuse("Unsupported value: 'temperature' does not support 0.7 with this model.") }
+            if json["max_tokens"] != nil {
+                return refuse("Unsupported parameter: 'max_tokens' is not supported with this model. Use 'max_completion_tokens' instead.")
+            }
+            if let cap = json["max_completion_tokens"] as? Int, cap > 16384 {
+                return refuse("max_completion_tokens is too large: \(cap). This model supports at most 16,384 completion tokens.")
+            }
+            let sse = #"data: {"choices":[{"delta":{"content":"Thursday works."},"finish_reason":"stop"}]}"# + "\n\ndata: [DONE]\n\n"
+            return .init(status: 200, contentType: "text/event-stream", chunks: [Data(sse.utf8)])
+        }
+        defer { server.stop() }
+        let long = EngineRequest(system: "Rewrite.", user: String(repeating: "word ", count: 2000), takes: 3, model: "m", effort: "low")
+        let result = try await ProviderEngine(settings: AppSettings(), key: "k", provider: provider(server, id: "custom")).run(long) { _ in }
+        XCTAssertEqual(result.takes, ["Thursday works."])
+        XCTAssertEqual(asks.all.count, 4)
+    }
+
+    func testAStreamThatJustEndsIsUnfinished() async throws {
+        var sse = #"data: {"choices":[{"delta":{"content":"Thursday works.\n===\nSure, Thu"}}]}"# + "\n\n"
+        let server = try ProviderMockServer { _, _, _ in .init(status: 200, contentType: "text/event-stream", chunks: [Data(sse.utf8)]) }
+        defer { server.stop() }
+        let engine = ProviderEngine(settings: AppSettings(), key: "k", provider: provider(server))
+        let result = try await engine.run(request(takes: 2)) { _ in }
+        XCTAssertEqual(result.takes, ["Thursday works.", "Sure, Thu"])
+        XCTAssertTrue(result.cutShort)
+        // Out of room right after a separator: the takes so far are whole.
+        sse = #"data: {"choices":[{"delta":{"content":"Thursday works.\n===\n"},"finish_reason":"length"}]}"# + "\n\ndata: [DONE]\n\n"
+        let whole = try await engine.run(request(takes: 2)) { _ in }
+        XCTAssertEqual(whole.takes, ["Thursday works."])
+        XCTAssertFalse(whole.cutShort)
+        sse = ""
+        do {
+            _ = try await engine.run(request(takes: 2)) { _ in }
+            XCTFail("should fail")
+        } catch {
+            XCTAssertEqual(error.localizedDescription, "The connection to OpenAI dropped before the takes were done. Try again.")
+        }
     }
 
     func testModelListIsAskedOnceAndKept() async throws {

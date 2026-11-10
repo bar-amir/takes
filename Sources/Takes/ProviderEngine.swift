@@ -298,29 +298,71 @@ struct ProviderRequestOptions: Equatable {
         return next == self ? nil : next
     }
 
-    /// A 400 about the token cap's size, not its name.
+    /// A 400 about the token cap's size (not its name), or about the prompt and the cap not fitting the context.
     static func saysCapTooBig(_ message: String) -> Bool {
         let lower = message.lowercased()
+        if saysContextTooSmall(lower) { return true }
         let namesCap = ["max_tokens", "max_completion_tokens", "max_output_tokens", "max tokens", "maximum tokens"].contains(where: lower.contains)
-        let tooBig = ["too large", "at most", "less than or equal", "exceed", "maximum value", "must be <=", "out of range"].contains(where: lower.contains)
+        let tooBig = ["too large", "at most", "less than or equal", "exceed", "maximum value", "maximum allowed", "greater than",
+                      "must be <=", "out of range"].contains(where: lower.contains)
         return namesCap && tooBig
+    }
+
+    /// "This model's maximum context length is 32768 tokens. However, you requested 34000 tokens (2000 in the
+    /// messages, 32000 in the completion)", vLLM's "… and your request has 2000 input tokens", `context_length_exceeded`.
+    static func saysContextTooSmall(_ message: String) -> Bool {
+        let lower = message.lowercased()
+        return ["context length", "context window", "context_length_exceeded", "maximum context", "context size"].contains(where: lower.contains)
     }
 
     /// Asked for when a model's own limit is too big to read from its error.
     static let fallbackTokenLimit = 8000
+    /// No cap is lowered below this: fewer tokens can't hold a take, and a smaller number in a message isn't a limit.
+    static let minimumTokenLimit = 256
 
-    /// For a 400 that says the token cap is too big, the most the model takes: the largest number in the message below
-    /// what was asked ("supports at most 16384 completion tokens", "must be less than or equal to `32768`"), or
-    /// `fallbackTokenLimit` when it names none. Nil when the message isn't about the cap's size.
-    static func tokenLimit(in message: String, asked: Int?) -> Int? {
-        let lower = message.lowercased()
+    /// For a 400 that says the cap is too big, the cap to ask for instead: what the context leaves after the prompt,
+    /// when the message gives both; else the limit it names ("supports at most 16,384 completion tokens", "must be
+    /// less than or equal to `32768`"); else `fallback` (the cap that always worked) when that's less than was asked.
+    /// Nil when the message isn't about the cap, or no smaller cap can help (the prompt alone fills the context).
+    static func tokenLimit(in message: String, asked: Int?, fallback: Int = fallbackTokenLimit) -> Int? {
+        let lower = joiningDigitGroups(message.lowercased())
         guard saysCapTooBig(lower) else { return nil }
-        let numbers = lower.split { !$0.isNumber }.compactMap { Int($0) }.filter { $0 >= 256 }
-        if let asked {
-            if let below = numbers.filter({ $0 < asked }).max() { return below }
-            return asked > fallbackTokenLimit ? fallbackTokenLimit : nil
+        var limit: Int?
+        if saysContextTooSmall(lower), let context = firstNumber(in: lower, after: contextPattern) {
+            if let input = firstNumber(in: lower, after: inputPattern) {
+                // A little room for the chat template's own tokens.
+                let fit = context - input - 64
+                guard fit >= minimumTokenLimit else { return nil }
+                limit = fit
+            }
+        } else {
+            limit = numbers(in: lower, after: limitPattern).filter { $0 >= minimumTokenLimit }.min()
         }
-        return numbers.min() ?? fallbackTokenLimit
+        if let limit, limit >= minimumTokenLimit, asked.map({ limit < $0 }) ?? true { return limit }
+        guard let asked else { return fallback }
+        return asked > fallback ? fallback : nil
+    }
+
+    private static let contextPattern = try! NSRegularExpression(
+        pattern: #"context (?:length|window|size)(?: is| of)?(?: only)?\s*[`'"]?(\d+)"#)
+    private static let inputPattern = try! NSRegularExpression(
+        pattern: #"(\d+)\s*(?:tokens?\s*)?(?:in the (?:messages|prompt)|input tokens|prompt tokens)|request has\s*(\d+)"#)
+    private static let limitPattern = try! NSRegularExpression(
+        pattern: #"(?:at most|less than or equal to|<=|>|up to|maximum(?: value)?(?: is| of)?|limit(?: is| of)?|supports)\s*[`'"]?(\d+)"#)
+
+    /// "16,384" → "16384", "32_000" → "32000".
+    static func joiningDigitGroups(_ text: String) -> String {
+        text.replacingOccurrences(of: #"(?<=\d)[,_](?=\d{3}(?!\d))"#, with: "", options: .regularExpression)
+    }
+
+    private static func numbers(in text: String, after pattern: NSRegularExpression) -> [Int] {
+        pattern.matches(in: text, range: NSRange(text.startIndex..., in: text)).compactMap { match in
+            (1..<match.numberOfRanges).lazy.compactMap { Range(match.range(at: $0), in: text).flatMap { Int(text[$0]) } }.first
+        }
+    }
+
+    private static func firstNumber(in text: String, after pattern: NSRegularExpression) -> Int? {
+        numbers(in: text, after: pattern).first
     }
 }
 
@@ -352,7 +394,10 @@ struct ProviderEngine: TakesEngine {
         let elapsedMs = { Int(Date().timeIntervalSince(started) * 1000) }
         var options = ProviderRequestOptions.initial(provider: provider, model: request.model)
         var bytes: URLSession.AsyncBytes!
-        for attempt in 0..<3 {
+        // Each 400 names one thing to change. Fields (token field, temperature, effort) and a smaller cap each get two
+        // retries of their own, so at most five requests in all.
+        var fieldRetries = 0, capRetries = 0
+        while true {
             let maxTokens = Self.maxTokens(for: request, options: options)
             let urlRequest = try Self.chatRequest(url: url, key: key, provider: provider, model: request.model, system: system,
                                                   user: request.user, stream: true, maxTokens: maxTokens,
@@ -367,9 +412,15 @@ struct ProviderEngine: TakesEngine {
             if http.statusCode == 200 { break }
             var data = Data()
             for try await byte in bytes { data.append(byte) }
-            if http.statusCode == 400, attempt < 2, let next = options.adjusted(after: Self.message(data), maxTokens: maxTokens) {
-                options = next
-                continue
+            if http.statusCode == 400, let next = options.adjusted(after: Self.message(data), maxTokens: maxTokens) {
+                var sameFields = next
+                sameFields.tokenLimit = options.tokenLimit
+                let capOnly = sameFields == options
+                if capOnly ? capRetries < 2 : fieldRetries < 2 {
+                    if capOnly { capRetries += 1 } else { fieldRetries += 1 }
+                    options = next
+                    continue
+                }
             }
             throw Self.httpError(status: http.statusCode, body: data, provider: provider, model: request.model,
                                  retryAfter: http.value(forHTTPHeaderField: "retry-after"))
@@ -379,15 +430,18 @@ struct ProviderEngine: TakesEngine {
         var text = ""
         var firstTextMs: Int?
         var filtered = false
-        var cutShort = false
+        var ranOut = false
+        var done = false
         var line = Data()
 
         func handle(_ events: [SSEParser.Event]) throws {
             for event in events {
+                if event == .done { done = true }
                 guard case .data(let payload) = event, let chunk = LocalChunk.parse(payload) else { continue }
                 if let error = chunk.error { throw EngineError.failed(String(localized: "\(provider.name): \(error)")) }
                 if chunk.finishReason == "content_filter" { filtered = true }
-                if chunk.ranOutOfRoom { cutShort = true }
+                if chunk.finishReason != nil { done = true }
+                if chunk.ranOutOfRoom { ranOut = true }
                 guard let piece = chunk.text, !piece.isEmpty else { continue }
                 if firstTextMs == nil { firstTextMs = elapsedMs() }
                 text += piece
@@ -412,14 +466,22 @@ struct ProviderEngine: TakesEngine {
         }
 
         if filtered { throw ProviderError.declined }
-        // A cut-off answer is split like one still streaming, so a half-written separator isn't kept as text.
-        let takes = Self.split(text, provider: provider, streaming: cutShort, expected: request.takes)
+        // Out of room, or a stream that ended with neither a finish reason nor [DONE] (a dropped connection): the
+        // answer is unfinished, and split like one still streaming so a half-written separator isn't kept as text.
+        let stoppedEarly = ranOut || !done
+        let takes = Self.split(text, provider: provider, streaming: stoppedEarly, expected: request.takes)
         guard !takes.isEmpty else {
-            if cutShort {
+            if !done {
+                throw EngineError.failed(String(localized: "The connection to \(provider.name) dropped before the takes were done. Try again."))
+            }
+            if ranOut {
                 throw EngineError.failed(String(localized: "\(provider.name) ran out of room before writing a take. Try again, or pick another model."))
             }
             throw EngineError.failed(String(localized: "\(provider.name) returned no takes. Try again, or pick another model."))
         }
+        let cutShort = provider.strictFormat
+            ? TakeSplitter.cutShort(text, stoppedEarly: stoppedEarly, endsTake: LocalTakeCleaner.endsTake)
+            : TakeSplitter.cutShort(text, stoppedEarly: stoppedEarly)
         return EngineResult(takes: takes, wallMs: elapsedMs(), firstTextMs: firstTextMs, cutShort: cutShort)
     }
 
