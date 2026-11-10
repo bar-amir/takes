@@ -70,11 +70,15 @@ final class PanelModel: ObservableObject {
 
     let store = Store.shared
     private(set) var focus: FocusSnapshot?
+    /// The history entry of the takes on screen. Nil while a run is still writing, and for takes that were never filed.
     private var historyID: String?
     /// Bumped whenever a run is replaced or abandoned; the old run's task is cancelled with it, which also
     /// stops a Claude Code process still writing.
     private var runToken = 0 { didSet { runTask?.cancel(); runTask = nil } }
     private var runTask: Task<Void, Never>?
+    /// The engine a run uses, and where its timing is logged. Tests put their own here.
+    var makeEngine: (AppSettings) -> TakesEngine = { Engines.current($0) }
+    var logRun: ([String: Any]) -> Void = { RunLog.append($0) }
 
     var onPaste: (Int, String, String?) -> Void = { _, _, _ in }
     var onCopy: (Int, String) -> Void = { _, _ in }
@@ -165,6 +169,8 @@ final class PanelModel: ObservableObject {
         }
         resetReplyContext(draft: focus.text)
         takes = []
+        cutShort = false
+        historyID = nil
         takeTones.reset()
         toneRead.dismiss()
         coach.reset()
@@ -203,6 +209,24 @@ final class PanelModel: ObservableObject {
         screen = next
         focusToken += 1
         onScreenChange()
+    }
+
+    /// The panel closed. A run still writing is abandoned, which also stops its Claude Code process.
+    func panelClosed() {
+        guard running else { return }
+        runToken += 1
+        running = false
+    }
+
+    /// The hotkey pressed again while the panel has the keyboard. Opening the panel afresh would throw away the typed
+    /// draft, the takes and a run still writing, so nothing is reset. A preset's own hotkey picks that preset while
+    /// the draft is being written; anything else only puts the keyboard back in the panel's main input.
+    func hotKeyPressedAgain(presetID: String?) {
+        if screen == .compose, let presetID, presetID != self.presetID, store.preset(id: presetID) != nil {
+            choose(presetID)
+        } else {
+            focusToken += 1
+        }
     }
 
     // MARK: Presets
@@ -330,7 +354,7 @@ final class PanelModel: ObservableObject {
                                          hasContext: promptContext != nil),
             user: PromptBuilder.user(draft: draft, mode: mode, takes: takeCount, context: promptContext),
             takes: takeCount, model: modelID, effort: effort)
-        let engine = Engines.current(store.settings)
+        let engine = makeEngine(store.settings)
 
         runToken += 1
         let token = runToken
@@ -345,6 +369,9 @@ final class PanelModel: ObservableObject {
         error = nil
         limit = nil
         takes = []
+        cutShort = false
+        // The entry on file belongs to the takes this run replaces.
+        historyID = nil
         takeTones.reset()
         toneRead.dismiss()
         // Refining keeps the same draft, so its check stands.
@@ -382,6 +409,7 @@ final class PanelModel: ObservableObject {
     private func finish(_ result: EngineResult, request: EngineRequest, mode: PromptBuilder.Mode) {
         running = false
         takes = result.takes
+        cutShort = result.cutShort
         selected = min(selected, max(takes.count - 1, 0))
         let seconds = { (ms: Int) in String(format: NSLocalizedString("%.1f s", comment: "Seconds"), locale: .current, Double(ms) / 1000) }
         timing = [result.firstTextMs.map { String(localized: "first words \(seconds($0))") }, String(localized: "all takes \(seconds(result.wallMs))")]
@@ -391,9 +419,11 @@ final class PanelModel: ObservableObject {
         let entry = HistoryEntry(appName: appName, presetName: preset.name, draft: sourceDraft, takes: result.takes)
         historyID = entry.id
         store.record(entry)
-        RunLog.append(["kind": "app", "model": request.model, "effort": request.effort, "takes": request.takes,
-                       "engine": store.settings.engine.rawValue, "wallMs": result.wallMs,
-                       "firstTextMs": result.firstTextMs ?? -1, "app": appBundleID ?? ""])
+        logRun([
+            "kind": "app", "model": request.model, "effort": request.effort, "takes": request.takes,
+            "engine": store.settings.engine.rawValue, "wallMs": result.wallMs,
+            "firstTextMs": result.firstTextMs ?? -1, "app": appBundleID ?? "",
+        ])
         takeTones.fetch(takes: takes, showTone: preset.showTone, settings: store.settings)
         if case .fresh = mode { considerInvitation() }
         onScreenChange()
@@ -475,9 +505,21 @@ final class PanelModel: ObservableObject {
         isFinished(index) && changesShown.contains(index) != optionHeld
     }
 
+    /// The takes shown came from a run filed elsewhere (instant mode): a take pasted from here is marked on that entry.
+    func continueHistory(entryID: String?) { historyID = entryID }
+
     func paste(_ index: Int) {
         guard isFinished(index) else { return }
-        if let historyID { store.markPasted(entryID: historyID, index: index) }
+        if let historyID {
+            store.markPasted(entryID: historyID, index: index)
+        } else if running {
+            // Pasted while later takes were still being written. The run ends here, as the panel closes, so it is
+            // filed now with the takes that were finished.
+            var entry = HistoryEntry(appName: appName, presetName: preset.name, draft: sourceDraft, takes: Array(takes.dropLast()))
+            entry.pastedIndex = index
+            historyID = entry.id
+            store.record(entry)
+        }
         coachNudge = coach.commit()
         onPaste(index, takes[index], presetID)
     }

@@ -146,6 +146,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             openSetup(on: ScreenChoice.focused)
             return
         }
+        // Pressed again while the panel has the keyboard: it keeps its draft and takes instead of starting over.
+        if panel.keepsOpenPanel(presetID: presetID) { return }
         if instant.handle(presetID: presetID) { return }
         panel.summon(presetID: presetID)
     }

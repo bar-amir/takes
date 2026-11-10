@@ -67,6 +67,16 @@ final class PanelController {
 
     var isVisible: Bool { panel?.isVisible == true }
 
+    /// The hotkey pressed while the panel has the keyboard: it keeps its draft, its takes and a run still writing
+    /// (`PanelModel.hotKeyPressedAgain`) instead of opening afresh. The panel stays on screen when the keyboard goes
+    /// elsewhere, so being visible isn't the test: a press from another app's text box is a fresh summon, and
+    /// this answers false for it.
+    func keepsOpenPanel(presetID: String?) -> Bool {
+        guard let panel, panel.isVisible, panel.isKeyWindow else { return false }
+        model.hotKeyPressedAgain(presetID: presetID)
+        return true
+    }
+
     func summon(presetID: String? = nil) {
         // Before the field is read: its ⌘A ⌘C fallback changes the clipboard.
         let clipboard = ClipboardWatch.shared.captureForSummon()
@@ -339,6 +349,7 @@ final class PanelController {
 
     func close() {
         model.dictation.dismiss()
+        model.panelClosed()
         if let panel { dismissAnimated(panel) }
         endPractice()
     }
