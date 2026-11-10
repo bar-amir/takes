@@ -631,6 +631,7 @@ struct TakesView: View {
     @State private var gridHeight: CGFloat = 0
     @State private var flagsMonitor: Any?
     @Namespace private var selection
+    @StateObject private var changesCache = ChangesCache()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -721,7 +722,7 @@ struct TakesView: View {
         model.cutShort && !model.running && model.error == nil && index == model.takes.count - 1
     }
 
-    /// A take can be pasted once it's whole: finished, not cut short, and not left behind by an error.
+    /// A take can be pasted or copied once it's whole: finished, not cut short, and not left behind by an error.
     static func canPaste(_ index: Int, in model: PanelModel) -> Bool {
         model.error == nil && model.isFinished(index) && !isCutShort(index, in: model)
     }
@@ -761,7 +762,7 @@ struct TakesView: View {
             ForEach(rows, id: \.first) { row in
                 HStack(alignment: .top, spacing: Spacing.section) {
                     ForEach(row, id: \.self) { index in
-                        TakeCard(model: model, index: index, ring: selection)
+                        TakeCard(model: model, cache: changesCache, index: index, ring: selection)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .onTapGesture(count: 2) { paste(index) }
                             .onTapGesture {
@@ -880,10 +881,16 @@ struct TakesView: View {
 
     private func keyHints(_ count: Int) -> some View {
         var hints: [KeyHint] = [KeyHint(keys: ["←", "→"], label: String(localized: "move", comment: "Key hint: arrows move between takes"))]
-        hints.append(model.showsFixes
-            ? KeyHint(keys: ["⌥"], label: String(localized: "hide changes", comment: "Key hint: holding ⌥ shows each take without its changes marked"))
-            : KeyHint(keys: ["⌥"], label: String(localized: "changes", comment: "Key hint: ⌥ shows each take's changes")))
-        hints.append(KeyHint(keys: ["⌘", "C"], label: String(localized: "copy", comment: "Key hint: ⌘C copies the take")))
+        if Self.isCutShort(model.selected, in: model) {
+            // A take cut short has no changes to show and can't be copied or pasted: another run is the way on, so it
+            // comes first and stays when the hints run out of room.
+            hints.insert(KeyHint(keys: ["⌘", "R"], label: String(localized: "again", comment: "Key hint: ⌘R writes new takes")), at: 0)
+        } else {
+            let hide = String(localized: "hide changes", comment: "Key hint: holding ⌥ shows each take without its changes marked")
+            let show = String(localized: "changes", comment: "Key hint: ⌥ shows each take's changes")
+            hints.append(KeyHint(keys: ["⌥"], label: model.showsFixes ? hide : show))
+            hints.append(KeyHint(keys: ["⌘", "C"], label: String(localized: "copy", comment: "Key hint: ⌘C copies the take")))
+        }
         hints.append(KeyHint(keys: ["esc"], label: String(localized: "back", comment: "Key hint: esc goes back")))
         let shown = Array(hints.prefix(count))
         return HStack(spacing: Spacing.section) {
@@ -903,8 +910,8 @@ struct TakesView: View {
             ShortcutButton(key: "c") {
                 if model.textSelectionActive() {
                     NSApp.sendAction(#selector(NSText.copy(_:)), to: nil, from: nil)
-                } else if model.error == nil {
-                    // Under an error nothing is copied, even if part of a take arrived before it.
+                } else if Self.canPaste(model.selected, in: model) {
+                    // Only a whole take is copied: not one cut short, nor part of one that arrived before an error.
                     model.copySelected()
                 }
             }
@@ -914,10 +921,10 @@ struct TakesView: View {
 
 private struct TakeCard: View {
     @ObservedObject var model: PanelModel
+    /// This take's changes, worked out off the main thread once per draft and take.
+    @ObservedObject var cache: ChangesCache
     let index: Int
     let ring: Namespace.ID
-    /// This take's changes, worked out off the main thread once per draft and take.
-    @State private var cached: CachedChanges?
 
     var body: some View {
         let isSelected = model.selected == index
@@ -926,7 +933,7 @@ private struct TakeCard: View {
         let finished = written && !cutShort
         let hasText = index < model.takes.count
         let wanted = TakesView.changesKey(index, in: model)
-        let changes = wanted != nil && cached?.key == wanted ? cached?.changes : nil
+        let changes = cache.changes(for: wanted)
         let shown = model.showsChanges(index) && !cutShort ? changes : nil
 
         VStack(alignment: .leading, spacing: Spacing.inner) {
@@ -993,14 +1000,7 @@ private struct TakeCard: View {
         .animation(Motion.animation().delay(Double(index) * Motion.stagger), value: hasText)
         .help(tooltip(finished: finished, fixCount: changes?.fixCount))
         // Never diffs in `body`, and never while the take is being written, so streaming doesn't queue work.
-        .task(id: wanted) { await work(on: wanted) }
-    }
-
-    private func work(on key: ChangesKey?) async {
-        guard let key, cached?.key != key else { return }
-        let changes = await Task.detached(priority: .userInitiated) { WordDiff.changes(from: key.draft, to: key.take) }.value
-        guard !Task.isCancelled else { return }
-        cached = CachedChanges(key: key, changes: changes)
+        .task(id: wanted) { if let wanted { await cache.load(wanted) } }
     }
 
     private func label(finished: Bool, cutShort: Bool, showChanges: Bool) -> String {
@@ -1019,14 +1019,45 @@ private struct TakeCard: View {
     }
 }
 
-struct ChangesKey: Equatable {
+struct ChangesKey: Hashable {
     let draft: String
     let take: String
 }
 
-private struct CachedChanges {
-    let key: ChangesKey
-    let changes: WordDiff.Changes
+/// Takes' changes, worked out off the main thread once per draft and take, and kept. A pair already being worked
+/// out isn't started again, and a result is kept even when the card that asked no longer wants it (⌥ released).
+@MainActor
+final class ChangesCache: ObservableObject {
+    /// Pairs kept, oldest dropped first: five takes, a few runs back.
+    static let limit = 20
+    @Published private(set) var results: [ChangesKey: WordDiff.Changes] = [:]
+    private var order: [ChangesKey] = []
+    private var running: [ChangesKey: Task<WordDiff.Changes, Never>] = [:]
+    private let work: @Sendable (ChangesKey) -> WordDiff.Changes
+
+    init(work: @escaping @Sendable (ChangesKey) -> WordDiff.Changes = { WordDiff.changes(from: $0.draft, to: $0.take) }) {
+        self.work = work
+    }
+
+    func changes(for key: ChangesKey?) -> WordDiff.Changes? { key.flatMap { results[$0] } }
+
+    /// Works out a pair's changes unless they're known or already on their way. A cancelled caller doesn't stop
+    /// the work, and its result is still kept.
+    func load(_ key: ChangesKey) async {
+        if results[key] != nil { return }
+        if let task = running[key] {
+            _ = await task.value
+            return
+        }
+        let work = self.work
+        let task = Task.detached(priority: .userInitiated) { work(key) }
+        running[key] = task
+        let changes = await task.value
+        running[key] = nil
+        results[key] = changes
+        order.append(key)
+        if order.count > Self.limit { results[order.removeFirst()] = nil }
+    }
 }
 
 /// Scroll targets in the preset picker's list.

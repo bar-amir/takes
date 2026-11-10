@@ -74,11 +74,6 @@ extension PanelModel {
     /// Minimal-edit takes open with their fixes marked.
     var showsFixes: Bool { preset.isMinimalEdits }
 
-    func fixCount(_ index: Int) -> Int {
-        guard takes.indices.contains(index) else { return 0 }
-        return WordDiff.fixes(from: sourceDraft, to: takes[index]).count
-    }
-
     /// Every take of a finished minimal-edit run is the draft as written.
     var noFixesFound: Bool {
         showsFixes && !running && error == nil && Proofread.nothingToFix(draft: sourceDraft, takes: takes)
