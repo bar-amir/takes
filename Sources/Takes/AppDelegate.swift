@@ -16,6 +16,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem.button?.image = BrandMark.menuBarImage(alert: false)
+        pinStatusItemIfNeeded()
+        pinWasOn = Store.shared.settings.pinMenuBarIcon
         rebuildStatusMenu()
 
         // A new install starts on a hotkey this Mac leaves free (HotKeyChoice), before anything is registered.
@@ -29,6 +31,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             .debounce(for: .milliseconds(200), scheduler: RunLoop.main)
             .sink { [weak self] _, _ in
                 self?.registerHotKeys()
+                self?.pinnedSettingChanged()
                 self?.rebuildStatusMenu()
             }
             .store(in: &subscriptions)
@@ -104,6 +107,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func showStatusPopover(_ kind: StatusPopoverController.Kind) {
         guard let button = statusItem.button else { return }
         StatusPopoverController.shared.show(kind, from: button)
+    }
+
+    private var pinWasOn = false
+
+    /// Pins the icon when "Keep the menu bar icon visible" is turned on, and only then, so a later settings change
+    /// doesn't pull back an icon the user has dragged elsewhere.
+    private func pinnedSettingChanged() {
+        let on = Store.shared.settings.pinMenuBarIcon
+        defer { pinWasOn = on }
+        if on && !pinWasOn { pinStatusItemIfNeeded() }
+    }
+
+    /// With "Keep the menu bar icon visible" on, moves the icon to the right end of the menu bar: at launch, and
+    /// when the setting is turned on. If it's then dragged elsewhere, it stays there until the next launch.
+    private func pinStatusItemIfNeeded() {
+        guard Store.shared.settings.pinMenuBarIcon, let name = statusItem.autosaveName,
+              MenuBarPin.needsMove(autosaveName: name, defaults: .standard) else { return }
+        MenuBarPin.pin(autosaveName: name, defaults: .standard)
+        StatusPopoverController.shared.close()
+        NSStatusBar.system.removeStatusItem(statusItem)
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        statusItem.autosaveName = name
+        statusItem.button?.image = BrandMark.menuBarImage(alert: !SetupMonitor.shared.allSet)
+        rebuildStatusMenu()
     }
 
     /// Opens the panel, or the setup window when Takes can't work yet.

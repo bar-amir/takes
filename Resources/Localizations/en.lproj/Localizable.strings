@@ -153,16 +153,16 @@
 /* LocalEngineViews.swift:19 */
 "%@ · no models" = "%@ · no models";
 
-/* GeneralTab.swift:120, GeneralTab.swift:122 */
+/* GeneralTab.swift:124, GeneralTab.swift:126 */
 "%@: allowed" = "%@: allowed";
 
-/* GeneralTab.swift:119 */
+/* GeneralTab.swift:123 */
 "%@: macOS asks the first time it's needed." = "%@: macOS asks the first time it's needed.";
 
-/* GeneralTab.swift:123 */
+/* GeneralTab.swift:127 */
 "%@: not asked yet" = "%@: not asked yet";
 
-/* GeneralTab.swift:120, GeneralTab.swift:123 */
+/* GeneralTab.swift:124, GeneralTab.swift:127 */
 "%@: off" = "%@: off";
 
 /* EnglishCoachViews.swift:1299, EnglishCoachViews.swift:1303, StepComponents.swift:25, Theme.swift:129 */
@@ -282,13 +282,13 @@
 /* AppLocation.swift:28 */
 "a temporary folder" = "a temporary folder";
 
-/* AppDelegate.swift:208 */
+/* AppDelegate.swift:235 */
 "About Takes" = "About Takes";
 
 /* OnboardingView.swift:272 */
 "Access allowed" = "Access allowed";
 
-/* GeneralTab.swift:86 */
+/* GeneralTab.swift:90 */
 "Accessibility" = "Accessibility";
 
 /* PresetGalleryView.swift:113 */
@@ -570,7 +570,7 @@
 /* ChatGPTEngineViews.swift:84, EngineTab.swift:170, LocalEngineViews.swift:159, OnboardingModel.swift:266, OnboardingModel.swift:271, ProviderEngineViews.swift:144 */
 "Check again" = "Check again";
 
-/* AppDelegate.swift:199 */
+/* AppDelegate.swift:226 */
 "Check for Updates…" = "Check for Updates…";
 
 /* Proofread.swift:106 */
@@ -585,7 +585,7 @@
 /* OnboardingModel.swift:265, OnboardingModel.swift:277, OnboardingView.swift:454, Setup.swift:311 */
 "Checking…" = "Checking…";
 
-/* GeneralTab.swift:89 */
+/* GeneralTab.swift:93 */
 "Check…" = "Check…";
 
 /* PanelViews.swift:403 */
@@ -705,7 +705,7 @@
 /* Setup.swift:260 */
 "Close" = "Close";
 
-/* AppDelegate.swift:277 */
+/* AppDelegate.swift:304 */
 "Close Window" = "Close Window";
 
 /* EnglishCoachViews.swift:27, EnglishCoachViews.swift:625, EnglishCoachViews.swift:77, SettingsWindow.swift:21, Toast.swift:140 */
@@ -771,7 +771,7 @@
 /* LocalEngineViews.swift:192 */
 "Copies the command to paste in Terminal" = "Copies the command to paste in Terminal";
 
-/* AppDelegate.swift:288 */
+/* AppDelegate.swift:315 */
 "Copy" = "Copy";
 
 /* Key hint: ⌘C copies the take · PanelViews.swift:819 */
@@ -861,7 +861,7 @@
 /* ProviderEngineViews.swift:45 */
 "Custom address" = "Custom address";
 
-/* AppDelegate.swift:287 */
+/* AppDelegate.swift:314 */
 "Cut" = "Cut";
 
 /* PresetGallery.swift:139 */
@@ -960,7 +960,7 @@
 /* EnglishCoach.swift:157 */
 "Easily confused words" = "Easily confused words";
 
-/* AppDelegate.swift:283, EnglishCoachViews.swift:894 */
+/* AppDelegate.swift:310, EnglishCoachViews.swift:894 */
 "Edit" = "Edit";
 
 /* PanelViews.swift:742 */
@@ -972,7 +972,7 @@
 /* PanelViews.swift:479 */
 "Edit presets" = "Edit presets";
 
-/* AppDelegate.swift:182 */
+/* AppDelegate.swift:209 */
 "Edit Presets…" = "Edit Presets…";
 
 /* PanelController.swift:313 */
@@ -1005,16 +1005,16 @@
 /* EnglishCoachViews.swift:220 */
 "English Coach tracks repeats like these and turns them into short lessons. About 1,000 tokens per English draft." = "English Coach tracks repeats like these and turns them into short lessons. About 1,000 tokens per English draft.";
 
-/* AppDelegate.swift:219, AppDelegate.swift:238 */
+/* AppDelegate.swift:246, AppDelegate.swift:265 */
 "English Coach: off" = "English Coach: off";
 
-/* AppDelegate.swift:240 */
+/* AppDelegate.swift:267 */
 "English Coach: on" = "English Coach: on";
 
-/* AppDelegate.swift:242 */
+/* AppDelegate.swift:269 */
 "English Coach: on · %lld lessons ready" = "English Coach: on · %lld lessons ready";
 
-/* AppDelegate.swift:241 */
+/* AppDelegate.swift:268 */
 "English Coach: on · 1 lesson ready" = "English Coach: on · 1 lesson ready";
 
 /* PanelController.swift:314 */
@@ -1023,7 +1023,7 @@
 /* EnglishCoachViews.swift:1299 */
 "English drafts" = "English drafts";
 
-/* Store.swift:385 */
+/* Store.swift:388 */
 "English → עברית" = "English → עברית";
 
 /* OnboardingView.swift:62 */
@@ -1053,7 +1053,7 @@
 /* PanelViews.swift:396 */
 "Filter presets…" = "Filter presets…";
 
-/* AppDelegate.swift:157 */
+/* AppDelegate.swift:184 */
 "Finish setting up Takes…" = "Finish setting up Takes…";
 
 /* StatusPopover.swift:184 */
@@ -1098,7 +1098,7 @@
 /* EnglishCoach.swift:206 */
 "Focus areas only" = "Focus areas only";
 
-/* Store.swift:375 */
+/* Store.swift:378 */
 "Formal email" = "Formal email";
 
 /* OnboardingView.swift:501 */
@@ -1173,7 +1173,7 @@
 /* EnglishCoachViews.swift:594 */
 "Grammar, word choice, natural phrasing. Never typos, names or code." = "Grammar, word choice, natural phrasing. Never typos, names or code.";
 
-/* Store.swift:382 */
+/* Store.swift:385 */
 "Hebrew → English, keep my tone" = "Hebrew → English, keep my tone";
 
 /* OnboardingView.swift:389 */
@@ -1280,6 +1280,9 @@
 
 /* OnboardingView.swift:633 */
 "Keep at least one to continue." = "Keep at least one to continue.";
+
+/* GeneralTab.swift:55 */
+"Keep the menu bar icon visible" = "Keep the menu bar icon visible";
 
 /* HistoryTab.swift:52 */
 "Keeping history" = "Keeping history";
@@ -1437,7 +1440,7 @@
 /* Store.swift:101 */
 "Medium effort" = "Medium effort";
 
-/* GeneralTab.swift:88 */
+/* GeneralTab.swift:92 */
 "Microphone" = "Microphone";
 
 /* DictationViews.swift:72 */
@@ -1449,7 +1452,7 @@
 /* SystemShortcuts.swift:12 */
 "Mission Control" = "Mission Control";
 
-/* AppDelegate.swift:220, ChatGPTEngineViews.swift:87, LocalEngineViews.swift:119, PanelViews.swift:333, PanelViews.swift:360, ProviderEngineViews.swift:119, SettingsWindow.swift:22 */
+/* AppDelegate.swift:247, ChatGPTEngineViews.swift:87, LocalEngineViews.swift:119, PanelViews.swift:333, PanelViews.swift:360, ProviderEngineViews.swift:119, SettingsWindow.swift:22 */
 "Model" = "Model";
 
 /* PanelController.swift:314 */
@@ -1458,10 +1461,10 @@
 /* ProviderEngineViews.swift:138, ProviderEngineViews.swift:139 */
 "Model ID" = "Model ID";
 
-/* AppDelegate.swift:255 */
+/* AppDelegate.swift:282 */
 "Model: %@" = "Model: %@";
 
-/* AppDelegate.swift:255 */
+/* AppDelegate.swift:282 */
 "Model: %@ · %@" = "Model: %@ · %@";
 
 /* Setup.swift:85 */
@@ -1524,6 +1527,9 @@
 /* PanelViews.swift:401, PresetGalleryView.swift:60 */
 "move ·" = "move ·";
 
+/* GeneralTab.swift:56 */
+"Moves it to the right end, by the clock, so a busy menu bar or the notch doesn't hide it." = "Moves it to the right end, by the clock, so a busy menu bar or the notch doesn't hide it.";
+
 /* PresetsTab.swift:211, PresetsTab.swift:212 */
 "Name" = "Name";
 
@@ -1539,7 +1545,7 @@
 /* EnglishCoachViews.swift:505 */
 "Never more than one nudge per paste" = "Never more than one nudge per paste";
 
-/* PanelViews.swift:473, PresetsTab.swift:62, PresetsTab.swift:63, Store.swift:315 */
+/* PanelViews.swift:473, PresetsTab.swift:62, PresetsTab.swift:63, Store.swift:318 */
 "New preset" = "New preset";
 
 /* Store.swift:159 */
@@ -1764,10 +1770,10 @@
 /* DictationViews.swift:51, OnboardingModel.swift:288 */
 "Open System Settings" = "Open System Settings";
 
-/* AppDelegate.swift:160, OnboardingModel.swift:298 */
+/* AppDelegate.swift:187, OnboardingModel.swift:298 */
 "Open Takes" = "Open Takes";
 
-/* AppDelegate.swift:166 */
+/* AppDelegate.swift:193 */
 "Open Takes   %@" = "Open Takes   %@";
 
 /* GeneralTab.swift:53, OnboardingView.swift:777, OnboardingView.swift:779 */
@@ -1806,7 +1812,7 @@
 /* PresetGalleryView.swift:251 */
 "Opens in Settings" = "Opens in Settings";
 
-/* GeneralTab.swift:91 */
+/* GeneralTab.swift:95 */
 "Opens setup and permissions" = "Opens setup and permissions";
 
 /* ReplyContextView.swift:50 */
@@ -1860,7 +1866,7 @@
 /* PresetsTab.swift:217 */
 "Own hotkey" = "Own hotkey";
 
-/* AppDelegate.swift:289 */
+/* AppDelegate.swift:316 */
 "Paste" = "Paste";
 
 /* ReplyContextView.swift:93 */
@@ -1914,7 +1920,7 @@
 /* OnboardingView.swift:476 */
 "Pay per use, billed by the provider; Takes doesn't cap your spending." = "Pay per use, billed by the provider; Takes doesn't cap your spending.";
 
-/* GeneralTab.swift:55 */
+/* GeneralTab.swift:59 */
 "Permissions" = "Permissions";
 
 /* EnglishCoach.swift:162 */
@@ -2010,7 +2016,7 @@
 /* PanelViews.swift:176 */
 "Preset: %@" = "Preset: %@";
 
-/* AppDelegate.swift:170, AppDelegate.swift:171, SettingsWindow.swift:19 */
+/* AppDelegate.swift:197, AppDelegate.swift:198, SettingsWindow.swift:19 */
 "Presets" = "Presets";
 
 /* Key hint: Tab opens the preset list · PanelViews.swift:217 */
@@ -2064,7 +2070,7 @@
 /* ProviderEngineViews.swift:238, ProviderEngineViews.swift:44 */
 "Provider" = "Provider";
 
-/* Store.swift:379 */
+/* Store.swift:382 */
 "Push back politely" = "Push back politely";
 
 /* GeneralTab.swift:45 */
@@ -2073,7 +2079,7 @@
 /* EnglishCoach.swift:77 */
 "Question word order" = "Question word order";
 
-/* AppDelegate.swift:213, AppDelegate.swift:278 */
+/* AppDelegate.swift:240, AppDelegate.swift:305 */
 "Quit Takes" = "Quit Takes";
 
 /* Setup.swift:379 */
@@ -2097,7 +2103,7 @@
 /* SettingsWindow.swift:270 */
 "Record shortcut" = "Record shortcut";
 
-/* AppDelegate.swift:285 */
+/* AppDelegate.swift:312 */
 "Redo" = "Redo";
 
 /* ReplyContextView.swift:114 */
@@ -2160,7 +2166,7 @@
 /* ReplyContextView.swift:49 */
 "Replying to: %@. %@" = "Replying to: %@. %@";
 
-/* AppDelegate.swift:207 */
+/* AppDelegate.swift:234 */
 "Report a Problem…" = "Report a Problem…";
 
 /* StatusPopover.swift:234 */
@@ -2256,7 +2262,7 @@
 /* Toast.swift:142 */
 "See why" = "See why";
 
-/* AppDelegate.swift:290 */
+/* AppDelegate.swift:317 */
 "Select All" = "Select All";
 
 /* SystemShortcuts.swift:10 */
@@ -2301,7 +2307,7 @@
 /* PanelViews.swift:330 */
 "Settings for new presets" = "Settings for new presets";
 
-/* AppDelegate.swift:194, AppDelegate.swift:276, StatusPopover.swift:159 */
+/* AppDelegate.swift:221, AppDelegate.swift:303, StatusPopover.swift:159 */
 "Settings…" = "Settings…";
 
 /* OnboardingView.swift:137 */
@@ -2313,7 +2319,7 @@
 /* ReplyContextView.swift:76 */
 "Shift Command V" = "Shift Command V";
 
-/* PresetGallery.swift:93, Store.swift:28, Store.swift:372 */
+/* PresetGallery.swift:93, Store.swift:28, Store.swift:375 */
 "Shorter" = "Shorter";
 
 /* Take length, mid-line · Store.swift:37 */
@@ -2337,7 +2343,7 @@
 /* HistoryTab.swift:56 */
 "Show in Finder" = "Show in Finder";
 
-/* AppDelegate.swift:211 */
+/* AppDelegate.swift:238 */
 "Show run log" = "Show run log";
 
 /* SystemShortcuts.swift:11 */
@@ -2433,7 +2439,7 @@
 /* PresetGallery.swift:79 */
 "Slack message" = "Slack message";
 
-/* Store.swift:364 */
+/* Store.swift:367 */
 "Slack · clear & friendly" = "Slack · clear & friendly";
 
 /* OnboardingView.swift:780 */
@@ -2523,7 +2529,7 @@
 /* PresetGallery.swift:125 */
 "Summarize" = "Summarize";
 
-/* AppDelegate.swift:206 */
+/* AppDelegate.swift:233 */
 "Support Takes…" = "Support Takes…";
 
 /* Setup.swift:299 */
@@ -2952,7 +2958,7 @@
 /* OnboardingModel.swift:282 */
 "Understood, sign in to Claude" = "Understood, sign in to Claude";
 
-/* AppDelegate.swift:284 */
+/* AppDelegate.swift:311 */
 "Undo" = "Undo";
 
 /* Key hint: ⌘Z undoes the paste · InstantModeViews.swift:99, Toast.swift:175 */

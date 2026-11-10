@@ -52,6 +52,10 @@ struct GeneralTab: View {
             FormSection(header: String(localized: "System")) {
                 FormToggle(String(localized: "Open Takes when I log in"), isOn: Binding(get: { launchAtLogin }, set: setLaunchAtLogin))
                 FormDivider()
+                FormToggle(String(localized: "Keep the menu bar icon visible"),
+                           detail: String(localized: "Moves it to the right end, by the clock, so a busy menu bar or the notch doesn't hide it."),
+                           isOn: $store.settings.pinMenuBarIcon)
+                FormDivider()
                 FormRow(String(localized: "Permissions")) { PermissionsStatus() }
             } footer: {
                 if let launchAtLoginError { Text(launchAtLoginError).foregroundStyle(Theme.avoidText) }
