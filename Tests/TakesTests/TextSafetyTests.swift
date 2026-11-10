@@ -9,21 +9,6 @@ import XCTest
 @MainActor
 final class TextSafetyTests: XCTestCase {
     private let long = String(repeating: "word ", count: 2001)
-    private var savedSettings = AppSettings()
-    private var wasReadOnly = false
-
-    override func setUp() async throws {
-        // Nothing here is saved, and opening the panel's model asks no engine for its list of models.
-        wasReadOnly = Store.readOnly
-        Store.readOnly = true
-        savedSettings = Store.shared.settings
-        Store.shared.settings.engine = .claudeCode
-    }
-
-    override func tearDown() async throws {
-        Store.shared.settings = savedSettings
-        Store.readOnly = wasReadOnly
-    }
 
     private func focus(_ source: FocusSnapshot.Source, _ text: String = "", editable: Bool = true) -> FocusSnapshot {
         FocusSnapshot(app: nil, text: text, source: source, caretRect: nil, editable: editable)
@@ -57,6 +42,7 @@ final class TextSafetyTests: XCTestCase {
 
     func testPanelSaysTheTextIsTooLong() {
         let model = PanelModel()
+        model.refreshModels = { _ in }
         model.reset(focus: focus(.tooLong), presetID: nil)
         XCTAssertEqual(model.draft, "")
         XCTAssertEqual(model.sourceLabel, "The text is too long. Select part of it first")
@@ -105,6 +91,7 @@ final class TextSafetyTests: XCTestCase {
         XCTAssertEqual(InstantMode.start(text: "", source: .secure), .openPanel)
         XCTAssertEqual(InstantMode.start(text: "hunter2", source: .secure), .openPanel)
         let model = PanelModel()
+        model.refreshModels = { _ in }
         model.reset(focus: focus(.secure), presetID: nil)
         XCTAssertEqual(model.sourceLabel, "Takes doesn't read password fields")
     }

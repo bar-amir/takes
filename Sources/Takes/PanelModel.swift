@@ -79,6 +79,15 @@ final class PanelModel: ObservableObject {
     /// The engine a run uses, and where its timing is logged. Tests put their own here.
     var makeEngine: (AppSettings) -> TakesEngine = { Engines.current($0) }
     var logRun: ([String: Any]) -> Void = { RunLog.append($0) }
+    /// Asks the engine in use for its list of models as the panel opens. Tests leave it out.
+    var refreshModels: (EngineKind) -> Void = { engine in
+        switch engine {
+        case .local: Task { await LocalModels.shared.refresh() }
+        case .provider: Task { await ProviderModels.shared.refresh() }
+        case .chatGPT: Task { await ChatGPTModels.shared.refresh() }
+        case .claudeCode, .apiKey: break
+        }
+    }
 
     var onPaste: (Int, String, String?) -> Void = { _, _, _ in }
     var onCopy: (Int, String) -> Void = { _, _ in }
@@ -164,12 +173,7 @@ final class PanelModel: ObservableObject {
             autoPicked = false
         }
         applyPresetSettings()
-        switch store.settings.engine {
-        case .local: Task { await LocalModels.shared.refresh() }
-        case .provider: Task { await ProviderModels.shared.refresh() }
-        case .chatGPT: Task { await ChatGPTModels.shared.refresh() }
-        case .claudeCode, .apiKey: break
-        }
+        refreshModels(store.settings.engine)
         resetReplyContext(draft: focus.text)
         takes = []
         cutShort = false

@@ -49,8 +49,6 @@ final class PanelRunTests: XCTestCase {
         Store.shared.history = []
         Store.shared.settings.keepHistory = true
         Store.shared.settings.coach.enabled = false
-        // Opening the panel's model then asks no engine for its list of models.
-        Store.shared.settings.engine = .claudeCode
     }
 
     override func tearDown() async throws {
@@ -63,6 +61,7 @@ final class PanelRunTests: XCTestCase {
         let model = PanelModel()
         model.makeEngine = { _ in engine }
         model.logRun = { _ in }
+        model.refreshModels = { _ in }
         model.reset(focus: FocusSnapshot(app: nil, text: text ?? draft, source: .field, caretRect: nil), presetID: nil)
         // No tone notes: they would ask the real engine.
         var preset = Preset(name: "Test preset", colorHex: "#2F55E0", instruction: "Make it friendly.")
@@ -241,6 +240,7 @@ final class PanelRunTests: XCTestCase {
         let presets = Store.shared.presets
         try XCTSkipIf(presets.count < 2, "needs two presets")
         let model = PanelModel()
+        model.refreshModels = { _ in }
         model.reset(focus: FocusSnapshot(app: nil, text: "what the field held", source: .field, caretRect: nil), presetID: presets[0].id)
         model.draft = "what I have typed since"
         model.hotKeyPressedAgain(presetID: presets[1].id)
