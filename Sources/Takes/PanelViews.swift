@@ -213,14 +213,12 @@ struct ComposeView: View {
 
     private var footer: some View {
         HStack {
-            HStack(spacing: Spacing.section) {
-                KeyHint(keys: ["⇥"], label: String(localized: "presets", comment: "Key hint: Tab opens the preset list"))
-                Button { toggleOptions() } label: { KeyHint(keys: ["⌘", "K"], label: String(localized: "options", comment: "Key hint: ⌘K opens the run options")) }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Run options")
-                ToneReadHint(model: model)
+            // The preset's own hotkey goes first to make room when the footer is tight.
+            ViewThatFits(in: .horizontal) {
+                footerHints(withPresetHotKey: true)
+                footerHints(withPresetHotKey: false)
             }
-            Spacer()
+            Spacer(minLength: Spacing.item)
             Button(action: model.generate) {
                 HStack(spacing: Spacing.item) {
                     Text(model.takeCount == 1 ? "Write 1 take" : "Write \(model.takeCount) takes")
@@ -232,6 +230,18 @@ struct ComposeView: View {
         }
         .padding(.horizontal, Spacing.gutter)
         .padding(.vertical, Spacing.bar)
+    }
+
+    private func footerHints(withPresetHotKey: Bool) -> some View {
+        HStack(spacing: Spacing.section) {
+            KeyHint(keys: ["⇥"], label: String(localized: "presets", comment: "Key hint: Tab opens the preset list"))
+            Button { toggleOptions() } label: { KeyHint(keys: ["⌘", "K"], label: String(localized: "options", comment: "Key hint: ⌘K opens the run options")) }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Run options")
+            ToneReadHint(model: model)
+            if withPresetHotKey { PresetHotKeyHint(model: model) }
+        }
+        .fixedSize()
     }
 
     private func toggleOptions() {
@@ -247,6 +257,24 @@ struct ComposeView: View {
             ShortcutButton(key: ",") { model.onOpenSettings(.presets, false) }
             ReplyContextShortcuts(model: model)
             ShortcutButton(key: "d") { model.toggleDictation() }
+        }
+    }
+}
+
+/// "⌥⇧F opens this preset": a reminder in the compose footer that the chosen preset has its own hotkey.
+private struct PresetHotKeyHint: View {
+    @ObservedObject var model: PanelModel
+    @ObservedObject var monitor = SetupMonitor.shared
+
+    var body: some View {
+        if let combo = model.presetHotKeyReminder(taken: monitor.takenHotKeys) {
+            let label = model.preset.writesInstantly
+                ? String(localized: "writes with this preset", comment: "Key hint: the preset's own hotkey writes and pastes right away")
+                : String(localized: "opens this preset", comment: "Key hint: the preset's own hotkey opens Takes on it")
+            KeyHint(keys: BigKeys.parts(combo.display), label: label)
+                .help("Press \(combo.display) in any app to start on “\(model.preset.name)”.")
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("\(combo.display) \(label)")
         }
     }
 }

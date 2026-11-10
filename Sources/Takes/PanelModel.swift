@@ -93,6 +93,15 @@ final class PanelModel: ObservableObject {
     var preset: Preset { previewPreset ?? store.preset(id: presetID) ?? store.presets.first ?? Store.defaultPresets[0] }
     /// Stands in for the chosen preset in `--snapshot` renders, without touching the saved presets.
     var previewPreset: Preset?
+    /// The preset whose own hotkey opened the panel, or nil when it was opened another way.
+    private(set) var openedWithPresetID: String?
+
+    /// The chosen preset's own hotkey, as a reminder that it opens this preset straight away. Nil when the preset
+    /// has none, when that hotkey just opened the panel, or when another app holds it.
+    func presetHotKeyReminder(taken: [KeyCombo]) -> KeyCombo? {
+        guard let combo = preset.hotKey, preset.id != openedWithPresetID, !taken.contains(combo) else { return nil }
+        return combo
+    }
     /// Stands in for the focused app in `--snapshot` renders.
     var previewAppName: String?
     var previewAppURL: URL?
@@ -132,6 +141,7 @@ final class PanelModel: ObservableObject {
         draftCaret = nil
         draftSelection = nil
         draft = focus.text
+        openedWithPresetID = forced.flatMap { store.preset(id: $0)?.id }
         if let forced, store.preset(id: forced) != nil {
             presetID = forced
             autoPicked = false
