@@ -11,9 +11,9 @@ Takes is a Swift package (Swift 6, macOS 14+). No Xcode project is needed.
 open build/Takes.app
 ```
 
-`swift test` runs the unit tests in `Tests/TakesTests`. `scripts/check.sh` runs everything CI runs: the release build, the tests, and `swift format lint` on the Swift files you changed (style in `.swift-format` and `.editorconfig`).
+`swift test` runs the unit tests in `Tests/TakesTests`. `scripts/check.sh` runs everything CI runs: the release build, the tests, and `swift format lint` on the Swift files you changed (style in `.swift-format` and `.editorconfig`). It ends with a count of lint warnings in those files. Style warnings don't fail the check, so fix the ones on lines you changed; `swift format` itself failing does fail it. `scripts/check.sh --all` lints the whole tree.
 
-On first launch macOS asks for Accessibility access (System Settings › Privacy & Security › Accessibility). Takes needs it to read the focused field and to paste. `build.sh` signs ad hoc with a fixed designated requirement, so the permission usually survives rebuilds. If the hotkey works but nothing gets prefilled or pasted, remove Takes from the list and add it again.
+On first launch macOS asks for Accessibility access (System Settings › Privacy & Security › Accessibility). Takes needs it to read the focused field and to paste. `build.sh` signs ad hoc with a fixed designated requirement, so the permission usually survives rebuilds. To sign with your own certificate instead, set `TAKES_SIGN_IDENTITY` to its name (from `security find-identity -v -p codesigning`) and the permission follows that certificate. If the hotkey works but nothing gets prefilled or pasted, remove Takes from the list and add it again.
 
 Copies you build yourself never check for updates.
 
@@ -53,7 +53,7 @@ The UI is translated into the languages in `Resources/Localizations`, one `<lang
 
 ## How it calls the model
 
-With Claude Code: `claude -p` with a preset-built system prompt, `--model`, `--effort` and `--output-format stream-json --include-partial-messages`. Takes are separated by `===` lines and appear in the panel as they're written. It runs from an empty temp folder so no CLAUDE.md is picked up. See `Sources/Takes/ClaudeCodeEngine.swift`.
+With Claude Code: `claude -p` with `--model`, `--effort` and `--output-format stream-json --include-partial-messages`. The preset-built system prompt goes in with `--system-prompt-file`: a file only this user can read (0600, in a 0700 temp folder) that's removed when the run ends, so the prompt never shows in `ps`. The draft goes in on stdin. Takes are separated by `===` lines and appear in the panel as they're written. It runs from an empty temp folder so no CLAUDE.md is picked up. A run is stopped after 2 minutes without any output, or 10 minutes in all. If a whole take was already written it's kept and an unfinished one is marked cut short; otherwise the run fails with a message that says why. See `Sources/Takes/ClaudeCodeEngine.swift`.
 
 With an API key, the Messages API is called directly with streaming (`Sources/Takes/APIEngine.swift`).
 
@@ -67,13 +67,23 @@ Tone notes are one extra short request after the takes (Haiku, or the local mode
 
 ## How Takes reads text fields
 
-Takes only ever reads a real text box (text area, text field, search or combo box), never the page or document around it. A box's value is trusted even when it's blank: an empty web text box reports a line break, which means empty. Only when a text box has no value at all does Takes try its character range, then its own Chromium text-marker range. Only after those does it copy with ⌘A ⌘C, then restore your clipboard. Drafts longer than 10,000 characters are never prefilled. Before pasting it puts focus back into the original field.
+Takes only ever reads a real text box (text area, text field, search or combo box), never the page or document around it. A box's value is trusted even when it's blank: an empty web text box reports a line break, which means empty. Only when a text box has no value at all does Takes try its character range, then its own Chromium text-marker range. Only after those does it copy with ⌘A ⌘C, then put your clipboard back, unless something else was copied in the meantime. When that copy isn't used (too long, or blank), Takes undoes its own ⌘A: it puts the selection back, or moves the caret to the end with →.
+
+- **Password fields** (`AXSecureTextField`) are never read, copied from or selected in. The panel says "Takes doesn't read password fields".
+- **Long text.** A text box over 10,000 characters is never prefilled and never selected with ⌘A. The panel says "The text is too long. Select part of it first", and "Write and paste right away" shows a message instead of writing. A selection reported through accessibility has no length limit.
+- **An app that stops answering.** Every question to an app has a 0.5 s timeout, and finding the focused box and reading it get 1.5 s each, so a hung app costs a summon about 2 seconds at most. Keys (⌘A ⌘C) go only to an app that's still answering.
+
+### Pasting
+
+Before pasting, Takes puts focus back into the original field. Before any key is sent it checks that this is the same text box (and, when it replaces all the text, that it still holds the text that was read). An app that can't say which box has focus still gets a plain ⌘V at the caret or over a selection; only replacing everything needs that proof.
+
+If the app says another box has focus, or the text changed, no keys are sent. The panel leaves the take on the clipboard for you to paste, and "Write and paste right away" says nothing was pasted and puts your clipboard back. If the app can't be brought to the front, nothing is typed and the take stays on the clipboard. After a paste, your clipboard is restored (unless the setting is off), but only if nothing else was copied since. A refused paste adds a "paste not sent" line to `focus.log` with the reason (the app and the reason, never text).
 
 Tools for debugging an app where reading or pasting fails:
 
 - `build/Takes.app/Contents/MacOS/Takes --focus-test` reads the frontmost app's focused box without sending any keys and prints how it was read.
-- `open -n build/Takes.app --args --ax-probe 3` waits 3 seconds and writes what the frontmost app reports about its focused element to `~/Library/Logs/Takes/ax-probe.txt`.
-- Every summon is logged to `~/Library/Logs/Takes/focus.log` (app, element role, which method worked, how many characters).
+- `open -n build/Takes.app --args --ax-probe 3` waits 3 seconds and writes what the frontmost app reports about its focused element to `~/Library/Logs/Takes/ax-probe.txt` (lengths, never the text).
+- Every summon is logged to `~/Library/Logs/Takes/focus.log` (app, element role, which method worked, how many characters, where the caret was), plus a line for each paste that wasn't sent.
 
 ## Performance
 
@@ -82,7 +92,9 @@ build/Takes.app/Contents/MacOS/Takes --bench --runs 5 --model claude-sonnet-5-5 
 build/Takes.app/Contents/MacOS/Takes --bench --runs 5 --model claude-haiku-5-5 --takes 5
 ```
 
-Each run prints the time to the first streamed words and the time until all takes are done. `--naive` runs Claude Code with its default setup: tools, MCP servers and user settings all load. Each real run's timing is logged to `~/Library/Logs/Takes/runs.jsonl`.
+Each run prints the time to the first streamed words and the time until all takes are done. `--naive` runs Claude Code with its default setup: tools, MCP servers and user settings all load. Each real run's timing is logged to `~/Library/Logs/Takes/runs.jsonl` (numbers, flags and short names only, capped at about 512 KB).
+
+`--bench` (and `--bench --tone`) is for development builds only, because it spends the signed-in plan or the saved API key on text the caller picks, and any local program can launch the installed app. It works with the output of `./build.sh` and with `.build/release/Takes`. It refuses to run, with a line on stderr and exit code 1, in a build whose own code signature has a team identifier: the Developer ID release, or a `./build.sh` build signed with `TAKES_SIGN_IDENTITY`. Use `.build/release/Takes --bench` there.
 
 Results on 2026-10-26, 3 takes of a 25-word draft, low effort:
 
@@ -100,7 +112,7 @@ What made it fast:
 - **Full model IDs.** On this account the `sonnet` alias still resolved to Sonnet 4.6 and `haiku` to Haiku 4.5. Those were 2 to 6 times slower.
 - Claude Code's own startup is under 0.5 s. Switching off tools, MCP servers and settings barely changes the total.
 
-Opus 5.5 needs Claude Code 2.1.280 or newer (`claude update`). The Opus rows were measured on 2.1.310.
+Takes needs Claude Code 2.1.293 or newer (`claude update`) for all three models: Opus 5.5 arrived in 2.1.280, Sonnet 5.5 in 2.1.284 and Haiku 5.5, which tone notes use, in 2.1.293. The Opus rows were measured on 2.1.310.
 
 ## Releasing
 
