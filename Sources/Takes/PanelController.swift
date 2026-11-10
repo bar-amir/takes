@@ -379,7 +379,8 @@ final class PanelController {
     nonisolated static func notPastedMessage(_ reason: NotPasted, app: String, number: Int) -> String {
         switch reason {
         case .couldNotReturn: return String(localized: "Couldn't get back to \(app). Take \(number) is on the clipboard: press ⌘V")
-        case .fieldChanged: return String(localized: "The text box in \(app) changed. Take \(number) is on the clipboard: press ⌘V")
+        // "Couldn't confirm", not "changed": it also covers an app that can't say which text box has focus.
+        case .fieldChanged: return String(localized: "Couldn't confirm the text box in \(app). Take \(number) is on the clipboard: press ⌘V")
         case .readOnly: return String(localized: "This text can't be edited. Take \(number) is on the clipboard: press ⌘V")
         }
     }

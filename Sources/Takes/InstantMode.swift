@@ -89,7 +89,7 @@ enum InstantMode {
             case .engine(let reason): return String(localized: "Nothing was pasted. \(reason)")
             case .noTake: return String(localized: "The model sent back an empty take. Nothing was pasted.")
             case .leftField: return String(localized: "You left \(app), so nothing was pasted.")
-            case .fieldChanged: return String(localized: "The text box in \(app) changed while Takes was writing, so nothing was pasted.")
+            case .fieldChanged: return String(localized: "Couldn't confirm the text box in \(app), so nothing was pasted.")
             case .couldNotReturn: return String(localized: "Couldn't get back to \(app). The take is on the clipboard: press ⌘V.")
             case .cutShort: return String(localized: "The take was cut off before it was finished, so nothing was pasted.")
             }

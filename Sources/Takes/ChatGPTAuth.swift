@@ -382,15 +382,11 @@ struct ChatGPTAuthClient {
 
 // MARK: - Where it's kept
 
-/// The opaque ID of this Mac for OpenAI (`ext_agent_host_id`): a random UUID, never tied to the user. Kept in
-/// Application Support next to settings while signed in, and removed on sign-out, so a later sign-in gets a new one.
+/// The opaque ID of this Mac for OpenAI (`ext_agent_host_id`): a random UUID, made once, never tied to the user.
+/// Kept in Application Support next to settings, so it survives sign-out: the sign-in flow asks for one ID per Mac
+/// that stays the same (docs/plans/providers.md). PRIVACY.md lists the file.
 enum ChatGPTHost {
     static func file(in directory: URL) -> URL { directory.appendingPathComponent("chatgpt-host.json") }
-
-    /// Removes the ID; the next sign-in makes a new one.
-    static func forget(in directory: URL = Store.directory) {
-        try? FileManager.default.removeItem(at: file(in: directory))
-    }
 
     static func id(in directory: URL = Store.directory) -> String {
         let file = file(in: directory)
