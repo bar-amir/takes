@@ -352,7 +352,7 @@ final class ChatGPTSignIn: ObservableObject {
         task?.cancel()
         task = nil
         let credentials = store.load()
-        Self.forgetSignIn(store: store, tokens: tokens, hostDirectory: hostDirectory)
+        Self.forgetSignIn(store: store, tokens: tokens)
         state = .signedOut
         signOutNote = nil
         ChatGPTModels.shared.models = []
@@ -367,11 +367,10 @@ final class ChatGPTSignIn: ObservableObject {
         }
     }
 
-    /// What signing out removes from this Mac: the tokens, a refresh on its way (it can't save them back), and this
-    /// Mac's ID for OpenAI. The registration stays.
-    nonisolated static func forgetSignIn(store: ChatGPTCredentialStore, tokens: ChatGPTTokens, hostDirectory: URL) {
+    /// What signing out removes from this Mac: the tokens, and a refresh on its way (it can't save them back). The
+    /// registration and this Mac's ID for OpenAI (`ChatGPTHost`) stay.
+    nonisolated static func forgetSignIn(store: ChatGPTCredentialStore, tokens: ChatGPTTokens) {
         store.save(nil)
-        ChatGPTHost.forget(in: hostDirectory)
         Task { await tokens.reset() }
     }
 

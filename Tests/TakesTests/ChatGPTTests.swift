@@ -947,7 +947,7 @@ final class ChatGPTSignOutTests: XCTestCase {
         XCTAssertTrue(revoked.all.first?.first?.contains("token=rt2") == true, "\(revoked.all)")
     }
 
-    func testSignOutStopsARefreshAndForgetsThisMac() async throws {
+    func testSignOutStopsARefreshAndKeepsThisMacsID() async throws {
         let server = try ChatGPTMockServer { _ in
             Thread.sleep(forTimeInterval: 0.5)
             return Self.tokenReply("at2", "rt2")
@@ -962,7 +962,7 @@ final class ChatGPTSignOutTests: XCTestCase {
         let tokens = ChatGPTTokens(store: store, client: client(server))
         async let refreshed = tokens.accessToken(forceRefresh: true)
         try await Task.sleep(for: .milliseconds(150))
-        ChatGPTSignIn.forgetSignIn(store: store, tokens: tokens, hostDirectory: folder)
+        ChatGPTSignIn.forgetSignIn(store: store, tokens: tokens)
         do {
             _ = try await refreshed
             XCTFail("should be stopped")
@@ -972,8 +972,9 @@ final class ChatGPTSignOutTests: XCTestCase {
         }
         try await Task.sleep(for: .milliseconds(600))
         XCTAssertNil(store.load())
-        XCTAssertFalse(FileManager.default.fileExists(atPath: ChatGPTHost.file(in: folder).path))
-        XCTAssertNotEqual(ChatGPTHost.id(in: folder), hostID)
+        // The ID is one per Mac and stays through sign-out; only the tokens go.
+        XCTAssertTrue(FileManager.default.fileExists(atPath: ChatGPTHost.file(in: folder).path))
+        XCTAssertEqual(ChatGPTHost.id(in: folder), hostID)
     }
 
     func testADeadRefreshDoesNotSignOutANewerSignIn() async throws {

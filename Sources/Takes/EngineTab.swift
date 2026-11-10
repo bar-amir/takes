@@ -239,7 +239,8 @@ struct ModelTab: View {
         checkingKey = true
         keySave = nil
         Task {
-            let result = await APIKeySave.save(key, check: { await APIKeyCheckCache.shared.check($0) }, store: { Keychain.setAPIKey($0) })
+            let result = await APIKeySave.save(key, check: { await APIKeyCheckCache.shared.check($0, fresh: true) },
+                                               store: { Keychain.setAPIKey($0) })
             checkingKey = false
             keySave = result
             if result != .notSaved { keyInput = "" }
@@ -261,8 +262,9 @@ final class APIKeyCheckCache {
     var ask: (String) async -> APIKeyCheck = { await APIEngine.checkKey($0) }
     private var last: (key: Int, at: Date, answer: APIKeyCheck)?
 
-    func check(_ key: String, now: Date = Date()) async -> APIKeyCheck {
-        if let last, last.key == key.hashValue {
+    /// `fresh`: ask even with an answer kept (a Save the user pressed: a refusal may have been passing).
+    func check(_ key: String, fresh: Bool = false, now: Date = Date()) async -> APIKeyCheck {
+        if !fresh, let last, last.key == key.hashValue {
             if case .couldNotCheck = last.answer, now.timeIntervalSince(last.at) >= Self.retryAfter {
                 // Asked again below.
             } else {

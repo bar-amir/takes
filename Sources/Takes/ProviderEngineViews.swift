@@ -300,10 +300,10 @@ struct ProviderOnboardingDetail: View {
     /// With a key saved: the model to write with, picked from the provider's list or typed when there's none.
     @ViewBuilder private var saved: some View {
         switch models.state {
-        case .idle where !model.flow.conditions.privacyAccepted:
+        case .idle:
             // Not asked yet: the provider hears from Takes only after the button below.
             StepNote(String(localized: "Key saved in your keychain"))
-        case .checking, .idle:
+        case .checking:
             StepNote(String(localized: "Key saved. Looking up \(provider.name)'s models…"))
         case .refused(let message):
             note(message, warning: true)
@@ -352,7 +352,7 @@ struct ProviderOnboardingDetail: View {
         addressInput = url
         store.settings.providerBaseURL = url
         store.settings.providerModel = ""
-        // The server hears from Takes only after the consent above the step's button.
+        // The server hears from Takes only after the step's button.
         model.providerShown()
     }
 

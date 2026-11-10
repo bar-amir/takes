@@ -181,7 +181,7 @@ final class TextSafetyTests: XCTestCase {
     func testFieldChangedToastLeavesTheTakeOnTheClipboard() {
         XCTAssertEqual(
             PanelController.notPastedMessage(.fieldChanged, app: "Slack", number: 1),
-            "The text box in Slack changed. Take 1 is on the clipboard: press ⌘V")
+            "Couldn't confirm the text box in Slack. Take 1 is on the clipboard: press ⌘V")
         XCTAssertEqual(
             PanelController.notPastedMessage(.couldNotReturn, app: "Slack", number: 3),
             "Couldn't get back to Slack. Take 3 is on the clipboard: press ⌘V")

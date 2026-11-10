@@ -106,7 +106,7 @@ final class LaunchFixesTests: XCTestCase {
     func testFieldChangedMessage() {
         XCTAssertEqual(
             InstantMode.Failure.fieldChanged(take: "x").message(app: "Slack"),
-            "The text box in Slack changed while Takes was writing, so nothing was pasted.")
+            "Couldn't confirm the text box in Slack, so nothing was pasted.")
         XCTAssertEqual(InstantMode.Failure.fieldChanged(take: "x").take, "x")
     }
 

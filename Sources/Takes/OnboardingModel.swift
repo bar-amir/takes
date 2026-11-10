@@ -203,7 +203,7 @@ final class OnboardingModel: ObservableObject {
         save = { progress in if store.settings.onboarding != progress { store.settings.onboarding = progress } }
         requestAccess = { monitor.requestAccessibility() }
         isTrusted = { FocusReader.isTrusted(prompt: false) }
-        checkAPIKey = { await APIKeyCheckCache.shared.check($0) }
+        checkAPIKey = { await APIKeyCheckCache.shared.check($0, fresh: true) }
         storeAPIKey = { Keychain.setAPIKey($0) }
         refreshEngine = { await monitor.refreshEngine() }
         refreshProvider = { await ProviderModels.shared.refresh(force: $0) }
@@ -497,16 +497,15 @@ final class OnboardingModel: ObservableObject {
         }
     }
 
-    /// The provider option opened: what's saved is read from the keychain; the provider itself is asked only once
-    /// the consent above the button has been given.
-    func providerShown() {
-        if flow.conditions.privacyAccepted { Task { await refreshProvider(false) } } else { readProviderKey() }
-    }
+    /// The provider option opened, or its address saved: what's saved is read from the keychain. The provider itself
+    /// is asked only by this option's own button (`checkProvider`, `saveProviderKey`), also for someone whose consent
+    /// was given earlier for another engine.
+    func providerShown() { readProviderKey() }
 
-    /// Another provider picked in the menu; asked only after the consent, as above.
+    /// Another provider picked in the menu: read, not asked, as above.
     func selectProvider(_ id: String) {
-        ProviderModels.shared.select(id, refresh: flow.conditions.privacyAccepted)
-        if !flow.conditions.privacyAccepted { readProviderKey() }
+        ProviderModels.shared.select(id, refresh: false)
+        readProviderKey()
     }
 
     func saveProviderKey() {
