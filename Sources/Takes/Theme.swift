@@ -252,7 +252,8 @@ struct Chip: View {
             .foregroundStyle(foreground)
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
-            .background(Capsule().fill(background))
+            // A pill on one line; a long item wraps and keeps the same rounded ends.
+            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(background))
     }
 
     private var foreground: Color {
@@ -310,7 +311,8 @@ struct AppGlyph: View {
     }
 }
 
-/// Lays children out left to right, wrapping onto new lines.
+/// Lays children out left to right, wrapping onto new lines. A child wider than a line is given the line's width,
+/// so its text wraps instead of running past the edge.
 struct FlowLayout: Layout {
     var spacing: CGFloat = 6
 
@@ -325,7 +327,7 @@ struct FlowLayout: Layout {
         for row in arrange(width: bounds.width, subviews: subviews) {
             var x = bounds.minX
             for index in row.items {
-                let size = subviews[index].sizeThatFits(.unspecified)
+                let size = Self.size(of: subviews[index], width: bounds.width)
                 subviews[index].place(at: CGPoint(x: x, y: bounds.minY + row.y), proposal: ProposedViewSize(size))
                 x += size.width + spacing
             }
@@ -337,7 +339,7 @@ struct FlowLayout: Layout {
     private func arrange(width: CGFloat, subviews: Subviews) -> [Row] {
         var rows = [Row()]
         for index in subviews.indices {
-            let size = subviews[index].sizeThatFits(.unspecified)
+            let size = Self.size(of: subviews[index], width: width)
             if !rows[rows.count - 1].items.isEmpty, rows[rows.count - 1].width + spacing + size.width > width {
                 let last = rows[rows.count - 1]
                 rows.append(Row(y: last.y + last.height + spacing))
@@ -349,6 +351,12 @@ struct FlowLayout: Layout {
             rows[rows.count - 1] = row
         }
         return rows
+    }
+
+    private static func size(of subview: LayoutSubview, width: CGFloat) -> CGSize {
+        let ideal = subview.sizeThatFits(.unspecified)
+        guard ideal.width > width, width.isFinite else { return ideal }
+        return subview.sizeThatFits(ProposedViewSize(width: width, height: nil))
     }
 }
 
