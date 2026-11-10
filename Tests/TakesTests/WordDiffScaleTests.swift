@@ -144,6 +144,12 @@ final class WordDiffScaleTests: XCTestCase {
         XCTAssertEqual(WordDiff.spoken(from: draft, to: take), "2 changes: changed spacing; changed spacing. Result: \(take)")
     }
 
+    /// Instant mode's `unchanged` check: a take that only adds a space would change the field, so it's pasted.
+    func testASpacingOnlyTakeIsNotUnchanged() {
+        XCTAssertFalse(Proofread.nothingToFix(draft: "ya thursday works", takes: ["ya  thursday works"]))
+        XCTAssertTrue(Proofread.nothingToFix(draft: "ya thursday works", takes: ["ya thursday works\n"]))
+    }
+
     func testAnExtraSpaceIsOneFix() {
         XCTAssertEqual(WordDiff.fixes(from: "Thursday  works", to: "Thursday works"), [WordDiff.Fix(removed: " ", added: "")])
         let segments = describe(WordDiff.segments(from: "Thursday  works", to: "Thursday works"))
