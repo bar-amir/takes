@@ -223,6 +223,8 @@ struct AppSettings: Codable {
     var offerCrashReports = true
     /// The newest crash report the user was asked about, so each crash is offered once.
     var lastCrashReport: Date?
+    /// Keep the menu-bar icon at the right end of the menu bar (MenuBarPin). Off by default.
+    var pinMenuBarIcon = false
 }
 
 extension AppSettings {
@@ -257,6 +259,7 @@ extension AppSettings {
         coach = (try? c.decodeIfPresent(CoachSettings.self, forKey: .coach)) ?? d.coach
         offerCrashReports = try c.decodeIfPresent(Bool.self, forKey: .offerCrashReports) ?? d.offerCrashReports
         lastCrashReport = try c.decodeIfPresent(Date.self, forKey: .lastCrashReport)
+        pinMenuBarIcon = try c.decodeIfPresent(Bool.self, forKey: .pinMenuBarIcon) ?? d.pinMenuBarIcon
     }
 }
 
