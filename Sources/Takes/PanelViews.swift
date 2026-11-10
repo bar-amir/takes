@@ -37,7 +37,14 @@ private struct PanelHeader: View {
             Text("Into \(Text(model.displayAppName).fontWeight(.semibold).foregroundStyle(Theme.text))").foregroundStyle(Theme.secondaryText)
                 .font(.system(size: 13))
             Spacer()
+            Button { model.onOpenSettings(.presets, false) } label: {
+                Image(systemName: "gearshape").font(.system(size: 14))
+            }
+            .buttonStyle(QuietButtonStyle())
+            .help("Settings (⌘,)")
+            .accessibilityLabel("Settings")
             KeyHint(keys: ["esc"], label: String(localized: "close", comment: "Key hint: esc closes the panel"))
+                .padding(.leading, Spacing.item)
         }
         .frame(height: Spacing.control)
         .padding(.horizontal, Spacing.gutter)
