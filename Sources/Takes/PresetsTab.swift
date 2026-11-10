@@ -116,6 +116,8 @@ struct PresetsTab: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        // A long name is cut to one line; the whole name shows on hover.
+        .help(preset.name)
         .accessibilityAddTraits(selected ? .isSelected : [])
         .contextMenu {
             Button("Move up") { move(preset, by: -1) }.disabled(index == 0)
