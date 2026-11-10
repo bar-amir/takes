@@ -249,16 +249,16 @@ struct CoachSettings: Codable, Equatable {
 
 extension CoachSettings {
     init(from decoder: Decoder) throws {
-        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let r = try LenientReader(decoder, keyedBy: CodingKeys.self)
         let d = CoachSettings()
-        enabled = try c.decodeIfPresent(Bool.self, forKey: .enabled) ?? d.enabled
-        findAll = try c.decodeIfPresent(Bool.self, forKey: .findAll) ?? d.findAll
-        focus = try c.decodeIfPresent([String].self, forKey: .focus) ?? d.focus
-        goals = try c.decodeIfPresent([String].self, forKey: .goals) ?? d.goals
-        variant = (try? c.decodeIfPresent(Variant.self, forKey: .variant)) ?? d.variant
-        firstLanguage = try c.decodeIfPresent(String.self, forKey: .firstLanguage) ?? d.firstLanguage
-        nudges = (try? c.decodeIfPresent(Nudges.self, forKey: .nudges)) ?? d.nudges
-        presetCounts = try c.decodeIfPresent([String: Bool].self, forKey: .presetCounts) ?? d.presetCounts
+        enabled = r.value(Bool.self, .enabled) ?? d.enabled
+        findAll = r.value(Bool.self, .findAll) ?? d.findAll
+        focus = r.list(String.self, .focus) ?? d.focus
+        goals = r.list(String.self, .goals) ?? d.goals
+        variant = r.value(Variant.self, .variant) ?? d.variant
+        firstLanguage = r.value(String.self, .firstLanguage) ?? d.firstLanguage
+        nudges = r.value(Nudges.self, .nudges) ?? d.nudges
+        presetCounts = r.value([String: Bool].self, .presetCounts) ?? d.presetCounts
     }
 }
 
@@ -481,6 +481,21 @@ struct CoachData: Codable, Equatable {
     var checks: [String: Int] = [:]
 }
 
+extension CoachData {
+    /// One entry or value that can't be read doesn't cost the rest.
+    init(from decoder: Decoder) throws {
+        let r = try LenientReader(decoder, keyedBy: CodingKeys.self)
+        sightings = r.list(CoachSighting.self, .sightings) ?? []
+        tips = r.list(CoachTipRecord.self, .tips) ?? []
+        drafts = r.list(CoachDraftRecord.self, .drafts) ?? []
+        lessonsRead = r.value([String: Date].self, .lessonsRead) ?? [:]
+        muted = r.list(String.self, .muted) ?? []
+        ignored = r.list(String.self, .ignored) ?? []
+        tokens = r.value([String: Int].self, .tokens) ?? [:]
+        checks = r.value([String: Int].self, .checks) ?? [:]
+    }
+}
+
 /// The coach's data in coach.json, beside the other Takes files. Kept 30 days; deleted when the coach is turned off.
 @MainActor
 final class CoachStore: ObservableObject {
@@ -489,11 +504,35 @@ final class CoachStore: ObservableObject {
     static let keepDays = 30
     /// A lesson is put together once a pattern shows up this many times.
     static let lessonAt = 10
+    /// The most characters kept of a mistake's words or its fix, and of the reason: a phrase, never a whole draft.
+    static let maxPhrase = 100
+    static let maxReason = 140
 
     @Published var data: CoachData { didSet { save() } }
 
-    init(data: CoachData? = nil) {
-        self.data = data ?? CoachStore.load() ?? CoachData()
+    private let folder: URL
+    /// Data passed in is kept in memory only (`--snapshot` and tests).
+    private let persists: Bool
+    private let isEnabled: () -> Bool
+    /// coach.json couldn't be read or copied, so it isn't saved over.
+    private var unsafeToWrite = false
+
+    /// Loads coach.json from `folder`. If it can't be read, a copy is kept beside it and `onSetAside` hears about it.
+    init(
+        data: CoachData? = nil,
+        folder: URL = Store.directory,
+        enabled: @escaping () -> Bool = { Store.shared.settings.coach.enabled },
+        onSetAside: @escaping (SetAsideFile) -> Void = { file in
+            Task { @MainActor in Store.shared.noteSetAside(file) }
+        }
+    ) {
+        self.folder = folder
+        self.persists = data == nil
+        self.isEnabled = enabled
+        var notices: [SetAsideFile] = []
+        self.data = data ?? StoredJSON.load(CoachData.self, Self.fileName, in: folder, notices: &notices) ?? CoachData()
+        unsafeToWrite = notices.contains { $0.copy == nil }
+        notices.forEach(onSetAside)
         prune()
     }
 
@@ -514,10 +553,13 @@ final class CoachStore: ObservableObject {
         data.checks[month, default: 0] += 1
     }
 
+    /// How a "Not a mistake" phrase is remembered: normalized, and as short as anything else the coach keeps.
+    static func key(_ wrong: String) -> String { CoachCheck.normalized(excerpt(wrong, limit: maxPhrase)) }
+
     func ignore(_ finding: CoachCheck.Finding) {
-        let key = CoachCheck.normalized(finding.wrong)
+        let key = Self.key(finding.wrong)
         if !data.ignored.contains(key) { data.ignored.append(key) }
-        data.sightings.removeAll { CoachCheck.normalized($0.finding.wrong) == key }
+        data.sightings.removeAll { Self.key($0.finding.wrong) == key }
     }
 
     func mute(_ pattern: String) {
@@ -530,17 +572,29 @@ final class CoachStore: ObservableObject {
         if data.lessonsRead[pattern] == nil { data.lessonsRead[pattern] = Date() }
     }
 
-    func clear() { data = CoachData() }
+    func clear() {
+        data = CoachData()
+        removeSetAsideCopies()
+    }
 
     /// Turning the coach off deletes everything it kept.
     func deleteAll() {
         data = CoachData()
-        try? FileManager.default.removeItem(at: Store.directory.appendingPathComponent(Self.fileName))
+        guard persists, !Self.readOnly else { return }
+        try? FileManager.default.removeItem(at: folder.appendingPathComponent(Self.fileName))
+        removeSetAsideCopies()
+    }
+
+    /// The copies kept of a coach.json that couldn't be read hold the same phrases, so they go with the data.
+    private func removeSetAsideCopies() {
+        guard persists, !Self.readOnly else { return }
+        for url in SetAside.copies(of: Self.fileName, in: folder) { try? FileManager.default.removeItem(at: url) }
+        unsafeToWrite = false
     }
 
     func withoutIgnored(_ result: CoachCheck.Result) -> CoachCheck.Result {
         var result = result
-        result.findings.removeAll { data.ignored.contains(CoachCheck.normalized($0.wrong)) || data.muted.contains($0.pattern) }
+        result.findings.removeAll { data.ignored.contains(Self.key($0.wrong)) || data.muted.contains($0.pattern) }
         return result
     }
 
@@ -655,12 +709,36 @@ final class CoachStore: ObservableObject {
     /// `--snapshot` and tests keep their data in memory.
     static var readOnly: Bool { Store.readOnly }
 
+    /// `text` cut to about `limit` characters at a word, with "…". Shorter text is left as it is.
+    static func excerpt(_ text: String, limit: Int) -> String {
+        guard text.count > limit else { return text }
+        let words = text.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        guard words.count > limit else { return words }
+        let cut = String(words.prefix(limit - 1))
+        if let space = cut.lastIndex(of: " "), cut.distance(from: cut.startIndex, to: space) >= limit / 2 {
+            return String(cut[..<space]) + "…"
+        }
+        return cut + "…"
+    }
+
     private func prune(now: Date = Date()) {
         let cutoff = now.addingTimeInterval(-Double(Self.keepDays) * 24 * 3600)
         var pruned = data
         pruned.sightings.removeAll { $0.date < cutoff }
         pruned.tips.removeAll { $0.date < cutoff }
         pruned.drafts.removeAll { $0.date < cutoff }
+        // Only a phrase is ever kept, including from a file written before this limit existed.
+        for i in pruned.sightings.indices {
+            pruned.sightings[i].finding.wrong = Self.excerpt(pruned.sightings[i].finding.wrong, limit: Self.maxPhrase)
+            pruned.sightings[i].finding.right = Self.excerpt(pruned.sightings[i].finding.right, limit: Self.maxPhrase)
+            pruned.sightings[i].finding.why = Self.excerpt(pruned.sightings[i].finding.why, limit: Self.maxReason)
+        }
+        for i in pruned.tips.indices {
+            pruned.tips[i].tip.wrong = Self.excerpt(pruned.tips[i].tip.wrong, limit: Self.maxPhrase)
+            pruned.tips[i].tip.better = Self.excerpt(pruned.tips[i].tip.better, limit: Self.maxPhrase)
+        }
+        var seen = Set<String>()
+        pruned.ignored = pruned.ignored.map(Self.key).filter { seen.insert($0).inserted }
         let oldMonth = Self.month(now.addingTimeInterval(-366 * 24 * 3600))
         pruned.tokens = pruned.tokens.filter { $0.key > oldMonth }
         pruned.checks = pruned.checks.filter { $0.key > oldMonth }
@@ -668,18 +746,11 @@ final class CoachStore: ObservableObject {
     }
 
     private func save() {
-        guard !Self.readOnly, Store.shared.settings.coach.enabled else { return }
+        guard persists, !Self.readOnly, !unsafeToWrite, isEnabled() else { return }
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
         guard let encoded = try? encoder.encode(data) else { return }
-        try? encoded.write(to: Store.directory.appendingPathComponent(Self.fileName), options: .atomic)
-    }
-
-    private static func load() -> CoachData? {
-        guard let raw = try? Data(contentsOf: Store.directory.appendingPathComponent(fileName)) else { return nil }
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return try? decoder.decode(CoachData.self, from: raw)
+        try? encoded.write(to: folder.appendingPathComponent(Self.fileName), options: .atomic)
     }
 }
