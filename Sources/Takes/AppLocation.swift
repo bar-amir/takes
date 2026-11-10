@@ -41,20 +41,28 @@ enum AppLocation {
 
     /// Copies this app to /Applications (or ~/Applications when that isn't writable), replacing an older copy, lets
     /// go of the download quarantine so macOS runs it in place, opens the copy and quits this one. Only ever
-    /// called from a button the user pressed.
+    /// called from a button the user pressed. Every way it can fail is thrown, so the button can say what happened.
     @MainActor
-    static func moveToApplications() throws {
-        let source = bundleURL
-        let fm = FileManager.default
+    static func moveToApplications() async throws {
+        let destination = try copyToApplications()
+        removeQuarantine(destination)
+        try await open(destination)
+        NSApp.terminate(nil)
+    }
+
+    /// The copy step of `moveToApplications`: where the copy went.
+    static func copyToApplications(from source: URL = bundleURL, fileManager fm: FileManager = .default,
+                                   applications: URL? = nil) throws -> URL {
         let system = URL(fileURLWithPath: "/Applications", isDirectory: true)
-        let folder = fm.isWritableFile(atPath: system.path) ? system : fm.homeDirectoryForCurrentUser.appendingPathComponent("Applications", isDirectory: true)
-        try? fm.createDirectory(at: folder, withIntermediateDirectories: true)
+        let folder = applications
+            ?? (fm.isWritableFile(atPath: system.path) ? system : fm.homeDirectoryForCurrentUser.appendingPathComponent("Applications", isDirectory: true))
         let destination = folder.appendingPathComponent(source.lastPathComponent)
         guard destination.standardizedFileURL != source.standardizedFileURL else { throw MoveError.alreadyThere }
         do {
+            try fm.createDirectory(at: folder, withIntermediateDirectories: true)
             // Only an older Takes is replaced, never something else with the same name.
             if fm.fileExists(atPath: destination.path) {
-                guard Bundle(url: destination)?.bundleIdentifier == Bundle.main.bundleIdentifier else {
+                guard Bundle(url: destination)?.bundleIdentifier == Bundle(url: source)?.bundleIdentifier else {
                     throw MoveError.copyFailed(String(localized: "something that isn't Takes is already at \(destination.path)"))
                 }
                 try fm.removeItem(at: destination)
@@ -65,14 +73,20 @@ enum AppLocation {
         } catch {
             throw MoveError.copyFailed(error.localizedDescription)
         }
-        removeQuarantine(destination)
+        return destination
+    }
+
+    /// Opens the copy as a new instance; throws `couldNotOpen` when macOS doesn't start it.
+    @MainActor
+    private static func open(_ destination: URL) async throws {
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.createsNewApplicationInstance = true
-        NSWorkspace.shared.openApplication(at: destination, configuration: configuration) { app, _ in
-            DispatchQueue.main.async {
-                if app != nil { NSApp.terminate(nil) }
+        let opened: Bool = await withCheckedContinuation { continuation in
+            NSWorkspace.shared.openApplication(at: destination, configuration: configuration) { app, error in
+                continuation.resume(returning: app != nil && error == nil)
             }
         }
+        guard opened else { throw MoveError.couldNotOpen }
     }
 
     /// The download quarantine on the copy; without this macOS would translocate the copy too.

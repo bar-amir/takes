@@ -47,17 +47,13 @@ final class LanguagesTests: XCTestCase {
         XCTAssertEqual(settings.writingLanguages, Languages.fromSystem())
     }
 
-    @MainActor
-    func testOnboardingLanguageChangesPickTranslatePresets() {
-        let model = OnboardingModel()
-        model.languages = ["en"]
-        XCTAssertFalse(model.chosenPresets.contains("Translate to Hebrew"))
-        model.languages = ["en", "he"]
-        XCTAssertTrue(model.chosenPresets.contains("Translate to Hebrew"))
-        XCTAssertTrue(model.chosenPresets.contains("Translate to English"))
-        model.languages = ["en"]
-        XCTAssertFalse(model.chosenPresets.contains("Translate to Hebrew"))
-        XCTAssertFalse(model.chosenPresets.contains("Translate to English"))
-        XCTAssertTrue(model.chosenPresets.contains("Proofread"))
+    /// Onboarding no longer asks for languages: a new install starts with the starters for the Mac's languages,
+    /// and Settings changes them.
+    func testANewInstallStartsWithTheMacsLanguages() {
+        let names = PresetGallery.initialPresets(existingUser: false, languages: ["en", "he"]).map(\.name)
+        XCTAssertTrue(names.contains("Translate to Hebrew"))
+        XCTAssertTrue(names.contains("Translate to English"))
+        XCTAssertTrue(names.contains("Proofread"))
+        XCTAssertFalse(PresetGallery.initialPresets(existingUser: false, languages: ["en"]).map(\.name).contains("Translate to Hebrew"))
     }
 }

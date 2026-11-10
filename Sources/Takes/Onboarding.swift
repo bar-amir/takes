@@ -1,9 +1,11 @@
 import Foundation
 
-/// The first-run walk-through: an opening screen, then five steps. New installs see it once; people who already
-/// had Takes never do (their settings have no `onboarding` key). Later problems go to the setup window instead.
+/// The first-run walk-through: an opening screen, three steps, and a closing screen. New installs see it once;
+/// people who already had Takes never do (their settings have no `onboarding` key). Later problems go to the setup
+/// window instead. The hotkey is set on Try it, where it's first used; languages and starter presets keep the
+/// Mac's defaults and change in Settings.
 enum OnboardingStep: String, Codable, CaseIterable, Identifiable {
-    case accessibility, engine, personalize, practice, done
+    case accessibility, engine, practice, done
     var id: String { rawValue }
 
     /// The short name in the step list.
@@ -11,18 +13,20 @@ enum OnboardingStep: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .accessibility: return String(localized: "Allow access")
         case .engine: return String(localized: "Connect a model")
-        case .personalize: return String(localized: "Make it yours")
         case .practice: return String(localized: "Try it")
         case .done: return String(localized: "Done")
         }
     }
+
+    /// The steps the list and "Step 1 of 3" count; Done is the closing screen after them.
+    static let numbered: [OnboardingStep] = [.accessibility, .engine, .practice]
 
     /// Takes can't work without these, so they can't be skipped (the window can still be closed and resumed).
     /// Connect a model includes where the text goes, so it needs both a working engine and that consent.
     var isRequired: Bool { self == .accessibility || self == .engine }
 
     /// Optional steps with a Skip button.
-    var canSkip: Bool { self == .personalize || self == .practice }
+    var canSkip: Bool { self == .practice }
 
     /// Steps that are passed by themselves, with a check, when what they ask for is already true.
     var passesWhenSatisfied: Bool { isRequired }
@@ -36,12 +40,13 @@ enum OnboardingStep: String, Codable, CaseIterable, Identifiable {
     }
 
     /// Reads a step name saved by any version. 0.5 and earlier had eight steps: Welcome is now the opening screen
-    /// (nil here), Your text is part of Connect a model, and Hotkey and Presets are Make it yours.
+    /// (nil here) and Your text is part of Connect a model. Hotkey and Presets, later Make it yours, are now part of
+    /// Try it, which holds the hotkey.
     static func named(_ name: String) -> OnboardingStep? {
         if let step = OnboardingStep(rawValue: name) { return step }
         switch name {
         case "privacy": return .engine
-        case "hotkey", "presets": return .personalize
+        case "hotkey", "presets", "personalize": return .practice
         default: return nil
         }
     }
@@ -157,6 +162,13 @@ struct OnboardingFlow: Equatable {
 
     enum Mark: Equatable { case current, done, skipped, todo }
 
+    /// "Step 2 of 3", or nil on the closing screen.
+    var numbered: (index: Int, count: Int)? {
+        let listed = steps.filter { OnboardingStep.numbered.contains($0) }
+        guard let index = listed.firstIndex(of: step) else { return nil }
+        return (index + 1, listed.count)
+    }
+
     /// What the step list shows for `other`. Steps the user hasn't reached yet stay numbered, even when what they
     /// ask for is already true; they get their check once they're passed.
     func mark(for other: OnboardingStep) -> Mark {
@@ -248,12 +260,15 @@ enum Onboarding {
 
     static let sampleDraft = "hey can u send me the deck before fri, need to go over it w legal first and they're slow"
 
-    /// The engine Connect a model opens on: the one that already works, else Claude Code when it's installed,
-    /// else a local model server that's running, else whatever is picked.
-    static func recommendedEngine(current: EngineKind, currentReady: Bool, claudeInstalled: Bool, localRunning: Bool) -> EngineKind {
+    /// The ways to connect, in the order Connect a model lists them: the plans, then the API keys, then a model on
+    /// this Mac. They're offered as equals; none is folded away.
+    static let engineOrder: [EngineKind] = [.claudeCode, .chatGPT, .apiKey, .provider, .local]
+
+    /// The option Connect a model opens on: the engine already picked if it works, else the first way that is
+    /// already set up on this Mac (a signed-in Claude Code, a saved key, a ChatGPT sign-in, a running local model).
+    /// Nil when none is: then nothing is picked for the user, so no company is favoured.
+    static func preselectedEngine(current: EngineKind, currentReady: Bool, setUp: Set<EngineKind>) -> EngineKind? {
         if currentReady { return current }
-        if claudeInstalled { return .claudeCode }
-        if localRunning { return .local }
-        return current
+        return engineOrder.first(where: setUp.contains)
     }
 }

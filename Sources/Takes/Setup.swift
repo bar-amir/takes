@@ -520,7 +520,9 @@ struct SetupView: View {
                         .buttonStyle(PrimaryButtonStyle())
                     if AppLocation.needsMove {
                         Button("Move Takes to Applications") {
-                            do { try AppLocation.moveToApplications(); moveError = nil } catch { moveError = error.localizedDescription }
+                            Task {
+                                do { try await AppLocation.moveToApplications(); moveError = nil } catch { moveError = error.localizedDescription }
+                            }
                         }
                     } else {
                         Button("Show Takes in Finder") {

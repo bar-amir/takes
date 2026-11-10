@@ -81,7 +81,7 @@ final class OnboardingBugsTests: XCTestCase {
 
     @MainActor
     func testTakenHotkeyOffersFreeOnes() {
-        let model = OnboardingModel(progress: OnboardingProgress(step: .personalize, history: [.accessibility, .engine], openingSeen: true),
+        let model = OnboardingModel(progress: OnboardingProgress(step: .practice, history: [.accessibility, .engine], openingSeen: true),
                                     conditions: OnboardingConditions(accessibility: true, engineReady: true, privacyAccepted: true, hotKeyFree: false))
         model.hotKeyOwner = "macOS: Select next source in Input menu"
         model.hotKeySuggestions = Array(HotKeyChoice.candidates.prefix(2))
