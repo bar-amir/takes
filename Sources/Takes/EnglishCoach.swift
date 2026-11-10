@@ -258,7 +258,7 @@ extension CoachSettings {
         variant = r.value(Variant.self, .variant) ?? d.variant
         firstLanguage = r.value(String.self, .firstLanguage) ?? d.firstLanguage
         nudges = r.value(Nudges.self, .nudges) ?? d.nudges
-        presetCounts = r.value([String: Bool].self, .presetCounts) ?? d.presetCounts
+        presetCounts = r.dictionary(Bool.self, .presetCounts) ?? d.presetCounts
     }
 }
 
@@ -488,11 +488,11 @@ extension CoachData {
         sightings = r.list(CoachSighting.self, .sightings) ?? []
         tips = r.list(CoachTipRecord.self, .tips) ?? []
         drafts = r.list(CoachDraftRecord.self, .drafts) ?? []
-        lessonsRead = r.value([String: Date].self, .lessonsRead) ?? [:]
+        lessonsRead = r.dictionary(Date.self, .lessonsRead) ?? [:]
         muted = r.list(String.self, .muted) ?? []
         ignored = r.list(String.self, .ignored) ?? []
-        tokens = r.value([String: Int].self, .tokens) ?? [:]
-        checks = r.value([String: Int].self, .checks) ?? [:]
+        tokens = r.dictionary(Int.self, .tokens) ?? [:]
+        checks = r.dictionary(Int.self, .checks) ?? [:]
     }
 }
 
@@ -530,8 +530,10 @@ final class CoachStore: ObservableObject {
         self.persists = data == nil
         self.isEnabled = enabled
         var notices: [SetAsideFile] = []
-        self.data = data ?? StoredJSON.load(CoachData.self, Self.fileName, in: folder, notices: &notices) ?? CoachData()
-        unsafeToWrite = notices.contains { $0.copy == nil }
+        // `--snapshot` renders never read the user's files.
+        let saved = Store.readOnly ? nil : StoredJSON.load(CoachData.self, Self.fileName, in: folder, notices: &notices)
+        self.data = data ?? saved ?? CoachData()
+        unsafeToWrite = notices.contains(where: \.isStanding)
         notices.forEach(onSetAside)
         prune()
     }
@@ -752,5 +754,7 @@ final class CoachStore: ObservableObject {
         encoder.dateEncodingStrategy = .iso8601
         guard let encoded = try? encoder.encode(data) else { return }
         try? encoded.write(to: folder.appendingPathComponent(Self.fileName), options: .atomic)
+        // Copies of an unreadable coach.json hold the same phrases, so they go after 30 days too.
+        SetAside.prune(Self.fileName, in: folder)
     }
 }

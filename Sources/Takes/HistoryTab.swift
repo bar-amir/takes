@@ -66,6 +66,7 @@ struct HistoryTab: View {
                 }
             }
         }
+        .onAppear { store.expireTextCopies() }
     }
 
     private var days: [(title: String, entries: [HistoryEntry])] {

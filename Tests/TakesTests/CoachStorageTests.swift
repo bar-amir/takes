@@ -162,4 +162,23 @@ final class CoachStorageTests: XCTestCase {
         store.record(.init(findings: [finding(wrong: "if you will send")]), words: 10, app: "Slack")
         XCTAssertFalse(FileManager.default.fileExists(atPath: coachFile.path))
     }
+
+    func testOneBadValueInAMapDoesntCostTheMap() throws {
+        let original = Data(
+            #"{"tokens":{"2026-10":100,"2026-11":"lots"},"checks":{"2026-11":3},"lessonsRead":{"articles":"2026-11-01T10:00:00Z","bad":5}}"#.utf8)
+        try original.write(to: coachFile)
+        let store = store()
+        XCTAssertEqual(store.data.tokens, ["2026-10": 100])
+        XCTAssertEqual(store.data.checks, ["2026-11": 3])
+        XCTAssertEqual(Array(store.data.lessonsRead.keys), ["articles"])
+        let copy = try XCTUnwrap(SetAside.copies(of: "coach.json", in: folder).first, "what was dropped is kept")
+        XCTAssertEqual(try Data(contentsOf: copy), original)
+    }
+
+    func testTheCoachFileDoesntReadWhenSnapshotting() throws {
+        try Data(#"{"muted":["articles"]}"#.utf8).write(to: coachFile)
+        Store.readOnly = true
+        let store = CoachStore(folder: folder, enabled: { true })
+        XCTAssertTrue(store.data.muted.isEmpty)
+    }
 }
