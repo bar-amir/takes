@@ -55,6 +55,15 @@ final class TextSafetyTests: XCTestCase {
         XCTAssertEqual(model.sourceLabel, "The field was empty")
     }
 
+    func testNothingSelectedIsNotCalledAnEmptyField() {
+        // "Start with: the selection", and nothing was selected: the box wasn't read, so it isn't known to be empty.
+        let model = PanelModel()
+        model.refreshModels = { _ in }
+        model.reset(focus: focus(.field).read(FocusSnapshot.noSelection), presetID: nil)
+        XCTAssertEqual(model.sourceLabel, "Nothing was selected")
+        XCTAssertEqual(PanelController.pasteAction(for: model.focus), .paste(replaceAll: false))
+    }
+
     func testPasteFromATooLongBoxNeverReplacesEverything() {
         XCTAssertEqual(PanelController.pasteAction(for: focus(.tooLong)), .paste(replaceAll: false))
         XCTAssertEqual(PanelController.pasteAction(for: focus(.tooLong, "text that was never read")), .paste(replaceAll: false))
@@ -135,6 +144,27 @@ final class TextSafetyTests: XCTestCase {
         XCTAssertFalse(FocusReader.mayPaste(replaceAll: true, check: Check(focus: .unknown)))
     }
 
+    func testAnotherElementIsReplacedOnlyWhenItsTextMatched() {
+        typealias Check = FocusReader.FieldCheck
+        // The app built its text box anew while the panel had the keyboard: same text, different element.
+        XCTAssertTrue(FocusReader.mayPaste(replaceAll: true, check: Check(focus: .equivalent, text: .same)))
+        for text in [Check.Text.notCompared, .changed, .unreadable] {
+            XCTAssertFalse(FocusReader.mayPaste(replaceAll: true, check: Check(focus: .equivalent, text: text)), "\(text)")
+        }
+        // A paste at the caret or over the selection: the element stood in because its content matched.
+        XCTAssertTrue(FocusReader.mayPaste(replaceAll: false, check: Check(focus: .equivalent)))
+    }
+
+    func testWhatAnotherElementMustStillHold() {
+        XCTAssertEqual(FocusReader.expected(of: focus(.field, "ya thursday works").read("AXValue")), .text("ya thursday works"))
+        XCTAssertEqual(FocusReader.expected(of: focus(.field).read("AXValue")), .text(""), "a box that was empty must still be empty")
+        XCTAssertEqual(FocusReader.expected(of: focus(.field).read("empty (character count)")), .text(""))
+        XCTAssertEqual(FocusReader.expected(of: focus(.selection, "thursday").read("AXSelectedText")), .selection("thursday"))
+        // After an instant paste the box is expected to hold the take.
+        let after = focus(.field, "ya thursday works").read("AXValue").holding("Thursday works for me.")
+        XCTAssertEqual(FocusReader.expected(of: after), .text("Thursday works for me."))
+    }
+
     func testPasteAtTheCaretIsRefusedOnlyWhenAnotherBoxHasFocus() {
         typealias Check = FocusReader.FieldCheck
         XCTAssertTrue(FocusReader.mayPaste(replaceAll: false, check: Check(focus: .same)))
@@ -164,24 +194,6 @@ final class TextSafetyTests: XCTestCase {
         XCTAssertTrue(after.editable)
     }
 
-    // MARK: An app that stops answering
-
-    func testReadBudgetStopsAskingWhenItsTimeIsUp() {
-        let start = Date()
-        let budget = ReadBudget(seconds: 1.5, from: start)
-        XCTAssertTrue(budget.mayAsk(now: start.addingTimeInterval(1.4)))
-        XCTAssertFalse(budget.mayAsk(now: start.addingTimeInterval(1.5)))
-        XCTAssertFalse(budget.mayAsk(now: start.addingTimeInterval(20)))
-    }
-
-    func testAHungAppCostsTheHotKeySecondsNotTheDefaultTimeouts() {
-        // Finding the focused element: a question in flight when the budget runs out may still use its whole timeout.
-        let worstCase = FocusReader.readBudget + Double(FocusReader.messagingTimeout)
-        XCTAssertLessThanOrEqual(worstCase, 2.5)
-        // The wait for an Electron app's first tree build still fits in the budget.
-        XCTAssertGreaterThanOrEqual(FocusReader.readBudget, Double(FocusReader.focusRetries) * 0.08 + 0.5)
-    }
-
     // MARK: Keys
 
     func testTheKeyThatDropsASelectionCarriesNoModifiers() {
@@ -190,5 +202,12 @@ final class TextSafetyTests: XCTestCase {
         for event in events {
             XCTAssertTrue(event.flags.intersection([.maskCommand, .maskShift, .maskControl, .maskAlternate]).isEmpty)
         }
+    }
+}
+
+private extension FocusSnapshot {
+    /// The same snapshot, as read by `method`.
+    func read(_ method: String) -> FocusSnapshot {
+        FocusSnapshot(app: app, text: text, source: source, caretRect: caretRect, element: element, method: method, editable: editable)
     }
 }

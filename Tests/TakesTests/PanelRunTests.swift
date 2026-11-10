@@ -114,13 +114,34 @@ final class PanelRunTests: XCTestCase {
 
     // MARK: History
 
-    func testPastingAFinishedRunMarksItsOwnEntry() async {
+    func testHistorySaysPastedOnlyOnceTheTakeWentIn() async {
         let model = model(SteeredEngine(takes: ["Take one.", "Take two."]))
         model.generate()
         await wait("the run ends") { !model.running }
         model.paste(1)
+        let receipt = model.takePasteReceipt()
         XCTAssertEqual(Store.shared.history.count, 1)
+        XCTAssertNil(Store.shared.history.first?.pastedIndex, "choosing a take isn't pasting it")
+
+        // Left on the clipboard instead: the box changed, the app didn't come back, or the paste was called off.
+        for outcome in [Paster.Outcome.fieldChanged, .couldNotReturn, .cancelled] {
+            model.pasteEnded(outcome, receipt: receipt)
+            XCTAssertNil(Store.shared.history.first?.pastedIndex, "\(outcome)")
+        }
+        model.pasteEnded(.pasted, receipt: receipt)
         XCTAssertEqual(Store.shared.history.first?.pastedIndex, 1)
+    }
+
+    func testReceiptIsForOnePasteOnly() async {
+        let model = model(SteeredEngine(takes: ["Take one.", "Take two."]))
+        model.generate()
+        await wait("the run ends") { !model.running }
+        model.paste(0)
+        XCTAssertNotNil(model.takePasteReceipt())
+        // "No mistakes found" pastes the draft itself and files nothing: it leaves no receipt behind.
+        XCTAssertNil(model.takePasteReceipt())
+        model.pasteEnded(.pasted, receipt: nil)
+        XCTAssertNil(Store.shared.history.first?.pastedIndex)
     }
 
     func testPastingBeforeTheRunEndsLeavesThePreviousEntryAlone() async {
@@ -139,6 +160,7 @@ final class PanelRunTests: XCTestCase {
         await wait("the second run streams") { model.takes.count == 2 }
         XCTAssertTrue(model.running)
         model.paste(0)
+        model.pasteEnded(.pasted, receipt: model.takePasteReceipt())
 
         XCTAssertEqual(pasted, ["Second one."])
         let history = Store.shared.history
@@ -159,6 +181,7 @@ final class PanelRunTests: XCTestCase {
         model.takes = ["An instant take."]
         model.screen = .takes
         model.paste(0)
+        model.pasteEnded(.pasted, receipt: model.takePasteReceipt())
         XCTAssertNil(Store.shared.history[0].pastedIndex, "an older run's entry is not marked for it")
     }
 
@@ -170,8 +193,115 @@ final class PanelRunTests: XCTestCase {
         model.continueHistory(entryID: entry.id)
         model.screen = .takes
         model.paste(0)
+        model.pasteEnded(.pasted, receipt: model.takePasteReceipt())
         XCTAssertEqual(Store.shared.history.first { $0.id == entry.id }?.pastedIndex, 0)
         XCTAssertEqual(Store.shared.history.count, 1)
+    }
+
+    // MARK: Takes that must not be pasted or copied
+
+    private func used(_ model: PanelModel, _ act: (PanelModel) -> Void) -> [String] {
+        var used: [String] = []
+        model.onPaste = { _, text, _ in used.append(text) }
+        model.onCopy = { _, text in used.append(text) }
+        act(model)
+        return used
+    }
+
+    func testCutShortTakeIsNotPastedOrCopied() async {
+        let model = model(SteeredEngine(takes: ["Take one.", "Take tw"], cutShort: true))
+        model.generate()
+        await wait("the run ends") { !model.running }
+        XCTAssertFalse(model.canUse(1), "the last take is the one that was cut off")
+        XCTAssertEqual(used(model) { $0.paste(1) }, [])
+        model.selected = 1
+        XCTAssertEqual(used(model) { $0.pasteSelected() }, [])
+        XCTAssertEqual(used(model) { $0.copySelected() }, [])
+        // The takes before it are whole.
+        XCTAssertTrue(model.canUse(0))
+        XCTAssertEqual(used(model) { $0.paste(0) }, ["Take one."])
+        model.selected = 0
+        XCTAssertEqual(used(model) { $0.copySelected() }, ["Take one."])
+    }
+
+    func testNothingIsPastedOrCopiedWhileAnErrorShows() async {
+        let model = model(SteeredEngine(takes: ["Take one.", "Take two."]))
+        model.generate()
+        await wait("the run ends") { !model.running }
+        // A later run failed after writing part of its answer.
+        model.error = "The connection was lost."
+        XCTAssertFalse(model.canUse(0))
+        XCTAssertEqual(used(model) { $0.paste(0) }, [])
+        XCTAssertEqual(used(model) { $0.copySelected() }, [])
+        model.error = nil
+        XCTAssertEqual(used(model) { $0.paste(0) }, ["Take one."])
+    }
+
+    func testAWholeLastTakeIsStillPasted() async {
+        let model = model(SteeredEngine(takes: ["Take one.", "Take two."]))
+        model.generate()
+        await wait("the run ends") { !model.running }
+        XCTAssertEqual(used(model) { $0.paste(1) }, ["Take two."])
+    }
+
+    // MARK: The coach invitation
+
+    private let englishDraft = "If you will send me the file until tomorrow, I will check it and make you a feedback."
+    private let englishTake = "If you send me the file by tomorrow, I will check it and give you feedback."
+
+    /// A model whose finished takes are waiting to be compared with the draft.
+    private func modelWithEnglishTakes() -> PanelModel {
+        let model = model(SteeredEngine(takes: []))
+        model.sourceDraft = englishDraft
+        model.takes = [englishTake]
+        return model
+    }
+
+    func testInvitationIsWorkedOutOffTheCallingThread() async throws {
+        try XCTSkipIf(FixHeuristic.analyse(draft: englishDraft, takes: [englishTake]).isEmpty, "the sample has no recognised fixes")
+        let invites = CoachInviteStore(file: nil)
+        let model = modelWithEnglishTakes()
+        model.considerInvitation(store: invites)
+        XCTAssertTrue(invites.data.drafts.isEmpty, "the comparison hasn't run on this thread")
+        await model.invitationTask?.value
+        XCTAssertEqual(invites.data.drafts.count, 1, "filed once it is done")
+    }
+
+    func testInvitationFromARunThatIsNoLongerOnScreenIsDropped() async {
+        let invites = CoachInviteStore(file: nil)
+        let model = modelWithEnglishTakes()
+        model.considerInvitation(store: invites)
+        // The panel is opened on something else before the comparison is done.
+        model.reset(focus: FocusSnapshot(app: nil, text: "something else", source: .field, caretRect: nil), presetID: nil)
+        await model.invitationTask?.value
+        XCTAssertTrue(invites.data.drafts.isEmpty)
+        XCTAssertNil(model.invitation)
+    }
+
+    // MARK: Work a fresh summon would lose
+
+    func testAPanelAsItOpenedHasNothingToLose() {
+        let model = model(SteeredEngine(takes: []), text: "what the field held")
+        XCTAssertFalse(model.hasWork)
+        model.draft = "what the field held\n"
+        XCTAssertFalse(model.hasWork, "a stray line break isn't an edit")
+    }
+
+    func testTypedDraftContextTakesAndARunAreWork() async {
+        let typed = model(SteeredEngine(takes: []), text: "what the field held")
+        typed.draft = "what I have typed since"
+        XCTAssertTrue(typed.hasWork)
+
+        let context = model(SteeredEngine(takes: []), text: "what the field held")
+        context.replyContext = ReplyContext(text: "They asked about Thursday", source: .typed)
+        XCTAssertTrue(context.hasWork)
+
+        let engine = SteeredEngine(takes: ["Take one.", "Take two."], delay: 0.2)
+        let running = model(engine)
+        running.generate()
+        XCTAssertTrue(running.hasWork, "a run still writing")
+        await wait("the run ends") { !running.running }
+        XCTAssertTrue(running.hasWork, "finished takes")
     }
 
     // MARK: A run and its panel

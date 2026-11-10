@@ -26,7 +26,7 @@ final class KeyPanel: NSPanel {
 @MainActor
 final class PanelController {
     private var panel: KeyPanel?
-    private let model = PanelModel()
+    let model = PanelModel()
     private let toast = ToastController()
     private var caretRect: CGRect?
     /// The text box being written in, which the panel opens beside.
@@ -36,8 +36,12 @@ final class PanelController {
     private var takesHeight: CGFloat = 0
     /// Onboarding's practice box: the chosen take goes back to it instead of being pasted into another app.
     private var practice: (paste: (String) -> Void, cancel: () -> Void)?
+    /// Called just before the panel opens or takes the keyboard back. Instant mode stops a run of its own then:
+    /// with the panel in front, its paste would land in the panel or in the box under it.
+    var onTakingKeyboard: () -> Void = {}
 
-    init() {
+    /// `watchClipboard: false` leaves the clipboard watch alone, for tests.
+    init(watchClipboard: Bool = true) {
         model.onClose = { [weak self] in self?.close() }
         model.onScreenChange = { [weak self] in self?.layout() }
         model.onContentHeight = { [weak self] height in self?.fitTakes(height: height) }
@@ -62,19 +66,36 @@ final class PanelController {
             guard let textView = self?.panel?.firstResponder as? NSTextView else { return false }
             return textView.selectedRange().length > 0
         }
-        ClipboardWatch.shared.activate()
+        if watchClipboard { ClipboardWatch.shared.activate() }
     }
 
     var isVisible: Bool { panel?.isVisible == true }
 
-    /// The hotkey pressed while the panel has the keyboard: it keeps its draft, its takes and a run still writing
-    /// (`PanelModel.hotKeyPressedAgain`) instead of opening afresh. The panel stays on screen when the keyboard goes
-    /// elsewhere, so being visible isn't the test: a press from another app's text box is a fresh summon, and
-    /// this answers false for it.
+    /// The hotkey pressed while the panel is open. When `keepsPanel` says so, the panel keeps its draft, its takes
+    /// and a run still writing (`PanelModel.hotKeyPressedAgain`) and takes the keyboard back, instead of opening
+    /// afresh. That goes for every hotkey, a preset's included: one that writes and pastes right away does not do
+    /// so here, since it would write over the box while the panel's own takes are waiting.
     func keepsOpenPanel(presetID: String?) -> Bool {
-        guard let panel, panel.isVisible, panel.isKeyWindow else { return false }
+        guard let panel else { return false }
+        let keeps = Self.keepsPanel(visible: panel.isVisible, isKey: panel.isKeyWindow, hasWork: model.hasWork) { [model] in
+            FocusReader.pressOrigin(for: model.focus)
+        }
+        guard keeps else { return false }
+        onTakingKeyboard()
         model.hotKeyPressedAgain(presetID: presetID)
+        if !panel.isKeyWindow { panel.makeKeyAndOrderFront(nil) }
         return true
+    }
+
+    /// Whether a hotkey press keeps the open panel as it is. With the keyboard in the panel, always. The panel
+    /// stays on screen when the keyboard goes elsewhere (to re-read the chat behind it, say), so then it depends
+    /// on what the panel would lose and where the press came from: a panel holding work is kept unless the press
+    /// came from another app or another text box, which is a fresh summon. A panel with nothing to lose opens
+    /// afresh, so it shows the text box as it is now.
+    nonisolated static func keepsPanel(visible: Bool, isKey: Bool, hasWork: Bool, origin: () -> FocusReader.PressOrigin) -> Bool {
+        guard visible else { return false }
+        if isKey { return true }
+        return hasWork && origin() != .elsewhere
     }
 
     func summon(presetID: String? = nil) {
@@ -115,6 +136,7 @@ final class PanelController {
     }
 
     private func open(focus: FocusSnapshot, presetID: String?, configure: (PanelModel) -> Void = { _ in }) {
+        onTakingKeyboard()
         model.previewAppName = nil
         model.reset(focus: focus, presetID: presetID)
         configure(model)
@@ -288,10 +310,14 @@ final class PanelController {
     }
 
     private func paste(index: Int, text: String, presetID: String?) {
+        // Which history entry this take belongs to, taken now: the panel may be open on something else by the
+        // time the paste's outcome is known.
+        let receipt = model.takePasteReceipt()
         if let practice {
             self.practice = nil
             close()
             practice.paste(text)
+            model.pasteEnded(.pasted, receipt: receipt)
             return
         }
         let focus = model.focus
@@ -307,8 +333,13 @@ final class PanelController {
             toast.show(message: Self.notPastedMessage(.readOnly, app: app, number: number), showUndo: false, near: caretRect, onSaveExample: nil)
             return
         }
-        Paster.paste(text, into: focus, replaceAll: replaceAll, restoreClipboard: restore) { [weak self] outcome in
+        // If the panel is opened again while the paste waits (for a held key, for the app), the keys would go to
+        // the panel: the paste is called off instead.
+        let cancelled: () -> Bool = { [weak self] in self?.isVisible == true }
+        Paster.paste(text, into: focus, replaceAll: replaceAll, restoreClipboard: restore, cancelled: cancelled) { [weak self] outcome in
             guard let self else { return }
+            self.model.pasteEnded(outcome, receipt: receipt)
+            if outcome == .cancelled { return }
             guard outcome == .pasted else {
                 // Nothing was typed anywhere: the field's app couldn't be brought back, or it came back without the
                 // text box the draft was read from (another chat, say) or without the text that was read.
@@ -360,6 +391,7 @@ final class PanelController {
 
     /// Takes' own copy: not something the user copied to reply to (`ClipboardWatch`).
     private func putOnClipboard(_ text: String) {
+        Paster.settleOwedRestore()
         ClipboardWatch.aboutToWrite()
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(text, forType: .string)
