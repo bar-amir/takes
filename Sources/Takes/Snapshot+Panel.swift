@@ -47,6 +47,14 @@ extension Snapshot {
             }
         }
         let compose = model(slack)
+        // The chosen preset has its own hotkey, so the footer reminds you of it.
+        let withHotKey = model(slack)
+        // Opened with the summon hotkey, not the preset's own one.
+        withHotKey.reset(focus: FocusSnapshot(app: nil, text: slack, source: .field, caretRect: nil), presetID: nil)
+        if var preset = presets.first {
+            preset.hotKey = KeyCombo(keyCode: 3, modifiers: 0x0A00, display: "⌥⇧F")
+            withHotKey.previewPreset = preset
+        }
         let options = model(slack)
         options.optionsOpen = true
         let changed = model(slack)
@@ -101,6 +109,7 @@ extension Snapshot {
             write(PanelRootView(model: compose), compose720, "1-compose")
             write(PanelRootView(model: options), compose720, "2-compose-options")
             write(PanelRootView(model: changed), compose720, "3-compose-options-changed")
+            write(PanelRootView(model: withHotKey), compose720, "3b-compose-preset-hotkey")
             for (name, model) in [("4-takes-coach-collapsed", collapsed), ("5-takes-coach-expanded", expanded),
                                   ("6-takes-coach-checking", checking), ("7-takes-changes-option-held", changes),
                                   ("8-takes-coach-invitation", invited)] + limits {
