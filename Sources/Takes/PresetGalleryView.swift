@@ -126,7 +126,7 @@ struct PresetGalleryView: View {
         .onTapGesture(count: 2) { if !added { highlightedID = template.id; checked = []; add() } }
         .onTapGesture { highlightedID = template.id; listFocused = true }
         // The name and blurb are cut to one line each; the whole of both shows on hover.
-        .help("\(template.name)\n\(PresetGallery.blurb(for: template))")
+        .help(Text(verbatim: "\(template.name)\n\(PresetGallery.blurb(for: template))"))
         .id(template.id)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(isHighlighted ? .isSelected : [])
