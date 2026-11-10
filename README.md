@@ -5,8 +5,8 @@
 <h1 align="center">Takes</h1>
 
 <p align="center">
-  <b>Rewrite anything you type, in any Mac app, with the Claude or ChatGPT plan you already have.</b><br>
-  No server, no sign-up. Free and open source.
+  <b>Rewrite anything you type, in any Mac app, with the model you choose.</b><br>
+  Claude, ChatGPT, another provider or a model on your Mac. No server, no sign-up. Free and open source.
 </p>
 
 <p align="center">
@@ -41,7 +41,7 @@ brew install --cask bar-amir/tap/takes
 
 ## Features
 
-- **Works where you type.** Slack, Mail, Messages, Notes, browsers, the Claude app. Takes reads only the focused text box, and only when you press the hotkey.
+- **Works where you type.** Slack, Mail, Messages, Notes, browsers, the Claude app. Takes reads only the focused text box, never a password field, and only when you press the hotkey.
 - **Presets that sound like you.** Instructions, Do and Avoid rules, up to five examples of your writing, a reply language, and the apps where each preset is picked automatically. Start from a gallery of ready-made ones.
 - **Compare, don't gamble.** 1 to 5 takes at once, with a word-level view of what changed (hold ⌥), a refine box ("warmer", "drop the second ask") and "More like take 2".
 - **Proofread.** Fixes spelling, grammar and punctuation, keeps your words, and marks every fix. When nothing needs fixing, it says so.
@@ -60,7 +60,7 @@ brew install --cask bar-amir/tap/takes
 brew install --cask bar-amir/tap/takes
 ```
 
-Open Takes. It lives in the menu bar, and a short setup takes you through five steps: allow access, connect a model (it starts with what already works on your Mac), make it yours, try it in a practice box, done.
+Open Takes. It lives in the menu bar, and a short setup walks you through allowing access, connecting a model and trying it out.
 
 - macOS 14 or later.
 - Signed with a Developer ID and notarized by Apple. Updates arrive through Sparkle, and Takes asks before it starts checking.
@@ -76,7 +76,7 @@ Open Takes. It lives in the menu bar, and a short setup takes you through five s
 | **Other provider** | Your own API key for OpenAI, Google Gemini, OpenRouter, Groq, Mistral or any https server that speaks the OpenAI API, stored in your keychain | That provider, under your account |
 | **Local model** | [Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai) running on your Mac | Nowhere: it stays on your Mac |
 
-Claude Code is the default. You can switch any time in Settings › Model.
+Pick whichever suits you, and switch any time in Settings › Model.
 
 ## Privacy
 
@@ -125,7 +125,7 @@ To read the text box you're typing in and to paste the take back. It reads only 
 <details>
 <summary><b>The hotkey opens something else, or nothing.</b></summary>
 
-Another app or a macOS shortcut has it. Setup names who (macOS, Raycast, 1Password, Rectangle…), offers free hotkeys to pick from, and you can record any other one in Settings › General. The default is ⌥⇧Space, which stock macOS leaves free; on a Mac where it isn't, a new install picks the first free one from Takes's list.
+Another app or a macOS shortcut has it. Takes names who (macOS, Raycast, 1Password, Rectangle…), offers free hotkeys to pick from, and you can record any other one in Settings › General. The default is ⌥⇧Space, which stock macOS leaves free; on a Mac where it isn't, a new install picks the first free one from Takes's list.
 </details>
 
 <details>
