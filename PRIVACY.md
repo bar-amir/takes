@@ -40,7 +40,7 @@ It goes **straight from your Mac** to that engine. Nothing goes through a server
 
 - **To whom:** Anthropic's API, under **your own** API account.
 - **Terms:** [Anthropic's Commercial Terms](https://www.anthropic.com/legal/commercial-terms). Billed to you by Anthropic.
-- **Also sent:** when you save the key, Takes asks Anthropic whether it works, in one request that lists a model. It spends no tokens and carries no text. A key Anthropic refuses isn't kept; if you're offline, the key is kept and Takes says it wasn't checked. Takes asks the same way when it checks that setup works with this engine.
+- **Also sent:** when you save the key, Takes asks Anthropic whether it works, in one request that lists a model. It spends no tokens and carries no text. A key Anthropic refuses isn't kept; if you're offline, the key is kept and Takes says it wasn't checked. Takes asks the same way when it checks that setup works with this engine, but keeps the answer in memory while it runs, so a key you just saved is asked about once. If Anthropic couldn't be reached, it asks again after 5 minutes.
 - **Stored:** the key, in your macOS keychain, never in Takes' files.
 - **Data use:** [Anthropic's privacy policy](https://www.anthropic.com/legal/privacy).
 
@@ -58,7 +58,7 @@ Plus and Pro plans can use it. OpenAI calls Sign in with ChatGPT a preview, so i
 
 - **To whom:** the provider you picked (OpenAI, Google Gemini, OpenRouter, Groq or Mistral) or a custom address you typed, under **your own** account with them. Takes only connects over https.
 - **Terms:** that provider's terms. Billed to you by the provider.
-- **Also sent:** when setup, Settings › Model or the panel needs the provider's list of models, Takes asks for it with your key. No text is sent. The answer is kept for up to 10 minutes unless you press Check again.
+- **Also sent:** when setup, Settings › Model or the panel needs the provider's list of models, Takes asks for it with your key. No text is sent. In setup, it asks only after you've agreed to where your text goes. The answer is kept for up to 10 minutes unless you press Check again.
 - **Stored:** the key, in your macOS keychain, one item per provider, never in Takes' files or logs.
 - **Data use:** [OpenAI](https://openai.com/policies/privacy-policy/), [Google Gemini API](https://ai.google.dev/gemini-api/terms), [OpenRouter](https://openrouter.ai/privacy), [Groq](https://groq.com/privacy-policy/), [Mistral](https://mistral.ai/terms/).
 

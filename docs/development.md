@@ -55,7 +55,7 @@ The UI is translated into the languages in `Resources/Localizations`, one `<lang
 
 With Claude Code: `claude -p` with `--model`, `--effort` and `--output-format stream-json --include-partial-messages`. The preset-built system prompt goes in with `--system-prompt-file`: a file only this user can read (0600, in a 0700 temp folder) that's removed when the run ends, so the prompt never shows in `ps`. The draft goes in on stdin. Takes are separated by `===` lines and appear in the panel as they're written. It runs from an empty temp folder so no CLAUDE.md is picked up. A run is stopped after 2 minutes without any output, or 10 minutes in all. If a whole take was already written it's kept and an unfinished one is marked cut short; otherwise the run fails with a message that says why. See `Sources/Takes/ClaudeCodeEngine.swift`.
 
-With an API key, the Messages API is called directly with streaming (`Sources/Takes/APIEngine.swift`). Saving a key first lists one model with it (`APIEngine.checkKey`, no tokens spent): a key Anthropic refuses isn't kept, and one that couldn't be checked offline is kept and flagged.
+With an API key, the Messages API is called directly with streaming (`Sources/Takes/APIEngine.swift`). Saving a key first lists one model with it (`APIEngine.checkKey`, no tokens spent): a key Anthropic refuses isn't kept, and one that couldn't be checked offline is kept and flagged. Setup reuses that answer (`APIKeyCheckCache`), so saving a key makes one request.
 
 With a local model, Takes streams from the server's OpenAI-compatible chat endpoint and only ever connects to `localhost` (`Sources/Takes/LocalEngine.swift`).
 

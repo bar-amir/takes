@@ -7,7 +7,7 @@ The full reference for the panel and settings. For a quick start, see the [READM
 On first launch Takes opens a guided setup with three steps:
 
 - **Allow access.** Accessibility access, so Takes can read the text box you're in and paste into it.
-- **Connect a model.** Your Claude subscription (through Claude Code), your ChatGPT plan, an Anthropic API key, an OpenAI or other provider key, or a model on this Mac (Ollama or LM Studio). All five are listed as equals, and the one already working on your Mac is picked. A sentence under the list says where your text goes; continuing agrees to it.
+- **Connect a model.** Your Claude subscription (through Claude Code), your ChatGPT plan, an Anthropic API key, an OpenAI or other provider key, or a model on this Mac (Ollama or LM Studio). All five are listed as equals, and the one already set up on your Mac is highlighted. A sentence under the list says where your text goes; continuing agrees to it. Nothing is saved, and no provider is asked anything, until you press the step's button.
 - **Try it.** A practice box, ending with a real take. The hotkey is shown here, with a recorder to change it, and it says if something else uses it.
 
 A closing screen then offers to open Takes when you log in. Languages and starter presets start from your Mac's defaults; change them in Settings (Writing, Presets).
@@ -16,7 +16,7 @@ You can close it at any time; it reopens where you left off (menu-bar icon › F
 
 After that, Takes opens a "Set up Takes" window when something it needs is missing: Accessibility access, a working engine (Claude Code installed, 2.1.293 or newer and signed in; an Anthropic API key saved; signed in with ChatGPT; a provider key saved with a model picked; or a local model server running with a model) and a free hotkey. Each Claude Code problem has its own message and one action: Install Claude Code, Update Claude Code (opens Terminal and runs `claude update`), Sign in to Claude or Check again. While something blocks Takes, the menu-bar icon shows a dot and the hotkey opens this window instead of the panel. If you open Takes again from Finder or Spotlight while it's running, its popover offers to finish setup.
 
-Takes keeps watching these only while a setup, onboarding or Settings window is open (Accessibility and hotkeys every second, the model less often), so the window updates as each step is done. Otherwise it checks when you press the hotkey after a problem, when you open the menu-bar menu, at launch and when you change the engine. If your settings name a model this version of Takes doesn't have (saved by a newer version), the hotkey opens Settings › Model so you can pick one, and nothing runs until you do.
+Takes keeps watching these only while a setup, onboarding or Settings window is open (Accessibility and hotkeys every second, the model less often), so the window updates as each step is done. Otherwise it checks when the setup window opens, when you open the menu-bar menu, at launch and when you change the engine. Checks run one at a time, and a hotkey press never waits on one: if something is missing or the model was last found not working, the hotkey opens the setup window at once, and the window checks. A hotkey that another app has taken is tried again in the background every 10 seconds until it's free. If your settings name a model this version of Takes doesn't have (saved by a newer version), the hotkey opens Settings › Model so you can pick one, and nothing runs until you do.
 
 ## The panel
 
