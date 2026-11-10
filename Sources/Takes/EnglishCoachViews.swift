@@ -745,7 +745,8 @@ struct CoachSetupView: View {
 
             RowDivider()
             HStack(spacing: Spacing.item) {
-                Text(footnote).font(.system(size: 12)).foregroundStyle(Theme.secondaryText).lineLimit(1)
+                // Wraps rather than cutting the cost off ("…per Englis…") next to three buttons.
+                Text(footnote).font(.system(size: 12)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: Spacing.item)
                 if step > 1 {
                     Button("Back") { step -= 1 }.buttonStyle(QuietButtonStyle(size: 13)).fixedSize()

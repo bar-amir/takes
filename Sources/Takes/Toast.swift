@@ -14,8 +14,10 @@ final class ToastController {
     private var escMonitors: [Any] = []
 
     /// `coachNote` is the English coach's nudge, shown as a second line with a way to its lesson.
-    func show(message: String, showUndo: Bool, near caret: CGRect?, coachNote: String? = nil, onSaveExample: (() -> Void)?) {
-        let view = ToastView(message: message, showUndo: showUndo, coachNote: coachNote, onSaveExample: onSaveExample) { [weak self] in
+    func show(message: String, showUndo: Bool, near caret: CGRect?, coachNote: String? = nil, notDone: Bool = false,
+              onSaveExample: (() -> Void)?) {
+        let view = ToastView(message: message, showUndo: showUndo, coachNote: coachNote, notDone: notDone,
+                             onSaveExample: onSaveExample) { [weak self] in
             self?.dismiss()
         }
         present(view, near: caret, hideAfter: coachNote == nil ? 5 : 8)
@@ -125,6 +127,8 @@ struct ToastView: View {
     let message: String
     let showUndo: Bool
     var coachNote: String?
+    /// What the toast reports didn't happen (the take wasn't pasted): a warning mark, not the check of a paste.
+    var notDone = false
     let onSaveExample: (() -> Void)?
     let onDone: () -> Void
     @State private var saved = false
@@ -159,9 +163,9 @@ struct ToastView: View {
 
     private var mainLine: some View {
         HStack(spacing: 12) {
-            Image(systemName: "checkmark")
+            Image(systemName: notDone ? "exclamationmark.circle.fill" : "checkmark")
                 .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(Color(hex: "#7FD4A8"))
+                .foregroundStyle(notDone ? InstantToast.failure : Color(hex: "#7FD4A8"))
             Text(message).font(.system(size: 13))
             if showUndo {
                 HStack(spacing: 4) {

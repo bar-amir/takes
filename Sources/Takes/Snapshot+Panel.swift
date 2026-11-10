@@ -114,7 +114,7 @@ extension Snapshot {
                               onSaveExample: {}, onDone: {})
         // The text box changed before the paste: the take waits on the clipboard instead.
         let notPasted = ToastView(message: PanelController.notPastedMessage(.fieldChanged, app: "Slack", number: 2), showUndo: false,
-                                  onSaveExample: nil, onDone: {})
+                                  notDone: true, onSaveExample: nil, onDone: {})
 
         // What the compose row says when the text box wasn't read: too long, a password field, nothing selected.
         func unread(_ source: FocusSnapshot.Source, method: String = "") -> PanelModel {

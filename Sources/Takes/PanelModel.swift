@@ -144,6 +144,13 @@ final class PanelModel: ObservableObject {
 
     var wordCount: Int { WordCounter.count(draft) }
 
+    /// The compose row's word count. A box that wasn't read (too long, a password field) has no count until
+    /// something is written here: "0 words" would read as an empty box.
+    var showsWordCount: Bool {
+        guard draft.isEmpty else { return true }
+        return focus?.source != .tooLong && focus?.source != .secure
+    }
+
     var isOverridden: Bool {
         takeCount != preset.takes || modelID != store.settings.runModel(for: preset) || (!usesOneModel && effort != preset.effort)
     }
