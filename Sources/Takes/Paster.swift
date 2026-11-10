@@ -11,6 +11,9 @@ enum Paster {
         /// The app is in front, but the text box the draft was read from couldn't be confirmed: it is gone, another
         /// one has focus, or its text changed. Nothing was typed.
         case fieldChanged
+        /// Called off before any key was sent (Esc during an instant run, or the panel opened again). Nothing
+        /// was typed, and the clipboard is back as it was.
+        case cancelled
     }
 
     /// Everything `paste` touches outside Takes, so tests can run it on a clipboard of their own, with no app to type into.
@@ -23,8 +26,10 @@ enum Paster {
         var press: (CGKeyCode) -> Void = { Paster.press($0) }
         var clipboardWillChange: () -> Void = { ClipboardWatch.aboutToWrite() }
         var clipboardChanged: (ClipboardFreshness.OwnWrite) -> Void = { ClipboardWatch.ownWrite($0) }
-        /// Notes why a paste wasn't sent (the focus log: the app and the reason, never text).
-        var notSent: (FocusSnapshot?, String) -> Void = { FocusLog.pasteNotSent($0, reason: $1) }
+        /// Notes which check let a paste through, or why it wasn't sent (the focus log: the app and the reason, never text).
+        var note: (FocusSnapshot?, String) -> Void = { FocusLog.paste($0, $1) }
+        /// What the last `confirm` found, for that note.
+        var verdict: () -> String = { FocusReader.lastVerdict }
         /// How long the app may take to come to the front.
         var frontTimeout: TimeInterval = 1.5
         /// Time for the app to settle keyboard focus into the field.
@@ -37,14 +42,19 @@ enum Paster {
 
     /// `done(.pasted)` once ⌘V was sent to the text box. Any other outcome means nothing was typed anywhere.
     /// The take is then left on the clipboard for the user to paste, except on `.fieldChanged` with
-    /// `keepTakeIfFieldChanged` off: that puts the user's clipboard back, for a caller that says nothing was pasted.
+    /// `keepTakeIfFieldChanged` off and on `.cancelled`: those put the user's clipboard back, for a caller that
+    /// says nothing was pasted. `cancelled` is asked again right before the keys: a paste called off while it
+    /// waits (for a held key to be let go, for the app, for the text box) sends nothing.
     static func paste(
         _ text: String, into target: FocusSnapshot?, replaceAll: Bool, restoreClipboard: Bool,
-        keepTakeIfFieldChanged: Bool = true, environment env: Environment = Environment(),
-        done: @escaping (Outcome) -> Void = { _ in }
+        keepTakeIfFieldChanged: Bool = true, cancelled: @escaping () -> Bool = { false },
+        environment env: Environment = Environment(), done: @escaping (Outcome) -> Void = { _ in }
     ) {
         let pasteboard = env.pasteboard
-        let saved = restoreClipboard ? snapshot(pasteboard) : nil
+        // A restore still owed from the last paste goes first, so what is saved here is the user's clipboard
+        // and never the last take.
+        settleOwedRestore()
+        let saved = snapshot(pasteboard)
 
         env.clipboardWillChange()
         pasteboard.clearContents()
@@ -60,42 +70,86 @@ enum Paster {
         let ours = pasteboard.changeCount
         env.clipboardChanged(.take)
         func putBack() {
-            guard let saved, restore(saved, to: pasteboard, ifCount: ours) else { return }
+            guard restore(saved, to: pasteboard, ifCount: ours) else { return }
             env.clipboardChanged(.putBack)
+        }
+        func callOff() {
+            env.note(target, "paste not sent\tcancelled")
+            putBack()
+            done(.cancelled)
         }
 
         // Web-based apps can drop the field's focus while the panel had the keyboard, and another app
         // (a macOS shortcut on the same keys, say) can have come forward; put the field back first.
         let boxThere = env.refocus(target)
         let pid = target?.app?.processIdentifier
-        waitUntil(timeout: env.frontTimeout, { env.isFrontmost(pid) && interferingFlags(env.heldModifiers()).isEmpty }) { _ in
+        waitUntil(timeout: env.frontTimeout, { cancelled() || (env.isFrontmost(pid) && interferingFlags(env.heldModifiers()).isEmpty) }) { _ in
+            if cancelled() { return callOff() }
             // Never type ⌘A ⌘V blind into whatever app is in front instead.
             guard env.isFrontmost(pid) else {
-                env.notSent(target, "app not in front")
+                env.note(target, "paste not sent\tapp not in front")
                 return done(.couldNotReturn)
             }
             // Let the app settle keyboard focus into the field before it is checked and the keys arrive.
             DispatchQueue.main.asyncAfter(deadline: .now() + env.settle) {
                 // Nor into another text box of the same app (another chat), or one whose text changed meanwhile.
-                waitUntil(timeout: boxThere ? env.confirmTimeout : 0, { boxThere && env.confirm(target, replaceAll) }) { confirmed in
+                waitUntil(timeout: boxThere ? env.confirmTimeout : 0, { cancelled() || (boxThere && env.confirm(target, replaceAll)) }) { confirmed in
+                    // The last moment before the keys. Called off by now, nothing is sent.
+                    if cancelled() { return callOff() }
                     guard confirmed else {
-                        env.notSent(target, boxThere ? FocusReader.lastRefusal ?? "text box not confirmed" : "text box gone")
+                        env.note(target, "paste not sent\t" + (boxThere ? env.verdict() : "text box gone"))
                         if !keepTakeIfFieldChanged { putBack() }
                         return done(.fieldChanged)
                     }
                     // The check can take a moment, and the app must still be in front when the keys go out.
                     guard env.isFrontmost(pid) else {
-                        env.notSent(target, "app not in front")
+                        env.note(target, "paste not sent\tapp not in front")
                         return done(.couldNotReturn)
                     }
                     if replaceAll { env.press(CGKeyCode(kVK_ANSI_A)) }
                     env.press(CGKeyCode(kVK_ANSI_V))
+                    env.note(target, "paste sent\t" + env.verdict())
                     done(.pasted)
-                    // Give the target app time to read the clipboard before restoring it.
-                    DispatchQueue.main.asyncAfter(deadline: .now() + env.restoreDelay) { putBack() }
+                    guard restoreClipboard else { return }
+                    // Give the target app time to read the clipboard before restoring it. Owed until then, so a
+                    // read or a paste that starts sooner puts it back first instead of saving the take.
+                    let owed = owe(putBack)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + env.restoreDelay) {
+                        if isOwed(owed) { settleOwedRestore() }
+                    }
                 }
             }
         }
+    }
+
+    // MARK: A restore still owed
+
+    /// The one clipboard restore Takes still has to make: the old clipboard after a paste, once the app has read
+    /// the take, or after a ⌘C from the copy fallback that hasn't landed yet. Whoever saves the clipboard next
+    /// settles it first, so Takes never saves its own text as the user's clipboard. Main thread only.
+    private static var owed: (id: Int, settle: () -> Void)?
+    private static var lastOwed = 0
+
+    /// Registers `settle` as owed, after settling what was owed before. The id tells this debt from a later one.
+    static func owe(_ settle: @escaping () -> Void) -> Int {
+        settleOwedRestore()
+        lastOwed += 1
+        owed = (lastOwed, settle)
+        return lastOwed
+    }
+
+    static func isOwed(_ id: Int) -> Bool { owed?.id == id }
+
+    /// Drops a debt that turned out not to be one (no late copy landed).
+    static func forget(_ id: Int) {
+        if owed?.id == id { owed = nil }
+    }
+
+    /// Makes the restore that is owed, now.
+    static func settleOwedRestore() {
+        guard let debt = owed else { return }
+        owed = nil
+        debt.settle()
     }
 
     /// Puts `saved` back on the clipboard, but only while it still holds what Takes left there (`count`): anything

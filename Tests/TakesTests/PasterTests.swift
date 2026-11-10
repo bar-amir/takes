@@ -11,7 +11,9 @@ final class PasterTests: XCTestCase {
     private var pasteboard: NSPasteboard!
     private var keys: [Int] = []
     private var ownWrites: [ClipboardFreshness.OwnWrite] = []
-    private var notSent: [String] = []
+    private var notes: [String] = []
+    private var cancelled = false
+    private var heldModifiers: CGEventFlags = []
     private let target = FocusSnapshot(app: nil, text: "ya thursday works", source: .field, caretRect: nil)
 
     override func setUp() async throws {
@@ -20,32 +22,37 @@ final class PasterTests: XCTestCase {
         pasteboard.setString("what the user copied", forType: .string)
         keys = []
         ownWrites = []
-        notSent = []
+        notes = []
+        cancelled = false
+        heldModifiers = []
     }
 
     override func tearDown() async throws {
+        // A restore still waiting belongs to this test's clipboard, not the next one's.
+        Paster.settleOwedRestore()
         pasteboard.releaseGlobally()
     }
 
     /// An app that comes forward and still has the same text box, unless a test says otherwise.
     private func environment(
-        frontmost: @escaping () -> Bool = { true }, boxThere: Bool = true,
-        confirm: @escaping (Bool) -> Bool = { _ in true }
+        frontmost: @escaping () -> Bool = { true }, boxThere: Bool = true, frontTimeout: TimeInterval = 0.1,
+        restoreDelay: TimeInterval = 0.05, confirm: @escaping (Bool) -> Bool = { _ in true }
     ) -> Paster.Environment {
         var env = Paster.Environment()
         env.pasteboard = pasteboard
         env.refocus = { _ in boxThere }
         env.isFrontmost = { _ in frontmost() }
-        env.heldModifiers = { [] }
+        env.heldModifiers = { [unowned self] in heldModifiers }
         env.confirm = { _, replaceAll in confirm(replaceAll) }
         env.press = { [unowned self] key in keys.append(Int(key)) }
         env.clipboardWillChange = {}
         env.clipboardChanged = { [unowned self] in ownWrites.append($0) }
-        env.notSent = { [unowned self] _, reason in notSent.append(reason) }
-        env.frontTimeout = 0.1
+        env.note = { [unowned self] _, entry in notes.append(entry) }
+        env.verdict = { "what the check found" }
+        env.frontTimeout = frontTimeout
         env.settle = 0
         env.confirmTimeout = 0.06
-        env.restoreDelay = 0.05
+        env.restoreDelay = restoreDelay
         return env
     }
 
@@ -56,7 +63,7 @@ final class PasterTests: XCTestCase {
         await withCheckedContinuation { continuation in
             Paster.paste(
                 text, into: target, replaceAll: replaceAll, restoreClipboard: restore, keepTakeIfFieldChanged: keepTake,
-                environment: env
+                cancelled: { [unowned self] in cancelled }, environment: env
             ) { continuation.resume(returning: $0) }
         }
     }
@@ -70,6 +77,11 @@ final class PasterTests: XCTestCase {
         XCTAssertEqual(outcome, .pasted)
         XCTAssertEqual(keys, [kVK_ANSI_A, kVK_ANSI_V])
         XCTAssertEqual(pasteboard.string(forType: .string), "Thursday works for me.", "the app reads the take from the clipboard")
+    }
+
+    func testEveryPasteLeavesALineSayingWhichCheckLetItThrough() async {
+        _ = await paste(environment())
+        XCTAssertEqual(notes, ["paste sent\twhat the check found"])
     }
 
     func testPasteAtTheCaretSendsOnlyPaste() async {
@@ -87,7 +99,7 @@ final class PasterTests: XCTestCase {
         await settle()
         XCTAssertEqual(pasteboard.string(forType: .string), "Thursday works for me.")
         XCTAssertEqual(ownWrites, [.take])
-        XCTAssertEqual(notSent.count, 1)
+        XCTAssertEqual(notes, ["paste not sent\twhat the check found"])
     }
 
     func testNoKeysWhenTheBoxIsGone() async {
@@ -101,7 +113,7 @@ final class PasterTests: XCTestCase {
         XCTAssertEqual(outcome, .fieldChanged)
         XCTAssertTrue(keys.isEmpty)
         XCTAssertFalse(asked, "a box the app says is gone is not asked about again")
-        XCTAssertEqual(notSent, ["text box gone"])
+        XCTAssertEqual(notes, ["paste not sent\ttext box gone"])
     }
 
     func testTheCheckKnowsWhetherThePasteReplacesEverything() async {
@@ -143,7 +155,7 @@ final class PasterTests: XCTestCase {
         XCTAssertTrue(keys.isEmpty)
         await settle()
         XCTAssertEqual(pasteboard.string(forType: .string), "Thursday works for me.", "left there on purpose, for ⌘V")
-        XCTAssertEqual(notSent, ["app not in front"])
+        XCTAssertEqual(notes, ["paste not sent\tapp not in front"])
     }
 
     func testNoKeysWhenTheAppLeavesTheFrontDuringTheCheck() async {
@@ -155,6 +167,49 @@ final class PasterTests: XCTestCase {
                     front = false; return true
                 }))
         XCTAssertEqual(outcome, .couldNotReturn)
+        XCTAssertTrue(keys.isEmpty)
+    }
+
+    // MARK: A paste that is called off
+
+    func testCancelledPasteSendsNoKeysAndPutsTheClipboardBack() async {
+        cancelled = true
+        let outcome = await paste(environment())
+        XCTAssertEqual(outcome, .cancelled)
+        XCTAssertTrue(keys.isEmpty)
+        XCTAssertEqual(pasteboard.string(forType: .string), "what the user copied")
+        XCTAssertEqual(ownWrites, [.take, .putBack])
+        XCTAssertEqual(notes, ["paste not sent\tcancelled"])
+    }
+
+    func testCancelledPastePutsTheClipboardBackEvenWhenRestoreIsOff() async {
+        cancelled = true
+        let outcome = await paste(environment(), restore: false)
+        XCTAssertEqual(outcome, .cancelled)
+        XCTAssertEqual(pasteboard.string(forType: .string), "what the user copied", "nothing was pasted, so nothing is left behind")
+    }
+
+    func testPasteCancelledWhileItWaitsForAHeldKeySendsNothing() async {
+        // ⌥ is still down, so the paste waits. Esc arrives meanwhile; then the key is let go.
+        heldModifiers = .maskAlternate
+        async let outcome = paste(environment(frontTimeout: 2))
+        try? await Task.sleep(nanoseconds: 80_000_000)
+        XCTAssertTrue(keys.isEmpty, "still waiting")
+        cancelled = true
+        heldModifiers = []
+        let result = await outcome
+        XCTAssertEqual(result, .cancelled)
+        XCTAssertTrue(keys.isEmpty)
+        XCTAssertEqual(pasteboard.string(forType: .string), "what the user copied")
+    }
+
+    func testPasteCancelledDuringTheLastCheckSendsNothing() async {
+        let callOffDuringTheCheck: (Bool) -> Bool = { [unowned self] _ in
+            cancelled = true
+            return true
+        }
+        let outcome = await paste(environment(confirm: callOffDuringTheCheck))
+        XCTAssertEqual(outcome, .cancelled)
         XCTAssertTrue(keys.isEmpty)
     }
 
@@ -189,6 +244,27 @@ final class PasterTests: XCTestCase {
         _ = await paste(environment())
         await settle()
         XCTAssertNil(pasteboard.string(forType: .string))
+    }
+
+    func testRestoreStillOwedIsMadeBeforeTheClipboardIsSavedAgain() async {
+        // A second paste right behind the first: what it saves must be the user's clipboard, not the first take.
+        _ = await paste(environment(restoreDelay: 5), text: "First take.")
+        XCTAssertEqual(pasteboard.string(forType: .string), "First take.", "not put back yet")
+        _ = await paste(environment(), text: "Second take.")
+        await settle()
+        XCTAssertEqual(pasteboard.string(forType: .string), "what the user copied")
+        XCTAssertEqual(ownWrites, [.take, .putBack, .take, .putBack])
+    }
+
+    func testRestoreStillOwedCanBeMadeAtOnce() async {
+        _ = await paste(environment(restoreDelay: 5))
+        Paster.settleOwedRestore()
+        XCTAssertEqual(pasteboard.string(forType: .string), "what the user copied")
+        // Asking again does nothing more.
+        pasteboard.clearContents()
+        pasteboard.setString("copied since", forType: .string)
+        Paster.settleOwedRestore()
+        XCTAssertEqual(pasteboard.string(forType: .string), "copied since")
     }
 
     func testRestoreOnlyWhileTheClipboardIsStillTakes() {

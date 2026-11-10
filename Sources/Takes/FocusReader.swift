@@ -21,6 +21,9 @@ struct FocusSnapshot {
     /// so it's left on the clipboard instead.
     var editable = true
 
+    /// `method` when "Start with: the selection" found nothing selected. The box itself wasn't read.
+    static let noSelection = "no selection"
+
     /// The same text box once a take has replaced everything in it, so a later paste checks for the take.
     func holding(_ text: String) -> FocusSnapshot {
         FocusSnapshot(app: app, text: text, source: source, caretRect: caretRect, element: element, method: method, editable: editable)
@@ -70,27 +73,36 @@ enum FocusReader {
         // The wait for the tree doesn't count against reading the box itself.
         budget = ReadBudget(seconds: readBudget)
         AXUIElementSetMessagingTimeout(element, messagingTimeout)
+        let (snapshot, role) = read(element, in: app, prefill: prefill, allowCopy: allowCopy)
+        FocusLog.append(snapshot, role: role)
+        return snapshot
+    }
 
+    /// Reads the focused element: what it is, then its selection or its text. Everything it asks goes through
+    /// `ax`, and its keys and clipboard through `copyEnvironment`, so tests can run it with no app.
+    static func read(_ element: AXUIElement, in app: NSRunningApplication?, prefill: Prefill, allowCopy: Bool) -> (FocusSnapshot, role: String) {
         // What the element is comes first: a box that can't say isn't read at all, so a password field is never
         // read just because the app was slow to name it.
         let (roleValue, roleError): (String?, AXError) = ask(element, kAXRoleAttribute)
         let (subroleValue, subroleError): (String?, AXError) = ask(element, kAXSubroleAttribute)
         let role = roleValue ?? "?"
         let subrole = subroleValue ?? "-"
-        let caret = caretRect(of: element) ?? frame(of: element)
-        var snapshot = FocusSnapshot(app: app, text: "", source: .none, caretRect: caret, element: element)
-
-        defer { FocusLog.append(snapshot, role: "\(role)/\(subrole)") }
+        func result(_ text: String, _ source: FocusSnapshot.Source, _ caret: CGRect?, _ method: String, editable: Bool = true)
+            -> (FocusSnapshot, role: String)
+        {
+            let snapshot = FocusSnapshot(app: app, text: text, source: source, caretRect: caret, element: element, method: method, editable: editable)
+            return (snapshot, "\(role)/\(subrole)")
+        }
 
         if roleError == .cannotComplete || subroleError == .cannotComplete {
-            snapshot = FocusSnapshot(app: app, text: "", source: .none, caretRect: caret, element: element, method: "app not answering")
-            return snapshot
+            return result("", .none, nil, "app not answering")
         }
-        // A password field is never read, copied from or selected in.
+        // A password field is never read, copied from or selected in. It isn't asked where its caret or its
+        // selection is either: its frame is enough to place the panel.
         if isSecure(subrole: subrole) {
-            snapshot = FocusSnapshot(app: app, text: "", source: .secure, caretRect: caret, element: element, method: "password field")
-            return snapshot
+            return result("", .secure, frame(of: element), "password field")
         }
+        let caret = caretRect(of: element) ?? frame(of: element)
         // Keys (⌘A ⌘C) go only to an app that is still answering: one that went quiet half-way would act on
         // them later, with nobody watching.
         func keysAllowed() -> Bool { allowCopy && budget?.mayAsk() != false }
@@ -99,61 +111,43 @@ enum FocusReader {
         // Only real text boxes are ever read or copied from, never a page or a document around them.
         let textBox = Self.textRoles.contains(role)
         if prefill == .empty {
-            snapshot = FocusSnapshot(app: app, text: "", source: editable ? .field : .none, caretRect: caret, element: element, method: "prefill off")
-            return snapshot
+            return result("", editable ? .field : .none, caret, "prefill off")
         }
 
         if let selected: String = copy(element, kAXSelectedTextAttribute), !selected.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             // A selection in text that can't be edited (a web page) is still worth rewriting, but the take
             // can't go back there.
-            snapshot = FocusSnapshot(
-                app: app, text: selected, source: .selection, caretRect: caret, element: element,
-                method: "AXSelectedText", editable: !isReadOnly(element, role: role))
-            return snapshot
+            return result(selected, .selection, caret, "AXSelectedText", editable: !isReadOnly(element, role: role))
         }
         if prefill == .selectionOnly {
             // Some apps don't report selections; ⌘C without ⌘A copies only what's selected.
             switch textBox && keysAllowed() ? copyFromApp(selectAll: false, element: element) : .nothing {
-            case .text(let copied):
-                snapshot = FocusSnapshot(app: app, text: copied, source: .selection, caretRect: caret, element: element, method: "copy selection")
-            case .tooLong:
-                snapshot = FocusSnapshot(app: app, text: "", source: .tooLong, caretRect: caret, element: element, method: "too long (copy selection)")
-            case .nothing:
-                snapshot = FocusSnapshot(app: app, text: "", source: editable ? .field : .none, caretRect: caret, element: element, method: "no selection")
+            case .text(let copied): return result(copied, .selection, caret, "copy selection")
+            case .tooLong: return result("", .tooLong, caret, "too long (copy selection)")
+            case .nothing: return result("", editable ? .field : .none, caret, FocusSnapshot.noSelection)
             }
-            return snapshot
         }
 
-        guard textBox || editable else {
-            snapshot = FocusSnapshot(app: app, text: "", source: .none, caretRect: caret, element: element, method: "not a text field")
-            return snapshot
-        }
+        guard textBox || editable else { return result("", .none, caret, "not a text field") }
         switch afterRead(readText(element), textBox: textBox) {
         case .use(let text, let method):
-            snapshot = FocusSnapshot(app: app, text: text, source: .field, caretRect: caret, element: element, method: method)
+            return result(text, .field, caret, method)
         case .tooLong(let method):
             // Known to be over the limit: it is never selected and copied, and never passes for an empty box.
-            snapshot = FocusSnapshot(app: app, text: "", source: .tooLong, caretRect: caret, element: element, method: method)
+            return result("", .tooLong, caret, method)
         case .notText:
-            snapshot = FocusSnapshot(app: app, text: "", source: .none, caretRect: caret, element: element, method: "not a text field")
+            return result("", .none, caret, "not a text field")
         case .copyAll:
             guard keysAllowed() else {
                 // `--focus-test` sends no keys and reports an editable box, as before. A quiet app's box wasn't read.
-                snapshot = FocusSnapshot(
-                    app: app, text: "", source: allowCopy ? .none : .field, caretRect: caret, element: element,
-                    method: allowCopy ? "app not answering" : "editable, empty")
-                return snapshot
+                return allowCopy ? result("", .none, caret, "app not answering") : result("", .field, caret, "editable, empty")
             }
             switch copyFromApp(selectAll: true, element: element) {
-            case .text(let copied):
-                snapshot = FocusSnapshot(app: app, text: copied, source: .field, caretRect: caret, element: element, method: "copy (⌘A ⌘C)")
-            case .tooLong:
-                snapshot = FocusSnapshot(app: app, text: "", source: .tooLong, caretRect: caret, element: element, method: "too long (copy)")
-            case .nothing:
-                snapshot = FocusSnapshot(app: app, text: "", source: .field, caretRect: caret, element: element, method: "editable, empty")
+            case .text(let copied): return result(copied, .field, caret, "copy (⌘A ⌘C)")
+            case .tooLong: return result("", .tooLong, caret, "too long (copy)")
+            case .nothing: return result("", .field, caret, "editable, empty")
             }
         }
-        return snapshot
     }
 
     /// Retries (80 ms apart) while an app's accessibility tree is still being built.
@@ -209,6 +203,9 @@ enum FocusReader {
         enum Focus {
             /// The box the snapshot read has keyboard focus.
             case same
+            /// Another element has it, but one that stands in for the box: a text box of the same app that still
+            /// holds what was read (`standsIn`). Some apps build their text box anew while the panel has the keyboard.
+            case equivalent
             /// Something else has it.
             case other
             /// The app didn't say what has focus (thin accessibility, or no answer in time).
@@ -233,25 +230,93 @@ enum FocusReader {
     /// refused only when the app says another box has focus. An app that can't say what has focus still gets
     /// it: that is the only way Takes ever worked in apps with thin accessibility. Its selection isn't
     /// compared either, because many apps drop or stop reporting it while the panel has the keyboard.
+    ///
+    /// A different element is accepted only as `.equivalent`, which already means its content matched what was
+    /// read; replacing everything in it still needs that match to have been on the text.
     static func mayPaste(replaceAll: Bool, check: FieldCheck) -> Bool {
         switch check.focus {
         case .other: return false
         case .unknown: return !replaceAll
+        case .equivalent: return !replaceAll || check.text == .same
         case .same: return !replaceAll || check.text == .same || check.text == .notCompared
         }
     }
 
     /// The paste-time check: `mayPaste` on what the app says now. A paste into no known app passes.
     static func confirmed(_ snapshot: FocusSnapshot?, replaceAll: Bool) -> Bool {
-        guard let snapshot, snapshot.app != nil else { return true }
+        guard let snapshot, snapshot.app != nil else {
+            lastVerdict = "no app to check"
+            return true
+        }
         let check = check(snapshot, compareText: replaceAll)
-        let allowed = mayPaste(replaceAll: replaceAll, check: check)
-        lastRefusal = allowed ? nil : "focus \(check.focus), text \(check.text)"
-        return allowed
+        lastVerdict = "focus \(check.focus), text \(check.text)"
+        return mayPaste(replaceAll: replaceAll, check: check)
     }
 
-    /// Why `confirmed` last said no, for the focus log.
-    private(set) static var lastRefusal: String?
+    /// What `confirmed` last found, for the focus log: which path a paste took, or why it wasn't sent. No text.
+    private(set) static var lastVerdict = ""
+
+    /// What another element must still hold to stand in for the one a snapshot read.
+    enum Expected: Equatable {
+        /// The box's whole text, read through accessibility; "" for a box that was empty.
+        case text(String)
+        /// The selected text, reported through accessibility.
+        case selection(String)
+        /// Nothing that can be compared: the text was read by copying, or the box wasn't read at all.
+        case unknown
+    }
+
+    /// The ways `readText` reads a box through accessibility. Only text read one of these ways can be compared.
+    static let accessibilityReads: Set<String> = ["AXValue", "empty (character count)", "AXStringForRange", "element text markers"]
+
+    static func expected(of snapshot: FocusSnapshot) -> Expected {
+        switch snapshot.source {
+        case .field: return accessibilityReads.contains(snapshot.method) ? .text(snapshot.text) : .unknown
+        case .selection: return snapshot.method == "AXSelectedText" ? .selection(snapshot.text) : .unknown
+        case .none, .tooLong, .secure: return .unknown
+        }
+    }
+
+    /// Whether `current`, a different element from the one a snapshot read, can take its paste. Only a text box
+    /// (never a password field) that still holds what was read: the same text, the same selection, or, for a box
+    /// that was empty, still nothing. Returns what matched, or nil.
+    static func standsIn(_ current: AXUIElement, for snapshot: FocusSnapshot) -> FieldCheck? {
+        let role: String? = copy(current, kAXRoleAttribute)
+        let subrole: String? = copy(current, kAXSubroleAttribute)
+        guard let role, textRoles.contains(role), !isSecure(subrole: subrole) else { return nil }
+        switch expected(of: snapshot) {
+        case .text(let text):
+            guard case .text(let now, _) = readText(current), now == text else { return nil }
+            return FieldCheck(focus: .equivalent, text: .same)
+        case .selection(let selection):
+            let selected: String? = copy(current, kAXSelectedTextAttribute)
+            return selected == selection ? FieldCheck(focus: .equivalent) : nil
+        case .unknown:
+            return nil
+        }
+    }
+
+    /// Where a hotkey press came from, for a panel still open on the box a snapshot read.
+    enum PressOrigin: Equatable {
+        /// That box has the keyboard.
+        case sameBox
+        /// The same app, with the keyboard in nothing that takes text (its window, a list of messages), or the
+        /// app can't say what has it.
+        case sameApp
+        /// Another app, or another text box of the same one: a new summon.
+        case elsewhere
+    }
+
+    static func pressOrigin(for snapshot: FocusSnapshot?) -> PressOrigin {
+        guard let snapshot, let app = snapshot.app else { return .elsewhere }
+        guard NSWorkspace.shared.frontmostApplication?.processIdentifier == app.processIdentifier else { return .elsewhere }
+        guard let current = focusedElement(in: app, timeout: 0.25) else { return .sameApp }
+        if let element = snapshot.element, CFEqual(current, element) { return .sameBox }
+        AXUIElementSetMessagingTimeout(current, 0.25)
+        if standsIn(current, for: snapshot) != nil { return .sameBox }
+        let role: String = copy(current, kAXRoleAttribute) ?? ""
+        return isEditable(current, role: role) ? .elsewhere : .sameApp
+    }
 
     /// Whether the user is still in the text box a snapshot read, with the text that was read: instant mode asks
     /// this before it brings the box back to the front, so a take isn't pasted into a box the user has left or
@@ -264,7 +329,10 @@ enum FocusReader {
     private static func check(_ snapshot: FocusSnapshot, compareText: Bool) -> FieldCheck {
         guard let app = snapshot.app, let element = snapshot.element else { return FieldCheck(focus: .unknown) }
         guard let current = focusedElement(in: app, timeout: 0.25) else { return FieldCheck(focus: .unknown) }
-        guard CFEqual(current, element) else { return FieldCheck(focus: .other) }
+        guard CFEqual(current, element) else {
+            AXUIElementSetMessagingTimeout(current, 0.25)
+            return standsIn(current, for: snapshot) ?? FieldCheck(focus: .other)
+        }
         // Text read by copying can differ from what accessibility reports; only compare like with like.
         guard compareText, snapshot.source == .field, !snapshot.method.hasPrefix("copy") else { return FieldCheck(focus: .same) }
         AXUIElementSetMessagingTimeout(element, 0.25)
@@ -293,8 +361,8 @@ enum FocusReader {
     /// How long finding the focused element, and then reading it, may each take in all. Past it no more questions
     /// are sent, so a hung app costs the hotkey about two seconds instead of freezing it.
     static let readBudget: TimeInterval = 1.5
-    /// Set while `snapshot` reads.
-    private static var budget: ReadBudget?
+    /// Set while `snapshot` reads. (Tests set it to see what a read does once its time is up.)
+    static var budget: ReadBudget?
 
     // MARK: Reading text
 
@@ -366,9 +434,8 @@ enum FocusReader {
 
     private static func isEditable(_ element: AXUIElement, role: String) -> Bool {
         if ["AXTextArea", "AXTextField", "AXComboBox", "AXSearchField"].contains(role) { return true }
-        for attribute in [kAXValueAttribute, kAXSelectedTextAttribute] {
-            var settable = DarwinBoolean(false)
-            if AXUIElementIsAttributeSettable(element, attribute as CFString, &settable) == .success, settable.boolValue { return true }
+        for attribute in [kAXValueAttribute, kAXSelectedTextAttribute] where ax.isSettable(element, attribute) == true {
+            return true
         }
         let editableAncestor: AXUIElement? = copy(element, "AXEditableAncestor")
         return editableAncestor != nil
@@ -377,10 +444,7 @@ enum FocusReader {
     /// Whether the element's text is known to take no typing, so a paste there would change nothing. That takes
     /// the element's own word for it; where it says nothing either way, the paste is tried as before.
     private static func isReadOnly(_ element: AXUIElement, role: String) -> Bool {
-        let settable: [Bool?] = [kAXValueAttribute, kAXSelectedTextAttribute].map { attribute in
-            var settable = DarwinBoolean(false)
-            return AXUIElementIsAttributeSettable(element, attribute as CFString, &settable) == .success ? settable.boolValue : nil
-        }
+        let settable: [Bool?] = [kAXValueAttribute, kAXSelectedTextAttribute].map { ax.isSettable(element, $0) }
         let editableAncestor: AXUIElement? = copy(element, "AXEditableAncestor")
         return readOnly(textBox: textRoles.contains(role), settable: settable, editableAncestor: editableAncestor != nil)
     }
@@ -408,20 +472,40 @@ enum FocusReader {
         return text.count <= maxPrefill ? .text(text) : .tooLong
     }
 
+    /// What the ⌘A ⌘C fallback touches outside Takes: the clipboard and the keys it sends. Tests put their own here.
+    struct CopyEnvironment {
+        var pasteboard = NSPasteboard.general
+        /// Sends a key to the frontmost app, with ⌘ or on its own.
+        var press: (_ key: CGKeyCode, _ command: Bool) -> Void = { Paster.press($0, command: $1) }
+        /// The hotkey's ⌃ ⌥ may still be held; they are let go of first so the app sees a plain ⌘A ⌘C.
+        var waitForModifierRelease: () -> Void = { Paster.waitForModifierRelease(timeout: 0.5) }
+        var clipboardWillChange: () -> Void = { ClipboardWatch.aboutToWrite() }
+        var clipboardChanged: (ClipboardFreshness.OwnWrite) -> Void = { ClipboardWatch.ownWrite($0) }
+        /// How long the copy may take to land before the box counts as empty.
+        var copyWait: TimeInterval = 0.3
+        /// How much longer a copy that missed `copyWait` is watched for, so it can still be undone.
+        var lateWait: TimeInterval = 1
+    }
+
+    static var copyEnvironment = CopyEnvironment()
+
     /// Copies from the frontmost app with ⌘C (after ⌘A when `selectAll`), then restores the clipboard.
-    /// When the copy isn't used (too long, blank, or none arrived), the ⌘A is undone, so the box is left as it
-    /// was found: text left selected would be replaced by the next key typed, or by a take pasted at the caret.
+    /// The ⌘A is undone every time, so the box is left as it was found, whether or not the copy is used: text
+    /// left selected is replaced by the next key typed there. A paste that replaces everything sends its own ⌘A.
     private static func copyFromApp(selectAll: Bool, element: AXUIElement) -> Copied {
-        let pasteboard = NSPasteboard.general
+        let env = copyEnvironment
+        let pasteboard = env.pasteboard
+        // A restore Takes still owes (the last paste's, or an earlier late copy's) goes first: what is saved
+        // here must be the user's clipboard, never Takes' own text.
+        Paster.settleOwedRestore()
         let saved = Paster.snapshot(pasteboard)
-        ClipboardWatch.aboutToWrite()
+        env.clipboardWillChange()
         let before = pasteboard.changeCount
         let selection: CFTypeRef? = selectAll ? copy(element, kAXSelectedTextRangeAttribute) : nil
-        // The hotkey's ⌃ ⌥ may still be held; let go of them first so the app sees a plain ⌘A ⌘C.
-        Paster.waitForModifierRelease(timeout: 0.5)
-        if selectAll { Paster.press(CGKeyCode(kVK_ANSI_A)) }
-        Paster.press(CGKeyCode(kVK_ANSI_C))
-        let deadline = Date().addingTimeInterval(0.3)
+        env.waitForModifierRelease()
+        if selectAll { env.press(CGKeyCode(kVK_ANSI_A), true) }
+        env.press(CGKeyCode(kVK_ANSI_C), true)
+        let deadline = Date().addingTimeInterval(env.copyWait)
         while pasteboard.changeCount == before && Date() < deadline { Thread.sleep(forTimeInterval: 0.01) }
         let arrived = pasteboard.changeCount != before
         var text: String?
@@ -429,21 +513,43 @@ enum FocusReader {
             let copyCount = pasteboard.changeCount
             text = pasteboard.string(forType: .string)
             // Put the clipboard back only while it still holds this copy.
-            if Paster.restore(saved, to: pasteboard, ifCount: copyCount) { ClipboardWatch.ownWrite(.borrowed) }
+            if Paster.restore(saved, to: pasteboard, ifCount: copyCount) { env.clipboardChanged(.borrowed) }
+        } else {
+            watchForLateCopy(saved, since: before, env)
         }
-        let result = copied(text)
-        if selectAll, case .text = result { return result }
         // With no copy yet, a slow app may not have got to the keys: → waits its turn behind them, where a
         // selection put back now could be undone by the ⌘A still on its way.
-        if selectAll { deselect(element, restoring: arrived ? selection : nil) }
-        return result
+        if selectAll { deselect(element, restoring: arrived ? selection : nil, env) }
+        return copied(text)
+    }
+
+    /// A ⌘C that missed the wait can still land a moment later, in a slow app: the clipboard would then hold the
+    /// whole box, the user's own clipboard would be gone, and it would count as something they copied. So the
+    /// clipboard is watched a little longer, and a change in that time is taken to be that copy and undone.
+    private static func watchForLateCopy(_ saved: [NSPasteboardItem], since before: Int, _ env: CopyEnvironment) {
+        let pasteboard = env.pasteboard
+        let deadline = Date().addingTimeInterval(env.lateWait)
+        func undoIfLanded() -> Bool {
+            let count = pasteboard.changeCount
+            guard count != before else { return false }
+            if Paster.restore(saved, to: pasteboard, ifCount: count) { env.clipboardChanged(.borrowed) }
+            return true
+        }
+        // Owed, so a paste or another read that starts meanwhile checks one last time before it saves the clipboard.
+        let owed = Paster.owe { _ = undoIfLanded() }
+        func poll() {
+            guard Paster.isOwed(owed) else { return }
+            if undoIfLanded() || Date() >= deadline { return Paster.forget(owed) }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: poll)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: poll)
     }
 
     /// Undoes Takes' own ⌘A: puts the selection back where it was, or, in an app that can't do that, moves the
     /// caret to the end with →.
-    private static func deselect(_ element: AXUIElement, restoring selection: CFTypeRef?) {
-        if let selection, AXUIElementSetAttributeValue(element, kAXSelectedTextRangeAttribute as CFString, selection) == .success { return }
-        Paster.press(CGKeyCode(kVK_RightArrow), command: false)
+    private static func deselect(_ element: AXUIElement, restoring selection: CFTypeRef?, _ env: CopyEnvironment) {
+        if let selection, ax.set(element, kAXSelectedTextRangeAttribute, selection) == .success { return }
+        env.press(CGKeyCode(kVK_RightArrow), false)
     }
 
     // MARK: Geometry
@@ -483,6 +589,9 @@ enum FocusReader {
 
     // MARK: AX helpers
 
+    /// The accessibility calls made while reading a text box. Tests answer them in an app's place.
+    static var ax = AXClient.live
+
     private static func copy<T>(_ element: AXUIElement, _ attribute: String) -> T? {
         ask(element, attribute).0
     }
@@ -491,19 +600,42 @@ enum FocusReader {
     /// read's time was already up and it wasn't asked.
     private static func ask<T>(_ element: AXUIElement, _ attribute: String) -> (T?, AXError) {
         guard budget?.mayAsk() ?? true else { return (nil, .cannotComplete) }
-        var value: CFTypeRef?
-        let result = AXUIElementCopyAttributeValue(element, attribute as CFString, &value)
+        let (value, result) = ax.attribute(element, attribute)
         guard result == .success, let value else { return (nil, result) }
         return (value as? T, result)
     }
 
     private static func parameterized<T>(_ element: AXUIElement, _ attribute: String, _ parameter: CFTypeRef) -> T? {
         guard budget?.mayAsk() ?? true else { return nil }
-        var value: CFTypeRef?
-        guard AXUIElementCopyParameterizedAttributeValue(element, attribute as CFString, parameter, &value) == .success,
-              let value else { return nil }
-        return value as? T
+        return ax.parameterized(element, attribute, parameter) as? T
     }
+}
+
+/// The accessibility calls `FocusReader` makes about a text box.
+struct AXClient {
+    /// An attribute's value, and the app's answer.
+    var attribute: (AXUIElement, String) -> (CFTypeRef?, AXError)
+    var parameterized: (AXUIElement, String, CFTypeRef) -> CFTypeRef?
+    /// Whether an attribute can be set; nil when the element doesn't say.
+    var isSettable: (AXUIElement, String) -> Bool?
+    var set: (AXUIElement, String, CFTypeRef) -> AXError
+
+    static let live = AXClient(
+        attribute: { element, attribute in
+            var value: CFTypeRef?
+            let result = AXUIElementCopyAttributeValue(element, attribute as CFString, &value)
+            return (result == .success ? value : nil, result)
+        },
+        parameterized: { element, attribute, parameter in
+            var value: CFTypeRef?
+            let result = AXUIElementCopyParameterizedAttributeValue(element, attribute as CFString, parameter, &value)
+            return result == .success ? value : nil
+        },
+        isSettable: { element, attribute in
+            var settable = DarwinBoolean(false)
+            return AXUIElementIsAttributeSettable(element, attribute as CFString, &settable) == .success ? settable.boolValue : nil
+        },
+        set: { element, attribute, value in AXUIElementSetAttributeValue(element, attribute as CFString, value) })
 }
 
 /// The time one read of a text box may take. Once it's up, no more questions are sent to the app.
@@ -530,20 +662,33 @@ struct PreparedApps {
 }
 
 /// One line per summon in ~/Library/Logs/Takes/focus.log: which app, what kind of element, how its text was read.
-/// A paste that wasn't sent gets a line too, with the reason. Never any text.
+/// Each paste gets a line too: which check let it through, or why it wasn't sent. Never any text.
 enum FocusLog {
+    /// Tests write to a file of their own.
+    static var fileOverride: URL?
+    static var url: URL { fileOverride ?? RunLog.url.deletingLastPathComponent().appendingPathComponent("focus.log") }
+    /// Past `cap` bytes the oldest lines are dropped, down to about `keep`.
+    static let cap = 512 * 1024
+    static let keep = 384 * 1024
+
     static func append(_ snapshot: FocusSnapshot, role: String) {
         let caret = snapshot.caretRect.map { "\(Int($0.minX)),\(Int($0.minY))" } ?? "none"
         write("\(snapshot.app?.bundleIdentifier ?? "?")\t\(role)\t\(snapshot.method)\tchars=\(snapshot.text.count)\tcaret=\(caret)")
     }
 
-    static func pasteNotSent(_ target: FocusSnapshot?, reason: String) {
-        write("\(target?.app?.bundleIdentifier ?? "?")\tpaste not sent\t\(reason)")
+    /// `entry` is "paste sent" or "paste not sent", then what the check found.
+    static func paste(_ target: FocusSnapshot?, _ entry: String) {
+        write("\(target?.app?.bundleIdentifier ?? "?")\t\(entry)")
     }
 
     private static func write(_ entry: String) {
-        let url = RunLog.url.deletingLastPathComponent().appendingPathComponent("focus.log")
+        let url = url
         let line = "\(ISO8601DateFormatter().string(from: Date()))\t\(entry)\n"
+        let size = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int) ?? 0
+        if size > cap, let data = try? Data(contentsOf: url) {
+            try? (newest(of: data, keeping: keep) + Data(line.utf8)).write(to: url, options: .atomic)
+            return
+        }
         if let handle = try? FileHandle(forWritingTo: url) {
             handle.seekToEndOfFile()
             handle.write(Data(line.utf8))
@@ -551,5 +696,13 @@ enum FocusLog {
         } else {
             try? Data(line.utf8).write(to: url)
         }
+    }
+
+    /// The newest whole lines of `data` that fit in `keeping` bytes.
+    static func newest(of data: Data, keeping: Int) -> Data {
+        guard data.count > keeping else { return data }
+        let tail = data.suffix(keeping)
+        guard let lineEnd = tail.firstIndex(of: 0x0A) else { return Data() }
+        return Data(tail[tail.index(after: lineEnd)...])
     }
 }

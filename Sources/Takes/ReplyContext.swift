@@ -174,7 +174,7 @@ struct ClipboardFreshness: Equatable {
         case take
         /// Takes put back what the clipboard held before its take.
         case putBack
-        /// Takes copied from the text box and put the clipboard back, in one go.
+        /// Takes copied from the text box and put the clipboard back, right away or a moment later.
         case borrowed
     }
 
@@ -183,6 +183,9 @@ struct ClipboardFreshness: Equatable {
     private(set) var changedAt: Date?
     /// `changedAt` for what the clipboard held before a take replaced it, for when that is put back.
     private var setAside: Date?
+    /// `changedAt` as Takes last found it before changing the clipboard: what a borrowed clipboard goes back to,
+    /// even if the copy it made was seen as a change in between.
+    private var held: Date?
 
     init(count: Int) { lastCount = count }
 
@@ -192,6 +195,13 @@ struct ClipboardFreshness: Equatable {
         lastCount = count
         changedAt = now
         setAside = nil
+    }
+
+    /// Takes is about to change the clipboard itself. Anything copied since the last look is the user's, and is
+    /// noted first.
+    mutating func aboutToWrite(count: Int, now: Date) {
+        observe(count: count, now: now)
+        held = changedAt
     }
 
     /// Takes just changed the clipboard itself, leaving it at `count`.
@@ -205,7 +215,7 @@ struct ClipboardFreshness: Equatable {
             changedAt = setAside
             setAside = nil
         case .borrowed:
-            break
+            changedAt = held
         }
     }
 
@@ -259,7 +269,7 @@ final class ClipboardWatch {
     nonisolated static func aboutToWrite() {
         MainActor.assumeIsolated {
             guard shared.timer != nil else { return }
-            shared.tick()
+            shared.freshness.aboutToWrite(count: NSPasteboard.general.changeCount, now: Date())
         }
     }
 

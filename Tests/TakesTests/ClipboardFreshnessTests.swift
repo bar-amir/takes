@@ -58,14 +58,42 @@ final class ClipboardFreshnessTests: XCTestCase {
         var clipboard = ClipboardFreshness(count: 10)
         clipboard.observe(count: 11, now: at(0))
         // ⌘A ⌘C in the text box, then the clipboard put back: two changes, neither the user's.
+        clipboard.aboutToWrite(count: 11, now: at(1))
         clipboard.ownWrite(.borrowed, count: 13)
         clipboard.observe(count: 13, now: at(1))
         XCTAssertEqual(clipboard.age(now: at(10)), 10)
 
         var old = ClipboardFreshness(count: 10)
+        old.aboutToWrite(count: 10, now: at(1))
         old.ownWrite(.borrowed, count: 12)
         old.observe(count: 12, now: at(1))
         XCTAssertNil(old.age(now: at(2)))
+    }
+
+    func testALateCopyByTakesKeepsTheAgeFromBeforeIt() {
+        // The copy fallback's ⌘C landed late and was seen as a change before Takes put the clipboard back.
+        var clipboard = ClipboardFreshness(count: 10)
+        clipboard.observe(count: 11, now: at(0))
+        clipboard.aboutToWrite(count: 11, now: at(60))
+        clipboard.observe(count: 12, now: at(61))
+        XCTAssertEqual(clipboard.age(now: at(61)), 0, "for a moment it looks like a fresh copy")
+        clipboard.ownWrite(.borrowed, count: 13)
+        XCTAssertEqual(clipboard.age(now: at(70)), 70, "the user's own copy, a minute before")
+
+        // The same for a clipboard that was never seen to change.
+        var old = ClipboardFreshness(count: 10)
+        old.aboutToWrite(count: 10, now: at(60))
+        old.observe(count: 11, now: at(61))
+        old.ownWrite(.borrowed, count: 12)
+        XCTAssertNil(old.age(now: at(62)))
+    }
+
+    func testACopyJustBeforeTakesWritesIsNotedFirst() {
+        var clipboard = ClipboardFreshness(count: 10)
+        // Copied a moment ago, not yet seen; then the hotkey.
+        clipboard.aboutToWrite(count: 11, now: at(5))
+        clipboard.ownWrite(.borrowed, count: 13)
+        XCTAssertEqual(clipboard.age(now: at(15)), 10)
     }
 
     func testACopyAfterTakesWroteCounts() {
