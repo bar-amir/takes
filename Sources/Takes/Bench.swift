@@ -24,8 +24,8 @@ enum Bench {
     static func currentSigningInformation() -> [String: Any]? {
         var code: SecCode?
         var staticCode: SecStaticCode?
-        guard SecCodeCopySelf([], &code) == errSecSuccess, let code,
-              SecCodeCopyStaticCode(code, [], &staticCode) == errSecSuccess, let staticCode else { return nil }
+        guard SecCodeCopySelf([], &code) == errSecSuccess, let code else { return nil }
+        guard SecCodeCopyStaticCode(code, [], &staticCode) == errSecSuccess, let staticCode else { return nil }
         var information: CFDictionary?
         let status = SecCodeCopySigningInformation(staticCode, SecCSFlags(rawValue: kSecCSSigningInformation), &information)
         if status == errSecCSUnsigned { return [:] }
