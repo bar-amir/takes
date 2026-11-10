@@ -28,7 +28,7 @@ final class RunLogTests: XCTestCase {
     private func run(_ number: Int) -> [String: Any] {
         [
             "kind": "app", "model": Models.sonnet, "effort": "low", "takes": 3, "engine": "claudeCode",
-            "wallMs": 4200 + number, "firstTextMs": 900, "app": "com.tinyspeck.slackmacgap", "n": number,
+            "wallMs": number, "firstTextMs": 900, "app": "com.tinyspeck.slackmacgap",
         ]
     }
 
@@ -36,7 +36,7 @@ final class RunLogTests: XCTestCase {
         RunLog.append(run(1), to: file)
         RunLog.append(run(2), to: file)
         let written = try lines()
-        XCTAssertEqual(written.map { $0["n"] as? Int }, [1, 2])
+        XCTAssertEqual(written.map { $0["wallMs"] as? Int }, [1, 2])
         XCTAssertNotNil(written[0]["at"])
     }
 
@@ -46,9 +46,9 @@ final class RunLogTests: XCTestCase {
         let size = try FileManager.default.attributesOfItem(atPath: file.path)[.size] as? Int ?? 0
         XCTAssertLessThanOrEqual(size, RunLog.maxBytes)
         let written = try lines()
-        XCTAssertEqual(written.last?["n"] as? Int, runs, "the newest run is there")
-        XCTAssertNotEqual(written.first?["n"] as? Int, 1, "the oldest are gone")
-        let numbers = written.compactMap { $0["n"] as? Int }
+        XCTAssertEqual(written.last?["wallMs"] as? Int, runs, "the newest run is there")
+        XCTAssertNotEqual(written.first?["wallMs"] as? Int, 1, "the oldest are gone")
+        let numbers = written.compactMap { $0["wallMs"] as? Int }
         XCTAssertEqual(numbers, Array(numbers[0]...runs), "in order, with nothing missing in between")
     }
 
@@ -59,7 +59,7 @@ final class RunLogTests: XCTestCase {
         RunLog.append(run(7), to: file)
         let size = try FileManager.default.attributesOfItem(atPath: file.path)[.size] as? Int ?? 0
         XCTAssertLessThanOrEqual(size, RunLog.maxBytes)
-        XCTAssertEqual(try lines().last?["n"] as? Int, 7)
+        XCTAssertEqual(try lines().last?["wallMs"] as? Int, 7)
     }
 
     func testCuttingKeepsWholeLinesOnly() {
@@ -83,8 +83,40 @@ final class RunLogTests: XCTestCase {
         XCTAssertNil(written["nested"])
         XCTAssertEqual(written["takes"] as? Int, nil, "a list of takes is dropped, even under the number's name")
         XCTAssertEqual(written["model"] as? String, Models.sonnet)
-        XCTAssertEqual(written["wallMs"] as? Int, 4201)
+        XCTAssertEqual(written["wallMs"] as? Int, 1)
         XCTAssertEqual(written["app"] as? String, "com.tinyspeck.slackmacgap")
+    }
+
+    func testOnlyTheKeysCallersLogAreKept() throws {
+        var entry = run(1)
+        // Short enough to pass a length check, but not something a caller logs.
+        entry["draft"] = "ya thursday works"
+        entry["take"] = "Thursday works for me."
+        entry["error"] = "could not reach api.example.com"
+        entry["note"] = "hi"
+        RunLog.append(entry, to: file)
+        let written = try XCTUnwrap(lines().first)
+        XCTAssertEqual(Set(written.keys), RunLog.allowedKeys.union(["at"]))
+        for key in ["draft", "take", "error", "note"] { XCTAssertNil(written[key], key) }
+    }
+
+    func testTheKeysTodaysCallersPassAreAllAllowed() {
+        // PanelModel, InstantMode and Bench.
+        let logged = ["kind", "model", "effort", "takes", "engine", "wallMs", "firstTextMs", "app"]
+        XCTAssertTrue(Set(logged).isSubset(of: RunLog.allowedKeys))
+    }
+
+    func testWritersInSeveralThreadsDontLoseOrMixLines() throws {
+        DispatchQueue.concurrentPerform(iterations: 4) { writer in
+            for n in 0..<150 { RunLog.append(run(writer * 1000 + n), to: file) }
+        }
+        let written = try lines()
+        XCTAssertEqual(written.count, 600, "every line is whole JSON, and none went missing")
+        XCTAssertEqual(Set(written.compactMap { $0["wallMs"] as? Int }).count, 600)
+    }
+
+    func testTheLogInTestsLivesInATemporaryFolder() {
+        XCTAssertTrue(RunLog.url.path.hasPrefix(FileManager.default.temporaryDirectory.path), RunLog.url.path)
     }
 
     func testSnapshotsWriteNothing() {
