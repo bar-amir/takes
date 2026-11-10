@@ -21,6 +21,13 @@ enum HotKeyChoice {
         combo(kVK_ANSI_T, controlKey | optionKey | cmdKey, "⌃⌥⌘T"),
     ]
 
+    /// Offered for a preset's own hotkey: ⌃⌥ and ⌃⌥⌘ with a digit. No macOS shortcut or app in `knownApps` ships
+    /// with them (⌃ + digit alone is "Switch to Desktop"), and the digit is easy to tie to a preset.
+    static let presetCandidates: [KeyCombo] = [(controlKey | optionKey, "⌃⌥"), (controlKey | optionKey | cmdKey, "⌃⌥⌘")].flatMap { modifiers, symbols in
+        [kVK_ANSI_1, kVK_ANSI_2, kVK_ANSI_3, kVK_ANSI_4, kVK_ANSI_5, kVK_ANSI_6, kVK_ANSI_7, kVK_ANSI_8, kVK_ANSI_9]
+            .enumerated().map { index, key in combo(key, modifiers, symbols + "\(index + 1)") }
+    }
+
     static func combo(_ key: Int, _ modifiers: Int, _ display: String) -> KeyCombo {
         KeyCombo(keyCode: UInt32(key), modifiers: UInt32(modifiers), display: display)
     }
@@ -88,11 +95,11 @@ enum HotKeyChoice {
         !taken.contains(combo) && systemOwner(combo) == nil && isFree(combo)
     }
 
-    /// Up to `limit` candidates that are free right now, leaving out `current` and the hotkeys in `taken`.
-    static func suggestions(current: KeyCombo?, taken: [KeyCombo] = [], limit: Int = 3,
+    /// Up to `limit` of `from` that are free right now, leaving out `current` and the hotkeys in `taken`.
+    static func suggestions(from: [KeyCombo] = candidates, current: KeyCombo?, taken: [KeyCombo] = [], limit: Int = 3,
                             systemOwner: (KeyCombo) -> String? = SystemShortcuts.owner(of:),
                             isFree: (KeyCombo) -> Bool = { HotKeyCenter.shared.isFree($0) }) -> [KeyCombo] {
-        Array(candidates.filter { $0 != current && isAvailable($0, taken: taken, systemOwner: systemOwner, isFree: isFree) }.prefix(limit))
+        Array(from.filter { $0 != current && isAvailable($0, taken: taken, systemOwner: systemOwner, isFree: isFree) }.prefix(limit))
     }
 
     /// The hotkey a new install starts with: the first candidate this Mac leaves free, else the preferred one

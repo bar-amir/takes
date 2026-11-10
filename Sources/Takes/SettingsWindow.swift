@@ -266,18 +266,29 @@ struct HotKeyRecorder: View {
     @State private var monitor: Any?
 
     var body: some View {
-        Button(action: toggle) {
-            Text(recording ? String(localized: "Press a shortcut…") : (combo.map { "\u{200E}" + $0.display } ?? String(localized: "Record shortcut")))
-                .font(.system(size: height < 32 ? 13 : 14, weight: .semibold))
-                .foregroundStyle(recording ? Theme.accent : Theme.text)
-                .lineLimit(1)
-                .frame(minWidth: height < 32 ? 96 : 110)
+        HStack(spacing: 6) {
+            Button(action: toggle) {
+                Text(recording ? String(localized: "Press a shortcut…") : (combo.map { "\u{200E}" + $0.display } ?? String(localized: "Record shortcut")))
+                    .font(.system(size: height < 32 ? 13 : 14, weight: .semibold))
+                    .foregroundStyle(recording ? Theme.accent : Theme.text)
+                    .lineLimit(1)
+                    .frame(minWidth: height < 32 ? 96 : 110)
+            }
+            .buttonStyle(SecondaryButtonStyle(height: height))
+            .fixedSize()
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.accent, lineWidth: recording ? 1.5 : 0))
+            .help(allowClear ? String(localized: "Click, then press a shortcut. Esc cancels, ⌫ clears.") : String(localized: "Click, then press a shortcut. Esc cancels."))
+            if allowClear, combo != nil, !recording {
+                Button { combo = nil } label: {
+                    Image(systemName: "xmark.circle.fill").font(.system(size: 14)).foregroundStyle(Theme.tertiaryText)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help(String(localized: "Clear shortcut"))
+                .accessibilityLabel("Clear shortcut")
+            }
         }
-        .buttonStyle(SecondaryButtonStyle(height: height))
-        .fixedSize()
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.accent, lineWidth: recording ? 1.5 : 0))
         .onDisappear(perform: stop)
-        .help(allowClear ? String(localized: "Click, then press a shortcut. Esc cancels, ⌫ clears.") : String(localized: "Click, then press a shortcut. Esc cancels."))
     }
 
     private func toggle() { recording ? stop() : start() }

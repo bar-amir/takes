@@ -33,6 +33,13 @@ extension Snapshot {
             for tab in SettingsTab.allCases {
                 renderSettingsTab(tab, dark: dark, to: url.appendingPathComponent("5-settings-\(tab.rawValue.lowercased())-\(suffix).png"))
             }
+            // A preset with its own hotkey, so the recorder shows its clear button.
+            if !store.presets.isEmpty {
+                let hotKey = store.presets[0].hotKey
+                store.presets[0].hotKey = HotKeyChoice.presetCandidates[0]
+                renderSettingsTab(.presets, dark: dark, to: url.appendingPathComponent("5-settings-presets-hotkey-\(suffix).png"))
+                store.presets[0].hotKey = hotKey
+            }
             signIn.state = .signedIn(email: "sam@example.com", sharing: true)
             renderSettingsTab(.model, dark: dark, to: url.appendingPathComponent("5-settings-model-chatgpt-not-selected-\(suffix).png"))
             store.settings.engine = .apiKey
