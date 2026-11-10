@@ -32,7 +32,7 @@ Takes is one executable target (`Sources/Takes`) with no server. It's an `LSUIEl
  PanelViews (SwiftUI): takes side by side, Changes (Diff), refine, more like
    │
    ▼
- Paster.paste: refocus the original field, paste, restore the clipboard
+ Paster.paste: refocus, check it is the same text box, paste, restore the clipboard if nothing else was copied
 ```
 
 ## Main pieces
@@ -41,16 +41,17 @@ Takes is one executable target (`Sources/Takes`) with no server. It's an `LSUIEl
 |---|---|---|
 | App entry | `main.swift`, `AppDelegate` | Menu-bar item and menu, registers hotkeys, decides between setup, instant mode and the panel. |
 | Hotkeys | `HotKeyCenter` (`HotKey.swift`) | Carbon global hotkeys: the summon hotkey plus one per preset. |
-| Reading the field | `FocusReader`, `FocusSnapshot` | Reads only the focused text box, its caret and frame. Logs metadata to `focus.log`, never text. |
+| Reading the field | `FocusReader`, `FocusSnapshot` | Reads only the focused text box, its caret and frame, and never a password field. Logs metadata to `focus.log`, never text. |
 | Panel window | `PanelController`, `KeyPanel`, `Placement` | Floating panel near the caret. Owns summon, close and paste. |
 | Panel state | `PanelModel` | The current screen, draft, preset, take count, streamed takes, history entry and side checks. One run at a time (`runToken`). |
 | Prompts | `PromptBuilder` (`Prompt.swift`) | Turns a preset (instruction, Do, Avoid, examples, language) and voice rules into the system prompt, and the draft plus mode (fresh, refine, more like) into the user message. |
 | Engines | `TakesEngine` protocol, `Engines.current` (`Engine.swift`) | One `run(_:onUpdate:)` that streams takes. Each engine file implements it. |
-| Pasting | `Paster` | Puts focus back, pastes or replaces all, then restores the user's clipboard. |
-| Storage | `Store` (`Store.swift`) | Presets, settings and history as JSON in `~/Library/Application Support/Takes`. Secrets go in the Keychain, never here. |
+| Pasting | `Paster` | Puts focus back and checks it's the same text box, then pastes or replaces all and restores the user's clipboard if nothing else was copied. Reports a `Paster.Outcome` (pasted, couldn't return, field changed, cancelled); a refused or cancelled paste sends no keys. |
+| Storage | `Store` (`Store.swift`) | Presets, settings and history as JSON in `~/Library/Application Support/Takes`. A file it can't read is first copied to `<name>.unreadable-<date>.json`, so nothing is saved over it. Secrets go in the Keychain, never here. |
 | Settings | `SettingsWindow` and `*Tab.swift`, `*Views.swift` | One tab per area: General, Presets, Writing, Coach, Model, History. |
-| First run | `Onboarding*`, `Setup.swift` (`SetupMonitor`) | Accessibility, engine connection, privacy notice, hotkey, starter presets and practice. |
-| Crash reports | `CrashReports`, `CrashOfferView` (`StatusPopover.swift`) | After a crash, offers once to open a GitHub bug report with a summary of macOS's crash report and shows the file in Finder. Reads only; sends nothing. |
+| First run | `Onboarding*` | An opening screen, three steps (Allow access, Connect a model with where the text goes, Try it with the hotkey), and a closing screen. Languages and starter presets keep the Mac's defaults. |
+| Setup checks | `Setup.swift` (`SetupMonitor`, `SetupWindowController`) | Tracks Accessibility, the chosen engine (for Claude Code, a login shell and `claude auth status`) and taken hotkeys, and opens the "Set up Takes" window when something blocks Takes. It looks every second (the engine with a back-off of 5 to 60 s) only while a setup, onboarding or Settings window is open. Otherwise it checks at launch, when the setup window opens, when the engine changes and when the menu opens. One engine check runs at a time, and a hotkey press never waits on one: it reads Accessibility, then `SetupMonitor.summonRoute` sends it to setup, Settings › Model or the panel at once. A taken hotkey is retried every 10 s while no window is open. `--snapshot` runs none of it. |
+| Crash reports | `CrashReports`, `CrashOfferView` (`StatusPopover.swift`) | After a crash, offers once to open a GitHub bug report with a summary of macOS's crash report and shows the file in Finder. Reads only; sends nothing. `ReportProblem` builds the link and keeps it to 8,000 characters at most, cutting a longer summary and saying so. |
 | Updates | `Updater` (Sparkle) | Only in signed release builds, and only after the user agrees. |
 | Screenshots | `Snapshot*.swift` | `--snapshot <folder>` renders every screen with sample data. |
 
