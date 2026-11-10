@@ -288,7 +288,7 @@ private struct ComposeStatusRow: View {
     var body: some View {
         if case .idle = dictation.state {
             HStack(spacing: Spacing.section) {
-                let words = model.wordCount == 1 ? String(localized: "1 word") : String(localized: "\(model.wordCount) words")
+                let words = !model.showsWordCount ? "" : model.wordCount == 1 ? String(localized: "1 word") : String(localized: "\(model.wordCount) words")
                 Text([model.sourceLabel, words].filter { !$0.isEmpty }.joined(separator: " · "))
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.secondaryText)

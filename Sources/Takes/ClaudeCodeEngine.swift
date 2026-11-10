@@ -467,6 +467,8 @@ struct ClaudeCodeEngine: TakesEngine {
             return nil
         }), !version.isEmpty {
             status.version = version
+            // Too old: asked again next time, since the person is about to update it.
+            if !isSupported(version: version) { ClaudeLocator.shared.forgetVersion(of: path) }
         }
         // No user or project settings, as for a run: their hooks mustn't run, and the answer should be what a run sees.
         switch run(path, ["--setting-sources", "", "auth", "status"], timeout: timeout) {
@@ -854,6 +856,8 @@ final class ClaudeLocator: @unchecked Sendable {
         lock.withLock { versions[path] = version }
         return version
     }
+
+    func forgetVersion(of path: String) { lock.withLock { _ = versions.removeValue(forKey: path) } }
 
     /// Whether the last shell lookup ran out of time, rather than finding no `claude`.
     var lastLookupTimedOut: Bool { lock.withLock { lookupTimedOut } }

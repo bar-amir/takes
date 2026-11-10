@@ -105,14 +105,26 @@ protocol TakesEngine {
 }
 
 enum Engines {
+    /// Said by every run while the saved engine is one this version doesn't know (settings from a newer version).
+    static let needsChoiceMessage = String(localized: "Pick a model in Settings › Model first. Your settings name one this version of Takes doesn't have.")
+
     static func current(_ settings: AppSettings) -> TakesEngine {
-        switch settings.engine {
+        // Nothing runs on a guess: `settings.engine` reads as Claude Code until the user picks one.
+        if settings.engineNeedsChoice { return UnchosenEngine() }
+        return switch settings.engine {
         case .apiKey: APIEngine()
         case .local: LocalEngine(baseURL: settings.localBaseURL)
         case .claudeCode: ClaudeCodeEngine()
         case .provider: ProviderEngine(settings: settings)
         case .chatGPT: ChatGPTEngine()
         }
+    }
+}
+
+/// Stands in while no engine this version knows is picked: every run fails with `Engines.needsChoiceMessage`.
+struct UnchosenEngine: TakesEngine {
+    func run(_ request: EngineRequest, onUpdate: @escaping @Sendable ([String]) -> Void) async throws -> EngineResult {
+        throw EngineError.failed(Engines.needsChoiceMessage)
     }
 }
 

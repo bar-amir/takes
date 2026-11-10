@@ -414,6 +414,8 @@ enum ChatGPTKeychain {
     static func data(_ account: String) -> Data? {
         // Snapshots never read the keychain: a rebuilt app would stop at macOS's access prompt.
         guard !Store.readOnly else { return nil }
+        // Tests use the in-memory keychain (`Keychain.memory`), never the user's.
+        if Store.runningTests { return Keychain.data(account: account) }
         var item: CFTypeRef?
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
                                     kSecAttrAccount as String: account, kSecReturnData as String: true]
@@ -437,6 +439,7 @@ enum ChatGPTKeychain {
     /// Like `data`, but tells "no item" apart from "couldn't read".
     static func read(_ account: String) -> Read {
         guard !Store.readOnly else { return .notFound }
+        if Store.runningTests { return Keychain.data(account: account).map { .found($0) } ?? .notFound }
         var item: CFTypeRef?
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
                                     kSecAttrAccount as String: account, kSecReturnData as String: true]

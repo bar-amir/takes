@@ -10,7 +10,9 @@ final class SetupMonitor: ObservableObject {
     @Published private(set) var accessibility = FocusReader.isTrusted(prompt: false)
     @Published private(set) var engine: EngineStatus = .checking
     /// Shortcuts macOS refused because another app already uses them, or that a macOS shortcut also fires on.
-    @Published var takenHotKeys: [KeyCombo] = []
+    @Published var takenHotKeys: [KeyCombo] = [] {
+        didSet { updateHotKeyRecheck() }
+    }
     /// Re-registers the hotkeys once a taken one is free, so a shortcut freed in System Settings is picked up.
     var recheckHotKeys: (() -> Void)?
 
@@ -85,34 +87,157 @@ final class SetupMonitor: ObservableObject {
             : String(localized: "Models can get things wrong, and takes are only as good as your preset's instructions. Read a take before you send it: what you send is up to you.")
     }
 
+    /// What the last Claude Code check found, for the views that say what to do about it; nil before one has run.
+    @Published private(set) var claudeCode: ClaudeCodeEngine.Status?
+
     private var timer: Timer?
-    private var lastEngineCheck = Date.distantPast
-    /// Counts `refreshEngine` calls, so a slow answer from an earlier check can't overwrite a newer one.
-    private var engineCheck = 0
+    /// While a hotkey is taken and no setup window is open: a slow look at whether it has come free (the app that held
+    /// it quit). Registering a combo starts no process.
+    private var hotKeyTimer: Timer?
+    private var polling = SetupPolling()
+    /// Windows that show setup state and are open now ("setup", "onboarding", "settings"). Only while there is one
+    /// does the monitor look every second; otherwise it checks when the setup window opens or the menu opens.
+    private(set) var watchers: Set<String> = []
+    /// The engine check under way. There's one at a time: a check asked for meanwhile waits for this one.
+    private var inFlight: Task<Void, Never>?
+    /// The engine changed while a check was under way, so its answer is about the old one: check once more.
+    private var checkAgain = false
+    /// Checks the engine the settings name; tests pass a fake.
+    private let checkEngine: @MainActor (AppSettings) async -> (EngineStatus, ClaudeCodeEngine.Status?)
     private var settingsSubscription: AnyCancellable?
 
     private init() {
+        checkEngine = { await SetupMonitor.check($0) }
         settingsSubscription = Store.shared.$settings
-            .map { $0.engine }
+            .map { EngineChoice(kind: $0.engine, needsChoice: $0.engineNeedsChoice) }
             .removeDuplicates()
-            .sink { [weak self] _ in Task { await self?.refreshEngine() } }
-        // Accessibility can be granted at any moment in System Settings; check every second.
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.tick() }
+            .sink { [weak self] _ in
+                // The status is about the engine that was saved; until the new one is checked it's unknown. Said at
+                // once, and a check under way is marked to run again at once too, so the old engine's answer is never
+                // written as the new one's.
+                if Thread.isMainThread {
+                    MainActor.assumeIsolated {
+                        self?.engine = .checking
+                        if self?.inFlight != nil { self?.checkAgain = true }
+                    }
+                }
+                Task { @MainActor in
+                    guard let self else { return }
+                    self.polling.reset()
+                    // Joins: a check under way was already marked to run again above.
+                    await self.startCheck()?.value
+                }
+            }
+    }
+
+    /// For snapshots and tests: a monitor that shows the given state and never checks anything.
+    init(accessibility: Bool, engine: EngineStatus, claudeCode: ClaudeCodeEngine.Status? = nil) {
+        self.accessibility = accessibility
+        self.engine = engine
+        self.claudeCode = claudeCode
+        checkEngine = { _ in (engine, claudeCode) }
+        frozen = true
+    }
+
+    /// For tests: a monitor that checks the engine with `check`, and doesn't follow the settings.
+    init(accessibility: Bool, engine: EngineStatus = .checking,
+         check: @escaping @MainActor (AppSettings) async -> (EngineStatus, ClaudeCodeEngine.Status?)) {
+        self.accessibility = accessibility
+        self.engine = engine
+        checkEngine = check
+    }
+
+    /// Set for a monitor made with fixed state: nothing is checked or polled.
+    private var frozen = false
+
+    private struct EngineChoice: Equatable {
+        var kind: EngineKind
+        var needsChoice: Bool
+    }
+
+    /// A window that shows setup state opened (`visible`) or closed. Polling runs while any is open, and starts
+    /// afresh, without the back-off, when one opens.
+    func window(_ name: String, visible: Bool) {
+        if visible {
+            if watchers.insert(name).inserted { polling.reset() }
+        } else {
+            watchers.remove(name)
+        }
+        // A monitor with fixed state runs the timer too, but its ticks check nothing.
+        let poll = !watchers.isEmpty && !Store.readOnly
+        if poll, timer == nil {
+            // Accessibility can be granted at any moment in System Settings; check every second while setup shows.
+            timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+                Task { @MainActor in self?.tick() }
+            }
+        } else if !poll {
+            timer?.invalidate()
+            timer = nil
+        }
+        updateHotKeyRecheck()
+    }
+
+    /// Whether the once-a-second check is running.
+    var isPolling: Bool { timer != nil }
+
+    /// Whether the slow look at taken hotkeys is running (no setup window open).
+    var isRecheckingHotKeys: Bool { hotKeyTimer != nil }
+
+    private func updateHotKeyRecheck() {
+        let slow = !takenHotKeys.isEmpty && watchers.isEmpty && !Store.readOnly
+        if slow, hotKeyTimer == nil {
+            hotKeyTimer = Timer.scheduledTimer(withTimeInterval: SetupPolling.hotKeyRecheck, repeats: true) { [weak self] _ in
+                Task { @MainActor in self?.recheckHotKeys?() }
+            }
+        } else if !slow {
+            hotKeyTimer?.invalidate()
+            hotKeyTimer = nil
         }
     }
 
-    private func tick() {
+    /// The once-a-second look while a setup window is open.
+    func tick(now: Date = Date()) {
+        refreshAccessibility()
+        if !takenHotKeys.isEmpty { recheckHotKeys?() }
+        // The model is checked less often, and less often again while it keeps failing: it can run a process. Never
+        // while a check is still under way.
+        if inFlight == nil, polling.engineDue(ready: engine.isReady, now: now) { startCheck() }
+    }
+
+    /// Reads Accessibility access again; it's cheap.
+    func refreshAccessibility() {
+        guard !frozen, !Store.readOnly else { return }
         let trusted = FocusReader.isTrusted(prompt: false)
         if trusted != accessibility { accessibility = trusted }
-        if !takenHotKeys.isEmpty { recheckHotKeys?() }
-        // Claude Code's sign-in is checked less often: it runs a process.
-        if !engine.isReady && Date().timeIntervalSince(lastEngineCheck) > 5 {
-            Task { await refreshEngine() }
-        }
     }
 
-    static let claudeMissing = String(localized: "Claude Code isn't installed")
+    /// One look at everything, for when the menu opens: nothing polls while no setup window is open.
+    func checkOnce() {
+        refreshAccessibility()
+        if !takenHotKeys.isEmpty { recheckHotKeys?() }
+        if !engine.isReady, Date().timeIntervalSince(polling.lastCheck) > SetupPolling.recentCheck { startCheck() }
+    }
+
+    /// A check, unless one started moments ago; one under way is joined.
+    func refreshEngineUnlessRecent() async {
+        guard Date().timeIntervalSince(polling.lastCheck) > SetupPolling.recentCheck else { return }
+        await startCheck()?.value
+    }
+
+    nonisolated static let claudeMissing = String(localized: "Claude Code isn't installed")
+
+    enum SummonRoute: Equatable { case panel, setup, pickModel }
+
+    /// Where a hotkey press goes, decided at once from what's known: the setup window while something it needs is
+    /// missing (it checks the model as it opens), Settings › Model for an engine this version doesn't know, else the
+    /// panel. A model still being checked doesn't hold the press up.
+    nonisolated static func summonRoute(accessibility: Bool, privacyAccepted: Bool, needsChoice: Bool,
+                                        engine: EngineStatus) -> SummonRoute {
+        if !accessibility || !privacyAccepted { return .setup }
+        if needsChoice { return .pickModel }
+        if case .problem = engine { return .setup }
+        return .panel
+    }
 
     /// Whether launch should check the model again before opening the setup window: when it's the only thing
     /// missing. A check can fail once and pass seconds later (a busy Mac right after an update), and the window
@@ -134,41 +259,87 @@ final class SetupMonitor: ObservableObject {
         }
     }
 
+    /// The status line while the saved engine is one this version doesn't know (settings from a newer version).
+    static let pickAModel = String(localized: "Pick a model")
+    /// Why, in setup and Settings › Model.
+    static let needsChoiceNote = String(localized: "Your settings name a model this version of Takes doesn't have. Pick one to go on.")
+
+    /// Checks the chosen engine now: a button ("Check again"), a sign-in or a saved key. A check already under way
+    /// may have started before what this is meant to see, so it runs once more when it ends, and this waits for
+    /// that answer. Snapshots never check: it would start `claude` or reach a model server.
     func refreshEngine() async {
-        lastEngineCheck = Date()
-        engineCheck += 1
-        let check = engineCheck
-        let result: EngineStatus
-        switch Store.shared.settings.engine {
-        case .local:
-            result = await Self.localEngineStatus()
-        case .provider:
-            result = await Self.providerEngineStatus()
-        case .chatGPT:
-            result = await Self.chatGPTEngineStatus()
-        case .apiKey:
-            result = Keychain.apiKey?.isEmpty == false ? .ready(String(localized: "Anthropic API key saved")) : .problem(String(localized: "No API key saved yet"))
-        case .claudeCode:
-            result = Self.claudeCodeStatus(await ClaudeCodeEngine.status())
+        if inFlight != nil { checkAgain = true }
+        await startCheck()?.value
+    }
+
+    /// Starts a check unless one is under way, and returns the one to wait for.
+    @discardableResult
+    private func startCheck() -> Task<Void, Never>? {
+        guard !frozen, !Store.readOnly else { return nil }
+        if let inFlight { return inFlight }
+        let task = Task { @MainActor [weak self] in
+            guard let self else { return }
+            repeat {
+                checkAgain = false
+                // The back-off counts from when a check starts, so a slow one isn't started again on top of itself.
+                polling.started(at: Date())
+                let settings = Store.shared.settings
+                let answer: (EngineStatus, ClaudeCodeEngine.Status?) = settings.engineNeedsChoice
+                    ? (.problem(Self.pickAModel), nil) : await checkEngine(settings)
+                if checkAgain { continue }
+                polling.checked(ready: answer.0.isReady)
+                if let claude = answer.1, claude != claudeCode { claudeCode = claude }
+                engine = answer.0
+            } while checkAgain
+            inFlight = nil
         }
-        // Checks overlap (the timer, opening a window, a settings change); only the newest one counts.
-        guard check == engineCheck else { return }
-        engine = result
+        inFlight = task
+        return task
+    }
+
+    /// Whether an engine check is under way.
+    var isChecking: Bool { inFlight != nil }
+
+    /// The status of the engine `settings` name, and Claude Code's own status when that's the engine.
+    static func check(_ settings: AppSettings) async -> (EngineStatus, ClaudeCodeEngine.Status?) {
+        switch settings.engine {
+        case .local: return (await localEngineStatus(), nil)
+        case .provider: return (await providerEngineStatus(), nil)
+        case .chatGPT: return (await chatGPTEngineStatus(), nil)
+        case .apiKey: return (await apiKeyStatus(), nil)
+        case .claudeCode:
+            let status = await ClaudeCodeEngine.status()
+            return (claudeCodeStatus(status), status)
+        }
+    }
+
+    /// Ready when a key is saved and Anthropic doesn't refuse it. A key that couldn't be checked (offline) counts as
+    /// ready: a run says what's wrong if it still fails. Answers come from `APIKeyCheckCache`, so a key just checked
+    /// on saving isn't asked about again.
+    static func apiKeyStatus(key: String? = Keychain.apiKey,
+                             check: (String) async -> APIKeyCheck = { await APIKeyCheckCache.shared.check($0) })
+        async -> EngineStatus {
+        guard let key, !key.isEmpty else { return .problem(String(localized: "No API key saved yet")) }
+        switch await check(key) {
+        case .valid, .couldNotCheck: return .ready(String(localized: "Anthropic API key saved"))
+        case .invalid: return .problem(String(localized: "The key was refused"))
+        }
     }
 
     /// Claude Code's status in one line. An old CLI has no `claude auth` and no `--effort`, so it can't be used
-    /// until it's updated; a check that hung is said so, not reported as signed out.
+    /// until it's updated; a check that hung or a CLI that couldn't start is said so, not reported as signed out.
     nonisolated static func claudeCodeStatus(_ status: ClaudeCodeEngine.Status) -> EngineStatus {
-        if !status.found {
-            return status.timedOut ? .problem(String(localized: "Still looking for Claude Code; trying again")) : .problem(claudeMissing)
+        switch status.state {
+        case .notInstalled: return .problem(claudeMissing)
+        case .stillLooking: return .problem(String(localized: "Still looking for Claude Code; trying again"))
+        case .couldNotStart: return .problem(String(localized: "Claude Code couldn't start"))
+        case .notAnswering: return .problem(String(localized: "Claude Code didn't answer; trying again"))
+        case .tooOld(let version): return .problem(String(localized: "Claude Code \(version) is too old; update it (claude update)"))
+        case .signedOut: return .problem(String(localized: "Claude Code isn't signed in"))
+        case .ready:
+            return .ready(status.plan.map { String(localized: "Claude Code signed in · \($0.capitalized) plan") }
+                ?? String(localized: "Claude Code signed in"))
         }
-        if status.timedOut { return .problem(String(localized: "Claude Code didn't answer; trying again")) }
-        if let version = status.version, !ClaudeCodeEngine.isSupported(version: version) {
-            return .problem(String(localized: "Claude Code \(version) is too old; update it (claude update)"))
-        }
-        if !status.signedIn { return .problem(String(localized: "Claude Code isn't signed in")) }
-        return .ready(status.plan.map { String(localized: "Claude Code signed in · \($0.capitalized) plan") }
-            ?? String(localized: "Claude Code signed in"))
     }
 
     func requestAccessibility() {
@@ -182,6 +353,127 @@ final class SetupMonitor: ObservableObject {
     }
 }
 
+/// When setup looks at the model again. A check can start a login shell and `claude auth status`, so it only runs
+/// while a setup, onboarding or Settings window is open, and less often each time it still fails: 5 s after the
+/// first failure, then 10, 20 and 40, then once a minute. Opening a window or changing the engine starts over.
+struct SetupPolling: Equatable {
+    static let firstRetry: TimeInterval = 5
+    static let longestRetry: TimeInterval = 60
+    /// A check started this recently is answer enough for a window that has just opened or the menu.
+    static let recentCheck: TimeInterval = 2
+    /// How often a taken hotkey is tried again while no setup window is open.
+    static let hotKeyRecheck: TimeInterval = 10
+
+    /// Checks in a row that found the model not ready.
+    private(set) var failures = 0
+    /// When the last check started.
+    private(set) var lastCheck = Date.distantPast
+
+    static func retryDelay(failures: Int) -> TimeInterval {
+        min(firstRetry * pow(2, Double(max(0, failures - 1))), longestRetry)
+    }
+
+    /// Whether the model is due for another check at `now`.
+    func engineDue(ready: Bool, now: Date) -> Bool {
+        !ready && now.timeIntervalSince(lastCheck) >= Self.retryDelay(failures: failures)
+    }
+
+    mutating func started(at date: Date) { lastCheck = date }
+
+    mutating func checked(ready: Bool) { failures = ready ? 0 : failures + 1 }
+
+    mutating func reset() { failures = 0 }
+}
+
+/// What setup, onboarding and Settings › Model offer for each Claude Code state: install it when it's missing,
+/// update it when it's too old, sign in when signed out, and check again when it didn't answer or couldn't start.
+enum ClaudeCodeAction: Equatable {
+    case install, update, signIn, checkAgain
+
+    init?(_ state: ClaudeCodeEngine.Status.State) {
+        switch state {
+        case .notInstalled: self = .install
+        case .tooOld: self = .update
+        case .signedOut: self = .signIn
+        case .stillLooking, .couldNotStart, .notAnswering: self = .checkAgain
+        case .ready: return nil
+        }
+    }
+
+    /// The button's title.
+    var title: String {
+        switch self {
+        case .install: String(localized: "Install Claude Code")
+        case .update: String(localized: "Update Claude Code")
+        case .signIn: String(localized: "Sign in to Claude")
+        case .checkAgain: String(localized: "Check again")
+        }
+    }
+
+    /// The line under the button: what happens, or what went wrong.
+    static func note(for state: ClaudeCodeEngine.Status.State) -> String? {
+        switch state {
+        case .notInstalled: String(localized: "Takes installs it for you from Anthropic, then Terminal opens so you can sign in.")
+        case .tooOld: String(localized: "Terminal opens and runs claude update. Then press Check again.")
+        case .signedOut: String(localized: "Terminal opens and takes you to your browser to sign in. Nothing to type.")
+        case .couldNotStart(let reason): reason
+        case .notAnswering: String(localized: "Claude Code didn't answer. Check again in a moment.")
+        case .stillLooking: String(localized: "Takes is still looking for Claude Code on this Mac.")
+        case .ready: nil
+        }
+    }
+
+    /// The badge in Settings › Model.
+    static func badge(for status: ClaudeCodeEngine.Status) -> (text: String, good: Bool) {
+        badge(for: status.state, plan: status.plan)
+    }
+
+    /// The badge for `state`; also onboarding's status pill, where the setup line would wrap.
+    static func badge(for state: ClaudeCodeEngine.Status.State, plan: String? = nil) -> (text: String, good: Bool) {
+        switch state {
+        case .notInstalled: (String(localized: "Not installed"), false)
+        case .stillLooking: (String(localized: "Still looking…"), false)
+        case .couldNotStart: (String(localized: "Couldn't start"), false)
+        case .notAnswering: (String(localized: "Didn't answer"), false)
+        case .tooOld(let version): (String(localized: "Too old (\(version))"), false)
+        case .signedOut: (String(localized: "Not signed in"), false)
+        case .ready:
+            (plan.map { String(localized: "Signed in · \($0.capitalized) plan") } ?? String(localized: "Signed in"), true)
+        }
+    }
+}
+
+extension ClaudeCodeEngine {
+    /// Opens Terminal running `claude update`, the same way `openSignIn` opens the sign-in.
+    static func openUpdate() {
+        let claude = knownClaudePath ?? ClaudeLocator.fixedPath() ?? "claude"
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("Update Claude Code.command")
+        do {
+            try updateScript(claudePath: claude).write(to: url, atomically: true, encoding: .utf8)
+            try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: url.path)
+            NSWorkspace.shared.open(url)
+        } catch {
+            NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Utilities/Terminal.app"))
+        }
+    }
+
+    /// What the update window runs: `claude update` by its full path, quoted for the shell.
+    static func updateScript(claudePath: String) -> String {
+        func quoted(_ text: String) -> String { "'" + text.replacingOccurrences(of: "'", with: "'\\''") + "'" }
+        let intro = quoted(String(localized: "Updating Claude Code for Takes. When it's done, go back to Takes and press Check again."))
+        let done = quoted(String(localized: "You can close this window now."))
+        return """
+            #!/bin/zsh
+            clear
+            echo \(intro)
+            echo
+            \(quoted(claudePath)) update
+            echo
+            echo \(done)
+            """
+    }
+}
+
 @MainActor
 final class SetupWindowController: NSObject, NSWindowDelegate {
     static let shared = SetupWindowController()
@@ -191,7 +483,8 @@ final class SetupWindowController: NSObject, NSWindowDelegate {
     func show(on screen: NSScreen? = nil) {
         let window = self.window ?? makeWindow()
         self.window = window
-        Task { await SetupMonitor.shared.refreshEngine() }
+        SetupMonitor.shared.window("setup", visible: true)
+        Task { await SetupMonitor.shared.refreshEngineUnlessRecent() }
         window.moveToActiveScreen(screen ?? ScreenChoice.active)
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
@@ -199,8 +492,12 @@ final class SetupWindowController: NSObject, NSWindowDelegate {
 
     func close() { window?.close() }
 
+    func windowWillClose(_ notification: Notification) {
+        SetupMonitor.shared.window("setup", visible: false)
+    }
+
     private func makeWindow() -> NSWindow {
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 640, height: 820),
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 640, height: 560),
                               styleMask: [.titled, .closable, .fullSizeContentView], backing: .buffered, defer: false)
         window.title = String(localized: "Set up Takes")
         window.titlebarAppearsTransparent = true
@@ -210,7 +507,10 @@ final class SetupWindowController: NSObject, NSWindowDelegate {
         window.backgroundColor = NSColor(Theme.chrome)
         window.collectionBehavior = [.fullScreenNone]
         window.delegate = self
-        window.contentView = NSHostingView(rootView: SetupView(monitor: SetupMonitor.shared, onDone: { [weak self] in self?.close() }))
+        // The window takes the checklist's height and follows it as steps open and close.
+        let hosting = NSHostingView(rootView: SetupView(monitor: SetupMonitor.shared, onDone: { [weak self] in self?.close() }))
+        window.contentView = hosting
+        window.setContentSize(hosting.fittingSize)
         window.center()
         return window
     }
@@ -223,6 +523,7 @@ struct SetupView: View {
     @State private var copied = false
     @State private var suggestions: [KeyCombo] = []
     @State private var moveError: String?
+    @State private var moving = false
     @ObservedObject var installer = ClaudeInstaller.shared
 
     var body: some View {
@@ -247,8 +548,8 @@ struct SetupView: View {
                 hotKeyStep
             }
             .padding(.horizontal, 28)
+            .padding(.bottom, 24)
 
-            Spacer(minLength: 20)
             Divider()
             HStack {
                 Button("Open Settings") {
@@ -264,7 +565,8 @@ struct SetupView: View {
             .padding(.horizontal, 28)
             .padding(.vertical, 16)
         }
-        .frame(width: 640, height: 820)
+        .frame(width: 640)
+        .fixedSize(horizontal: false, vertical: true)
         .background(Theme.chrome)
         .onExitCommand(perform: onDone)
         .tint(Theme.accent)
@@ -282,8 +584,15 @@ struct SetupView: View {
                         .buttonStyle(PrimaryButtonStyle())
                     if AppLocation.needsMove {
                         Button("Move Takes to Applications") {
-                            do { try AppLocation.moveToApplications(); moveError = nil } catch { moveError = error.localizedDescription }
+                            // One move at a time: a second would remove the copy the first is opening.
+                            guard !moving else { return }
+                            moving = true
+                            Task {
+                                do { try await AppLocation.moveToApplications(); moveError = nil } catch { moveError = error.localizedDescription }
+                                moving = false
+                            }
                         }
+                        .disabled(moving)
                     } else {
                         Button("Show Takes in Finder") {
                             NSWorkspace.shared.activateFileViewerSelecting([Bundle.main.bundleURL])
@@ -313,30 +622,22 @@ struct SetupView: View {
         }
         return SetupStep(number: 2, title: String(localized: "Connect a model"), done: done, status: status, detail: engineDetail) {
             if !done, monitor.engine != .checking {
-                if store.settings.engine == .claudeCode {
-                    let missing = monitor.engine == .problem(SetupMonitor.claudeMissing)
+                if !store.settings.engineNeedsChoice, store.settings.engine == .claudeCode, let state = monitor.claudeCode?.state,
+                   let action = installer.state.isBusy ? .install : ClaudeCodeAction(state) {
                     HStack(spacing: 8) {
-                        if missing {
-                            Button(installer.state.isBusy ? String(localized: "Installing…") : String(localized: "Install Claude Code")) {
-                                Task { if await installer.installAfterConfirming() { ClaudeCodeEngine.openSignIn() } }
-                            }
+                        Button(installer.state.isBusy ? String(localized: "Installing…") : action.title) { run(action) }
                             .buttonStyle(PrimaryButtonStyle())
                             .disabled(installer.state.isBusy)
-                        } else {
-                            Button("Sign in to Claude", action: ClaudeCodeEngine.openSignIn)
-                                .buttonStyle(PrimaryButtonStyle())
-                        }
-                        Button("Use an API key instead") {
-                            onDone()
-                            SettingsWindowController.shared.show(tab: .model)
+                        if action != .checkAgain {
+                            Button("Check again") { Task { await monitor.refreshEngine() } }
                         }
                     }
-                    Text(installer.state.progress ?? installer.state.error
-                         ?? (missing ? String(localized: "Takes installs it for you from Anthropic, then Terminal opens so you can sign in.")
-                                     : String(localized: "Terminal opens and takes you to your browser to sign in. Nothing to type.")))
-                        .font(.system(size: 12))
-                        .foregroundStyle(installer.state.error == nil ? Theme.secondaryText : Theme.avoidText)
-                        .fixedSize(horizontal: false, vertical: true)
+                    if let note = installer.state.progress ?? installer.state.error ?? ClaudeCodeAction.note(for: state) {
+                        Text(note)
+                            .font(.system(size: 12))
+                            .foregroundStyle(installer.state.error == nil && !isFailure(state) ? Theme.secondaryText : Theme.avoidText)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 } else {
                     Button(engineButton) {
                         onDone()
@@ -348,7 +649,31 @@ struct SetupView: View {
         }
     }
 
+    /// A state whose note says what went wrong rather than what happens next.
+    private func isFailure(_ state: ClaudeCodeEngine.Status.State) -> Bool {
+        if case .couldNotStart = state { return true }
+        return state == .notAnswering
+    }
+
+    private func run(_ action: ClaudeCodeAction) {
+        switch action {
+        case .install:
+            Task {
+                if await installer.installAfterConfirming() {
+                    await monitor.refreshEngine()
+                    if monitor.claudeCode?.state == .signedOut { ClaudeCodeEngine.openSignIn() }
+                }
+            }
+        case .update: ClaudeCodeEngine.openUpdate()
+        case .signIn: ClaudeCodeEngine.openSignIn()
+        case .checkAgain: Task { await monitor.refreshEngine() }
+        }
+    }
+
     private var engineDetail: String {
+        if store.settings.engineNeedsChoice {
+            return SetupMonitor.needsChoiceNote
+        }
         switch store.settings.engine {
         case .claudeCode: return String(localized: "Takes runs Claude Code on this Mac, using your Claude subscription.")
         case .apiKey: return String(localized: "Takes calls Claude with your Anthropic API key.")
@@ -359,10 +684,12 @@ struct SetupView: View {
     }
 
     private var engineButton: String {
+        if store.settings.engineNeedsChoice { return String(localized: "Open Settings") }
         switch store.settings.engine {
         case .chatGPT: return String(localized: "Sign in with ChatGPT")
         case .local: return String(localized: "Open Engine settings")
-        case .claudeCode, .apiKey, .provider: return String(localized: "Add your API key")
+        case .claudeCode: return String(localized: "Open Settings")
+        case .apiKey, .provider: return String(localized: "Add your API key")
         }
     }
 

@@ -207,11 +207,54 @@ enum Keychain {
         var add: (_ item: [String: Any]) -> OSStatus
         var delete: (_ query: [String: Any]) -> OSStatus
 
-        static let system = Items(
+        /// The login keychain, or under XCTest `memory`.
+        static var system: Items { Store.runningTests ? memory : login }
+
+        static let login = Items(
             update: { SecItemUpdate($0 as CFDictionary, $1 as CFDictionary) },
             add: { SecItemAdd($0 as CFDictionary, nil) },
             delete: { SecItemDelete($0 as CFDictionary) }
         )
+
+        /// Items kept in `Keychain.memory`, by account.
+        static let memory = Items(
+            update: { query, attributes in
+                let account = query[kSecAttrAccount as String] as? String ?? ""
+                return Keychain.memoryLock.withLock {
+                    guard Keychain.memory[account] != nil else { return errSecItemNotFound }
+                    Keychain.memory[account] = attributes[kSecValueData as String] as? Data
+                    return errSecSuccess
+                }
+            },
+            add: { item in
+                let account = item[kSecAttrAccount as String] as? String ?? ""
+                return Keychain.memoryLock.withLock {
+                    Keychain.memory[account] = item[kSecValueData as String] as? Data
+                    return errSecSuccess
+                }
+            },
+            delete: { query in
+                let account = query[kSecAttrAccount as String] as? String ?? ""
+                return Keychain.memoryLock.withLock { Keychain.memory.removeValue(forKey: account) == nil ? errSecItemNotFound : errSecSuccess }
+            }
+        )
+    }
+
+    /// Under XCTest the keychain is this dictionary, as the store's folder is a temporary one: no test reads or writes
+    /// the user's items, and none depends on what they hold.
+    nonisolated(unsafe) static var memory: [String: Data] = [:]
+    static let memoryLock = NSLock()
+
+    /// The item for `account` in the login keychain, or under XCTest in `memory`; nil in snapshots.
+    static func data(account: String) -> Data? {
+        // Snapshots never read the keychain: a rebuilt app would stop at macOS's access prompt.
+        guard !Store.readOnly else { return nil }
+        if Store.runningTests { return memoryLock.withLock { memory[account] } }
+        var item: CFTypeRef?
+        let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
+                                    kSecAttrAccount as String: account, kSecReturnData as String: true]
+        guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess else { return nil }
+        return item as? Data
     }
 
     static var apiKey: String? { string(account: anthropicAccount) }
@@ -221,13 +264,7 @@ enum Keychain {
     static func setAPIKey(_ key: String?) -> Bool { set(key, account: anthropicAccount) }
 
     static func string(account: String) -> String? {
-        // Snapshots never read the keychain: a rebuilt app would stop at macOS's access prompt.
-        guard !Store.readOnly else { return nil }
-        var item: CFTypeRef?
-        let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
-                                    kSecAttrAccount as String: account, kSecReturnData as String: true]
-        guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess, let data = item as? Data else { return nil }
-        return String(data: data, encoding: .utf8)
+        data(account: account).flatMap { String(data: $0, encoding: .utf8) }
     }
 
     /// Replaces the item; nil or empty removes it. True when the keychain did it (removing a missing item counts).

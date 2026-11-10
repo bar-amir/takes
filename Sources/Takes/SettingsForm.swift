@@ -114,16 +114,19 @@ struct FormGroup<Content: View>: View {
 struct FormRow<Control: View>: View {
     let label: String
     var detail: String?
+    /// `.top` for a tall control, so the label sits beside its top rather than floating in the middle.
+    var alignment: VerticalAlignment = .center
     @ViewBuilder var control: Control
 
-    init(_ label: String, detail: String? = nil, @ViewBuilder control: () -> Control) {
+    init(_ label: String, detail: String? = nil, alignment: VerticalAlignment = .center, @ViewBuilder control: () -> Control) {
         self.label = label
         self.detail = detail
+        self.alignment = alignment
         self.control = control()
     }
 
     var body: some View {
-        HStack(alignment: .center, spacing: 16) {
+        HStack(alignment: alignment, spacing: 16) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(label).font(.system(size: 13)).foregroundStyle(Theme.text)
                 if let detail {

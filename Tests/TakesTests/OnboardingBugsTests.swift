@@ -55,6 +55,9 @@ final class OnboardingBugsTests: XCTestCase {
                        .ready("Claude Code signed in · Max plan"))
         // No version known (the CLI didn't say): the sign-in decides.
         XCTAssertEqual(SetupMonitor.claudeCodeStatus(S(found: true, signedIn: true)), .ready("Claude Code signed in"))
+        // Found but couldn't be started: said so, not "didn't answer" or "not signed in".
+        XCTAssertEqual(SetupMonitor.claudeCodeStatus(S(found: true, timedOut: true, launchError: "Takes couldn't start Claude Code: denied")),
+                       .problem("Claude Code couldn't start"))
     }
 
     // MARK: The sign-in command
@@ -78,7 +81,7 @@ final class OnboardingBugsTests: XCTestCase {
 
     @MainActor
     func testTakenHotkeyOffersFreeOnes() {
-        let model = OnboardingModel(progress: OnboardingProgress(step: .personalize, history: [.accessibility, .engine], openingSeen: true),
+        let model = OnboardingModel(progress: OnboardingProgress(step: .practice, history: [.accessibility, .engine], openingSeen: true),
                                     conditions: OnboardingConditions(accessibility: true, engineReady: true, privacyAccepted: true, hotKeyFree: false))
         model.hotKeyOwner = "macOS: Select next source in Input menu"
         model.hotKeySuggestions = Array(HotKeyChoice.candidates.prefix(2))

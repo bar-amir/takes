@@ -51,7 +51,7 @@ struct InstantToast: View {
     // The paste toast's own colors (`ToastView`); the failure mark is Theme.avoidText's dark value.
     private static let fill = Color(hex: "#24242B")
     private static let success = Color(hex: "#7FD4A8")
-    private static let failure = Color(hex: "#F2A196")
+    static let failure = Color(hex: "#F2A196")
     private static let dim = Color.white.opacity(0.75)
 
     var body: some View {

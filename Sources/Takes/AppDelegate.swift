@@ -155,10 +155,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             OnboardingWindowController.shared.hotKeyPressed()
             return
         }
-        if !monitor.accessibility || !monitor.privacyAccepted || { if case .problem = monitor.engine { return true }; return false }() {
+        // Nothing polls while no setup window is open, so Accessibility (a cheap call) is read again now. The model
+        // isn't: a press never waits on a check. Setup opens at once, checks, and shows the answer.
+        monitor.refreshAccessibility()
+        switch SetupMonitor.summonRoute(accessibility: monitor.accessibility, privacyAccepted: monitor.privacyAccepted,
+                                        needsChoice: Store.shared.settings.engineNeedsChoice, engine: monitor.engine) {
+        case .setup:
             // Next to what you were typing in, not where the pointer happens to be.
             openSetup(on: ScreenChoice.focused)
             return
+        case .pickModel:
+            // Settings from a newer version name an engine this one doesn't know: nothing runs until one is picked.
+            SettingsWindowController.shared.show(tab: .model)
+            return
+        case .panel:
+            break
         }
         // Pressed again while the panel is open on this text box: it keeps its draft and takes instead of starting
         // over. A press from another app or another text box goes on to a fresh summon.
@@ -270,7 +281,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         modelItem.title = Self.modelStatus(settings)
     }
 
-    func menuNeedsUpdate(_ menu: NSMenu) { updateStatusRows() }
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        updateStatusRows()
+        // Nothing polls while no setup window is open; opening the menu is a moment to look.
+        SetupMonitor.shared.checkOnce()
+    }
 
     /// Lessons the coach has put together that haven't been opened yet.
     private static func lessonsReady() -> Int {
@@ -288,6 +303,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     static func modelStatus(_ settings: AppSettings) -> String {
+        // Saved by a newer version: it reads as Claude Code, but nothing runs until a model is picked.
+        if settings.engineNeedsChoice { return SetupMonitor.pickAModel }
         let engine: String, model: String
         switch settings.engine {
         case .claudeCode: engine = "Claude Code"; model = Models.label(settings.defaultModel)

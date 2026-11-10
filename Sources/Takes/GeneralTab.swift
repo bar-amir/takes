@@ -32,8 +32,12 @@ struct GeneralTab: View {
                         .onChange(of: monitor.takenHotKeys) { _, _ in refreshSuggestions() }
                 }
                 FormDivider()
-                FormRow(String(localized: "Open the panel"), detail: String(localized: "Wherever it opens, it moves aside rather than cover the text box.")) {
+                FormRow(String(localized: "Open the panel"),
+                        detail: String(localized: "Wherever it opens, it moves aside rather than cover the text box."), alignment: .top) {
                     PanelPositionPicker(selection: $store.settings.panelPosition)
+                        .accessibilityElement(children: .contain)
+                        .accessibilityLabel("Open the panel")
+                        .accessibilityValue(store.settings.panelPosition.label)
                 }
                 FormDivider()
                 FormRow(String(localized: "Start with")) {

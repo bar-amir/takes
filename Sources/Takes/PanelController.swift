@@ -330,7 +330,8 @@ final class PanelController {
         guard case .paste(let replaceAll) = Self.pasteAction(for: focus) else {
             // ⌘V would change nothing there, so no keys are sent and the toast doesn't claim a paste.
             putOnClipboard(text)
-            toast.show(message: Self.notPastedMessage(.readOnly, app: app, number: number), showUndo: false, near: caretRect, onSaveExample: nil)
+            toast.show(message: Self.notPastedMessage(.readOnly, app: app, number: number), showUndo: false, near: caretRect,
+                       notDone: true, onSaveExample: nil)
             return
         }
         // If the panel is opened again while the paste waits (for a held key, for the app), the keys would go to
@@ -345,7 +346,7 @@ final class PanelController {
                 // text box the draft was read from (another chat, say) or without the text that was read.
                 let reason: NotPasted = outcome == .fieldChanged ? .fieldChanged : .couldNotReturn
                 let message = Self.notPastedMessage(reason, app: app, number: number)
-                self.toast.show(message: message, showUndo: false, near: self.caretRect, onSaveExample: nil)
+                self.toast.show(message: message, showUndo: false, near: self.caretRect, notDone: true, onSaveExample: nil)
                 return
             }
             self.toast.show(message: restore ? String(localized: "Pasted take \(number) · your clipboard is back")

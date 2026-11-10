@@ -54,22 +54,45 @@ final class HotKeyCenter {
         return failed
     }
 
-    /// Lets go of every hotkey without forgetting it, so the shortcut recorder can see a press that is one of
-    /// Takes's own hotkeys instead of Takes acting on it. `resume` puts them back.
-    func suspend() {
-        guard !suspended else { return }
-        suspended = true
-        refs.forEach { UnregisterEventHotKey($0) }
-        refs = []
-        handlers = [:]
+    /// How many `suspend` calls haven't ended yet.
+    private(set) var suspensions = 0
+
+    /// One `suspend`. The hotkeys come back when every suspension has ended, by `end()` or by being let go, so a
+    /// recorder that goes away without saying so (its window closed) can't leave Takes without hotkeys.
+    final class Suspension {
+        private weak var center: HotKeyCenter?
+        private(set) var ended = false
+
+        fileprivate init(center: HotKeyCenter) { self.center = center }
+
+        func end() {
+            guard !ended else { return }
+            ended = true
+            center?.endSuspension()
+        }
+
+        deinit { end() }
     }
 
-    /// The hotkeys given to the last `replaceAll`, registered again. Returns the combos macOS refused.
-    @discardableResult
-    func resume() -> [KeyCombo] {
-        guard suspended else { return [] }
+    /// Lets go of every hotkey without forgetting it, so the shortcut recorder can see a press that is one of
+    /// Takes's own hotkeys instead of Takes acting on it. Ending (or dropping) the suspension puts them back.
+    func suspend() -> Suspension {
+        suspensions += 1
+        if !suspended {
+            suspended = true
+            refs.forEach { UnregisterEventHotKey($0) }
+            refs = []
+            handlers = [:]
+        }
+        return Suspension(center: self)
+    }
+
+    /// The hotkeys given to the last `replaceAll`, registered again once no suspension is left.
+    fileprivate func endSuspension() {
+        suspensions = max(0, suspensions - 1)
+        guard suspensions == 0, suspended else { return }
         suspended = false
-        return replaceAll(with: bindings)
+        replaceAll(with: bindings)
     }
 
     /// Holds `combo` until `unregisterTransient`. Returns nil when macOS refuses it.

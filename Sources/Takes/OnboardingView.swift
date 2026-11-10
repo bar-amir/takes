@@ -47,7 +47,6 @@ struct OnboardingView: View {
         switch model.step {
         case .accessibility: AccessibilityStep(model: model)
         case .engine: EngineStep(model: model)
-        case .personalize: PersonalizeStep(model: model)
         case .practice: PracticeStep(model: model)
         case .done: DoneStep(model: model)
         }
@@ -71,8 +70,8 @@ struct OnboardingView: View {
                     .accessibilityHint("Skips this step. You can change it later in Settings.")
             }
             Spacer()
-            if model.step != .done {
-                Text("Step \(model.flow.index + 1) of \(model.flow.steps.count)")
+            if let numbered = model.flow.numbered {
+                Text("Step \(numbered.index) of \(numbered.count)")
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.tertiaryText)
                     .padding(.trailing, Spacing.item)
@@ -118,7 +117,7 @@ struct OnboardingStepList: View {
             .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 4) {
-                ForEach(Array(model.flow.steps.enumerated()), id: \.element) { index, step in
+                ForEach(Array(OnboardingStep.numbered.enumerated()), id: \.element) { index, step in
                     row(step, number: index + 1)
                 }
             }
@@ -279,15 +278,18 @@ private struct AccessibilityStep: View {
             if !allowed {
                 if model.needsMove {
                     MoveToApplicationsNote(model: model).padding(.top, Spacing.inner)
-                } else {
+                } else if model.accessibilityHelp {
                     HStack(spacing: Spacing.item) {
                         Button("Show Takes in Finder") { NSWorkspace.shared.activateFileViewerSelecting([Bundle.main.bundleURL]) }
                             .buttonStyle(SecondaryButtonStyle())
                     }
                     .padding(.top, Spacing.inner)
                 }
-                StepNote(String(localized: "Takes already listed and switched on? Select it, remove it with –, and add it again. macOS keeps access tied to the previous version after an update."))
-                    .padding(.top, Spacing.inner)
+                // Only once a check has failed: before that it's in the way of the one thing to do.
+                if model.accessibilityHelp {
+                    StepNote(String(localized: "Takes already listed and switched on? Select it, remove it with –, and add it again. macOS keeps access tied to the previous version after an update."))
+                        .padding(.top, Spacing.inner)
+                }
             }
         }
     }
@@ -303,6 +305,7 @@ struct MoveToApplicationsNote: View {
             HStack(spacing: Spacing.item) {
                 Button("Move Takes to Applications", action: model.moveToApplications)
                     .buttonStyle(PrimaryButtonStyle(height: 32))
+                    .disabled(model.moving)
                     .accessibilityHint("Copies Takes to the Applications folder and opens it from there")
                 Text(String(localized: "Takes is running from \(AppLocation.whereItRuns). Move it first, so the access you allow stays with it."))
                     .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
@@ -342,8 +345,8 @@ struct HotKeySuggestionChips: View {
     }
 }
 
-/// Connect a model: the option that already works on this Mac first, the others one click away, and where the
-/// text goes with the picked one. Its button says "Understood, …", so going on is the consent.
+/// Connect a model: every way to connect, offered as equals, and where the text goes with the one picked. A
+/// sentence above the button says that going on is the consent; the button says what it does.
 private struct EngineStep: View {
     @ObservedObject var model: OnboardingModel
     @ObservedObject var store = Store.shared
@@ -351,58 +354,33 @@ private struct EngineStep: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             StepHeader(title: String(localized: "Connect a model"), subtitle: String(localized: "Takes writes with a model under your own account, or with one on this Mac."))
-            // Collapsed, everything fits and the privacy lines sit right under the option; opened, the options
-            // scroll and the privacy lines stay in view at the bottom.
-            if expanded {
-                ScrollView { options.padding(2) }.scrollIndicators(.visible).frame(maxHeight: .infinity)
-                privacy.padding(.top, Spacing.inner)
-            } else {
+            // Every option shows when they fit; when an open one makes them too tall, they scroll, with a visible
+            // scroller and a fade at the bottom edge, and where the text goes stays in view below.
+            ViewThatFits(in: .vertical) {
                 options.padding(2)
-                privacy.padding(.top, Spacing.section)
-                Spacer(minLength: 0)
+                ScrollView {
+                    options.padding(2).padding(.bottom, 24)
+                }
+                .scrollIndicators(.visible)
+                .overlay(alignment: .bottom) {
+                    LinearGradient(colors: [Theme.surface.opacity(0), Theme.surface], startPoint: .top, endPoint: .bottom)
+                        .frame(height: 28)
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+                }
             }
+            .layoutPriority(1)
+            if model.engineChosen {
+                privacy.padding(.top, Spacing.inner)
+            }
+            Spacer(minLength: 0)
         }
     }
 
-    private var expanded: Bool { model.showOtherEngines || model.engineKind != model.engineOrder[0] }
-
     private var options: some View {
-                VStack(alignment: .leading, spacing: Spacing.inner) {
-                    let order = model.engineOrder
-                    option(order[0])
-                    Button {
-                        withAnimation(Motion.animation()) { model.showOtherEngines.toggle() }
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text(model.showOtherEngines ? "Other ways to connect" : "Other ways to connect: \(otherSummary(order.dropFirst()))")
-                                .lineLimit(1)
-                            Image(systemName: "chevron.forward")
-                                .font(.system(size: 10, weight: .semibold))
-                                .rotationEffect(.degrees(model.showOtherEngines ? 90 : 0))
-                        }
-                        .font(.system(size: 13))
-                        .foregroundStyle(Theme.secondaryText)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Other ways to connect")
-                    .accessibilityValue(model.showOtherEngines ? "shown" : "hidden")
-                    if expanded {
-                        ForEach(Array(order.dropFirst()), id: \.self) { option($0) }
-                    }
-                }
-    }
-
-    private func otherSummary(_ kinds: ArraySlice<EngineKind>) -> String {
-        kinds.map { kind -> String in
-            switch kind {
-            case .claudeCode: return String(localized: "Claude plan")
-            case .apiKey: return String(localized: "API key")
-            case .chatGPT: return "ChatGPT"
-            case .provider: return String(localized: "other provider")
-            case .local: return String(localized: "local model")
-            }
-        }.joined(separator: ", ")
+        VStack(alignment: .leading, spacing: 6) {
+            ForEach(Onboarding.engineOrder, id: \.self) { option($0) }
+        }
     }
 
     /// The settings with the engine picked here.
@@ -430,6 +408,12 @@ private struct EngineStep: View {
             .font(.system(size: 12))
             .foregroundStyle(Theme.secondaryText)
             .lineLimit(1)
+            if model.needsConsent {
+                Text("By continuing, you agree to this.")
+                    .font(.system(size: 12.5, weight: .semibold))
+                    .foregroundStyle(Theme.text)
+                    .padding(.top, 4)
+            }
         }
         .padding(.top, Spacing.inner)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -450,6 +434,10 @@ private struct EngineStep: View {
 
     private var statusText: String {
         if model.engineKind == .claudeCode, model.installer.state.isBusy { return String(localized: "Installing Claude Code") }
+        // Claude Code's problems in a word or two ("Too old (2.0.24)"); the card says what to do.
+        if model.engineKind == .claudeCode, case .problem = model.engineStatus, let state = model.claudeState, state != .ready {
+            return ClaudeCodeAction.badge(for: state).text
+        }
         switch model.engineStatus {
         case .checking: return String(localized: "Checking…")
         case .ready(let text), .problem(let text): return text
@@ -468,7 +456,7 @@ private struct EngineStep: View {
 
     private func detail(_ kind: EngineKind) -> String {
         switch kind {
-        case .claudeCode: return model.claudeInstalled
+        case .claudeCode: return model.claudeInstalled && model.claudeAction == .signIn
             ? String(localized: "Claude Code is installed. Sign in once in Terminal, and Takes notices on its own. Counts toward your plan's limits.")
             : String(localized: "Through Claude Code on this Mac. Counts toward your plan's usage limits.")
         case .apiKey: return String(localized: "Pay per use, billed by Anthropic. Usually a cent or two per run; Takes doesn't cap your spending.")
@@ -480,42 +468,48 @@ private struct EngineStep: View {
 
     /// "Found on this Mac" for an option that's already there.
     private func found(_ kind: EngineKind) -> Bool {
-        (kind == .claudeCode && model.claudeInstalled) || (kind == .local && model.localRunning)
+        model.setUpEngines.contains(kind) || (kind == .claudeCode && model.claudeInstalled) || (kind == .local && model.localRunning)
     }
 
     private func option(_ kind: EngineKind) -> some View {
-        let selected = model.engineKind == kind
-        return Button { model.engineKind = kind } label: {
-            HStack(alignment: .top, spacing: Spacing.inner) {
-                Circle()
-                    .stroke(selected ? Theme.accent : Theme.controlBorder, lineWidth: selected ? 5 : 1.5)
-                    .frame(width: 16, height: 16)
-                    .padding(.top, 2)
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: Spacing.item) {
-                        Text(title(kind)).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.text).lineLimit(1)
-                        if selected {
-                            StatusPill(text: statusText, good: model.engineStatus.isReady,
-                                       waiting: model.engineStatus == .checking || (kind == .claudeCode && model.installer.state.isBusy))
-                        } else if found(kind) {
-                            StatusPill(text: String(localized: "Found on this Mac"), good: true)
-                        }
+        let selected = model.isChosen(kind)
+        return VStack(alignment: .leading, spacing: 6) {
+            Button {
+                withAnimation(Motion.animation()) { model.choose(kind) }
+            } label: {
+                HStack(spacing: Spacing.inner) {
+                    Circle()
+                        .stroke(selected ? Theme.accent : Theme.controlBorder, lineWidth: selected ? 5 : 1.5)
+                        .frame(width: 16, height: 16)
+                    Text(title(kind)).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.text).lineLimit(1)
+                    // The status line is the saved engine's; a highlighted option that isn't saved yet has none.
+                    if selected, model.pickedIsSaved {
+                        let installing = kind == .claudeCode && model.installer.state.isBusy
+                        StatusPill(text: statusText, good: model.engineStatus.isReady, waiting: model.engineStatus == .checking || installing)
+                    } else if found(kind) {
+                        StatusPill(text: String(localized: "Found on this Mac"), good: true)
                     }
-                    if selected || kind == model.engineOrder.first {
-                        Text(detail(kind)).font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    if selected { more(kind) }
+                    Spacer(minLength: 0)
                 }
-                Spacer(minLength: 0)
+                .contentShape(Rectangle())
             }
-            .padding(selected ? Spacing.section : Spacing.inner)
-            .background(RoundedRectangle(cornerRadius: 12).fill(selected ? Theme.accentSoft.opacity(0.5) : Theme.surface))
-            .overlay(RoundedRectangle(cornerRadius: 12).stroke(selected ? Theme.accent : Theme.border, lineWidth: selected ? 1.5 : 1))
-            .contentShape(Rectangle())
+            .buttonStyle(.plain)
+            .accessibilityAddTraits(selected ? .isSelected : [])
+            if selected {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(detail(kind)).font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+                    more(kind)
+                }
+                .padding(.leading, 16 + Spacing.inner)
+            }
         }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(selected ? .isSelected : [])
+        .padding(.horizontal, selected ? Spacing.section : Spacing.inner)
+        .padding(.vertical, selected ? Spacing.inner : 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 12).fill(selected ? Theme.accentSoft.opacity(0.5) : Theme.surface))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(selected ? Theme.accent : Theme.border, lineWidth: selected ? 1.5 : 1))
+        .accessibilityElement(children: .contain)
     }
 
     @ViewBuilder private func more(_ kind: EngineKind) -> some View {
@@ -528,9 +522,12 @@ private struct EngineStep: View {
         }
     }
 
+    /// The saved engine's check is under way for the highlighted option.
+    private var checking: Bool { model.pickedIsSaved && model.engineStatus == .checking }
+
     @ViewBuilder private var claudeCodeDetail: some View {
         let install = model.installer.state
-        if !ready, model.engineStatus != .checking {
+        if !ready, !checking, !(model.claudeState == .ready && !model.pickedIsSaved) {
             VStack(alignment: .leading, spacing: 6) {
                 if let progress = install.progress {
                     HStack(spacing: Spacing.item) {
@@ -538,21 +535,35 @@ private struct EngineStep: View {
                         Text(progress).font(.system(size: 12, weight: .medium)).foregroundStyle(Theme.text)
                     }
                     StepNote(String(localized: "This takes about a minute. Then Terminal opens so you can sign in."))
-                } else if model.claudeMissing {
-                    if let error = install.error {
-                        Text(error).font(.system(size: 12)).foregroundStyle(Theme.avoidText)
-                            .fixedSize(horizontal: false, vertical: true)
-                        Button("Install it yourself") { NSWorkspace.shared.open(ClaudeInstaller.manualURL) }
-                            .buttonStyle(SecondaryButtonStyle(height: 28))
-                    } else {
-                        StepNote(String(localized: "Takes installs it for you from Anthropic, then you sign in once. No password, nothing to type."))
-                    }
-                } else if model.signInOpened {
-                    StepNote(String(localized: "Finish signing in in the browser. This page moves on by itself."))
-                    Button("Open Terminal again", action: model.openSignIn)
-                        .buttonStyle(SecondaryButtonStyle(height: 28))
                 } else {
-                    StepNote(String(localized: "Terminal opens and takes you to your browser to sign in. Nothing to type."))
+                    switch model.claudeAction {
+                    case .install:
+                        if let error = install.error {
+                            Text(error).font(.system(size: 12)).foregroundStyle(Theme.avoidText)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Button("Install it yourself") { NSWorkspace.shared.open(ClaudeInstaller.manualURL) }
+                                .buttonStyle(SecondaryButtonStyle(height: 28))
+                        } else {
+                            StepNote(String(localized: "Takes installs it for you from Anthropic, then you sign in once. No password, nothing to type."))
+                        }
+                    case .signIn:
+                        if model.signInOpened {
+                            StepNote(String(localized: "Finish signing in in the browser. This page moves on by itself."))
+                            Button("Open Terminal again", action: model.openSignIn)
+                                .buttonStyle(SecondaryButtonStyle(height: 28))
+                        } else {
+                            StepNote(String(localized: "Terminal opens and takes you to your browser to sign in. Nothing to type."))
+                        }
+                    case .update:
+                        StepNote(ClaudeCodeAction.note(for: model.claudeState ?? .tooOld("")) ?? "")
+                        Button("Check again") { model.runClaude(.checkAgain) }
+                            .buttonStyle(SecondaryButtonStyle(height: 28))
+                    case .checkAgain:
+                        if let state = model.claudeState, let note = ClaudeCodeAction.note(for: state) {
+                            Text(note).font(.system(size: 12)).foregroundStyle(state == .stillLooking ? Theme.secondaryText : Theme.avoidText)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
                 }
             }
             .padding(.top, 4)
@@ -560,9 +571,10 @@ private struct EngineStep: View {
     }
 
     @ViewBuilder private var localDetail: some View {
-        if !ready, model.engineStatus != .checking {
+        if !ready, !checking, model.pickedIsSaved || !model.localRunning {
             VStack(alignment: .leading, spacing: 6) {
-                if case .problem(let text) = model.engineStatus, text == String(localized: "\(LocalServerKind.displayName(Store.shared.settings.localBaseURL)) isn't running") {
+                if !model.pickedIsSaved
+                    || model.engineStatus == .problem(String(localized: "\(LocalServerKind.displayName(Store.shared.settings.localBaseURL)) isn't running")) {
                     StepNote(String(localized: "Open Ollama or LM Studio, then press Check again. Takes doesn't download or install anything."))
                     Button("Get Ollama") { NSWorkspace.shared.open(URL(string: "https://ollama.com")!) }
                         .buttonStyle(SecondaryButtonStyle(height: 28))
@@ -580,97 +592,14 @@ private struct EngineStep: View {
                             onSubmit: model.primary)
                 .padding(.top, 4)
                 .accessibilityLabel("Anthropic API key")
-            StepNote(String(localized: "Saved in your keychain. Create one at console.anthropic.com."))
+                .disabled(model.checkingKey)
+            if let note = model.apiKeySave?.note {
+                Text(note.text).font(.system(size: 12)).foregroundStyle(note.problem ? Theme.avoidText : Theme.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                StepNote(String(localized: "Saved in your keychain. Create one at console.anthropic.com."))
+            }
         }
-    }
-}
-
-/// Make it yours: the hotkey on top, then the languages and the presets to start with.
-private struct PersonalizeStep: View {
-    @ObservedObject var model: OnboardingModel
-
-    var body: some View {
-        let free = model.hotKeyOwner == nil
-        VStack(alignment: .leading, spacing: 0) {
-            StepHeader(title: String(localized: "Make it yours"), subtitle: String(localized: "Your hotkey, and the presets you start with. All of it can change later in Settings."))
-            VStack(alignment: .leading, spacing: Spacing.item) {
-                HStack(spacing: Spacing.section) {
-                    BigKeys(combo: model.hotKey, size: 34)
-                    StatusPill(text: free ? String(localized: "Free to use") : String(localized: "Taken", comment: "The hotkey is already used by something else"), good: free)
-                    Spacer(minLength: 0)
-                    Text("Change:").font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
-                    HotKeyRecorder(combo: Binding(get: { model.hotKey }, set: { combo in
-                        guard let combo else { return }
-                        Store.shared.settings.summonHotKey = combo
-                    }), allowClear: false)
-                    .fixedSize()
-                    .accessibilityLabel("Change hotkey")
-                }
-                Text(free ? "Press it in any text box to open Takes. Nothing else on this Mac uses it."
-                          : "Also used by \(model.hotKeyOwner ?? String(localized: "another app")). Pick another, or turn that one off in System Settings › Keyboard.")
-                    .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
-                if !free { HotKeySuggestionChips(suggestions: model.hotKeySuggestions, pick: model.pickHotKey) }
-            }
-            .padding(Spacing.inner)
-            .background(RoundedRectangle(cornerRadius: 12).fill(Theme.surface))
-            .overlay(RoundedRectangle(cornerRadius: 12).stroke(free ? Theme.border : Theme.accent.opacity(0.5)))
-
-            HStack(alignment: .firstTextBaseline, spacing: Spacing.inner) {
-                Text("You write in").font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.secondaryText).fixedSize()
-                LanguageChips(languages: $model.languages)
-            }
-            .padding(.top, Spacing.section)
-            .padding(.bottom, Spacing.inner)
-            .accessibilityElement(children: .contain)
-            .accessibilityLabel("Languages you write in")
-            ScrollView {
-                LazyVGrid(columns: [GridItem(.flexible(), spacing: 10, alignment: .top), GridItem(.flexible(), spacing: 10, alignment: .top)], spacing: 10) {
-                    ForEach(model.starters, id: \.name) { preset in card(preset) }
-                }
-                .padding(1)
-            }
-            HStack {
-                if model.chosenPresets.isEmpty { StepNote(String(localized: "Keep at least one to continue.")) }
-                Spacer()
-                Button("Browse the preset gallery…") { SettingsWindowController.shared.show(tab: .presets, gallery: true) }
-                    .buttonStyle(.link)
-                    .font(.system(size: 12))
-            }
-            .padding(.top, Spacing.item)
-        }
-    }
-
-    private func card(_ preset: Preset) -> some View {
-        let on = model.chosenPresets.contains(preset.name)
-        return Button { model.togglePreset(preset.name) } label: {
-            HStack(alignment: .top, spacing: 10) {
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(on ? Theme.accent : Theme.surface)
-                    .frame(width: 16, height: 16)
-                    .overlay(RoundedRectangle(cornerRadius: 4).stroke(on ? Theme.accent : Theme.dashed))
-                    .overlay(Image(systemName: "checkmark").font(.system(size: 10, weight: .bold)).foregroundStyle(Theme.onAccent).opacity(on ? 1 : 0))
-                    .padding(.top, 1)
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 6) {
-                        PresetDot(hex: preset.colorHex)
-                        Text(preset.name).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.text).lineLimit(1)
-                    }
-                    Text(PresetGallery.blurb(for: preset).isEmpty ? preset.instruction : PresetGallery.blurb(for: preset))
-                        .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(Spacing.inner)
-            .frame(maxWidth: .infinity, minHeight: 66, alignment: .topLeading)
-            .background(RoundedRectangle(cornerRadius: 10).fill(on ? Theme.accentSoft.opacity(0.5) : Theme.surface))
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(on ? Theme.accent.opacity(0.6) : Theme.border))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(preset.name)
-        .accessibilityValue(on ? "kept" : "not kept")
-        .accessibilityHint(preset.instruction)
     }
 }
 
@@ -701,8 +630,8 @@ private struct PracticeStep: View {
             .font(.system(size: 13))
             .foregroundStyle(Theme.text)
             .padding(.top, Spacing.section)
-            if stage == .write && model.hotKeyOwner != nil {
-                StepNote(String(localized: "Your hotkey is taken right now, so use Open Takes below.")).padding(.top, Spacing.inner)
+            if stage == .write {
+                PracticeHotKey(model: model).padding(.top, Spacing.section)
             }
             if stage == .panelOpen {
                 StepNote(String(localized: "Takes is open beside this window. Esc in Takes comes back here.")).padding(.top, Spacing.inner)
@@ -717,6 +646,38 @@ private struct PracticeStep: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityValue(done ? "done" : current ? "now" : "")
+    }
+}
+
+/// The hotkey, where it's first used: a recorder that shows it and changes it, and whether it's free. (The keycaps
+/// are in the first line above.) When something else has it, the free ones are offered and Open Takes still works.
+private struct PracticeHotKey: View {
+    @ObservedObject var model: OnboardingModel
+
+    var body: some View {
+        let free = model.hotKeyOwner == nil
+        VStack(alignment: .leading, spacing: Spacing.item) {
+            // Each piece keeps its own width, so a long combo (⌃⌥⇧⌘Space) never wraps inside a key.
+            HStack(spacing: Spacing.inner) {
+                Text("Your hotkey").font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.secondaryText).fixedSize()
+                HotKeyRecorder(combo: Binding(get: { model.hotKey }, set: { combo in
+                    guard let combo else { return }
+                    Store.shared.settings.summonHotKey = combo
+                }), allowClear: false, height: 28)
+                .fixedSize()
+                .accessibilityLabel("Change hotkey")
+                StatusPill(text: free ? String(localized: "Free to use")
+                                      : String(localized: "Taken", comment: "The hotkey is already used by something else"),
+                           good: free)
+                    .fixedSize()
+                Spacer(minLength: 0)
+            }
+            if !free {
+                StepNote(String(localized: "Also used by \(model.hotKeyOwner ?? String(localized: "another app")). Pick another, or turn that one off in System Settings › Keyboard."))
+                HotKeySuggestionChips(suggestions: model.hotKeySuggestions, pick: model.pickHotKey)
+            }
+        }
+        .accessibilityElement(children: .contain)
     }
 }
 
@@ -766,13 +727,14 @@ private struct PracticeBox: NSViewRepresentable {
     }
 }
 
+/// The closing screen: the one thing to remember, the hotkey, and whether Takes opens at login.
 private struct DoneStep: View {
     @ObservedObject var model: OnboardingModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             StepHeader(title: String(localized: "You're set"), subtitle: String(localized: "Press \(model.hotKey.inline) in any text box to start."))
-            MenuBarHint()
+            BigKeys(combo: model.hotKey)
             HStack(alignment: .firstTextBaseline, spacing: Spacing.inner) {
                 Checkbox(isOn: $model.launchAtLogin, label: String(localized: "Open Takes when I log in"))
                 VStack(alignment: .leading, spacing: 2) {
@@ -782,75 +744,8 @@ private struct DoneStep: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            .padding(.top, Spacing.section)
+            .padding(.top, 28)
             .accessibilityElement(children: .contain)
-            VStack(alignment: .leading, spacing: Spacing.inner) {
-                InfoRow(icon: "menubar.arrow.up.rectangle", text: String(localized: "Takes lives in the menu bar. Click its icon for presets, the coach and settings."))
-                InfoRow(icon: "slider.horizontal.3", text: String(localized: "Make a preset your own in Settings › Presets: its rules, examples of how you write, and a hotkey of its own."))
-                InfoRow(icon: "mic", text: Self.dictationText(Dictation.permissionState))
-                if !model.coachEnabled {
-                    InfoRow(icon: "graduationcap", text: String(localized: "English Coach is off. Takes offers it later, when it spots a mistake you repeat."))
-                }
-                if !model.flow.progress.skipped.isEmpty {
-                    InfoRow(icon: "arrow.uturn.backward", text: String(localized: "Skipped something? It's all in Settings, any time."))
-                }
-            }
-            .padding(.top, Spacing.section)
         }
     }
-}
-
-extension DoneStep {
-    /// Dictation is opt-in: one line here, and macOS asks the first time ⌘D is pressed.
-    static func dictationText(_ state: Dictation.PermissionState) -> String {
-        switch state {
-        case .allowed: return String(localized: "Press ⌘D in the panel to speak a draft. It's turned into text on this Mac.")
-        case .notAsked: return String(localized: "Press ⌘D in the panel to speak a draft. macOS asks for the microphone the first time.")
-        case .denied: return String(localized: "To speak drafts with ⌘D, allow Takes under Microphone and Speech Recognition in System Settings › Privacy & Security.")
-        }
-    }
-}
-
-/// A sketch of the menu bar's right side with the Takes icon picked out.
-private struct MenuBarHint: View {
-    var body: some View {
-        VStack(alignment: .takesIcon, spacing: 6) {
-            HStack(spacing: 16) {
-                Spacer()
-                ZStack {
-                    Circle().fill(Theme.accentSoft).frame(width: 30, height: 30)
-                    Circle().stroke(Theme.accent, lineWidth: 1.5).frame(width: 30, height: 30)
-                    BrandMarkShape(small: true).fill(Theme.accent).frame(width: 16, height: 16)
-                }
-                .alignmentGuide(.takesIcon) { $0[HorizontalAlignment.center] }
-                Image(systemName: "wifi")
-                Image(systemName: "battery.75percent")
-                Image(systemName: "switch.2")
-                Text("Mon 9:41").font(.system(size: 13, weight: .medium))
-            }
-            .font(.system(size: 14))
-            .foregroundStyle(Theme.controlText)
-            .padding(.horizontal, Spacing.section)
-            .frame(height: 40)
-            .background(RoundedRectangle(cornerRadius: 10).fill(Theme.chrome))
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.border))
-            VStack(spacing: 4) {
-                Image(systemName: "arrow.up").font(.system(size: 12, weight: .semibold))
-                Text("Takes is here, at the top of your screen")
-            }
-            .font(.system(size: 12, weight: .semibold))
-            .foregroundStyle(Theme.accent)
-            .alignmentGuide(.takesIcon) { $0[HorizontalAlignment.center] }
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Takes is in the menu bar at the top right of your screen. Its icon is the Takes mark, a t inside a speech bubble.")
-    }
-}
-
-private extension HorizontalAlignment {
-    enum TakesIcon: AlignmentID {
-        static func defaultValue(in d: ViewDimensions) -> CGFloat { d[HorizontalAlignment.center] }
-    }
-    /// Lines the menu-bar callout up under the Takes icon.
-    static let takesIcon = HorizontalAlignment(TakesIcon.self)
 }

@@ -15,11 +15,12 @@ final class OnboardingFlowTests: XCTestCase {
         XCTAssertFalse(AppSettings().onboarding.openingSeen, "A new install starts on the opening screen")
     }
 
-    func testTheFiveSteps() {
-        XCTAssertEqual(OnboardingStep.allCases, [.accessibility, .engine, .personalize, .practice, .done])
-        XCTAssertEqual(OnboardingStep.allCases.map(\.title), ["Allow access", "Connect a model", "Make it yours", "Try it", "Done"])
+    func testThreeStepsThenDone() {
+        XCTAssertEqual(OnboardingStep.allCases, [.accessibility, .engine, .practice, .done])
+        XCTAssertEqual(OnboardingStep.allCases.map(\.title), ["Allow access", "Connect a model", "Try it", "Done"])
+        XCTAssertEqual(OnboardingStep.numbered, [.accessibility, .engine, .practice], "Done is the closing screen, not a step")
         XCTAssertEqual(OnboardingStep.allCases.filter(\.isRequired), [.accessibility, .engine])
-        XCTAssertEqual(OnboardingStep.allCases.filter(\.canSkip), [.personalize, .practice])
+        XCTAssertEqual(OnboardingStep.allCases.filter(\.canSkip), [.practice])
     }
 
     func testExistingUsersNeverSeeOnboarding() throws {
@@ -34,7 +35,7 @@ final class OnboardingFlowTests: XCTestCase {
 
     func testProgressSurvivesQuitting() throws {
         var settings = AppSettings()
-        settings.onboarding = OnboardingProgress(step: .personalize, history: [.accessibility, .engine],
+        settings.onboarding = OnboardingProgress(step: .practice, history: [.accessibility, .engine],
                                                  autoPassed: [.accessibility], skipped: [], practiced: false, openingSeen: true)
         let decoded = try JSONDecoder().decode(AppSettings.self, from: JSONEncoder().encode(settings))
         XCTAssertEqual(decoded.onboarding, settings.onboarding)
@@ -70,35 +71,45 @@ final class OnboardingFlowTests: XCTestCase {
         XCTAssertTrue(progress.openingSeen, "Past Welcome means the opening was seen")
     }
 
-    func testOldHotkeyAndPresetsAreNowMakeItYours() throws {
+    func testOldHotkeyAndPresetsAreNowTryIt() throws {
         let atHotkey = try decode(#"{"step":"hotkey","history":["welcome","accessibility","engine","privacy"],"autoPassed":["engine"]}"#)
-        XCTAssertEqual(atHotkey.step, .personalize)
+        XCTAssertEqual(atHotkey.step, .practice, "The hotkey is set on Try it now")
         XCTAssertEqual(atHotkey.history, [.accessibility, .engine])
         XCTAssertTrue(atHotkey.autoPassed.isEmpty, "Your text was walked, so the merged step wasn't passed by itself")
 
         let atPresets = try decode(#"{"step":"presets","history":["welcome","accessibility","engine","privacy","hotkey"],"autoPassed":["hotkey"]}"#)
-        XCTAssertEqual(atPresets.step, .personalize)
+        XCTAssertEqual(atPresets.step, .practice)
         XCTAssertEqual(atPresets.history, [.accessibility, .engine])
     }
 
     func testOldSkipsAndAutoPassesMap() throws {
-        let progress = try decode(#"{"step":"practice","history":["welcome","accessibility","engine","privacy","hotkey","presets"],"autoPassed":["accessibility","engine","hotkey"],"skipped":["presets"],"practiced":false}"#)
-        XCTAssertEqual(progress.step, .practice)
-        XCTAssertEqual(progress.history, [.accessibility, .engine, .personalize])
-        XCTAssertEqual(progress.autoPassed, [.accessibility])
-        XCTAssertEqual(progress.skipped, [.personalize], "Hotkey passed by itself and Presets was skipped")
+        let progress = try decode(#"{"step":"done","history":["welcome","accessibility","engine","privacy","hotkey","presets","practice"],"autoPassed":["accessibility","engine","hotkey"],"skipped":["presets","practice"],"practiced":false}"#)
+        XCTAssertEqual(progress.step, .done)
+        XCTAssertEqual(progress.history, [.accessibility, .engine, .practice])
+        XCTAssertEqual(progress.autoPassed, [.accessibility], "Your text was walked, so Connect a model wasn't passed by itself")
+        XCTAssertEqual(progress.skipped, [.practice], "Hotkey passed by itself; Presets and Try it were skipped")
 
-        let partly = try decode(#"{"step":"practice","history":["welcome","accessibility","engine","privacy","hotkey","presets"],"skipped":["hotkey"]}"#)
-        XCTAssertTrue(partly.skipped.isEmpty, "Presets were chosen, so Make it yours wasn't skipped")
+        let partly = try decode(#"{"step":"done","history":["welcome","accessibility","engine","privacy","hotkey","presets","practice"],"skipped":["hotkey"]}"#)
+        XCTAssertTrue(partly.skipped.isEmpty, "Presets and Try it were walked, so Try it wasn't skipped")
     }
 
     func testMigratedProgressResumesWhereItWas() throws {
         let progress = try decode(#"{"step":"presets","history":["welcome","accessibility","engine","privacy","hotkey"],"autoPassed":[]}"#)
         var flow = OnboardingFlow(progress: progress, conditions: everything)
         flow.resume()
-        XCTAssertEqual(flow.step, .personalize)
+        XCTAssertEqual(flow.step, .practice)
         flow.back()
         XCTAssertEqual(flow.step, .engine)
+    }
+
+    func testMakeItYoursSavedByTheLastVersionResumesOnTryIt() throws {
+        let progress = try decode(#"{"step":"personalize","history":["accessibility","engine"],"autoPassed":["accessibility"],"skipped":[],"openingSeen":true}"#)
+        XCTAssertEqual(progress.step, .practice)
+        XCTAssertEqual(progress.history, [.accessibility, .engine])
+        var flow = OnboardingFlow(progress: progress, conditions: everything)
+        flow.resume()
+        XCTAssertEqual(flow.step, .practice, "Nobody is sent back through steps they finished")
+        XCTAssertFalse(flow.progress.finished)
     }
 
     func testFinishedOldProgressStaysFinished() throws {
@@ -127,17 +138,17 @@ final class OnboardingFlowTests: XCTestCase {
         XCTAssertFalse(flow.canContinue, "A working engine alone isn't enough: where the text goes must be accepted")
         XCTAssertTrue(flow.update(everything), "Accepting moves on by itself")
         flow.next()
-        XCTAssertEqual(flow.step, .personalize)
+        XCTAssertEqual(flow.step, .practice)
     }
 
     func testSatisfiedStepsPassByThemselvesWithACheck() {
         var flow = OnboardingFlow(progress: OnboardingProgress(step: .accessibility), conditions: everything)
         flow.resume()
-        XCTAssertEqual(flow.step, .personalize, "Access and the engine were already done")
+        XCTAssertEqual(flow.step, .practice, "Access and the engine were already done")
         XCTAssertEqual(flow.progress.autoPassed, [.accessibility, .engine])
         XCTAssertEqual(flow.mark(for: .accessibility), .done)
         XCTAssertEqual(flow.mark(for: .engine), .done)
-        XCTAssertEqual(flow.mark(for: .practice), .todo)
+        XCTAssertEqual(flow.mark(for: .done), .todo)
     }
 
     func testStepsNotReachedYetAreNotChecked() {
@@ -146,18 +157,18 @@ final class OnboardingFlowTests: XCTestCase {
                                   conditions: OnboardingConditions(accessibility: false, engineReady: true, privacyAccepted: true, hotKeyFree: true))
         XCTAssertEqual(flow.mark(for: .accessibility), .current)
         XCTAssertEqual(flow.mark(for: .engine), .todo)
-        XCTAssertEqual(flow.mark(for: .personalize), .todo)
+        XCTAssertEqual(flow.mark(for: .practice), .todo)
     }
 
     func testBackSkipsStepsThatPassedByThemselves() {
         var flow = OnboardingFlow(progress: OnboardingProgress(step: .accessibility), conditions: everything)
         flow.resume()
-        XCTAssertEqual(flow.step, .personalize)
+        XCTAssertEqual(flow.step, .practice)
         XCTAssertFalse(flow.canGoBack, "Nothing before it was seen")
         flow.next()
-        XCTAssertEqual(flow.step, .practice)
+        XCTAssertEqual(flow.step, .done)
         flow.back()
-        XCTAssertEqual(flow.step, .personalize)
+        XCTAssertEqual(flow.step, .practice)
     }
 
     func testOnlyOptionalStepsCanBeSkipped() {
@@ -166,19 +177,19 @@ final class OnboardingFlowTests: XCTestCase {
         flow.skip()
         XCTAssertEqual(flow.step, .engine, "Connect a model can't be skipped")
 
-        flow = OnboardingFlow(progress: OnboardingProgress(step: .personalize, history: [.accessibility, .engine]), conditions: everything)
+        flow = OnboardingFlow(progress: OnboardingProgress(step: .practice, history: [.accessibility, .engine]), conditions: everything)
         flow.skip()
-        XCTAssertEqual(flow.step, .practice)
-        XCTAssertEqual(flow.mark(for: .personalize), .skipped)
+        XCTAssertEqual(flow.step, .done)
+        XCTAssertEqual(flow.mark(for: .practice), .skipped)
         flow.back()
-        XCTAssertEqual(flow.step, .personalize)
-        XCTAssertFalse(flow.progress.skipped.contains(.personalize), "Going back undoes the skip")
+        XCTAssertEqual(flow.step, .practice)
+        XCTAssertFalse(flow.progress.skipped.contains(.practice), "Going back undoes the skip")
     }
 
     func testATakenHotkeyDoesntBlock() {
         var conditions = everything
         conditions.hotKeyFree = false
-        let flow = OnboardingFlow(progress: OnboardingProgress(step: .personalize, history: [.accessibility, .engine]), conditions: conditions)
+        let flow = OnboardingFlow(progress: OnboardingProgress(step: .practice, history: [.accessibility, .engine]), conditions: conditions)
         XCTAssertTrue(flow.canContinue, "A taken hotkey doesn't block onboarding")
         XCTAssertTrue(flow.step.canSkip)
     }
@@ -190,9 +201,9 @@ final class OnboardingFlowTests: XCTestCase {
         granted.accessibility = true
         XCTAssertTrue(flow.update(granted), "Access granted in System Settings")
         XCTAssertFalse(flow.update(granted), "Only once")
-        // Make it yours never moves on by itself.
-        var personalize = OnboardingFlow(progress: OnboardingProgress(step: .personalize), conditions: nothing)
-        XCTAssertFalse(personalize.update(everything))
+        // Try it never moves on by itself.
+        var practice = OnboardingFlow(progress: OnboardingProgress(step: .practice), conditions: nothing)
+        XCTAssertFalse(practice.update(everything))
     }
 
     func testFinish() {
@@ -205,16 +216,16 @@ final class OnboardingFlowTests: XCTestCase {
     // MARK: Resuming
 
     func testResumesAtTheSameStep() throws {
-        let saved = OnboardingProgress(step: .personalize, history: [.accessibility, .engine], autoPassed: [.accessibility], openingSeen: true)
+        let saved = OnboardingProgress(step: .practice, history: [.accessibility, .engine], autoPassed: [.accessibility], openingSeen: true)
         let reloaded = try JSONDecoder().decode(OnboardingProgress.self, from: JSONEncoder().encode(saved))
         var flow = OnboardingFlow(progress: reloaded, conditions: everything)
         flow.resume()
-        XCTAssertEqual(flow.step, .personalize)
+        XCTAssertEqual(flow.step, .practice)
         XCTAssertEqual(flow.progress, saved)
     }
 
     func testRevokedAccessComesBackOnResume() {
-        let saved = OnboardingProgress(step: .practice, history: [.accessibility, .engine, .personalize], autoPassed: [.engine])
+        let saved = OnboardingProgress(step: .done, history: [.accessibility, .engine, .practice], autoPassed: [.engine])
         var revoked = everything
         revoked.accessibility = false
         var flow = OnboardingFlow(progress: saved, conditions: revoked)
@@ -225,11 +236,11 @@ final class OnboardingFlowTests: XCTestCase {
         // Granting it again carries on, passing what's still true.
         XCTAssertTrue(flow.update(everything))
         flow.next()
-        XCTAssertEqual(flow.step, .personalize)
+        XCTAssertEqual(flow.step, .practice)
     }
 
     func testSignedOutWhileAwayComesBack() {
-        let saved = OnboardingProgress(step: .personalize, history: [.accessibility, .engine])
+        let saved = OnboardingProgress(step: .practice, history: [.accessibility, .engine])
         var signedOut = everything
         signedOut.engineReady = false
         var flow = OnboardingFlow(progress: saved, conditions: signedOut)
@@ -256,20 +267,13 @@ final class OnboardingFlowTests: XCTestCase {
 
     // MARK: Pieces
 
-    func testRecommendedEngine() {
-        XCTAssertEqual(Onboarding.recommendedEngine(current: .chatGPT, currentReady: true, claudeInstalled: true, localRunning: true), .chatGPT,
+    func testPreselectedEngine() {
+        XCTAssertEqual(Onboarding.preselectedEngine(current: .chatGPT, currentReady: true, setUp: [.claudeCode, .local]), .chatGPT,
                        "What already works wins")
-        XCTAssertEqual(Onboarding.recommendedEngine(current: .claudeCode, currentReady: false, claudeInstalled: true, localRunning: true), .claudeCode)
-        XCTAssertEqual(Onboarding.recommendedEngine(current: .claudeCode, currentReady: false, claudeInstalled: false, localRunning: true), .local)
-        XCTAssertEqual(Onboarding.recommendedEngine(current: .claudeCode, currentReady: false, claudeInstalled: false, localRunning: false), .claudeCode)
-    }
-
-    func testApplyingPresetsKeepsCustomOnesAndAddsMissingStarters() {
-        let starters = Array(Store.defaultPresets.prefix(3))
-        let custom = Preset(name: "Mine", colorHex: "#000000", instruction: "x")
-        let installed = [starters[0], custom, starters[1]]
-        let result = OnboardingModel.applying(chosen: [starters[1].name, starters[2].name], starters: starters, to: installed)
-        XCTAssertEqual(result.map(\.name), ["Mine", starters[1].name, starters[2].name])
+        XCTAssertEqual(Onboarding.preselectedEngine(current: .claudeCode, currentReady: false, setUp: [.local]), .local)
+        XCTAssertEqual(Onboarding.preselectedEngine(current: .claudeCode, currentReady: false, setUp: [.apiKey]), .apiKey)
+        XCTAssertNil(Onboarding.preselectedEngine(current: .claudeCode, currentReady: false, setUp: []),
+                     "Nothing set up: nothing picked, so no company is favoured")
     }
 
     func testHotkeyKeycaps() {
@@ -295,7 +299,7 @@ final class OnboardingFlowTests: XCTestCase {
 @MainActor
 final class OnboardingPracticeTests: XCTestCase {
     private func practiceModel() -> (OnboardingModel, FakePanel) {
-        let model = OnboardingModel(progress: OnboardingProgress(step: .practice, history: [.accessibility, .engine, .personalize]),
+        let model = OnboardingModel(progress: OnboardingProgress(step: .practice, history: [.accessibility, .engine]),
                                     conditions: OnboardingConditions(accessibility: true, engineReady: true, privacyAccepted: true, hotKeyFree: true))
         let panel = FakePanel()
         model.openPractice = { text, frame, paste, cancel in panel.open(text: text, frame: frame, paste: paste, cancel: cancel) }
@@ -342,7 +346,7 @@ final class OnboardingPracticeTests: XCTestCase {
 
     func testHotkeyOutsideThePracticeStepDoesNothing() {
         let panel = FakePanel()
-        let model = OnboardingModel(progress: OnboardingProgress(step: .personalize, history: [.accessibility, .engine]))
+        let model = OnboardingModel(progress: OnboardingProgress(step: .engine, history: [.accessibility]))
         model.openPractice = { text, frame, paste, cancel in panel.open(text: text, frame: frame, paste: paste, cancel: cancel) }
         model.startPractice()
         XCTAssertEqual(panel.opens, 0)
@@ -365,33 +369,42 @@ final class OnboardingPracticeTests: XCTestCase {
         XCTAssertNil(model.justPassed)
     }
 
-    func testConnectAModelAsksForConsentInItsButton() {
+    func testConnectAModelAsksForConsentAboveItsButton() {
         let model = OnboardingModel(progress: OnboardingProgress(step: .engine, history: [.accessibility]),
                                     conditions: OnboardingConditions(accessibility: true, engineReady: true, privacyAccepted: false, hotKeyFree: true))
+        model.engineChosen = true
         var recorded = false
         model.recordPrivacyAccepted = { recorded = true }
-        XCTAssertEqual(model.primaryTitle, "Understood, continue")
+        XCTAssertTrue(model.needsConsent, "The consent is a sentence above the button")
+        XCTAssertEqual(model.primaryTitle, "Continue", "The button says what it does")
         model.primary()
         XCTAssertTrue(recorded)
-        XCTAssertEqual(model.step, .personalize)
+        XCTAssertFalse(model.needsConsent)
+        XCTAssertEqual(model.step, .practice)
     }
 
-    func testConsentButtonNamesTheEngineAction() {
+    func testTheButtonNamesTheEngineAction() {
         let model = OnboardingModel(progress: OnboardingProgress(step: .engine, history: [.accessibility]),
                                     conditions: OnboardingConditions(accessibility: true))
+        model.engineChosen = true
         model.engineStatus = .problem("Claude Code isn't signed in")
-        XCTAssertEqual(model.primaryTitle, "Understood, sign in to Claude")
+        XCTAssertEqual(model.primaryTitle, "Sign in to Claude")
         model.engineKind = .apiKey
-        XCTAssertEqual(model.primaryTitle, "Understood, save key")
+        XCTAssertEqual(model.primaryTitle, "Save key")
         model.engineKind = .local
-        XCTAssertEqual(model.primaryTitle, "Understood, check again")
+        XCTAssertEqual(model.primaryTitle, "Continue", "Not saved yet: pressing saves it and checks it")
+        model.savedEngine = .local
+        XCTAssertEqual(model.primaryTitle, "Check again")
         model.engineStatus = .checking
         XCTAssertEqual(model.primaryTitle, "Checking…")
+        model.engineKind = .chatGPT
+        XCTAssertFalse(model.primaryTitle.hasPrefix("Understood"))
     }
 
     func testMissingClaudeCodeOffersToInstallIt() {
         let model = OnboardingModel(progress: OnboardingProgress(step: .engine, history: [.accessibility]),
                                     conditions: OnboardingConditions(accessibility: true, privacyAccepted: true))
+        model.engineChosen = true
         model.installer = ClaudeInstaller()
         model.engineStatus = .problem(SetupMonitor.claudeMissing)
         XCTAssertTrue(model.claudeMissing)
@@ -411,7 +424,7 @@ final class OnboardingPracticeTests: XCTestCase {
     }
 
     func testEscBacksOutThenCloses() {
-        let model = OnboardingModel(progress: OnboardingProgress(step: .personalize, history: [.engine]))
+        let model = OnboardingModel(progress: OnboardingProgress(step: .practice, history: [.engine]))
         var closed = false
         model.onClose = { closed = true }
         model.escape()

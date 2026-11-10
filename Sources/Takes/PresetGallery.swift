@@ -67,6 +67,23 @@ enum PresetGallery {
         existingUser ? Store.defaultPresets : starters(languages: languages).map(copy(of:))
     }
 
+    /// What the gallery's button adds: the checked presets not added yet, or else the highlighted one.
+    static func toAdd(_ templates: [Preset], checked: Set<String>, highlightedID: String, isAdded: (Preset) -> Bool) -> [Preset] {
+        let picked = templates.filter { checked.contains($0.id) && !isAdded($0) }
+        if !picked.isEmpty { return picked }
+        if let highlighted = templates.first(where: { $0.id == highlightedID }), !isAdded(highlighted) { return [highlighted] }
+        return []
+    }
+
+    /// The gallery button's title. It names a preset only when that's the highlighted one, whose preview is on
+    /// screen; checked presets elsewhere in the list are counted, so the button never names one you can't see.
+    static func addTitle(_ items: [Preset], highlightedID: String) -> String {
+        if items.count > 1 { return String(localized: "Add \(items.count) presets") }
+        guard let one = items.first else { return String(localized: "Added") }
+        if one.id == highlightedID { return String(localized: "Add “\(one.name)”") }
+        return String(localized: "Add 1 checked preset")
+    }
+
     /// A preset just made with "New" and not edited yet: the moment to suggest the gallery instead.
     static func isUntouchedNew(_ preset: Preset, blank: Preset) -> Bool {
         preset.name == blank.name && preset.instruction == blank.instruction && preset.dos.isEmpty
