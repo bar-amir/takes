@@ -91,6 +91,8 @@ struct Preset: Codable, Identifiable, Hashable {
     var showTone = true
 
     static let maxExamples = 5
+    /// How many takes a preset can ask for: the range its picker offers.
+    static let takesRange = 1...5
     static let colors = ["#2F55E0", "#1D6B4F", "#8A4B08", "#7A3FD1", "#B42318", "#0E6E8C", "#55555E"]
 
     var summary: String {
@@ -107,28 +109,29 @@ struct Preset: Codable, Identifiable, Hashable {
 }
 
 extension Preset {
-    /// Tolerant decoding: presets saved by an older version (missing newer keys) still load.
+    /// Tolerant decoding: presets saved by an older version (missing newer keys) still load, and a value that can't
+    /// be read falls back to its default instead of losing the preset. A preset without a name or instruction isn't one.
     init(from decoder: Decoder) throws {
-        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let r = try LenientReader(decoder, keyedBy: CodingKeys.self)
         let d = Preset(name: "", colorHex: Preset.colors[0], instruction: "")
-        id = try c.decodeIfPresent(String.self, forKey: .id) ?? d.id
-        name = try c.decode(String.self, forKey: .name)
-        colorHex = try c.decodeIfPresent(String.self, forKey: .colorHex) ?? d.colorHex
-        hotKey = try c.decodeIfPresent(KeyCombo.self, forKey: .hotKey)
-        instruction = try c.decode(String.self, forKey: .instruction)
-        dos = try c.decodeIfPresent([String].self, forKey: .dos) ?? d.dos
-        avoid = try c.decodeIfPresent([String].self, forKey: .avoid) ?? d.avoid
-        examples = try c.decodeIfPresent([String].self, forKey: .examples) ?? d.examples
-        language = try c.decodeIfPresent(ReplyLanguage.self, forKey: .language) ?? d.language
-        length = try c.decodeIfPresent(TakeLength.self, forKey: .length) ?? d.length
-        apps = try c.decodeIfPresent([AppRef].self, forKey: .apps) ?? d.apps
-        takes = try c.decodeIfPresent(Int.self, forKey: .takes) ?? d.takes
-        model = try c.decodeIfPresent(String.self, forKey: .model) ?? d.model
-        effort = try c.decodeIfPresent(String.self, forKey: .effort) ?? d.effort
-        showTone = try c.decodeIfPresent(Bool.self, forKey: .showTone) ?? d.showTone
-        instantMode = try c.decodeIfPresent(Bool.self, forKey: .instantMode)
-        minimalEdits = try c.decodeIfPresent(Bool.self, forKey: .minimalEdits)
-        galleryID = try c.decodeIfPresent(String.self, forKey: .galleryID)
+        id = r.value(String.self, .id) ?? d.id
+        name = try r.container.decode(String.self, forKey: .name)
+        colorHex = r.value(String.self, .colorHex) ?? d.colorHex
+        hotKey = r.value(KeyCombo.self, .hotKey)
+        instruction = try r.container.decode(String.self, forKey: .instruction)
+        dos = r.list(String.self, .dos) ?? d.dos
+        avoid = r.list(String.self, .avoid) ?? d.avoid
+        examples = r.list(String.self, .examples) ?? d.examples
+        language = r.value(ReplyLanguage.self, .language) ?? d.language
+        length = r.value(TakeLength.self, .length) ?? d.length
+        apps = r.list(AppRef.self, .apps) ?? d.apps
+        takes = r.value(Int.self, .takes) ?? d.takes
+        model = r.value(String.self, .model) ?? d.model
+        effort = r.value(String.self, .effort) ?? d.effort
+        showTone = r.value(Bool.self, .showTone) ?? d.showTone
+        instantMode = r.value(Bool.self, .instantMode)
+        minimalEdits = r.value(Bool.self, .minimalEdits)
+        galleryID = r.value(String.self, .galleryID)
     }
 }
 
@@ -229,37 +232,37 @@ struct AppSettings: Codable {
 
 extension AppSettings {
     /// Tolerant decoding: settings saved by an older version (missing newer keys) keep their values
-    /// instead of resetting everything to defaults.
+    /// instead of resetting everything to defaults, and so does a file with one value that can't be read.
     init(from decoder: Decoder) throws {
-        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let r = try LenientReader(decoder, keyedBy: CodingKeys.self)
         let d = AppSettings()
         // An engine this version doesn't know (saved by a newer one) falls back to the default.
-        engine = (try? c.decodeIfPresent(EngineKind.self, forKey: .engine)) ?? d.engine
-        summonHotKey = try c.decodeIfPresent(KeyCombo.self, forKey: .summonHotKey) ?? d.summonHotKey
-        panelPosition = try c.decodeIfPresent(PanelPosition.self, forKey: .panelPosition) ?? d.panelPosition
-        prefill = try c.decodeIfPresent(Prefill.self, forKey: .prefill) ?? d.prefill
-        restoreClipboard = try c.decodeIfPresent(Bool.self, forKey: .restoreClipboard) ?? d.restoreClipboard
-        keepHistory = try c.decodeIfPresent(Bool.self, forKey: .keepHistory) ?? d.keepHistory
-        voiceRules = try c.decodeIfPresent([VoiceRule].self, forKey: .voiceRules) ?? d.voiceRules
-        defaultTakes = try c.decodeIfPresent(Int.self, forKey: .defaultTakes) ?? d.defaultTakes
-        defaultModel = try c.decodeIfPresent(String.self, forKey: .defaultModel) ?? d.defaultModel
-        defaultEffort = try c.decodeIfPresent(String.self, forKey: .defaultEffort) ?? d.defaultEffort
-        lastFirstTextMs = try c.decodeIfPresent(Int.self, forKey: .lastFirstTextMs)
-        privacyAccepted = try c.decodeIfPresent(Bool.self, forKey: .privacyAccepted) ?? d.privacyAccepted
-        localBaseURL = try c.decodeIfPresent(String.self, forKey: .localBaseURL) ?? d.localBaseURL
-        localModel = try c.decodeIfPresent(String.self, forKey: .localModel) ?? d.localModel
-        clipboardContext = try c.decodeIfPresent(Bool.self, forKey: .clipboardContext) ?? d.clipboardContext
-        dictationLanguage = try c.decodeIfPresent(String.self, forKey: .dictationLanguage) ?? d.dictationLanguage
-        languages = try c.decodeIfPresent([String].self, forKey: .languages)
-        onboarding = try c.decodeIfPresent(OnboardingProgress.self, forKey: .onboarding) ?? .existingUser
-        providerID = try c.decodeIfPresent(String.self, forKey: .providerID) ?? d.providerID
-        providerBaseURL = try c.decodeIfPresent(String.self, forKey: .providerBaseURL) ?? d.providerBaseURL
-        providerModel = try c.decodeIfPresent(String.self, forKey: .providerModel) ?? d.providerModel
-        chatGPTModel = try c.decodeIfPresent(String.self, forKey: .chatGPTModel) ?? d.chatGPTModel
-        coach = (try? c.decodeIfPresent(CoachSettings.self, forKey: .coach)) ?? d.coach
-        offerCrashReports = try c.decodeIfPresent(Bool.self, forKey: .offerCrashReports) ?? d.offerCrashReports
-        lastCrashReport = try c.decodeIfPresent(Date.self, forKey: .lastCrashReport)
-        pinMenuBarIcon = try c.decodeIfPresent(Bool.self, forKey: .pinMenuBarIcon) ?? d.pinMenuBarIcon
+        engine = r.value(EngineKind.self, .engine) ?? d.engine
+        summonHotKey = r.value(KeyCombo.self, .summonHotKey) ?? d.summonHotKey
+        panelPosition = r.value(PanelPosition.self, .panelPosition) ?? d.panelPosition
+        prefill = r.value(Prefill.self, .prefill) ?? d.prefill
+        restoreClipboard = r.value(Bool.self, .restoreClipboard) ?? d.restoreClipboard
+        keepHistory = r.value(Bool.self, .keepHistory) ?? d.keepHistory
+        voiceRules = r.list(VoiceRule.self, .voiceRules) ?? d.voiceRules
+        defaultTakes = r.value(Int.self, .defaultTakes) ?? d.defaultTakes
+        defaultModel = r.value(String.self, .defaultModel) ?? d.defaultModel
+        defaultEffort = r.value(String.self, .defaultEffort) ?? d.defaultEffort
+        lastFirstTextMs = r.value(Int.self, .lastFirstTextMs)
+        privacyAccepted = r.value(Bool.self, .privacyAccepted) ?? d.privacyAccepted
+        localBaseURL = r.value(String.self, .localBaseURL) ?? d.localBaseURL
+        localModel = r.value(String.self, .localModel) ?? d.localModel
+        clipboardContext = r.value(Bool.self, .clipboardContext) ?? d.clipboardContext
+        dictationLanguage = r.value(String.self, .dictationLanguage) ?? d.dictationLanguage
+        languages = r.list(String.self, .languages)
+        onboarding = r.value(OnboardingProgress.self, .onboarding) ?? .existingUser
+        providerID = r.value(String.self, .providerID) ?? d.providerID
+        providerBaseURL = r.value(String.self, .providerBaseURL) ?? d.providerBaseURL
+        providerModel = r.value(String.self, .providerModel) ?? d.providerModel
+        chatGPTModel = r.value(String.self, .chatGPTModel) ?? d.chatGPTModel
+        coach = r.value(CoachSettings.self, .coach) ?? d.coach
+        offerCrashReports = r.value(Bool.self, .offerCrashReports) ?? d.offerCrashReports
+        lastCrashReport = r.value(Date.self, .lastCrashReport)
+        pinMenuBarIcon = r.value(Bool.self, .pinMenuBarIcon) ?? d.pinMenuBarIcon
     }
 }
 
@@ -273,6 +276,228 @@ struct HistoryEntry: Codable, Identifiable {
     var pastedIndex: Int?
 }
 
+extension HistoryEntry {
+    /// An entry needs its date and draft; anything else that can't be read falls back to a default, so one odd
+    /// value doesn't cost the entry (and `StoredJSON` skips an entry that can't be read at all, not the whole file).
+    init(from decoder: Decoder) throws {
+        let r = try LenientReader(decoder, keyedBy: CodingKeys.self)
+        id = r.value(String.self, .id) ?? UUID().uuidString
+        date = try r.container.decode(Date.self, forKey: .date)
+        appName = r.value(String.self, .appName) ?? ""
+        presetName = r.value(String.self, .presetName) ?? ""
+        draft = try r.container.decode(String.self, forKey: .draft)
+        takes = r.list(String.self, .takes) ?? []
+        pastedIndex = r.value(Int.self, .pastedIndex)
+    }
+}
+
+// MARK: - Reading files without losing them
+
+/// Counts the values a tolerant decode had to skip or reset, so the file they came from can be kept before it is rewritten.
+final class DecodeProblems {
+    var count = 0
+}
+
+extension CodingUserInfoKey {
+    static let decodeProblems = CodingUserInfoKey(rawValue: "takes.decodeProblems")!
+}
+
+/// A list that keeps the entries it can read: one that doesn't decode is skipped, not the whole list.
+struct LossyList<Element: Decodable>: Decodable {
+    var elements: [Element] = []
+    var skipped = 0
+
+    init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+        while !container.isAtEnd {
+            if let element = try? container.decode(Element.self) {
+                elements.append(element)
+            } else {
+                skipped += 1
+                // A failed decode doesn't move on to the next entry; decoding nothing does.
+                _ = try? container.decode(Skipped.self)
+            }
+        }
+    }
+
+    private struct Skipped: Decodable {
+        init(from decoder: Decoder) throws {}
+    }
+}
+
+/// Reads the keys of one JSON object leniently: a value that is missing or can't be read gives nil, for the caller to
+/// replace with a default. A value that can't be read (not one that is missing) is counted in `DecodeProblems`.
+struct LenientReader<Key: CodingKey> {
+    let container: KeyedDecodingContainer<Key>
+    private let problems: DecodeProblems?
+
+    init(_ decoder: Decoder, keyedBy keys: Key.Type) throws {
+        container = try decoder.container(keyedBy: keys)
+        problems = decoder.userInfo[.decodeProblems] as? DecodeProblems
+    }
+
+    func value<T: Decodable>(_ type: T.Type, _ key: Key) -> T? {
+        do {
+            return try container.decodeIfPresent(type, forKey: key)
+        } catch {
+            problems?.count += 1
+            return nil
+        }
+    }
+
+    /// A list that keeps the entries it can read.
+    func list<T: Decodable>(_ type: T.Type, _ key: Key) -> [T]? {
+        guard let list = value(LossyList<T>.self, key) else { return nil }
+        problems?.count += list.skipped
+        return list.elements
+    }
+}
+
+/// A file Takes couldn't fully read. Its original bytes are kept in a copy beside it, made before anything can overwrite it.
+struct SetAsideFile: Identifiable, Equatable {
+    /// The file that couldn't be read ("presets.json").
+    let name: String
+    /// The copy's file name ("presets.unreadable-20261110-101530.json"); nil when no copy could be made.
+    let copy: String?
+    /// How many entries or values were skipped or reset; nil when nothing in the file could be read.
+    let skipped: Int?
+    var id: String { name }
+
+    /// What happened, for the notice.
+    var message: String {
+        guard let copy else {
+            return String(localized: "Takes couldn't read \(name) or keep a copy of it, so it won't change that file. Fix or remove it, then restart Takes.")
+        }
+        return skipped == nil
+            ? String(localized: "Takes couldn't read \(name) and started over. Your original is kept as \(copy).")
+            : String(localized: "Takes skipped part of \(name) that it couldn't read. Your original is kept as \(copy).")
+    }
+}
+
+/// The copies kept of files Takes couldn't read: `presets.unreadable-20261110-101530.json` beside `presets.json`.
+enum SetAside {
+    /// How many copies of one file are kept. Older ones are deleted.
+    static let keepCopies = 3
+    /// History and coach notes hold the user's text, so their copies go after the 30 days those are kept for.
+    static let textFiles = ["history.json", "coach.json"]
+    static let textMaxAge: TimeInterval = 30 * 24 * 3600
+
+    private static func stem(_ name: String) -> String { (name as NSString).deletingPathExtension }
+
+    static func maxAge(for name: String) -> TimeInterval? { textFiles.contains(name) ? textMaxAge : nil }
+
+    /// The copies of `name` in the folder, newest first.
+    static func copies(of name: String, in folder: URL) -> [URL] {
+        let prefix = "\(stem(name)).unreadable-"
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? []
+        let dated = names.filter { $0.hasPrefix(prefix) && $0.hasSuffix(".json") }.map { file -> (url: URL, date: Date) in
+            let url = folder.appendingPathComponent(file)
+            let date = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? .distantPast
+            return (url, date)
+        }
+        return dated.sorted { ($0.date, $0.url.lastPathComponent) > ($1.date, $1.url.lastPathComponent) }.map(\.url)
+    }
+
+    /// Keeps the original bytes under a name that's free, and returns that name. A copy with the same bytes already
+    /// there is reused, so a file that stays unreadable isn't copied again at every launch. Nil when nothing could be written.
+    static func keep(_ data: Data, name: String, in folder: URL, now: Date = Date()) -> String? {
+        defer { prune(name, in: folder, now: now) }
+        if let same = copies(of: name, in: folder).first(where: { (try? Data(contentsOf: $0)) == data }) {
+            return same.lastPathComponent
+        }
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyyMMdd-HHmmss"
+        let base = "\(stem(name)).unreadable-\(formatter.string(from: now))"
+        for attempt in 1...50 {
+            let file = attempt == 1 ? "\(base).json" : "\(base)-\(attempt).json"
+            let url = folder.appendingPathComponent(file)
+            // `withoutOverwriting` fails if the name is taken, so an earlier copy is never replaced.
+            if (try? data.write(to: url, options: .withoutOverwriting)) != nil { return file }
+        }
+        return nil
+    }
+
+    /// Deletes copies beyond the newest few, and the ones older than the file's retention.
+    static func prune(_ name: String, in folder: URL, now: Date = Date()) {
+        guard !Store.readOnly else { return }
+        for (index, url) in copies(of: name, in: folder).enumerated() {
+            let date = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? now
+            let expired = maxAge(for: name).map { now.timeIntervalSince(date) > $0 } ?? false
+            if index >= keepCopies || expired { try? FileManager.default.removeItem(at: url) }
+        }
+    }
+}
+
+/// Reading a JSON file so that what can't be read is never lost: whatever fails to decode, the original bytes are
+/// copied aside before the next save can overwrite them, and the rest of the file is kept.
+enum StoredJSON {
+    enum Contents {
+        case missing, empty, unreadable
+        case data(Data)
+    }
+
+    private struct NothingReadable: Error {}
+
+    static func contents(of name: String, in folder: URL) -> Contents {
+        let url = folder.appendingPathComponent(name)
+        guard FileManager.default.fileExists(atPath: url.path) else { return .missing }
+        guard let data = try? Data(contentsOf: url) else { return .unreadable }
+        return data.allSatisfy({ [0x20, 0x09, 0x0A, 0x0D].contains($0) }) ? .empty : .data(data)
+    }
+
+    /// One value (settings). A file that can't be read as a whole gives nil.
+    static func load<T: Decodable>(_ type: T.Type, _ name: String, in folder: URL, notices: inout [SetAsideFile]) -> T? {
+        read(name, in: folder, notices: &notices) { decoder, data in (try decoder.decode(type, from: data), 0) }
+    }
+
+    /// A list (presets, history): an entry that can't be read is skipped and the others are kept.
+    static func loadList<T: Decodable>(_ type: T.Type, _ name: String, in folder: URL, notices: inout [SetAsideFile]) -> [T]? {
+        read(name, in: folder, notices: &notices) { decoder, data in
+            let list = try decoder.decode(LossyList<T>.self, from: data)
+            if list.elements.isEmpty, list.skipped > 0 { throw NothingReadable() }
+            return (list.elements, list.skipped)
+        }
+    }
+
+    private static func read<T>(
+        _ name: String,
+        in folder: URL,
+        notices: inout [SetAsideFile],
+        decode: (JSONDecoder, Data) throws -> (value: T, skipped: Int)
+    ) -> T? {
+        let data: Data
+        switch contents(of: name, in: folder) {
+        case .missing, .empty:
+            return nil
+        case .unreadable:
+            // Something is there but can't be opened: leave it alone, and don't write over it either.
+            if !Store.readOnly { notices.append(SetAsideFile(name: name, copy: nil, skipped: nil)) }
+            return nil
+        case .data(let bytes):
+            data = bytes
+        }
+        let problems = DecodeProblems()
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        decoder.userInfo[.decodeProblems] = problems
+        do {
+            let (value, skipped) = try decode(decoder, data)
+            if skipped + problems.count > 0 { setAside(data, name, in: folder, skipped: skipped + problems.count, notices: &notices) }
+            return value
+        } catch {
+            setAside(data, name, in: folder, skipped: nil, notices: &notices)
+            return nil
+        }
+    }
+
+    private static func setAside(_ data: Data, _ name: String, in folder: URL, skipped: Int?, notices: inout [SetAsideFile]) {
+        // `--snapshot` renders write nothing.
+        guard !Store.readOnly else { return }
+        notices.append(SetAsideFile(name: name, copy: SetAside.keep(data, name: name, in: folder), skipped: skipped))
+    }
+}
+
 // MARK: - Store
 
 /// Presets, settings and history, saved as JSON in ~/Library/Application Support/Takes.
@@ -284,6 +509,9 @@ final class Store: ObservableObject {
     @Published var history: [HistoryEntry] { didSet { save(history, "history.json") } }
     /// There was no settings file when Takes started: the very first launch, before onboarding has saved anything.
     let isNewInstall: Bool
+    /// Files that couldn't be fully read at launch. Each has a copy of its original bytes beside it, so nothing the
+    /// user had is lost when the file is saved again. The Settings tabs show these until they are dismissed.
+    @Published private(set) var setAside: [SetAsideFile] = []
 
     static let directory: URL = {
         let url = FileManager.default.homeDirectoryForCurrentUser
@@ -292,16 +520,28 @@ final class Store: ObservableObject {
         return url
     }()
 
-    private init() {
-        let existingUser = FileManager.default.fileExists(atPath: Store.directory.appendingPathComponent("settings.json").path)
+    /// Where this store's files are. `Store.directory`, except in tests.
+    private let folder: URL
+    /// Files that couldn't be read or copied: they aren't saved over, so the user's original stays as it is.
+    private var unsafeToWrite: Set<String> = []
+
+    private convenience init() { self.init(folder: Store.directory) }
+
+    init(folder: URL) {
+        self.folder = folder
+        let existingUser = FileManager.default.fileExists(atPath: folder.appendingPathComponent("settings.json").path)
         isNewInstall = !existingUser
-        let presetsFile = Store.directory.appendingPathComponent("presets.json")
-        presets = Proofread.upgraded(Store.load("presets.json") ?? PresetGallery.initialPresets(existingUser: existingUser))
-        settings = Store.load("settings.json") ?? AppSettings()
-        history = Store.load("history.json") ?? []
+        var notices: [SetAsideFile] = []
+        let savedPresets = StoredJSON.loadList(Preset.self, "presets.json", in: folder, notices: &notices)
+        presets = Proofread.upgraded(savedPresets ?? PresetGallery.initialPresets(existingUser: existingUser))
+        settings = StoredJSON.load(AppSettings.self, "settings.json", in: folder, notices: &notices) ?? AppSettings()
+        history = StoredJSON.loadList(HistoryEntry.self, "history.json", in: folder, notices: &notices) ?? []
+        setAside = notices
+        unsafeToWrite = Set(notices.filter { $0.copy == nil }.map(\.name))
+        for name in ["presets.json", "settings.json", "history.json", "coach.json"] { SetAside.prune(name, in: folder) }
         pruneHistory()
         // Saved right away so the starters keep their ids across launches.
-        if !FileManager.default.fileExists(atPath: presetsFile.path) { save(presets, "presets.json") }
+        if !FileManager.default.fileExists(atPath: folder.appendingPathComponent("presets.json").path) { save(presets, "presets.json") }
     }
 
     func preset(id: String?) -> Preset? { presets.first { $0.id == id } }
@@ -348,19 +588,62 @@ final class Store: ObservableObject {
     static var readOnly = false
 
     private func save<T: Encodable>(_ value: T, _ name: String) {
-        guard !Store.readOnly else { return }
+        guard !Store.readOnly, !unsafeToWrite.contains(name) else { return }
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
         guard let data = try? encoder.encode(value) else { return }
-        try? data.write(to: Store.directory.appendingPathComponent(name), options: .atomic)
+        try? data.write(to: folder.appendingPathComponent(name), options: .atomic)
     }
 
-    private static func load<T: Decodable>(_ name: String) -> T? {
-        guard let data = try? Data(contentsOf: directory.appendingPathComponent(name)) else { return nil }
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return try? decoder.decode(T.self, from: data)
+    /// Deletes every stored copy of draft and take text that history keeps: the list, `history.json` and the copies
+    /// Takes set aside when it couldn't read that file. False when a file couldn't be removed.
+    @discardableResult
+    func clearHistory() -> Bool {
+        history = []
+        guard !Store.readOnly else { return true }
+        var removedAll = true
+        let files = [folder.appendingPathComponent("history.json")] + SetAside.copies(of: "history.json", in: folder)
+        for url in files where FileManager.default.fileExists(atPath: url.path) {
+            do { try FileManager.default.removeItem(at: url) } catch { removedAll = false }
+        }
+        if removedAll {
+            setAside.removeAll { $0.name == "history.json" }
+            unsafeToWrite.remove("history.json")
+        }
+        return removedAll
+    }
+
+    /// A copy of an unreadable history file is on disk: it holds drafts and takes, so Clear History removes it too.
+    var keepsHistoryCopy: Bool { !SetAside.copies(of: "history.json", in: folder).isEmpty }
+
+    /// Another file Takes set aside after launch (the coach's), for the same notice.
+    func noteSetAside(_ file: SetAsideFile) {
+        setAside.removeAll { $0.name == file.name }
+        setAside.append(file)
+    }
+
+    func dismissSetAside() { setAside = [] }
+
+    /// Shows the copies in Finder (the folder, when no copy could be made).
+    func revealSetAside() {
+        let copies = setAside.compactMap(\.copy).map { folder.appendingPathComponent($0) }
+        NSWorkspace.shared.activateFileViewerSelecting(copies.isEmpty ? [folder] : copies)
+    }
+
+    /// Tells the user, in an alert, about files set aside at launch, and then drops the notice. Call it once after
+    /// launch; until then the Presets and History tabs show the same notice.
+    @MainActor
+    func announceSetAside() {
+        guard !setAside.isEmpty, !Store.readOnly else { return }
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Takes couldn't read some of its files")
+        alert.informativeText = setAside.map(\.message).joined(separator: "\n\n")
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: String(localized: "OK"))
+        alert.addButton(withTitle: String(localized: "Show in Finder"))
+        if alert.runModal() == .alertSecondButtonReturn { revealSetAside() }
+        dismissSetAside()
     }
 
     static let defaultPresets: [Preset] = [
