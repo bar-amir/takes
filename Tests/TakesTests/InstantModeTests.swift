@@ -73,7 +73,7 @@ final class InstantModeTests: XCTestCase {
 
     func testUnchangedTakePastesNothing() async {
         let draft = "ya thursday works"
-        let run = InstantRun(engine: FakeEngine(takes: ["ya  thursday works"]),
+        let run = InstantRun(engine: FakeEngine(takes: ["ya thursday works\n"]),
                              paste: { [unowned self] take, done in pasted.append(take); done(true) },
                              stillInField: { false },
                              unchanged: { Proofread.nothingToFix(draft: draft, takes: [$0]) })

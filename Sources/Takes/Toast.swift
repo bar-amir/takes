@@ -2,7 +2,8 @@ import AppKit
 import SwiftUI
 
 /// The small dark confirmation shown after pasting or copying. It never takes focus. It slides up 8 pt as it
-/// appears, waits while the pointer is on it, and Esc dismisses it.
+/// appears, waits while the pointer is on it, and goes away on its own; Esc dismisses it sooner while a Takes
+/// window has the keyboard.
 @MainActor
 final class ToastController {
     private var panel: NSPanel?
@@ -101,13 +102,10 @@ final class ToastController {
         }
     }
 
-    /// Esc dismisses the toast, wherever the keyboard focus is. The key still goes to the app.
+    /// Esc dismisses the toast while a Takes window has the keyboard; the key still reaches that window. Keys typed
+    /// in other apps are never watched (Takes reads nothing in the background), so there the toast times out.
     private func watchEscape() {
         let isEscape: (NSEvent) -> Bool = { $0.keyCode == 53 && $0.modifierFlags.intersection(.deviceIndependentFlagsMask).isEmpty }
-        if let global = NSEvent.addGlobalMonitorForEvents(matching: .keyDown, handler: { [weak self] event in
-            guard isEscape(event) else { return }
-            Task { @MainActor in self?.dismiss() }
-        }) { escMonitors.append(global) }
         if let local = NSEvent.addLocalMonitorForEvents(matching: .keyDown, handler: { [weak self] event in
             if isEscape(event), self?.panel != nil { self?.dismiss() }
             return event

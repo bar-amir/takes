@@ -13,6 +13,8 @@ enum CrashReports {
     static let recentDays: Double = 14
     /// Frames of the crashed thread put in the summary; enough to see where it stopped, short enough for a URL.
     static let frameLimit = 20
+    /// Longest symbol kept in a frame; Swift generics can make one run to thousands of characters.
+    static let symbolLimit = 160
 
     struct Report: Equatable {
         let file: URL
@@ -92,7 +94,7 @@ enum CrashReports {
             let image = images.indices.contains(index) ? images[index]["name"] as? String ?? "?" : "?"
             var line = "\(number)  \(image)  "
             if let symbol = frame["symbol"] as? String {
-                line += symbol
+                line += symbol.count > symbolLimit ? String(symbol.prefix(symbolLimit)) + "…" : symbol
             } else {
                 line += "0x" + String(frame["imageOffset"] as? Int ?? 0, radix: 16)
             }

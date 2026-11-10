@@ -70,11 +70,24 @@ final class PanelModel: ObservableObject {
 
     let store = Store.shared
     private(set) var focus: FocusSnapshot?
+    /// The history entry of the takes on screen. Nil while a run is still writing, and for takes that were never filed.
     private var historyID: String?
     /// Bumped whenever a run is replaced or abandoned; the old run's task is cancelled with it, which also
     /// stops a Claude Code process still writing.
     private var runToken = 0 { didSet { runTask?.cancel(); runTask = nil } }
     private var runTask: Task<Void, Never>?
+    /// The engine a run uses, and where its timing is logged. Tests put their own here.
+    var makeEngine: (AppSettings) -> TakesEngine = { Engines.current($0) }
+    var logRun: ([String: Any]) -> Void = { RunLog.append($0) }
+    /// Asks the engine in use for its list of models as the panel opens. Tests leave it out.
+    var refreshModels: (EngineKind) -> Void = { engine in
+        switch engine {
+        case .local: Task { await LocalModels.shared.refresh() }
+        case .provider: Task { await ProviderModels.shared.refresh() }
+        case .chatGPT: Task { await ChatGPTModels.shared.refresh() }
+        case .claudeCode, .apiKey: break
+        }
+    }
 
     var onPaste: (Int, String, String?) -> Void = { _, _, _ in }
     var onCopy: (Int, String) -> Void = { _, _ in }
@@ -118,7 +131,13 @@ final class PanelModel: ObservableObject {
     var sourceLabel: String {
         switch focus?.source {
         case .selection: return String(localized: "From your selection")
-        case .field: return draft.isEmpty ? String(localized: "The field was empty") : String(localized: "From the field")
+        case .field:
+            // "Start with: the selection" and nothing was selected. The box wasn't read, so it isn't known to be empty.
+            if focus?.method == FocusSnapshot.noSelection { return String(localized: "Nothing was selected") }
+            return draft.isEmpty ? String(localized: "The field was empty") : String(localized: "From the field")
+        // Not an empty field: its text is still there, unread. A take pasted from here goes in at the caret.
+        case .tooLong: return String(localized: "The text is too long. Select part of it first")
+        case .secure: return String(localized: "Takes doesn't read password fields")
         default: return focus?.app == nil ? "" : String(localized: "Couldn't read the field")
         }
     }
@@ -157,14 +176,12 @@ final class PanelModel: ObservableObject {
             autoPicked = false
         }
         applyPresetSettings()
-        switch store.settings.engine {
-        case .local: Task { await LocalModels.shared.refresh() }
-        case .provider: Task { await ProviderModels.shared.refresh() }
-        case .chatGPT: Task { await ChatGPTModels.shared.refresh() }
-        case .claudeCode, .apiKey: break
-        }
+        refreshModels(store.settings.engine)
         resetReplyContext(draft: focus.text)
         takes = []
+        cutShort = false
+        historyID = nil
+        lastPaste = nil
         takeTones.reset()
         toneRead.dismiss()
         coach.reset()
@@ -203,6 +220,31 @@ final class PanelModel: ObservableObject {
         screen = next
         focusToken += 1
         onScreenChange()
+    }
+
+    /// Whether the open panel holds anything a fresh summon would throw away: a draft that was typed or changed,
+    /// what it replies to, takes, or a run still writing.
+    var hasWork: Bool {
+        func trimmed(_ text: String) -> String { text.trimmingCharacters(in: .whitespacesAndNewlines) }
+        return running || !takes.isEmpty || hasReplyContext || trimmed(draft) != trimmed(focus?.text ?? "")
+    }
+
+    /// The panel closed. A run still writing is abandoned, which also stops its Claude Code process.
+    func panelClosed() {
+        guard running else { return }
+        runToken += 1
+        running = false
+    }
+
+    /// The hotkey pressed again while the panel has the keyboard. Opening the panel afresh would throw away the typed
+    /// draft, the takes and a run still writing, so nothing is reset. A preset's own hotkey picks that preset while
+    /// the draft is being written; anything else only puts the keyboard back in the panel's main input.
+    func hotKeyPressedAgain(presetID: String?) {
+        if screen == .compose, let presetID, presetID != self.presetID, store.preset(id: presetID) != nil {
+            choose(presetID)
+        } else {
+            focusToken += 1
+        }
     }
 
     // MARK: Presets
@@ -330,7 +372,7 @@ final class PanelModel: ObservableObject {
                                          hasContext: promptContext != nil),
             user: PromptBuilder.user(draft: draft, mode: mode, takes: takeCount, context: promptContext),
             takes: takeCount, model: modelID, effort: effort)
-        let engine = Engines.current(store.settings)
+        let engine = makeEngine(store.settings)
 
         runToken += 1
         let token = runToken
@@ -345,6 +387,9 @@ final class PanelModel: ObservableObject {
         error = nil
         limit = nil
         takes = []
+        cutShort = false
+        // The entry on file belongs to the takes this run replaces.
+        historyID = nil
         takeTones.reset()
         toneRead.dismiss()
         // Refining keeps the same draft, so its check stands.
@@ -382,6 +427,7 @@ final class PanelModel: ObservableObject {
     private func finish(_ result: EngineResult, request: EngineRequest, mode: PromptBuilder.Mode) {
         running = false
         takes = result.takes
+        cutShort = result.cutShort
         selected = min(selected, max(takes.count - 1, 0))
         let seconds = { (ms: Int) in String(format: NSLocalizedString("%.1f s", comment: "Seconds"), locale: .current, Double(ms) / 1000) }
         timing = [result.firstTextMs.map { String(localized: "first words \(seconds($0))") }, String(localized: "all takes \(seconds(result.wallMs))")]
@@ -391,9 +437,11 @@ final class PanelModel: ObservableObject {
         let entry = HistoryEntry(appName: appName, presetName: preset.name, draft: sourceDraft, takes: result.takes)
         historyID = entry.id
         store.record(entry)
-        RunLog.append(["kind": "app", "model": request.model, "effort": request.effort, "takes": request.takes,
-                       "engine": store.settings.engine.rawValue, "wallMs": result.wallMs,
-                       "firstTextMs": result.firstTextMs ?? -1, "app": appBundleID ?? ""])
+        logRun([
+            "kind": "app", "model": request.model, "effort": request.effort, "takes": request.takes,
+            "engine": store.settings.engine.rawValue, "wallMs": result.wallMs,
+            "firstTextMs": result.firstTextMs ?? -1, "app": appBundleID ?? "",
+        ])
         takeTones.fetch(takes: takes, showTone: preset.showTone, settings: store.settings)
         if case .fresh = mode { considerInvitation() }
         onScreenChange()
@@ -402,15 +450,28 @@ final class PanelModel: ObservableObject {
     // MARK: Coach invitation
 
     /// Files the takes' fixes and, when the same kind keeps coming back while the coach is off, offers it.
+    /// Comparing every take with the draft is real work, so it happens off the main thread, and the result is
+    /// used only if the run it belongs to is still the one on screen.
     func considerInvitation(store invites: CoachInviteStore? = nil, now: Date = Date()) {
         let settings = store.settings
         let context = CoachInvitation.Context(coachOn: settings.coach.enabled, english: CoachCheck.isEnglish(sourceDraft),
                                               presetCounts: settings.coach.counts(preset), localEngine: settings.engine == .local)
         guard !context.coachOn, context.english, context.presetCounts, sourceDraft != invitationDraft else { return }
         invitationDraft = sourceDraft
-        let found = FixHeuristic.analyse(draft: sourceDraft, takes: takes)
-        invitation = (invites ?? .shared).consider(context: context, found: found, now: now)
+        let draft = sourceDraft
+        let takes = takes
+        let token = runToken
+        invitationTask = Task.detached(priority: .userInitiated) {
+            let found = FixHeuristic.analyse(draft: draft, takes: takes)
+            await MainActor.run {
+                guard self.runToken == token else { return }
+                self.invitation = (invites ?? .shared).consider(context: context, found: found, now: now)
+            }
+        }
     }
+
+    /// The check started by `considerInvitation`, so a test can wait for it.
+    private(set) var invitationTask: Task<Void, Never>?
 
     /// ✕: not now; asks again in a month at the earliest.
     func dismissInvitation() {
@@ -475,17 +536,57 @@ final class PanelModel: ObservableObject {
         isFinished(index) && changesShown.contains(index) != optionHeld
     }
 
+    /// The takes shown came from a run filed elsewhere (instant mode): a take pasted from here is marked on that entry.
+    func continueHistory(entryID: String?) { historyID = entryID }
+
+    /// Whether a take may be pasted or copied: a finished one, not while a run's error is showing, and not the
+    /// take the engine cut short, which is the last one once the run has ended. Every way to paste or copy comes
+    /// through here, whatever the views allow.
+    func canUse(_ index: Int) -> Bool {
+        guard isFinished(index), error == nil else { return false }
+        return !(cutShort && !running && index == takes.count - 1)
+    }
+
+    /// What a paste needs once its outcome is known: which history entry, and which take in it.
+    struct PasteReceipt: Equatable {
+        var entryID: String?
+        var index: Int
+    }
+
+    /// Set by `paste` for the take being pasted now; the panel's controller takes it along with the paste.
+    private var lastPaste: PasteReceipt?
+
+    func takePasteReceipt() -> PasteReceipt? {
+        defer { lastPaste = nil }
+        return lastPaste
+    }
+
     func paste(_ index: Int) {
-        guard isFinished(index) else { return }
-        if let historyID { store.markPasted(entryID: historyID, index: index) }
+        guard canUse(index) else { return }
+        if historyID == nil, running {
+            // Pasted while later takes were still being written. The run ends here, as the panel closes, so it is
+            // filed now with the takes that were finished.
+            let entry = HistoryEntry(appName: appName, presetName: preset.name, draft: sourceDraft, takes: Array(takes.dropLast()))
+            historyID = entry.id
+            store.record(entry)
+        }
+        // History says "pasted" once the paste is known to have gone in (`pasteEnded`), not before.
+        lastPaste = PasteReceipt(entryID: historyID, index: index)
         coachNudge = coach.commit()
         onPaste(index, takes[index], presetID)
+    }
+
+    /// The outcome of a paste: only a take that was really typed into the text box is marked as pasted. One left
+    /// on the clipboard (the box changed, the app didn't come back, the text can't be edited) is not.
+    func pasteEnded(_ outcome: Paster.Outcome, receipt: PasteReceipt?) {
+        guard outcome == .pasted, let receipt, let entryID = receipt.entryID else { return }
+        store.markPasted(entryID: entryID, index: receipt.index)
     }
 
     func pasteSelected() { paste(selected) }
 
     func copySelected() {
-        guard isFinished(selected) else { return }
+        guard canUse(selected) else { return }
         onCopy(selected, takes[selected])
     }
 }

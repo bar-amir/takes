@@ -35,12 +35,12 @@ final class UsageLimitTests: XCTestCase {
     func testClaudeCodePlanLimits() {
         let limit = ClaudeCodeEngine.resultError("5-hour limit reached ∙ resets 3pm") as? UsageLimitError
         XCTAssertEqual(limit?.kind, .planLimit)
-        XCTAssertEqual(limit?.message, "You've reached your Claude plan's usage limit. It resets 3pm. Pick another engine to keep going.")
+        XCTAssertEqual(limit?.message, "You've reached your Claude plan's usage limit. It resets at 3pm. Pick another engine to keep going.")
         XCTAssertEqual(limit?.manage, ClaudeCodeEngine.usageURL)
         XCTAssertEqual(limit?.manageTitle, "Manage usage")
 
-        XCTAssertEqual(ClaudeCodeEngine.resultError("You've hit your limit · resets Nov 9, 10am (Europe/London)").localizedDescription,
-                       "You've reached your Claude plan's usage limit. It resets Nov 9, 10am (Europe/London). Pick another engine to keep going.")
+        let dated = "You've reached your Claude plan's usage limit. It resets on Nov 9 at 10am (Europe/London). Pick another engine to keep going."
+        XCTAssertEqual(ClaudeCodeEngine.resultError("You've hit your limit · resets Nov 9, 10am (Europe/London)").localizedDescription, dated)
 
         // The older form ends with a Unix time.
         let now = Date(timeIntervalSince1970: 1_800_000_000)
@@ -55,6 +55,16 @@ final class UsageLimitTests: XCTestCase {
         XCTAssertEqual(ClaudeCodeEngine.resultError("Not logged in · Please run /login").localizedDescription,
                        ClaudeCodeEngine.signedOutMessage)
         XCTAssertNil(ClaudeCodeEngine.resultError("Not logged in · Please run /login") as? UsageLimitError)
+    }
+
+    func testResetTimesReadAsSentences() {
+        XCTAssertEqual(ClaudeCodeEngine.resetSentence("3pm"), "It resets at 3pm.")
+        XCTAssertEqual(ClaudeCodeEngine.resetSentence("10:30am (Europe/London)"), "It resets at 10:30am (Europe/London).")
+        XCTAssertEqual(ClaudeCodeEngine.resetSentence("Nov 9, 10am"), "It resets on Nov 9 at 10am.")
+        XCTAssertEqual(ClaudeCodeEngine.resetSentence("Monday"), "It resets on Monday.")
+        XCTAssertEqual(ClaudeCodeEngine.resetSentence("in 2 hours"), "It resets in 2 hours.")
+        XCTAssertEqual(ClaudeCodeEngine.resetSentence("tomorrow at 9am"), "It resets tomorrow at 9am.")
+        XCTAssertEqual(ClaudeCodeEngine.resetPhrase("5-hour limit reached ∙ resets 3pm."), "It resets at 3pm.")
     }
 
     func testRetryHint() {

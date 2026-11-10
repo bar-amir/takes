@@ -113,7 +113,7 @@ final class ProofreadTests: XCTestCase {
         let draft = "Thursday works for me.\nSee you then"
         XCTAssertTrue(Proofread.nothingToFix(draft: draft, takes: [draft]))
         XCTAssertTrue(Proofread.nothingToFix(draft: draft, takes: [draft + "\n"]), "a trailing line break isn't a fix")
-        XCTAssertTrue(Proofread.nothingToFix(draft: draft, takes: ["Thursday  works for me.\nSee you then"]))
+        XCTAssertFalse(Proofread.nothingToFix(draft: draft, takes: ["Thursday  works for me.\nSee you then"]), "spacing is pasted too")
         XCTAssertFalse(Proofread.nothingToFix(draft: draft, takes: ["Thursday works for me.\nSee you then."]))
         XCTAssertFalse(Proofread.nothingToFix(draft: draft, takes: [draft, "thursday works for me.\nSee you then"]))
         XCTAssertFalse(Proofread.nothingToFix(draft: draft, takes: []))

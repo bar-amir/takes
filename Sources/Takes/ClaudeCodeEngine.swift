@@ -11,30 +11,51 @@ struct ClaudeCodeEngine: TakesEngine {
     /// Looks for `claude` off the main thread, the login shell included.
     static func locate() async -> String? { await Task.detached { claudePath }.value }
 
-    /// A run that hasn't finished by then is stopped, so a hung `claude` can't keep the panel spinning.
-    static let runTimeout: TimeInterval = 120
+    /// A run that prints nothing for this long is stopped, so a hung `claude` can't keep the panel spinning. Text,
+    /// thinking and Claude Code's own retry notices all count as output.
+    static let idleTimeout: TimeInterval = 120
+    /// However much it prints, a run is stopped after this long.
+    static let runTimeout: TimeInterval = 600
 
-    private static let workDir: URL = {
-        // An empty folder, so Claude Code finds no CLAUDE.md or project settings.
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("takes-engine", isDirectory: true)
-        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+    /// An empty folder, so Claude Code finds no CLAUDE.md or project settings.
+    static var defaultWorkFolder: URL { FileManager.default.temporaryDirectory.appendingPathComponent("takes-engine", isDirectory: true) }
+
+    /// `url`, made again before each launch: macOS clears old files from the temporary folder.
+    static func workFolder(_ url: URL = defaultWorkFolder) -> URL {
+        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
         return url
-    }()
+    }
 
     /// Skip what a rewrite doesn't need: tools, MCP servers, user settings, session files.
     var lean = true
+    /// The `claude` to run, when it isn't the one found on this Mac (tests run a script that acts like it).
+    var executable: String?
+    var idleLimit = ClaudeCodeEngine.idleTimeout
+    var runLimit = ClaudeCodeEngine.runTimeout
+    /// Where `claude` runs (tests use their own folder).
+    var workFolder = ClaudeCodeEngine.defaultWorkFolder
 
     func run(_ request: EngineRequest, onUpdate: @escaping @Sendable ([String]) -> Void) async throws -> EngineResult {
-        guard let claudePath = Self.claudePath else {
+        guard let claudePath = executable ?? Self.claudePath else {
             throw EngineError.failed(String(localized: "Couldn't find the `claude` command. Install Claude Code, or switch to an API key in Settings › Model."))
         }
+
+        // The system prompt (preset instructions, tone notes) goes in a file only this user can read, not in the
+        // arguments, which other processes can see in `ps`. It's removed when the run ends.
+        let promptFile: URL
+        do {
+            promptFile = try PromptFile.write(request.system)
+        } catch {
+            throw EngineError.failed(String(localized: "Takes couldn't prepare the request for Claude Code: \(error.localizedDescription)"))
+        }
+        defer { PromptFile.remove(promptFile) }
 
         // The user message goes in on stdin, never as an argument: as a positional argument, text starting with "-"
         // would be parsed as a CLI option (a draft of "--mcp-config=…" could start a program), and arguments are
         // visible to other processes in `ps`.
         var args = [
             "-p",
-            "--system-prompt", request.system,
+            "--system-prompt-file", promptFile.path,
             "--model", request.model,
             "--effort", request.effort,
             "--output-format", "stream-json",
@@ -46,7 +67,7 @@ struct ClaudeCodeEngine: TakesEngine {
             args += ["--tools", "", "--strict-mcp-config", "--setting-sources", ""]
         }
 
-        let process = Self.process(claudePath, args)
+        let process = Self.process(claudePath, args, in: workFolder)
         let stdin = Pipe(), stdout = Pipe(), stderr = Pipe()
         process.standardInput = stdin
         process.standardOutput = stdout
@@ -54,6 +75,7 @@ struct ClaudeCodeEngine: TakesEngine {
 
         let started = Date()
         let elapsedMs = { Int(Date().timeIntervalSince(started) * 1000) }
+        let idleLimit = idleLimit, runLimit = runLimit
 
         // Esc, closing the panel or asking again cancels the task; the process is stopped too, so it doesn't
         // keep running (and using the person's Claude plan) for a result nobody will see.
@@ -61,14 +83,17 @@ struct ClaudeCodeEngine: TakesEngine {
         let result: EngineResult = try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
                 DispatchQueue.global().async {
+                    let exited = DispatchSemaphore(value: 0)
+                    process.terminationHandler = { _ in exited.signal() }
                     do {
                         try process.run()
                     } catch {
-                        continuation.resume(throwing: error)
+                        continuation.resume(throwing: EngineError.failed(
+                            String(localized: "Takes couldn't start Claude Code: \(error.localizedDescription)")))
                         return
                     }
                     stop.started()
-                    DispatchQueue.global().asyncAfter(deadline: .now() + Self.runTimeout) { stop.timeOut() }
+                    stop.watch(idle: idleLimit, overall: runLimit)
                     // Written on its own queue: a long draft can fill the pipe before claude starts reading.
                     let input = stdin.fileHandleForWriting
                     // If claude exits before reading everything, the write fails instead of killing Takes with SIGPIPE.
@@ -77,82 +102,138 @@ struct ClaudeCodeEngine: TakesEngine {
                         try? input.write(contentsOf: Data(request.user.utf8))
                         try? input.close()
                     }
+                    // Read on its own queue too: a CLI that writes a lot of errors would otherwise block on a full
+                    // pipe while Takes waits for standard output to end. Only the end is kept.
+                    let errors = PipeTail(stderr.fileHandleForReading, keep: 8_000) { stop.touch() }
 
-                    var text = ""
-                    var firstTextMs: Int?
-                    var resultLine: [String: Any]?
-                    var buffer = Data()
-                    let reader = stdout.fileHandleForReading
-
-                    func handle(line: Data) {
-                        guard let json = try? JSONSerialization.jsonObject(with: line) as? [String: Any] else { return }
-                        switch json["type"] as? String {
-                        case "stream_event":
-                            guard let event = json["event"] as? [String: Any],
-                                  event["type"] as? String == "content_block_delta",
-                                  let delta = event["delta"] as? [String: Any],
-                                  delta["type"] as? String == "text_delta",
-                                  let chunk = delta["text"] as? String else { return }
-                            if firstTextMs == nil { firstTextMs = elapsedMs() }
-                            text += chunk
-                            onUpdate(TakeSplitter.split(text, streaming: true))
-                        case "system":
-                            // Claude Code retries a rate-limited or overloaded request on its own, for a minute
-                            // or more, and says so only here.
-                            if let retry = Self.retry(from: json) { request.onRetry?(retry) }
-                        case "result":
-                            resultLine = json
-                        default:
-                            break
+                    let reader = ClaudeStreamReader(stdout.fileHandleForReading, elapsedMs: elapsedMs, onData: { stop.touch() }) { event, text in
+                        switch event {
+                        case .text: onUpdate(TakeSplitter.split(text, streaming: true))
+                        case .retry(let retry): request.onRetry?(retry)
                         }
                     }
 
-                    while true {
-                        let data = reader.availableData
-                        if data.isEmpty { break }
-                        buffer.append(data)
-                        while let newline = buffer.firstIndex(of: 0x0A) {
-                            handle(line: buffer[buffer.startIndex..<newline])
-                            buffer.removeSubrange(buffer.startIndex...newline)
-                        }
+                    // The process ends on its own, or when the watchdog or a cancel stops it (SIGKILL in the end).
+                    exited.wait()
+                    stop.finished()
+                    // Something it started can keep standard output open after it's gone; that must not keep the
+                    // run going. Its process group is killed, and the run ends with what was read.
+                    if !reader.wait(2) {
+                        ProcessStopper.killGroup(process)
+                        _ = reader.wait(1)
                     }
-                    if !buffer.isEmpty { handle(line: buffer) }
-                    let errorOutput = stderr.fileHandleForReading.readDataToEndOfFile()
-                    process.waitUntilExit()
+                    let stream = reader.close()
+                    let errorOutput = errors.text(waiting: 1)
 
                     if stop.wasCancelled {
                         continuation.resume(throwing: CancellationError())
                         return
                     }
-                    if stop.timedOut {
-                        let minutes = Int(Self.runTimeout / 60)
-                        continuation.resume(throwing: EngineError.failed(
-                            String(localized: "Claude Code didn't answer within \(minutes) minutes, so Takes stopped it. Try again, or pick another engine in Settings › Model.")))
-                        return
-                    }
-                    guard let result = resultLine else {
-                        let message = String((String(data: errorOutput, encoding: .utf8) ?? "").prefix(400))
-                        continuation.resume(throwing: EngineError.failed(
-                            Self.isOutOfDate(message) ? Self.outOfDateMessage : String(localized: "Claude Code failed: \(message)")))
-                        return
-                    }
-                    if result["is_error"] as? Bool == true {
-                        continuation.resume(throwing: Self.resultError(result["result"] as? String ?? "unknown error"))
-                        return
-                    }
-                    // The result line holds the full text; prefer it over the streamed pieces.
-                    let takes = TakeSplitter.split(result["result"] as? String ?? text, streaming: false)
-                    guard !takes.isEmpty else {
-                        continuation.resume(throwing: EngineError.failed(String(localized: "Claude returned no takes.")))
-                        return
-                    }
-                    continuation.resume(returning: EngineResult(takes: takes, wallMs: elapsedMs(), firstTextMs: firstTextMs))
+                    continuation.resume(with: Result {
+                        try Self.outcome(of: stream, expired: stop.expiry, errorOutput: errorOutput,
+                                         status: process.terminationStatus,
+                                         signaled: process.terminationReason == .uncaughtSignal,
+                                         wallMs: elapsedMs(), idleLimit: idleLimit, runLimit: runLimit)
+                    })
                 }
             }
         } onCancel: {
             stop.cancel()
         }
         return result
+    }
+
+    /// What a finished run comes to: takes (cut short when the model ran out of room, or when Takes stopped a run
+    /// that already had whole takes), or an error that always says why.
+    static func outcome(of stream: ClaudeStream, expired: ProcessStopper.Expiry?, errorOutput: String, status: Int32,
+                        signaled: Bool, wallMs: Int, idleLimit: TimeInterval = idleTimeout,
+                        runLimit: TimeInterval = runTimeout) throws -> EngineResult {
+        let stopReason = stream.result?["stop_reason"] as? String ?? stream.stopReason
+        // Declined, with or without text so far: a partial answer from a refusal isn't a take.
+        if stopReason == "refusal" { throw EngineError.failed(APIEngine.declinedMessage) }
+        // A result line is the CLI's last word, even when it hung after printing it (a plan limit, say).
+        if let result = stream.result { return try finished(result, stream: stream, stopReason: stopReason, status: status, wallMs: wallMs) }
+        if let expired {
+            // The answer was done and only the CLI hung on exit: the takes are whole.
+            if stream.messageStopped, !APIEngine.ranOutOfRoom(stopReason) {
+                let takes = TakeSplitter.split(stream.text, streaming: false)
+                if !takes.isEmpty { return EngineResult(takes: takes, wallMs: wallMs, firstTextMs: stream.firstTextMs) }
+            }
+            if TakeSplitter.hasWholeTake(stream.text) {
+                let cutShort = TakeSplitter.cutShort(stream.text, stoppedEarly: true)
+                return EngineResult(takes: TakeSplitter.split(stream.text, streaming: true), wallMs: wallMs,
+                                    firstTextMs: stream.firstTextMs, cutShort: cutShort)
+            }
+            throw EngineError.failed(timeoutMessage(expired, idleLimit: idleLimit, runLimit: runLimit))
+        }
+        throw EngineError.failed(failureMessage(errorOutput: errorOutput, stdoutNoise: stream.noise, status: status, signaled: signaled))
+    }
+
+    private static func finished(_ result: [String: Any], stream: ClaudeStream, stopReason: String?, status: Int32,
+                                 wallMs: Int) throws -> EngineResult {
+        let ranOut = APIEngine.ranOutOfRoom(stopReason)
+        if result["is_error"] as? Bool == true {
+            // Claude Code calls a reply that hit its output cap an error; the takes written so far still count.
+            let partial = TakeSplitter.split(stream.text, streaming: true)
+            if ranOut, !partial.isEmpty {
+                return EngineResult(takes: partial, wallMs: wallMs, firstTextMs: stream.firstTextMs,
+                                    cutShort: TakeSplitter.cutShort(stream.text, stoppedEarly: true))
+            }
+            throw resultError(resultMessage(result, status: status))
+        }
+        // The result line holds the full text; prefer it over the streamed pieces, unless the answer was cut off
+        // (the streamed text is then what the model wrote).
+        let text = ranOut && !stream.text.isEmpty ? stream.text : result["result"] as? String ?? stream.text
+        let takes = TakeSplitter.split(text, streaming: ranOut)
+        guard !takes.isEmpty else {
+            throw EngineError.failed(
+                ranOut ? String(localized: "Claude ran out of room before writing a take. Try again, or pick a lower effort.")
+                       : String(localized: "Claude returned no takes."))
+        }
+        return EngineResult(takes: takes, wallMs: wallMs, firstTextMs: stream.firstTextMs,
+                            cutShort: TakeSplitter.cutShort(text, stoppedEarly: ranOut))
+    }
+
+    static func timeoutMessage(_ expiry: ProcessStopper.Expiry, idleLimit: TimeInterval = idleTimeout,
+                               runLimit: TimeInterval = runTimeout) -> String {
+        switch expiry {
+        case .idle:
+            let minutes = max(1, Int((idleLimit / 60).rounded()))
+            return minutes == 1
+                ? String(localized: "Claude Code stopped answering for a minute, so Takes stopped it. Try again, or pick another engine.")
+                : String(localized: "Claude Code stopped answering for \(minutes) minutes, so Takes stopped it. Try again, or pick another engine.")
+        case .overall:
+            let minutes = max(1, Int((runLimit / 60).rounded()))
+            return String(localized: "Claude Code was still writing after \(minutes) minutes, so Takes stopped it. Try a shorter draft, or another engine.")
+        }
+    }
+
+    /// Why a run ended without a result: the CLI's own words (its error output, or a stray line on standard
+    /// output), else its exit status. Never empty.
+    static func failureMessage(errorOutput: String, stdoutNoise: String, status: Int32, signaled: Bool) -> String {
+        for output in [errorOutput, stdoutNoise] {
+            let detail = String(output.trimmingCharacters(in: .whitespacesAndNewlines).suffix(400))
+            guard !detail.isEmpty else { continue }
+            if isOutOfDate(detail) { return outOfDateMessage }
+            if isSignInProblem(detail) { return signedOutMessage }
+            return String(localized: "Claude Code failed: \(detail)")
+        }
+        if signaled {
+            return String(localized: "Claude Code was stopped (signal \(status)) before it answered. Try again, or pick another engine in Settings › Model.")
+        }
+        return String(localized: "Claude Code quit without an answer (exit status \(status)). Try again, or pick another engine in Settings › Model.")
+    }
+
+    /// The words of a result line with `is_error`: its `result`, else its `errors`, else its `subtype`, else the
+    /// exit status. Never empty.
+    static func resultMessage(_ result: [String: Any], status: Int32) -> String {
+        if let text = (result["result"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty { return text }
+        let errors = (result["errors"] as? [String] ?? []).map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        if !errors.isEmpty { return errors.joined(separator: "; ") }
+        if let subtype = result["subtype"] as? String, !subtype.isEmpty, subtype != "success" {
+            return String(localized: "it stopped with “\(subtype)”")
+        }
+        return String(localized: "it reported an error without saying what (exit status \(status))")
     }
 
     /// A `{"type":"system","subtype":"api_retry",…}` line: Claude Code is waiting to try the request again.
@@ -198,7 +279,22 @@ struct ClaudeCodeEngine: TakesEngine {
         }
         guard let range = message.range(of: "resets ", options: .caseInsensitive) else { return nil }
         let when = message[range.upperBound...].trimmingCharacters(in: .whitespacesAndNewlines.union(CharacterSet(charactersIn: ".")))
-        return when.isEmpty ? nil : String(localized: "It resets \(when).")
+        return when.isEmpty ? nil : resetSentence(when)
+    }
+
+    /// "3pm" → "It resets at 3pm.", "Nov 9, 10am (Europe/London)" → "It resets on Nov 9 at 10am (Europe/London).",
+    /// "Monday" → "It resets on Monday.", "in 2 hours" → "It resets in 2 hours."
+    static func resetSentence(_ when: String) -> String {
+        let lower = when.lowercased()
+        if ["at ", "on ", "in ", "tomorrow", "today", "tonight"].contains(where: lower.hasPrefix) {
+            return String(localized: "It resets \(when).")
+        }
+        if when.first?.isNumber == true { return String(localized: "It resets at \(when).") }
+        if let comma = when.range(of: ", "), when[comma.upperBound...].first?.isNumber == true {
+            let day = String(when[..<comma.lowerBound]), time = String(when[comma.upperBound...])
+            return String(localized: "It resets on \(day) at \(time).")
+        }
+        return String(localized: "It resets on \(when).")
     }
 
     /// Shown instead of the CLI's own wording when the login is the problem. Plain words, no commands: the
@@ -278,16 +374,58 @@ struct ClaudeCodeEngine: TakesEngine {
         /// "2.1.310", or nil when the CLI didn't say.
         var version: String?
         /// `claude auth status` didn't answer within `statusTimeout`, or (not found) looking for `claude` ran out
-        /// of time; either way nothing is known yet.
+        /// of time; either way nothing is known yet. Also set when the CLI couldn't be started (`launchError`), so a
+        /// check that doesn't know that field says "didn't answer" rather than "not signed in".
         var timedOut = false
+        /// The CLI is there but couldn't be started (it isn't executable, or macOS refused): why, in words.
+        var launchError: String? = nil
+
+        enum State: Equatable {
+            /// No `claude` on this Mac.
+            case notInstalled
+            /// Looking for `claude` through the login shell ran out of time; Takes keeps looking.
+            case stillLooking
+            /// `claude` is there but couldn't be started; the message says why.
+            case couldNotStart(String)
+            /// `claude auth status` didn't answer in time.
+            case notAnswering
+            /// Older than `minimumVersion`.
+            case tooOld(String)
+            case signedOut
+            case ready
+        }
+
+        /// What setup and Settings › Model should say, with "not installed", "still looking", "couldn't start" and
+        /// "didn't answer" kept apart from "signed out".
+        var state: State {
+            if !found { return timedOut ? .stillLooking : .notInstalled }
+            if let launchError { return .couldNotStart(launchError) }
+            if timedOut { return .notAnswering }
+            if let version, !ClaudeCodeEngine.isSupported(version: version) { return .tooOld(version) }
+            return signedIn ? .ready : .signedOut
+        }
+
+        /// One short line for `state`, or nil when ready.
+        var problem: String? {
+            switch state {
+            case .notInstalled: String(localized: "Claude Code isn't installed")
+            case .stillLooking: String(localized: "Still looking for Claude Code")
+            case .couldNotStart(let reason): reason
+            case .notAnswering: String(localized: "Claude Code didn't answer")
+            case .tooOld(let version): String(localized: "Claude Code \(version) is too old; update it (claude update)")
+            case .signedOut: String(localized: "Claude Code isn't signed in")
+            case .ready: nil
+            }
+        }
     }
 
     /// `claude auth status` and `claude --version` get this long each. A hung CLI must not stop setup from showing.
     static let statusTimeout: TimeInterval = 15
 
-    /// The oldest CLI Takes works with: `claude auth login` and `claude auth status` arrived in 2.1.41, and the run
-    /// flags Takes passes (`--effort`, `--setting-sources`) are from the same time.
-    static let minimumVersion = "2.1.41"
+    /// The oldest CLI that knows every model Takes offers: Opus 5.5 arrived in 2.1.280, Sonnet 5.5 in 2.1.284 and
+    /// Haiku 5.5 (the default for tone notes) in 2.1.293. Everything else Takes uses is older: `--system-prompt-file`
+    /// (1.0.55), `claude auth status` (2.1.41), `--effort` and `--setting-sources`.
+    static let minimumVersion = "2.1.293"
 
     static func isSupported(version: String) -> Bool { compareVersions(version, minimumVersion) != .orderedAscending }
 
@@ -313,27 +451,45 @@ struct ClaudeCodeEngine: TakesEngine {
     /// Whether the CLI is installed, recent enough and signed in, for setup and Settings › Model.
     static func status() async -> Status {
         guard let claudePath else { return Status(found: false, timedOut: ClaudeLocator.shared.lastLookupTimedOut) }
-        return await Task.detached {
-            var status = Status(found: true)
-            // The version is asked once per install and remembered: it's a process start each time.
-            if let version = ClaudeLocator.shared.version(of: claudePath, read: {
-                run(claudePath, ["--version"]).map { parseVersion($0) ?? "" }
-            }), !version.isEmpty {
-                status.version = version
-            }
-            guard let output = run(claudePath, ["auth", "status"]) else {
-                status.timedOut = true
-                return status
-            }
+        return await Task.detached { status(of: claudePath) }.value
+    }
+
+    /// `status()` for the CLI at `path`.
+    static func status(of path: String, timeout: TimeInterval = statusTimeout) -> Status {
+        var status = Status(found: true)
+        // The version is asked once per install and remembered: it's a process start each time. A run that
+        // couldn't start or didn't finish isn't remembered.
+        if let version = ClaudeLocator.shared.version(of: path, read: {
+            if case .output(let output) = run(path, ["--version"], timeout: timeout) { return parseVersion(output) ?? "" }
+            return nil
+        }), !version.isEmpty {
+            status.version = version
+        }
+        // No user or project settings, as for a run: their hooks mustn't run, and the answer should be what a run sees.
+        switch run(path, ["--setting-sources", "", "auth", "status"], timeout: timeout) {
+        case .timedOut:
+            status.timedOut = true
+        case .couldNotStart(let reason):
+            status.timedOut = true
+            status.launchError = String(localized: "Takes couldn't start Claude Code: \(reason)")
+        case .output(let output):
             let json = (try? JSONSerialization.jsonObject(with: Data(output.utf8))) as? [String: Any]
             status.signedIn = json?["loggedIn"] as? Bool ?? false
             status.plan = json?["subscriptionType"] as? String
-            return status
-        }.value
+        }
+        return status
     }
 
-    /// Runs the CLI for its standard output, or nil when it didn't finish within `statusTimeout` (it's stopped then).
-    private static func run(_ path: String, _ arguments: [String]) -> String? {
+    enum RunOutcome: Equatable {
+        case output(String)
+        /// Didn't finish within the timeout, and was stopped.
+        case timedOut
+        /// The process couldn't be started; why.
+        case couldNotStart(String)
+    }
+
+    /// Runs the CLI for its standard output. One that doesn't finish within `timeout` is stopped.
+    static func run(_ path: String, _ arguments: [String], timeout: TimeInterval = statusTimeout) -> RunOutcome {
         let process = Self.process(path, arguments)
         let pipe = Pipe()
         process.standardInput = FileHandle.nullDevice
@@ -341,25 +497,27 @@ struct ClaudeCodeEngine: TakesEngine {
         process.standardError = FileHandle.nullDevice
         let done = DispatchSemaphore(value: 0)
         process.terminationHandler = { _ in done.signal() }
-        guard (try? process.run()) != nil else { return "" }
-        // Read first: a CLI that writes more than the pipe holds would never exit otherwise.
-        var data = Data()
-        let reading = DispatchQueue.global()
-        let read = DispatchSemaphore(value: 0)
-        reading.async { data = pipe.fileHandleForReading.readDataToEndOfFile(); read.signal() }
-        if done.wait(timeout: .now() + statusTimeout) == .timedOut {
-            process.terminate()
-            return nil
+        do {
+            try process.run()
+        } catch {
+            return .couldNotStart(error.localizedDescription)
         }
-        read.wait()
-        return String(data: data, encoding: .utf8) ?? ""
+        // Read as it comes: a CLI that writes more than the pipe holds would never exit otherwise.
+        let output = PipeTail(pipe.fileHandleForReading, keep: 1_000_000)
+        if done.wait(timeout: .now() + timeout) == .timedOut {
+            ProcessStopper.kill(process)
+            return .timedOut
+        }
+        // Something it started still holds the pipe: stop it, and go on with what was read.
+        if !output.wait(2) { ProcessStopper.killGroup(process) }
+        return .output(output.text(waiting: 0.5))
     }
 
-    private static func process(_ path: String, _ arguments: [String]) -> Process {
+    static func process(_ path: String, _ arguments: [String], in folder: URL = defaultWorkFolder) -> Process {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: path)
         process.arguments = arguments
-        process.currentDirectoryURL = workDir
+        process.currentDirectoryURL = workFolder(folder)
         var env = ProcessInfo.processInfo.environment
         // Apps launched from Finder get a bare PATH; keep claude's own folder on it.
         let claudeDir = (path as NSString).deletingLastPathComponent
@@ -369,37 +527,281 @@ struct ClaudeCodeEngine: TakesEngine {
     }
 }
 
+/// What a `claude -p --output-format stream-json` run has said so far.
+struct ClaudeStream {
+    enum Event: Equatable {
+        /// More text arrived.
+        case text
+        /// Claude Code is waiting to try the request again.
+        case retry(EngineRetry)
+    }
+
+    var text = ""
+    var firstTextMs: Int?
+    /// The `result` line.
+    var result: [String: Any]?
+    /// Why the model stopped ("end_turn", "max_tokens"), from the stream's `message_delta`.
+    var stopReason: String?
+    /// The model finished its message (`message_stop`).
+    var messageStopped = false
+    /// The last line that wasn't JSON: some errors are printed on standard output.
+    var noise = ""
+
+    mutating func read(_ line: Data, elapsedMs: () -> Int) -> Event? {
+        guard let json = (try? JSONSerialization.jsonObject(with: line)) as? [String: Any] else {
+            let plain = String(decoding: line, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
+            if !plain.isEmpty { noise = String(plain.prefix(400)) }
+            return nil
+        }
+        switch json["type"] as? String {
+        case "stream_event":
+            guard let event = json["event"] as? [String: Any] else { return nil }
+            switch event["type"] as? String {
+            case "content_block_delta":
+                guard let delta = event["delta"] as? [String: Any], delta["type"] as? String == "text_delta",
+                      let chunk = delta["text"] as? String else { return nil }
+                if firstTextMs == nil { firstTextMs = elapsedMs() }
+                text += chunk
+                return .text
+            case "message_delta":
+                if let reason = (event["delta"] as? [String: Any])?["stop_reason"] as? String { stopReason = reason }
+            case "message_stop":
+                messageStopped = true
+            default:
+                break
+            }
+            return nil
+        case "system":
+            // Claude Code retries a rate-limited or overloaded request on its own, for a minute or more, and says
+            // so only here.
+            return ClaudeCodeEngine.retry(from: json).map { .retry($0) }
+        case "result":
+            result = json
+            return nil
+        default:
+            return nil
+        }
+    }
+}
+
+/// Reads `claude`'s standard output line by line on its own thread, so the run can stop waiting for it: a program
+/// `claude` started can hold the pipe open after `claude` is gone. Lines read after `close()` are dropped.
+final class ClaudeStreamReader: @unchecked Sendable {
+    private let lock = NSLock()
+    private var stream = ClaudeStream()
+    private var closed = false
+    private let group = DispatchGroup()
+
+    init(_ handle: FileHandle, elapsedMs: @escaping @Sendable () -> Int, onData: @escaping @Sendable () -> Void,
+         onEvent: @escaping @Sendable (ClaudeStream.Event, String) -> Void) {
+        group.enter()
+        DispatchQueue.global().async { [self] in
+            var buffer = Data()
+            func take(_ line: Data) {
+                // Under the lock, so nothing reaches the panel after `close()`.
+                self.lock.withLock {
+                    guard !self.closed, let event = self.stream.read(line, elapsedMs: elapsedMs) else { return }
+                    onEvent(event, self.stream.text)
+                }
+            }
+            while true {
+                let data = handle.availableData
+                if data.isEmpty { break }
+                onData()
+                buffer.append(data)
+                while let newline = buffer.firstIndex(of: 0x0A) {
+                    take(buffer[buffer.startIndex..<newline])
+                    buffer.removeSubrange(buffer.startIndex...newline)
+                }
+            }
+            if !buffer.isEmpty { take(buffer) }
+            group.leave()
+        }
+    }
+
+    /// Waits up to `seconds` for the end of the output; false if it hasn't ended.
+    func wait(_ seconds: TimeInterval) -> Bool { group.wait(timeout: .now() + seconds) == .success }
+
+    /// What was read; nothing more is passed on after this.
+    func close() -> ClaudeStream {
+        lock.withLock {
+            closed = true
+            return stream
+        }
+    }
+}
+
+/// The system prompt for one `claude` run, in a file only this user can read (0600) in a folder only this user can
+/// open (0700). It's passed with `--system-prompt-file`, so the prompt never shows in `ps`, and removed afterwards.
+enum PromptFile {
+    static var folder: URL { FileManager.default.temporaryDirectory.appendingPathComponent("takes-prompts", isDirectory: true) }
+
+    static func write(_ text: String, in folder: URL = folder) throws -> URL {
+        let manager = FileManager.default
+        try manager.createDirectory(at: folder, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+        try manager.setAttributes([.posixPermissions: 0o700], ofItemAtPath: folder.path)
+        removeStale(in: folder)
+        let url = folder.appendingPathComponent(UUID().uuidString + ".txt")
+        // Made with its permissions in one step, and never an existing file (O_EXCL), before a byte is written.
+        let descriptor = open(url.path, O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0o600)
+        guard descriptor >= 0 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
+        let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
+        do {
+            try handle.write(contentsOf: Data(text.utf8))
+            try handle.close()
+        } catch {
+            remove(url)
+            throw error
+        }
+        return url
+    }
+
+    static func remove(_ url: URL) { try? FileManager.default.removeItem(at: url) }
+
+    /// Prompt files a crash left behind.
+    static func removeStale(in folder: URL, olderThan age: TimeInterval = 3600) {
+        let manager = FileManager.default
+        let files = (try? manager.contentsOfDirectory(at: folder, includingPropertiesForKeys: [.contentModificationDateKey])) ?? []
+        for file in files where file.pathExtension == "txt" {
+            let modified = (try? file.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? .distantFuture
+            if Date().timeIntervalSince(modified) > age { try? manager.removeItem(at: file) }
+        }
+    }
+}
+
+/// Reads a pipe to its end on its own thread, keeping only the last `keep` bytes, so the writer never blocks on a full
+/// pipe while Takes waits for something else.
+final class PipeTail: @unchecked Sendable {
+    private let lock = NSLock()
+    private var data = Data()
+    private let keep: Int
+    private let group = DispatchGroup()
+
+    init(_ handle: FileHandle, keep: Int, onData: @escaping @Sendable () -> Void = {}) {
+        self.keep = keep
+        group.enter()
+        DispatchQueue.global().async { [self] in
+            while true {
+                let chunk = handle.availableData
+                if chunk.isEmpty { break }
+                onData()
+                lock.withLock {
+                    data.append(chunk)
+                    if data.count > keep * 2 { data = Data(data.suffix(keep)) }
+                }
+            }
+            group.leave()
+        }
+    }
+
+    /// Waits up to `seconds` for the end; false if the pipe is still open.
+    func wait(_ seconds: TimeInterval) -> Bool { group.wait(timeout: .now() + seconds) == .success }
+
+    /// What was read, after waiting up to `seconds` for the end: a process the writer started can keep the pipe open
+    /// after the writer itself has exited, and that mustn't hold Takes up.
+    func text(waiting seconds: TimeInterval) -> String {
+        _ = group.wait(timeout: .now() + seconds)
+        return lock.withLock { String(decoding: data.suffix(keep), as: UTF8.self) }
+    }
+}
+
 /// Stops a `claude` process on cancel or timeout, and remembers which, from any thread.
 final class ProcessStopper: @unchecked Sendable {
+    /// Why a run was stopped for time.
+    enum Expiry: Equatable {
+        /// No output for the idle limit.
+        case idle
+        /// The overall limit.
+        case overall
+    }
+
     private let process: Process
     private let lock = NSLock()
     private var running = false
     private var cancelled = false
-    private var expired = false
+    private var expired: Expiry?
+    private var lastOutput = Date()
+    private var timer: DispatchSourceTimer?
 
     init(_ process: Process) { self.process = process }
 
     var wasCancelled: Bool { lock.withLock { cancelled } }
-    var timedOut: Bool { lock.withLock { expired } }
+    var timedOut: Bool { lock.withLock { expired != nil } }
+    var expiry: Expiry? { lock.withLock { expired } }
 
     /// Called once the process runs; a cancel that came first stops it now.
     func started() {
         let stopNow = lock.withLock { running = true; return cancelled }
-        if stopNow { process.terminate() }
+        if stopNow { Self.kill(process) }
     }
 
     func cancel() {
         let stopNow = lock.withLock { cancelled = true; return running }
-        if stopNow && process.isRunning { process.terminate() }
+        if stopNow && process.isRunning { Self.kill(process) }
     }
 
-    func timeOut() {
+    /// Stops it for running out of time (the caller's own deadline).
+    func timeOut() { timeOut(.overall) }
+
+    func timeOut(_ why: Expiry) {
         let stopNow = lock.withLock { () -> Bool in
-            guard running, !cancelled, process.isRunning else { return false }
-            expired = true
+            guard running, !cancelled, expired == nil, process.isRunning else { return false }
+            expired = why
             return true
         }
-        if stopNow { process.terminate() }
+        if stopNow { Self.kill(process) }
+    }
+
+    /// The process wrote something: the idle clock starts again.
+    func touch() { lock.withLock { lastOutput = Date() } }
+
+    /// Stops the process after `idle` seconds without output (see `touch`) or `overall` seconds in all.
+    func watch(idle: TimeInterval, overall: TimeInterval) {
+        let start = Date()
+        let tick = max(0.05, min(1, idle / 4, overall / 4))
+        let timer = DispatchSource.makeTimerSource(queue: .global())
+        timer.schedule(deadline: .now() + tick, repeating: tick)
+        timer.setEventHandler { [weak self] in
+            guard let self else { return }
+            let quiet = self.lock.withLock { Date().timeIntervalSince(self.lastOutput) }
+            if Date().timeIntervalSince(start) >= overall {
+                self.timeOut(.overall)
+            } else if quiet >= idle {
+                self.timeOut(.idle)
+            }
+        }
+        lock.withLock {
+            lastOutput = start
+            self.timer = timer
+        }
+        timer.resume()
+    }
+
+    /// The process has ended: no more checks.
+    func finished() {
+        let timer = lock.withLock { () -> DispatchSourceTimer? in
+            defer { self.timer = nil }
+            return self.timer
+        }
+        timer?.cancel()
+    }
+
+    /// Asks the process to stop (SIGTERM), then a moment later kills it and everything it started, whether or not
+    /// the process itself ended on the SIGTERM: a child that ignores it could otherwise keep a pipe open.
+    static func kill(_ process: Process, grace: TimeInterval = 2) {
+        guard process.processIdentifier > 1 else { return }
+        if process.isRunning { process.terminate() }
+        DispatchQueue.global().asyncAfter(deadline: .now() + grace) { killGroup(process) }
+    }
+
+    /// SIGKILL to the process and its process group. `Process` starts each child as the leader of a group of its own
+    /// (pgid == pid; `ClaudeCodeRunTests.testProcessStartsItsChildInAGroupOfItsOwn`), so this reaches what it started
+    /// and nothing of Takes. Never for a process that wasn't started: `kill(0)` or `kill(-1)` would reach far more.
+    static func killGroup(_ process: Process) {
+        let pid = process.processIdentifier
+        guard pid > 1, pid != getpid(), pid != getpgrp() else { return }
+        Darwin.kill(-pid, SIGKILL)
+        if process.isRunning { Darwin.kill(pid, SIGKILL) }
     }
 }
 
@@ -518,11 +920,16 @@ final class ClaudeLocator: @unchecked Sendable {
         return (zsh.path, first.timedOut || zsh.timedOut)
     }
 
-    private static func shellPath(shell path: String) -> (path: String?, timedOut: Bool) {
+    /// One shell's answer. It runs while `lookupLock` is held, so it must always end: the output is read as it comes
+    /// (a chatty `.zshrc` can't fill the pipe and stall the shell), a shell that runs out of time is killed with
+    /// everything it started (an interactive shell ignores SIGTERM), and a program it left running with the pipe
+    /// open can't keep Takes waiting.
+    static func shellPath(shell path: String, arguments: [String] = ["-l", "-i", "-c", "command -v claude"],
+                          timeout: TimeInterval = shellTimeout) -> (path: String?, timedOut: Bool) {
         let shell = Process()
         shell.executableURL = URL(fileURLWithPath: path)
         // -l -i: a login, interactive shell, so .zshrc / .bashrc / config.fish run and set PATH as they do in Terminal.
-        shell.arguments = ["-l", "-i", "-c", "command -v claude"]
+        shell.arguments = arguments
         let pipe = Pipe()
         shell.standardInput = FileHandle.nullDevice
         shell.standardOutput = pipe
@@ -530,12 +937,15 @@ final class ClaudeLocator: @unchecked Sendable {
         let done = DispatchSemaphore(value: 0)
         shell.terminationHandler = { _ in done.signal() }
         guard (try? shell.run()) != nil else { return (nil, false) }
-        if done.wait(timeout: .now() + shellTimeout) == .timedOut {
-            shell.terminate()
+        // `command -v` prints one line; only the end of a long output matters.
+        let output = PipeTail(pipe.fileHandleForReading, keep: 64_000)
+        if done.wait(timeout: .now() + timeout) == .timedOut {
+            ProcessStopper.kill(shell, grace: 0.5)
             return (nil, true)
         }
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        return (parse(String(data: data, encoding: .utf8) ?? ""), false)
+        // A program the shell's startup files left running with the pipe open: stop it, and go on with what was read.
+        if !output.wait(0.5) { ProcessStopper.killGroup(shell) }
+        return (parse(output.text(waiting: 0.2)), false)
     }
 
     /// The path in `command -v` output: the last line, or the target of an `alias claude=…`.

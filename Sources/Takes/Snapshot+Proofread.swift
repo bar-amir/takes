@@ -1,13 +1,15 @@
 import AppKit
 import SwiftUI
 
-/// Proofread screens for `--snapshot`: takes with fixes, the same with ⌥ held, no mistakes found and the preset editor's
-/// minimal-edits option, each in light and dark.
+/// Proofread screens for `--snapshot`: takes with fixes, the same with ⌥ held, no mistakes found, spacing-only fixes, a take
+/// cut short and the preset editor's minimal-edits option, each in light and dark.
 extension Snapshot {
     static func renderProofread(to url: URL) {
         let fixed = (draft: "hey dana, i think teh specs are due wed but lets confirm with qa before we promise anything",
                      take: "Hey Dana, I think the specs are due Wed, but let's confirm with QA before we promise anything.")
         let clean = "Thanks, that works for me. I'll send the notes after the call."
+        // Only spacing fixed: a space before the comma, and a line break joined.
+        let spacing = (draft: "Thanks , that works for me.\nI'll send the notes after the call.", take: clean)
 
         func model(draft: String, takes: [String], preset: Preset = .proofread) -> PanelModel {
             let model = PanelModel()
@@ -30,10 +32,15 @@ extension Snapshot {
         threeTakes.takes = 3
         let optionHeld = model(draft: fixed.draft, takes: [fixed.take])
         optionHeld.optionHeld = true
+        // The only take stopped before the end: nothing to paste, and ⌘R is the way on.
+        let cutShort = model(draft: fixed.draft, takes: ["Hey Dana, I think the specs are due Wed, but let's confirm with"])
+        cutShort.cutShort = true
         let screens: [(name: String, model: PanelModel, width: CGFloat)] = [
             ("7-proofread-fixes", model(draft: fixed.draft, takes: [fixed.take]), 720),
             ("7-proofread-option-held", optionHeld, 720),
             ("7-proofread-no-mistakes", model(draft: clean, takes: [clean]), 720),
+            ("7-proofread-spacing", model(draft: spacing.draft, takes: [spacing.take]), 720),
+            ("7-proofread-cut-short", cutShort, 720),
             ("7-proofread-three-takes", model(draft: fixed.draft, takes: [
                 fixed.take,
                 "Hey Dana, I think the specs are due Wed, but let's confirm with QA before we promise anything.",

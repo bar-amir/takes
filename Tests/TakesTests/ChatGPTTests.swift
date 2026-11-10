@@ -246,12 +246,16 @@ final class ChatGPTIDTokenTests: XCTestCase {
 }
 
 final class ChatGPTScopeTests: XCTestCase {
+    /// Where test clients "revoke": nothing listens there, so no test can reach OpenAI.
+    static let noRevoke = URL(string: "http://127.0.0.1:9/no-revoke")!
+    static let offline = ChatGPTAuthClient(tokenURL: URL(string: "http://127.0.0.1:9/never")!, discoveryURL: nil, revokeURL: noRevoke)
+
     private func credentials(scopes: String, expiresIn: Double = 3600) -> ChatGPTCredentials {
         ChatGPTCredentials(clientID: "oaiapp_1", response: ChatGPTTokenResponse(access_token: "at", refresh_token: "rt", expires_in: expiresIn, scope: scopes), claims: nil)
     }
 
     func testNoInferenceWithoutPlanUsage() async {
-        let tokens = ChatGPTTokens(store: ChatGPTMemoryStore(credentials(scopes: "openid profile email offline_access")))
+        let tokens = ChatGPTTokens(store: ChatGPTMemoryStore(credentials(scopes: "openid profile email offline_access")), client: Self.offline)
         do {
             _ = try await tokens.accessToken()
             XCTFail("should refuse")
@@ -262,7 +266,7 @@ final class ChatGPTScopeTests: XCTestCase {
 
     func testNoTokensMeansSignIn() async {
         do {
-            _ = try await ChatGPTTokens(store: ChatGPTMemoryStore()).accessToken()
+            _ = try await ChatGPTTokens(store: ChatGPTMemoryStore(), client: Self.offline).accessToken()
             XCTFail("should refuse")
         } catch {
             XCTAssertEqual(error.localizedDescription, "Sign in to ChatGPT in Settings › Model.")
@@ -271,7 +275,7 @@ final class ChatGPTScopeTests: XCTestCase {
 
     func testFreshTokenIsUsedAsIs() async throws {
         let tokens = ChatGPTTokens(store: ChatGPTMemoryStore(credentials(scopes: "openid chatgpt.tokens.use.direct")),
-                                   client: ChatGPTAuthClient(tokenURL: URL(string: "http://127.0.0.1:9/never")!, discoveryURL: nil))
+                                   client: Self.offline)
         let token = try await tokens.accessToken()
         XCTAssertEqual(token, "at")
     }
@@ -391,8 +395,8 @@ final class ChatGPTServerTests: XCTestCase {
     }
 
     private func engine(_ server: ChatGPTMockServer, _ store: ChatGPTCredentialStore) -> ChatGPTEngine {
-        ChatGPTEngine(baseURL: server.baseURL,
-                      tokens: ChatGPTTokens(store: store, client: ChatGPTAuthClient(tokenURL: server.url("/oauth/token"), discoveryURL: nil)))
+        let client = ChatGPTAuthClient(tokenURL: server.url("/oauth/token"), discoveryURL: nil, revokeURL: server.url("/oauth/revoke"))
+        return ChatGPTEngine(baseURL: server.baseURL, tokens: ChatGPTTokens(store: store, client: client))
     }
 
     private static func sse(_ events: [String]) -> String {
@@ -423,6 +427,7 @@ final class ChatGPTServerTests: XCTestCase {
         let updates = ChatGPTUpdateLog()
         let result = try await engine(server, signedIn()).run(Self.request) { updates.add($0) }
         XCTAssertEqual(result.takes, ["Thursday works.", "Sure, Thursday."])
+        XCTAssertFalse(result.cutShort)
         XCTAssertNotNil(result.firstTextMs)
         XCTAssertFalse(updates.all.isEmpty)
         XCTAssertFalse(updates.all.flatMap { $0 }.contains { $0.contains("=") })
@@ -458,6 +463,7 @@ final class ChatGPTServerTests: XCTestCase {
         defer { server.stop() }
         let result = try await engine(server, signedIn()).run(Self.request) { _ in }
         XCTAssertEqual(result.takes, ["Thursday works.", "Sure"])
+        XCTAssertTrue(result.cutShort)
         body = empty
         await assertFails(engine(server, signedIn()), contains: "ChatGPT stopped early. Try again.")
     }
@@ -508,7 +514,8 @@ final class ChatGPTServerTests: XCTestCase {
                          chunks: [Data(#"{"access_token":"at2","refresh_token":"rt2","expires_in":3600}"#.utf8)])
         }
         defer { server.stop() }
-        let tokens = ChatGPTTokens(store: signedIn(expiresIn: 30), client: ChatGPTAuthClient(tokenURL: server.url("/oauth/token"), discoveryURL: nil))
+        let client = ChatGPTAuthClient(tokenURL: server.url("/oauth/token"), discoveryURL: nil, revokeURL: server.url("/oauth/revoke"))
+        let tokens = ChatGPTTokens(store: signedIn(expiresIn: 30), client: client)
         async let a = tokens.accessToken()
         async let b = tokens.accessToken()
         let both = try await [a, b]
@@ -552,20 +559,24 @@ final class ChatGPTServerTests: XCTestCase {
     /// The whole browser flow with a fake browser: register, callback, exchange, ID token, scopes, saved together.
     func testSignInEndToEnd() async throws {
         let attemptBox = ChatGPTUpdateLog()
+        let signer = try TestSigner()
         let server = try ChatGPTMockServer { request in
             XCTAssertEqual(request.path, "/oauth/token")
             let form = String(decoding: request.body, as: UTF8.self)
             attemptBox.add([form])
             let nonce = attemptBox.nonce
-            let idToken = Self.unsignedIDToken(["iss": "https://auth.openai.com", "aud": "oaiapp_new", "nonce": nonce,
-                                                "exp": Date().timeIntervalSince1970 + 600, "sub": "user-1", "email": "sam@example.com"])
+            let idToken = signer.token([
+                "iss": "https://auth.openai.com", "aud": "oaiapp_new", "nonce": nonce,
+                "exp": Date().timeIntervalSince1970 + 600, "sub": "user-1", "email": "sam@example.com",
+            ])
             return .init(status: 200, contentType: "application/json", chunks: [Data(
                 #"{"access_token":"at","refresh_token":"rt","id_token":"\#(idToken)","token_type":"Bearer","expires_in":3600,"scope":"openid profile email offline_access resource.invoke chatgpt.tokens.use.direct"}"#.utf8)])
         }
         defer { server.stop() }
 
         let store = ChatGPTMemoryStore()
-        let client = ChatGPTAuthClient(tokenURL: server.url("/oauth/token"), discoveryURL: nil)
+        let client = ChatGPTAuthClient(tokenURL: server.url("/oauth/token"), discoveryURL: nil, revokeURL: server.url("/oauth/revoke"),
+                                       jwks: signer.jwks)
         let credentials = try await ChatGPTSignIn.signIn(store: store, client: client, hostID: "urn:uuid:test", timeout: 10) { url in
             let query = Dictionary(uniqueKeysWithValues: URLComponents(url: url, resolvingAgainstBaseURL: false)!.queryItems!.map { ($0.name, $0.value!) })
             XCTAssertEqual(query["client_id"], "dynamic_agent_client")
@@ -595,7 +606,7 @@ final class ChatGPTServerTests: XCTestCase {
     /// it keeps waiting for the real one, here until it times out.
     func testSignInIgnoresAForgedCallback() async throws {
         let store = ChatGPTMemoryStore()
-        let client = ChatGPTAuthClient(tokenURL: URL(string: "http://127.0.0.1:9/never")!, discoveryURL: nil)
+        let client = ChatGPTAuthClient(tokenURL: URL(string: "http://127.0.0.1:9/never")!, discoveryURL: nil, revokeURL: ChatGPTScopeTests.noRevoke)
         let forged = ChatGPTUpdateLog()
         do {
             _ = try await ChatGPTSignIn.signIn(store: store, client: client, hostID: "urn:uuid:test", timeout: 2) { url in
@@ -756,4 +767,352 @@ private final class ChatGPTMockServer: @unchecked Sendable {
         }
         sendNext()
     }
+}
+
+/// A signing key and its JWKS, for ID tokens a sign-in can verify. The key lives in memory only.
+struct TestSigner {
+    let privateKey: SecKey
+    let jwks: Data
+
+    init() throws {
+        let attributes: [String: Any] = [kSecAttrKeyType as String: kSecAttrKeyTypeRSA, kSecAttrKeySizeInBits as String: 2048]
+        privateKey = try XCTUnwrap(SecKeyCreateRandomKey(attributes as CFDictionary, nil))
+        let publicKey = try XCTUnwrap(SecKeyCopyPublicKey(privateKey))
+        let der = try XCTUnwrap(SecKeyCopyExternalRepresentation(publicKey, nil) as Data?)
+        let (n, e) = try XCTUnwrap(ChatGPTIDTokenTests.rsaComponents(der))
+        jwks = try JSONSerialization.data(withJSONObject: ["keys": [
+            ["kty": "RSA", "kid": "k", "use": "sig", "alg": "RS256", "n": ChatGPTOAuth.base64url(n), "e": ChatGPTOAuth.base64url(e)],
+        ]])
+    }
+
+    func token(_ claims: [String: Any]) -> String {
+        func part(_ json: [String: Any]) -> String { ChatGPTOAuth.base64url(try! JSONSerialization.data(withJSONObject: json)) }
+        let input = part(["alg": "RS256", "typ": "JWT", "kid": "k"]) + "." + part(claims)
+        let signature = SecKeyCreateSignature(privateKey, .rsaSignatureMessagePKCS1v15SHA256, Data(input.utf8) as CFData, nil)! as Data
+        return input + "." + ChatGPTOAuth.base64url(signature)
+    }
+}
+
+/// Sign-in and sign-out edges: a sign-in that can't check the signature, a cancelled sign-in, and a refresh that
+/// finishes after sign-out. All against a mock server on 127.0.0.1; nothing reaches OpenAI.
+final class ChatGPTSignOutTests: XCTestCase {
+    private static let scope = "openid profile email offline_access resource.invoke chatgpt.tokens.use.direct"
+
+    private func signedIn(access: String = "at1", refresh: String = "rt1") -> ChatGPTMemoryStore {
+        let store = ChatGPTMemoryStore()
+        store.save(ChatGPTCredentials(clientID: "oaiapp_1", response: ChatGPTTokenResponse(
+            access_token: access, refresh_token: refresh, expires_in: 3600, scope: Self.scope), claims: nil))
+        return store
+    }
+
+    private func client(_ server: ChatGPTMockServer, jwks: Data? = nil) -> ChatGPTAuthClient {
+        ChatGPTAuthClient(tokenURL: server.url("/oauth/token"), discoveryURL: nil, revokeURL: server.url("/oauth/revoke"), jwks: jwks)
+    }
+
+    private static func tokenReply(_ access: String, _ refresh: String, idToken: String? = nil) -> ChatGPTMockServer.Response {
+        var json: [String: Any] = ["access_token": access, "refresh_token": refresh, "expires_in": 3600, "token_type": "Bearer", "scope": scope]
+        if let idToken { json["id_token"] = idToken }
+        return .init(status: 200, contentType: "application/json", chunks: [try! JSONSerialization.data(withJSONObject: json)])
+    }
+
+    /// Waits up to 3 s for `condition`.
+    private func eventually(_ condition: () -> Bool) async {
+        for _ in 0..<60 where !condition() { try? await Task.sleep(for: .milliseconds(50)) }
+    }
+
+    /// Runs the browser flow with a fake browser that answers at once.
+    private func signIn(client: ChatGPTAuthClient, store: ChatGPTCredentialStore, nonce: ChatGPTUpdateLog,
+                        gate: ChatGPTSignInGate = ChatGPTSignInGate()) async throws -> ChatGPTCredentials {
+        try await ChatGPTSignIn.signIn(store: store, client: client, hostID: "urn:uuid:test", timeout: 10, gate: gate) { url in
+            let query = Dictionary(uniqueKeysWithValues: URLComponents(url: url, resolvingAgainstBaseURL: false)!.queryItems!.map { ($0.name, $0.value!) })
+            nonce.nonce = query["nonce"]!
+            var callback = URLComponents(string: query["redirect_uri"]!)!
+            callback.queryItems = [
+                .init(name: "code", value: "code-1"), .init(name: "state", value: query["state"]),
+                .init(name: "scope", value: query["scope"]), .init(name: "client_id", value: "oaiapp_new"),
+            ]
+            Task { _ = try? await URLSession.shared.data(from: callback.url!) }
+        }
+    }
+
+    private func claims(_ nonce: String) -> [String: Any] {
+        ["iss": "https://auth.openai.com", "aud": "oaiapp_new", "nonce": nonce, "exp": Date().timeIntervalSince1970 + 600, "sub": "user-1"]
+    }
+
+    // MARK: The ID token's signature
+
+    func testSignInFailsClosedWhenTheKeysCantBeFetched() async throws {
+        let signer = try TestSigner()
+        let nonce = ChatGPTUpdateLog(), asked = ChatGPTUpdateLog()
+        let server = try ChatGPTMockServer { [self] request in
+            asked.add([request.path])
+            if request.path == "/oauth/token" { return Self.tokenReply("at", "rt", idToken: signer.token(claims(nonce.nonce))) }
+            // The discovery document doesn't load.
+            return .init(status: 503, contentType: "application/json", chunks: [Data("{}".utf8)])
+        }
+        defer { server.stop() }
+        var client = client(server)
+        client.discoveryURL = server.url("/.well-known/openid-configuration")
+        let store = ChatGPTMemoryStore()
+        do {
+            _ = try await signIn(client: client, store: store, nonce: nonce)
+            XCTFail("should fail")
+        } catch {
+            let message = "Takes couldn't reach OpenAI to check the sign-in, so it didn't keep it. Check your internet connection and try again."
+            XCTAssertEqual(error.localizedDescription, message)
+        }
+        XCTAssertNil(store.load())
+        XCTAssertTrue(asked.all.contains(["/.well-known/openid-configuration"]), "\(asked.all)")
+    }
+
+    func testAKeysEndpointThatFailsIsKeysUnavailable() async throws {
+        let signer = try TestSigner()
+        let server = try ChatGPTMockServer { _ in .init(status: 503, contentType: "application/json", chunks: [Data("{}".utf8)]) }
+        defer { server.stop() }
+        var client = client(server)
+        client.discoveryURL = server.url("/.well-known/openid-configuration")
+        var claims = claims("n1")
+        claims["aud"] = "oaiapp_1"
+        let result = await client.validate(signer.token(claims), nonce: "n1", clientID: "oaiapp_1")
+        XCTAssertEqual(result.map(\.sub), .failure(.keysUnavailable))
+    }
+
+    func testAnUnsignedTokenIsRefused() async throws {
+        let signer = try TestSigner()
+        let server = try ChatGPTMockServer { _ in .init(status: 500, contentType: "text/plain", chunks: []) }
+        defer { server.stop() }
+        var claims = claims("n1")
+        claims["aud"] = "oaiapp_1"
+        let result = await client(server, jwks: signer.jwks).validate(ChatGPTServerTests.unsignedIDToken(claims), nonce: "n1", clientID: "oaiapp_1")
+        XCTAssertEqual(result.map(\.sub), .failure(.signature))
+        let good = await client(server, jwks: signer.jwks).validate(signer.token(claims), nonce: "n1", clientID: "oaiapp_1")
+        XCTAssertEqual(good.map(\.sub), .success("user-1"))
+    }
+
+    // MARK: Cancelled sign-in
+
+    func testACancelledSignInSavesNoTokens() async throws {
+        let signer = try TestSigner()
+        let nonce = ChatGPTUpdateLog(), revoked = ChatGPTUpdateLog()
+        let gate = ChatGPTSignInGate()
+        let server = try ChatGPTMockServer { [self] request in
+            if request.path == "/oauth/revoke" {
+                revoked.add([String(decoding: request.body, as: UTF8.self)])
+                return .init(status: 200, contentType: "application/json", chunks: [Data("{}".utf8)])
+            }
+            // The person presses Cancel while the code is being exchanged.
+            gate.cancel()
+            return Self.tokenReply("at", "rt-late", idToken: signer.token(claims(nonce.nonce)))
+        }
+        defer { server.stop() }
+        let store = ChatGPTMemoryStore()
+        do {
+            _ = try await signIn(client: client(server, jwks: signer.jwks), store: store, nonce: nonce, gate: gate)
+            XCTFail("should be cancelled")
+        } catch {
+            XCTAssertTrue(error is CancellationError, "\(error)")
+        }
+        XCTAssertNil(store.load())
+        // The tokens it got are revoked, so they don't stay live with OpenAI.
+        await eventually { !revoked.all.isEmpty }
+        XCTAssertTrue(revoked.all.first?.first?.contains("token=rt-late") == true, "\(revoked.all)")
+    }
+
+    // MARK: Refresh and sign-out
+
+    func testARefreshThatFinishesAfterSignOutIsDropped() async throws {
+        let revoked = ChatGPTUpdateLog()
+        let server = try ChatGPTMockServer { request in
+            if request.path == "/oauth/revoke" {
+                revoked.add([String(decoding: request.body, as: UTF8.self)])
+                return .init(status: 200, contentType: "application/json", chunks: [Data("{}".utf8)])
+            }
+            Thread.sleep(forTimeInterval: 0.5)
+            return Self.tokenReply("at2", "rt2")
+        }
+        defer { server.stop() }
+        let store = signedIn()
+        let tokens = ChatGPTTokens(store: store, client: client(server))
+        async let refreshed = tokens.accessToken(forceRefresh: true)
+        try await Task.sleep(for: .milliseconds(150))
+        store.save(nil)
+        do {
+            _ = try await refreshed
+            XCTFail("should fail")
+        } catch {
+            XCTAssertEqual(error.localizedDescription, "Sign in to ChatGPT in Settings › Model.")
+        }
+        XCTAssertNil(store.load())
+        await eventually { !revoked.all.isEmpty }
+        XCTAssertTrue(revoked.all.first?.first?.contains("token=rt2") == true, "\(revoked.all)")
+    }
+
+    func testSignOutStopsARefreshAndForgetsThisMac() async throws {
+        let server = try ChatGPTMockServer { _ in
+            Thread.sleep(forTimeInterval: 0.5)
+            return Self.tokenReply("at2", "rt2")
+        }
+        defer { server.stop() }
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let hostID = ChatGPTHost.id(in: folder)
+
+        let store = signedIn()
+        let tokens = ChatGPTTokens(store: store, client: client(server))
+        async let refreshed = tokens.accessToken(forceRefresh: true)
+        try await Task.sleep(for: .milliseconds(150))
+        ChatGPTSignIn.forgetSignIn(store: store, tokens: tokens, hostDirectory: folder)
+        do {
+            _ = try await refreshed
+            XCTFail("should be stopped")
+        } catch {
+            // Cancelled on its way, not refused after it finished (a refused save would say "Sign in").
+            XCTAssertTrue(error is CancellationError, "\(error)")
+        }
+        try await Task.sleep(for: .milliseconds(600))
+        XCTAssertNil(store.load())
+        XCTAssertFalse(FileManager.default.fileExists(atPath: ChatGPTHost.file(in: folder).path))
+        XCTAssertNotEqual(ChatGPTHost.id(in: folder), hostID)
+    }
+
+    func testADeadRefreshDoesNotSignOutANewerSignIn() async throws {
+        let server = try ChatGPTMockServer { _ in
+            Thread.sleep(forTimeInterval: 0.5)
+            return .init(status: 400, contentType: "application/json", chunks: [Data(#"{"error":"invalid_grant"}"#.utf8)])
+        }
+        defer { server.stop() }
+        let store = signedIn()
+        let tokens = ChatGPTTokens(store: store, client: client(server))
+        let signedOut = ChatGPTUpdateLog()
+        await tokens.setOnSignedOut { signedOut.add(["signed out"]) }
+        async let refreshed = tokens.accessToken(forceRefresh: true)
+        try await Task.sleep(for: .milliseconds(150))
+        // Signed in again (another account, new tokens) while the old refresh was on its way.
+        let newer = signedIn(access: "at-new", refresh: "rt-new").load()!
+        store.save(newer)
+        _ = try? await refreshed
+        XCTAssertEqual(store.load(), newer)
+        XCTAssertTrue(signedOut.all.isEmpty)
+    }
+
+    func testReplaceOnlyOverTheSameTokens() {
+        let store = signedIn()
+        let current = store.load()!
+        let other = signedIn(access: "at9", refresh: "rt9").load()!
+        XCTAssertEqual(store.replace(other, with: nil), .changed)
+        XCTAssertEqual(store.load(), current)
+        XCTAssertEqual(store.replace(current, with: other), .replaced)
+        XCTAssertEqual(store.load(), other)
+        store.save(nil)
+        XCTAssertEqual(store.replace(other, with: current), .changed)
+        XCTAssertNil(store.load())
+    }
+
+    /// A keychain that can't be read for a while (locked, or a refused access prompt) isn't a sign-out: the new
+    /// tokens are kept in memory, nothing is revoked, and they're saved once the keychain answers again.
+    func testAKeychainThatCantBeReadKeepsTheNewTokens() async throws {
+        let revoked = ChatGPTUpdateLog()
+        let server = try ChatGPTMockServer { request in
+            if request.path == "/oauth/revoke" {
+                revoked.add([String(decoding: request.body, as: UTF8.self)])
+                return .init(status: 200, contentType: "application/json", chunks: [Data("{}".utf8)])
+            }
+            return Self.tokenReply("at2", "rt2")
+        }
+        defer { server.stop() }
+        let store = FlakyStore(signedIn())
+        let tokens = ChatGPTTokens(store: store, client: client(server))
+        store.failing = true
+        let token = try await tokens.accessToken(forceRefresh: true)
+        XCTAssertEqual(token, "at2")
+        XCTAssertEqual(store.inner.load()?.accessToken, "at1", "nothing could be written")
+        // Still unreadable: the new tokens are used, not refreshed again.
+        let again = try await tokens.accessToken()
+        XCTAssertEqual(again, "at2")
+        store.failing = false
+        _ = try await tokens.accessToken()
+        XCTAssertEqual(store.inner.load()?.accessToken, "at2")
+        XCTAssertEqual(store.inner.load()?.refreshToken, "rt2")
+        try await Task.sleep(for: .milliseconds(200))
+        XCTAssertTrue(revoked.all.isEmpty, "\(revoked.all)")
+    }
+
+    /// Tokens held in memory are dropped and revoked once the keychain shows the user signed out meanwhile.
+    func testUnsavedTokensAreDroppedAfterSignOut() async throws {
+        let revoked = ChatGPTUpdateLog()
+        let server = try ChatGPTMockServer { request in
+            if request.path == "/oauth/revoke" {
+                revoked.add([String(decoding: request.body, as: UTF8.self)])
+                return .init(status: 200, contentType: "application/json", chunks: [Data("{}".utf8)])
+            }
+            return Self.tokenReply("at2", "rt2")
+        }
+        defer { server.stop() }
+        let store = FlakyStore(signedIn())
+        let tokens = ChatGPTTokens(store: store, client: client(server))
+        store.failing = true
+        _ = try await tokens.accessToken(forceRefresh: true)
+        store.failing = false
+        store.inner.save(nil)
+        do {
+            _ = try await tokens.accessToken()
+            XCTFail("should be signed out")
+        } catch {
+            XCTAssertEqual(error.localizedDescription, "Sign in to ChatGPT in Settings › Model.")
+        }
+        XCTAssertNil(store.inner.load())
+        await eventually { !revoked.all.isEmpty }
+        XCTAssertTrue(revoked.all.first?.first?.contains("token=rt2") == true, "\(revoked.all)")
+    }
+
+    func testASignInTheKeychainCantSaveFails() async throws {
+        let signer = try TestSigner()
+        let nonce = ChatGPTUpdateLog()
+        let server = try ChatGPTMockServer { [self] request in
+            if request.path == "/oauth/revoke" { return .init(status: 200, contentType: "application/json", chunks: [Data("{}".utf8)]) }
+            return Self.tokenReply("at", "rt", idToken: signer.token(claims(nonce.nonce)))
+        }
+        defer { server.stop() }
+        let store = FlakyStore(ChatGPTMemoryStore())
+        store.failing = true
+        do {
+            _ = try await signIn(client: client(server, jwks: signer.jwks), store: store, nonce: nonce)
+            XCTFail("should fail")
+        } catch {
+            XCTAssertEqual(error.localizedDescription, "Takes couldn't save the sign-in to your keychain. Try again.")
+        }
+    }
+
+    func testGateRefusesAfterCancel() {
+        let gate = ChatGPTSignInGate()
+        var saved = 0
+        XCTAssertTrue(gate.commit { saved += 1 })
+        gate.cancel()
+        XCTAssertFalse(gate.commit { saved += 1 })
+        XCTAssertEqual(saved, 1)
+        XCTAssertTrue(gate.isCancelled)
+    }
+}
+
+/// A store whose keychain stops answering while `failing` is set: `replace` can't read it and `save` can't write it,
+/// as with a locked keychain. (`load` still answers, so a test can start from saved tokens.)
+private final class FlakyStore: ChatGPTCredentialStore, @unchecked Sendable {
+    let inner: ChatGPTMemoryStore
+    private let lock = NSLock()
+    private var _failing = false
+    var failing: Bool {
+        get { lock.withLock { _failing } }
+        set { lock.withLock { _failing = newValue } }
+    }
+
+    init(_ inner: ChatGPTMemoryStore) { self.inner = inner }
+
+    func load() -> ChatGPTCredentials? { inner.load() }
+    func save(_ credentials: ChatGPTCredentials?) -> Bool { failing ? false : inner.save(credentials) }
+    func replace(_ old: ChatGPTCredentials, with new: ChatGPTCredentials?) -> ChatGPTStoreUpdate {
+        failing ? .failed : inner.replace(old, with: new)
+    }
+    func loadRegistration() -> ChatGPTRegistration? { inner.loadRegistration() }
+    func saveRegistration(_ registration: ChatGPTRegistration?) { inner.saveRegistration(registration) }
 }

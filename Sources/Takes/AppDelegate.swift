@@ -39,11 +39,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         SetupMonitor.shared.recheckHotKeys = { [weak self] in self?.recheckTakenHotKeys() }
 
         // Build Electron apps' accessibility trees as they come forward, so the hotkey can read their fields.
+        // Each process is asked once (`FocusReader.prepare`), until it quits.
         if let front = NSWorkspace.shared.frontmostApplication { FocusReader.prepare(front) }
         NSWorkspace.shared.notificationCenter
             .publisher(for: NSWorkspace.didActivateApplicationNotification)
             .compactMap { $0.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication }
             .sink { FocusReader.prepare($0) }
+            .store(in: &subscriptions)
+        NSWorkspace.shared.notificationCenter
+            .publisher(for: NSWorkspace.didTerminateApplicationNotification)
+            .compactMap { $0.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication }
+            .sink { FocusReader.forget($0.processIdentifier) }
             .store(in: &subscriptions)
 
         // Keep the menu-bar icon in step with setup, and walk the user through anything missing.
@@ -146,6 +152,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             openSetup(on: ScreenChoice.focused)
             return
         }
+        // Pressed again while the panel is open on this text box: it keeps its draft and takes instead of starting
+        // over. A press from another app or another text box goes on to a fresh summon.
+        if panel.keepsOpenPanel(presetID: presetID) { return }
         if instant.handle(presetID: presetID) { return }
         panel.summon(presetID: presetID)
     }

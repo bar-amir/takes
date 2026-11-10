@@ -3,6 +3,7 @@ import Foundation
 /// `Takes --bench --tone inline|separate [--runs N] [--model M] [--takes N]`
 /// Compares two ways to get a tone note per take: asking the writing model for a `[tone]` line per take
 /// (inline), or the separate Haiku call Takes uses (separate). Prints when the takes and the notes are ready.
+/// Only reached through `Bench.run`, which refuses to run in a distributed build.
 enum ToneBench {
     static let inlineInstruction = """
 

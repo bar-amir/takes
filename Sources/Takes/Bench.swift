@@ -1,10 +1,47 @@
 import Foundation
+import Security
 
 /// `Takes --bench [--runs N] [--model M] [--effort E] [--takes N] [--naive] [--draft D] [--context C]`
 /// Runs the engine N times on a sample draft and prints timings.
+///
+/// A developer tool: it spends the signed-in plan or the saved API key on text the caller picks, and any local
+/// program can launch the installed app. So it only runs in a development build (see `isAllowed`).
 enum Bench {
-    static func run(arguments: [String]) {
-        if arguments.contains("--tone") { ToneBench.run(arguments: arguments); return }
+    static let developmentOnlyMessage = "--bench is only available in development builds (./build.sh)."
+
+    /// Whether this is a development build, from what `SecCodeCopySigningInformation` says about the app's own code
+    /// signature (`nil` when it couldn't be read). A Developer ID build, as distributed, carries the developer's team
+    /// identifier. The ad-hoc signature from `./build.sh` and the linker's own signature on `swift build` output
+    /// carry none. When the signature can't be read the answer is no.
+    static func isAllowed(signingInformation: [String: Any]?) -> Bool {
+        guard let signingInformation else { return false }
+        let team = signingInformation[kSecCodeInfoTeamIdentifier as String] as? String
+        return team?.isEmpty ?? true
+    }
+
+    /// The signing information of the running app: an empty dictionary when it isn't signed at all, `nil` when it
+    /// can't be read.
+    static func currentSigningInformation() -> [String: Any]? {
+        var code: SecCode?
+        var staticCode: SecStaticCode?
+        guard SecCodeCopySelf([], &code) == errSecSuccess, let code else { return nil }
+        guard SecCodeCopyStaticCode(code, [], &staticCode) == errSecSuccess, let staticCode else { return nil }
+        var information: CFDictionary?
+        let status = SecCodeCopySigningInformation(staticCode, SecCSFlags(rawValue: kSecCSSigningInformation), &information)
+        if status == errSecCSUnsigned { return [:] }
+        guard status == errSecSuccess else { return nil }
+        return information as? [String: Any]
+    }
+
+    /// Returns false, after saying why on stderr, when `--bench` is refused. Nothing is called before that check,
+    /// so a refused run reaches no engine, no Keychain item and no account.
+    @discardableResult
+    static func run(arguments: [String], signingInformation: [String: Any]? = currentSigningInformation()) -> Bool {
+        guard isAllowed(signingInformation: signingInformation) else {
+            FileHandle.standardError.write(Data((developmentOnlyMessage + "\n").utf8))
+            return false
+        }
+        if arguments.contains("--tone") { ToneBench.run(arguments: arguments); return true }
         func value(_ flag: String) -> String? {
             guard let i = arguments.firstIndex(of: flag), i + 1 < arguments.count else { return nil }
             return arguments[i + 1]
@@ -54,5 +91,6 @@ enum Bench {
         }
         summary("first words", firsts)
         summary("all takes", walls)
+        return true
     }
 }

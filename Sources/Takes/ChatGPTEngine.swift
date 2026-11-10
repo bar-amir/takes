@@ -69,7 +69,12 @@ struct ChatGPTEngine: TakesEngine {
             throw EngineError.failed(String(localized: "The connection to ChatGPT dropped. Try again."))
         }
 
-        let takes = TakeSplitter.split(text, streaming: false)
+        // `response.incomplete` stopped before the answer was done (out of output tokens, or a filter): the takes
+        // so far are kept, and the last one is marked as cut off.
+        let stoppedEarly: Bool
+        if case .incomplete? = finished { stoppedEarly = true } else { stoppedEarly = false }
+        let takes = TakeSplitter.split(text, streaming: stoppedEarly)
+        let cutShort = TakeSplitter.cutShort(text, stoppedEarly: stoppedEarly)
         switch finished {
         case .completed?:
             guard !takes.isEmpty else { throw EngineError.failed(String(localized: "ChatGPT returned no takes. Try again, or pick another model.")) }
@@ -79,7 +84,7 @@ struct ChatGPTEngine: TakesEngine {
             // Only `response.completed` means success; a stream that just ends is a dropped connection.
             throw EngineError.failed(String(localized: "The connection to ChatGPT dropped before the takes were done. Try again."))
         }
-        return EngineResult(takes: takes, wallMs: elapsedMs(), firstTextMs: firstTextMs)
+        return EngineResult(takes: takes, wallMs: elapsedMs(), firstTextMs: firstTextMs, cutShort: cutShort)
     }
 
     /// Sends with the current token; after a 401 refreshes once and sends again.
@@ -290,7 +295,11 @@ final class ChatGPTSignIn: ObservableObject {
     let store: ChatGPTCredentialStore
     let tokens: ChatGPTTokens
     var client = ChatGPTAuthClient()
+    /// Where this Mac's ID for OpenAI is kept (`ChatGPTHost`).
+    var hostDirectory = Store.directory
     private var task: Task<Void, Never>?
+    /// The sign-in in progress may save its tokens only while this isn't cancelled.
+    private var gate: ChatGPTSignInGate?
 
     init(store: ChatGPTCredentialStore = ChatGPTKeychainStore.shared, tokens: ChatGPTTokens = .shared) {
         self.store = store
@@ -309,10 +318,11 @@ final class ChatGPTSignIn: ObservableObject {
         guard state != .signingIn else { return }
         state = .signingIn
         signOutNote = nil
-        let store = store, client = client, hostID = ChatGPTHost.id()
+        let store = store, client = client, hostID = ChatGPTHost.id(in: hostDirectory), gate = ChatGPTSignInGate()
+        self.gate = gate
         task = Task {
             do {
-                let credentials = try await Self.signIn(store: store, client: client, hostID: hostID) { url in
+                let credentials = try await Self.signIn(store: store, client: client, hostID: hostID, gate: gate) { url in
                     DispatchQueue.main.async { NSWorkspace.shared.open(url) }
                 }
                 guard !Task.isCancelled else { return }
@@ -327,8 +337,9 @@ final class ChatGPTSignIn: ObservableObject {
         }
     }
 
-    /// Stops waiting for the browser.
+    /// Stops waiting for the browser. Whatever the sign-in gets after this isn't saved.
     func cancel() {
+        gate?.cancel()
         task?.cancel()
         task = nil
         state = store.load().map { .signedIn(email: $0.email, sharing: $0.sharing) } ?? .signedOut
@@ -337,21 +348,31 @@ final class ChatGPTSignIn: ObservableObject {
     /// Forgets the tokens on this Mac and revokes the refresh token with OpenAI. The registration stays, so signing in
     /// again doesn't add a second "Takes" to the user's ChatGPT settings.
     func signOut() {
+        gate?.cancel()
         task?.cancel()
         task = nil
         let credentials = store.load()
-        store.save(nil)
+        Self.forgetSignIn(store: store, tokens: tokens, hostDirectory: hostDirectory)
         state = .signedOut
         signOutNote = nil
         ChatGPTModels.shared.models = []
         ChatGPTModels.shared.checked = false
         Task { await SetupMonitor.shared.refreshEngine() }
         guard let credentials, let refreshToken = credentials.refreshToken else { return }
+        let client = client
         Task {
-            if await !Self.revoke(refreshToken, clientID: credentials.clientID) {
+            if await !client.revoke(refreshToken, clientID: credentials.clientID) {
                 signOutNote = String(localized: "Signed out on this Mac, but OpenAI didn't confirm it. You can also remove Takes in ChatGPT › Settings.")
             }
         }
+    }
+
+    /// What signing out removes from this Mac: the tokens, a refresh on its way (it can't save them back), and this
+    /// Mac's ID for OpenAI. The registration stays.
+    nonisolated static func forgetSignIn(store: ChatGPTCredentialStore, tokens: ChatGPTTokens, hostDirectory: URL) {
+        store.save(nil)
+        ChatGPTHost.forget(in: hostDirectory)
+        Task { await tokens.reset() }
     }
 
     private func tokensWereRevoked() {
@@ -361,8 +382,10 @@ final class ChatGPTSignIn: ObservableObject {
     }
 
     /// The whole browser flow, away from the UI so tests can drive it with a fake browser.
+    /// Nothing is saved once `gate` is cancelled (Cancel or Sign Out while it ran): it then throws `CancellationError`.
     nonisolated static func signIn(store: ChatGPTCredentialStore, client: ChatGPTAuthClient, hostID: String,
                                    timeout: TimeInterval = ChatGPTOAuth.signInTimeout,
+                                   gate: ChatGPTSignInGate = ChatGPTSignInGate(),
                                    open: @escaping @Sendable (URL) -> Void) async throws -> ChatGPTCredentials {
         let server = try await ChatGPTCallbackServer.start()
         defer { server.stop() }
@@ -397,6 +420,9 @@ final class ChatGPTSignIn: ObservableObject {
         let claims: ChatGPTIDToken.Claims
         switch await client.validate(idToken, nonce: attempt.nonce, clientID: callback.clientID) {
         case .success(let value): claims = value
+        case .failure(.keysUnavailable):
+            throw ChatGPTAuthError.failed(
+                String(localized: "Takes couldn't reach OpenAI to check the sign-in, so it didn't keep it. Check your internet connection and try again."))
         case .failure(let problem):
             let reason = String(describing: problem)
             throw ChatGPTAuthError.failed(String(localized: "Takes couldn't verify the sign-in with OpenAI (\(reason)). Try again."))
@@ -406,26 +432,24 @@ final class ChatGPTSignIn: ObservableObject {
             store.saveRegistration(nil)
             throw ChatGPTAuthError.failed(String(localized: "That's a different ChatGPT account from the one Takes was set up with. Try again to connect this one."))
         }
-        store.saveRegistration(ChatGPTRegistration(clientID: callback.clientID, subject: claims.sub))
         let credentials = ChatGPTCredentials(clientID: callback.clientID, response: response, claims: claims)
-        store.save(credentials)
+        // A sign-in cancelled while the exchange ran keeps nothing.
+        var saved = false
+        let allowed = gate.commit {
+            store.saveRegistration(ChatGPTRegistration(clientID: callback.clientID, subject: claims.sub))
+            saved = store.save(credentials)
+        }
+        guard allowed, saved else {
+            ChatGPTTokens.revoke(credentials, client: client)
+            guard allowed else { throw CancellationError() }
+            throw ChatGPTAuthError.failed(String(localized: "Takes couldn't save the sign-in to your keychain. Try again."))
+        }
         return credentials
     }
 
-    /// RFC 7009 revocation at the endpoint OpenAI's discovery document names. True when OpenAI answered 200.
+    /// RFC 7009 revocation at OpenAI's endpoint. True when OpenAI answered 200.
     nonisolated static func revoke(_ refreshToken: String, clientID: String) async -> Bool {
-        var request = URLRequest(url: URL(string: "https://auth.openai.com/api/accounts/oauth/revoke")!)
-        request.httpMethod = "POST"
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "content-type")
-        request.httpBody = ChatGPTAuthClient.formBody([("token", refreshToken), ("token_type_hint", "refresh_token"), ("client_id", clientID)])
-        for attempt in 0..<3 {
-            if attempt > 0 { try? await Task.sleep(for: .seconds(Double(attempt) * 2)) }
-            guard let (_, response) = try? await URLSession.shared.data(for: request) else { continue }
-            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
-            if status == 200 { return true }
-            if status < 500 { return false }
-        }
-        return false
+        await ChatGPTAuthClient().revoke(refreshToken, clientID: clientID)
     }
 }
 
