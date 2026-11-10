@@ -71,9 +71,10 @@ struct ChatGPTEngine: TakesEngine {
 
         // `response.incomplete` stopped before the answer was done (out of output tokens, or a filter): the takes
         // so far are kept, and the last one is marked as cut off.
-        let cutShort: Bool
-        if case .incomplete? = finished { cutShort = true } else { cutShort = false }
-        let takes = TakeSplitter.split(text, streaming: cutShort)
+        let stoppedEarly: Bool
+        if case .incomplete? = finished { stoppedEarly = true } else { stoppedEarly = false }
+        let takes = TakeSplitter.split(text, streaming: stoppedEarly)
+        let cutShort = TakeSplitter.cutShort(text, stoppedEarly: stoppedEarly)
         switch finished {
         case .completed?:
             guard !takes.isEmpty else { throw EngineError.failed(String(localized: "ChatGPT returned no takes. Try again, or pick another model.")) }
@@ -433,15 +434,15 @@ final class ChatGPTSignIn: ObservableObject {
         }
         let credentials = ChatGPTCredentials(clientID: callback.clientID, response: response, claims: claims)
         // A sign-in cancelled while the exchange ran keeps nothing.
-        let saved = gate.commit {
+        var saved = false
+        let allowed = gate.commit {
             store.saveRegistration(ChatGPTRegistration(clientID: callback.clientID, subject: claims.sub))
-            store.save(credentials)
+            saved = store.save(credentials)
         }
-        guard saved else {
-            if let refreshToken = credentials.refreshToken {
-                Task.detached { _ = await client.revoke(refreshToken, clientID: credentials.clientID) }
-            }
-            throw CancellationError()
+        guard allowed, saved else {
+            ChatGPTTokens.revoke(credentials, client: client)
+            guard allowed else { throw CancellationError() }
+            throw ChatGPTAuthError.failed(String(localized: "Takes couldn't save the sign-in to your keychain. Try again."))
         }
         return credentials
     }
