@@ -1,12 +1,12 @@
 import XCTest
 @testable import Takes
 
-/// The word diff after the audit: same results as before on everyday drafts, bounded time on long ones, and
-/// spacing changes that count.
+/// The word diff after the audit: what everyday drafts show is unchanged, long texts stay within a step budget, and
+/// spacing changes count.
 final class WordDiffScaleTests: XCTestCase {
     // MARK: Same results as before
 
-    func testEverydayDraftsDiffAsBefore() {
+    func testEverydayDraftsShowAsBefore() {
         let pairs = [
             ("ya thursday works but i need the specs", "Sure, Thursday works. I need the specs by Wednesday"),
             ("i think teh specs are due wed", "I think the specs are due Wed."),
@@ -25,30 +25,33 @@ final class WordDiffScaleTests: XCTestCase {
             ("", "Hello there"),
             ("Hello there", ""),
         ]
-        for (old, new) in pairs {
-            let segments = describe(WordDiff.segments(from: old, to: new))
-            XCTAssertEqual(segments, describe(LegacyWordDiff.segments(from: old, to: new)), "\(old) → \(new)")
-            XCTAssertEqual(WordDiff.readableFixes(from: old, to: new), LegacyWordDiff.readableFixes(from: old, to: new))
-            XCTAssertEqual(WordDiff.fixes(from: old, to: new), LegacyWordDiff.fixes(from: old, to: new))
-        }
+        for (old, new) in pairs { assertSameAsBefore(old, new) }
     }
 
-    func testRandomEditsDiffAsBefore() {
+    func testRandomEditsShowAsBefore() {
         var random = SeededRandom(seed: 7)
         for _ in 0..<400 {
             let old = Self.words(random.next(in: 1...40), &random).joined(separator: " ")
-            let new = Self.edited(old, rate: 0.3, &random)
-            let segments = describe(WordDiff.segments(from: old, to: new))
-            XCTAssertEqual(segments, describe(LegacyWordDiff.segments(from: old, to: new)), "\(old) → \(new)")
-            XCTAssertEqual(WordDiff.readableFixes(from: old, to: new), LegacyWordDiff.readableFixes(from: old, to: new))
+            assertSameAsBefore(old, Self.edited(old, rate: 0.3, &random))
         }
+    }
+
+    /// What the card shows, what VoiceOver reads and what the coach sees match the old diff, and the runs rebuild
+    /// both texts exactly.
+    private func assertSameAsBefore(_ old: String, _ new: String, line: UInt = #line) {
+        let label = "\(old) → \(new)"
+        XCTAssertEqual(marks(WordDiff.attributed(from: old, to: new)), marks(LegacyWordDiff.attributed(from: old, to: new)), label, line: line)
+        XCTAssertEqual(WordDiff.spoken(from: old, to: new), LegacyWordDiff.spoken(from: old, to: new), label, line: line)
+        XCTAssertEqual(WordDiff.fixes(from: old, to: new), LegacyWordDiff.fixes(from: old, to: new), label, line: line)
+        XCTAssertEqual(WordDiff.readableFixes(from: old, to: new), LegacyWordDiff.readableFixes(from: old, to: new), label, line: line)
+        assertRebuilds(WordDiff.segments(from: old, to: new), old, new, line: line)
     }
 
     // MARK: The faster diff on long texts
 
     /// Myers' diff, used past the table's size, must find as many unchanged tokens as the table does, and its
     /// script must rebuild both texts.
-    func testLongTextDiffIsAsGoodAsTheTable() {
+    func testMyersFindsAsMuchAsTheTable() {
         var random = SeededRandom(seed: 11)
         for round in 0..<300 {
             let a: [String], b: [String]
@@ -60,11 +63,30 @@ final class WordDiffScaleTests: XCTestCase {
                 a = WordDiff.tokens(Self.words(random.next(in: 1...80), &random).joined(separator: " "))
                 b = WordDiff.tokens(Self.edited(a.joined(), rate: 0.25, &random))
             }
-            let table = WordDiff.script(a, b, tableLimit: .max)
-            let myers = WordDiff.script(a, b, tableLimit: 0)
+            let table = WordDiff.script(a, b, tableLimit: .max).ops
+            let myers = WordDiff.script(a, b, tableLimit: 0).ops
             assertRebuilds(myers, a, b)
             XCTAssertEqual(myers.filter { $0 == .same }.count, table.filter { $0 == .same }.count, "\(a) → \(b)")
         }
+    }
+
+    /// A long draft with a word replaced every 40 words: past the table's size, the runs must be exactly those
+    /// replacements, and rebuild both texts.
+    func testMyersRunsOnALongText() {
+        var random = SeededRandom(seed: 13)
+        let words = Self.words(3_000, &random)
+        var edited = words
+        var expected: [WordDiff.Fix] = []
+        for index in stride(from: 20, to: words.count, by: 40) {
+            edited[index] = "zzz\(index)"
+            expected.append(WordDiff.Fix(removed: words[index], added: edited[index]))
+        }
+        let old = words.joined(separator: " "), new = edited.joined(separator: " ")
+        let (ops, steps) = WordDiff.script(WordDiff.tokens(old), WordDiff.tokens(new))
+        XCTAssertGreaterThan(steps, 0, "too short to leave the table")
+        XCTAssertLessThan(ops.filter { $0 != .same }.count, 400)
+        XCTAssertEqual(WordDiff.fixes(from: old, to: new), expected)
+        assertRebuilds(WordDiff.segments(from: old, to: new), old, new)
     }
 
     /// Past the step budget, the changed middle becomes one replacement instead of a long wait.
@@ -74,21 +96,38 @@ final class WordDiffScaleTests: XCTestCase {
         let old = "First " + shared + " last.", new = "Opening " + Self.edited(shared, rate: 0.3, &random) + " ending."
         let segments = WordDiff.segments(from: old, to: new, budget: 0)
         XCTAssertEqual(segments.map(\.kind), [.removed, .added, .same])
-        XCTAssertEqual(segments.filter { $0.kind != .removed }.map(\.text).joined(), new)
-        XCTAssertEqual(segments.filter { $0.kind != .added }.map(\.text).joined(), old)
+        assertRebuilds(segments, old, new)
         XCTAssertFalse(Proofread.nothingToFix(draft: old, takes: [new]))
     }
 
-    func testTenThousandCharactersFinishQuickly() {
-        assertQuick(characters: 10_000, within: 5)
+    /// Two words over and over make the longest snakes: each step is charged, so no budget is overshot, and a
+    /// small one ends in the fallback.
+    func testTheBudgetHoldsOnRepetitiveText() {
+        var random = SeededRandom(seed: 17)
+        let pick = { (random: inout SeededRandom) in random.next(in: 0...1) == 0 ? "ok" : "no" }
+        let old = (0..<15_000).map { _ in pick(&random) }.joined(separator: " ")
+        let new = (0..<15_000).map { _ in pick(&random) }.joined(separator: " ")
+        XCTAssertGreaterThan(old.count, 29_000)
+        let a = WordDiff.tokens(old), b = WordDiff.tokens(new)
+        for budget in [1, 1_000, 100_000, WordDiff.stepBudget] {
+            let (ops, steps) = WordDiff.script(a, b, budget: budget)
+            XCTAssertLessThanOrEqual(steps, budget)
+            assertRebuilds(ops, a, b)
+            if budget <= 100_000 { XCTAssertEqual(steps, budget, "a small budget runs out and the rest is one replacement") }
+        }
     }
 
-    func testThirtyThousandCharactersFinishQuickly() {
-        assertQuick(characters: 30_000, within: 10)
+    func testTenThousandCharactersStayInBudget() {
+        assertBounded(characters: 10_000)
     }
 
-    /// A proofread of a long text, a rewrite of it and an unrelated text, each diffed the way the panel does.
-    private func assertQuick(characters: Int, within seconds: TimeInterval) {
+    func testThirtyThousandCharactersStayInBudget() {
+        assertBounded(characters: 30_000)
+    }
+
+    /// A proofread of a long text, a rewrite of it and an unrelated text, each diffed the way the panel does: within
+    /// the step budget, and rebuilding both texts exactly. The time limit is only a backstop for a hang.
+    private func assertBounded(characters: Int) {
         var random = SeededRandom(seed: UInt64(characters))
         var draft = ""
         while draft.count < characters { draft += Self.words(12, &random).joined(separator: " ") + ".\n" }
@@ -96,17 +135,13 @@ final class WordDiffScaleTests: XCTestCase {
         while other.count < characters { other += Self.words(12, &random).joined(separator: " ") + ".\n" }
         let proofread = Self.edited(draft, rate: 0.03, &random), rewrite = Self.edited(draft, rate: 0.4, &random)
         for (name, take) in [("proofread", proofread), ("rewrite", rewrite), ("unrelated", other)] {
+            let steps = WordDiff.script(WordDiff.tokens(draft), WordDiff.tokens(take)).steps
+            XCTAssertLessThanOrEqual(steps, WordDiff.stepBudget, name)
             let start = Date()
             let changes = WordDiff.changes(from: draft, to: take)
-            let elapsed = Date().timeIntervalSince(start)
-            XCTAssertLessThan(elapsed, seconds, "\(name), \(characters) characters")
+            XCTAssertLessThan(Date().timeIntervalSince(start), 120, "\(name), \(characters) characters")
             XCTAssertGreaterThan(changes.fixCount, 0, name)
-            XCTAssertFalse(changes.attributed.characters.isEmpty, name)
-            // A deleted word's leading space stays unmarked ("for ~~it~~."), so compare without spaces.
-            let segments = WordDiff.segments(from: draft, to: take)
-            let letters = { (text: String) in text.filter { !$0.isWhitespace } }
-            XCTAssertEqual(letters(segments.filter { $0.kind != .removed }.map(\.text).joined()), letters(take), name)
-            XCTAssertEqual(letters(segments.filter { $0.kind != .added }.map(\.text).joined()), letters(draft), name)
+            assertRebuilds(WordDiff.segments(from: draft, to: take), draft, take)
         }
         // A proofread with a few fixes stays a word-level diff, not one big replacement.
         let fixes = WordDiff.fixes(from: draft, to: draft.replacingOccurrences(of: "teh", with: "the"))
@@ -114,14 +149,18 @@ final class WordDiffScaleTests: XCTestCase {
         XCTAssertTrue(fixes.allSatisfy { $0.removed.hasPrefix("teh") && $0.added.hasPrefix("the") }, "\(fixes.prefix(3))")
     }
 
-    /// The coach invitation diffs every take on the main thread when a run finishes, on a smaller budget.
-    func testCoachAnalysisOfALongDraftIsQuick() {
+    /// The coach invitation diffs every take on the main thread when a run finishes, on a tenth of the budget.
+    func testCoachAnalysisOfALongDraftStaysInItsBudget() {
         var random = SeededRandom(seed: 21)
         let draft = Self.words(6_000, &random).joined(separator: " ")
         let takes = (0..<5).map { _ in Self.words(6_000, &random).joined(separator: " ") }
+        for take in takes {
+            let steps = WordDiff.script(WordDiff.tokens(draft), WordDiff.tokens(take), budget: FixHeuristic.stepBudget).steps
+            XCTAssertLessThanOrEqual(steps, FixHeuristic.stepBudget)
+        }
         let start = Date()
         _ = FixHeuristic.analyse(draft: draft, takes: takes)
-        XCTAssertLessThan(Date().timeIntervalSince(start), 5)
+        XCTAssertLessThan(Date().timeIntervalSince(start), 120)
     }
 
     /// What a card gets in one pass off the main thread matches the separate calls.
@@ -207,6 +246,28 @@ final class WordDiffScaleTests: XCTestCase {
 
     private func describe(_ segments: [WordDiff.Segment]) -> [String] { segments.map { "\($0.kind):\($0.text)" } }
 
+    /// The text as marked up, run by run: what's struck, what's underlined and what's plain.
+    private func marks(_ text: AttributedString) -> [String] {
+        var result: [String] = []
+        var last = ""
+        for run in text.runs {
+            let kind = run.strikethroughStyle != nil ? "removed" : run.underlineStyle != nil ? "added" : "same"
+            let piece = String(text[run.range].characters)
+            if kind == last { result[result.count - 1] += piece } else { result.append(kind + ":" + piece) }
+            last = kind
+        }
+        return result
+    }
+
+    /// Unchanged and added runs give the take; unchanged and removed runs give the draft. Spaces around the draft
+    /// aren't compared, so the take's are used for both.
+    private func assertRebuilds(_ segments: [WordDiff.Segment], _ old: String, _ new: String, line: UInt = #line) {
+        let core = WordDiff.core(new)
+        let lead = String(new[..<core.startIndex]), trail = String(new[core.endIndex...])
+        XCTAssertEqual(segments.filter { $0.kind != .removed }.map(\.text).joined(), new, line: line)
+        XCTAssertEqual(segments.filter { $0.kind != .added }.map(\.text).joined(), lead + WordDiff.core(old) + trail, line: line)
+    }
+
     private func assertRebuilds(_ script: [WordDiff.Kind], _ a: [String], _ b: [String], line: UInt = #line) {
         var i = 0, j = 0
         for op in script {
@@ -272,8 +333,8 @@ private struct SeededRandom {
     mutating func unit() -> Double { Double(next() >> 11) / Double(1 << 53) }
 }
 
-/// The word diff as it was before the audit (full table, spacing compared loosely), kept to check that everyday
-/// results haven't changed.
+/// The word diff as it was before the audit (full table, spacing compared loosely), kept to check that what everyday
+/// drafts show hasn't changed.
 private enum LegacyWordDiff {
     static func segments(from old: String, to new: String) -> [WordDiff.Segment] {
         let a = tokens(old), b = tokens(new)
@@ -377,6 +438,44 @@ private enum LegacyWordDiff {
         }
         close(next: "")
         return fixes
+    }
+
+    static func attributed(from old: String, to new: String) -> AttributedString {
+        var output = AttributedString()
+        var previous: WordDiff.Kind?
+        for segment in segments(from: old, to: new) {
+            if previous == .removed, segment.kind == .added, output.characters.last?.isWhitespace == false {
+                output += AttributedString("\u{2009}")
+            }
+            previous = segment.kind
+            let text = segment.text
+            let lead = text.prefix { $0.isWhitespace }
+            let rest = text.dropFirst(lead.count)
+            let trail = segment.kind == .same ? "" : String(rest.reversed().prefix { $0.isWhitespace }.reversed())
+            let core = String(rest.dropLast(trail.count))
+            var piece = AttributedString(core)
+            switch segment.kind {
+            case .same: break
+            case .added: piece.underlineStyle = .single
+            case .removed: piece.strikethroughStyle = .single
+            }
+            output += AttributedString(String(lead)) + piece + AttributedString(trail)
+        }
+        return output
+    }
+
+    static func spoken(from old: String, to new: String) -> String {
+        let fixes = fixes(from: old, to: new)
+        guard !fixes.isEmpty else { return String(localized: "No changes. \(new)") }
+        let changes = fixes.map { fix -> String in
+            if fix.removed.isEmpty { return String(localized: "added \(fix.added)") }
+            if fix.added.isEmpty { return String(localized: "removed \(fix.removed)") }
+            if fix.removed.lowercased() == fix.added.lowercased() { return String(localized: "capitalised \(fix.added)") }
+            return String(localized: "\(fix.removed) changed to \(fix.added)")
+        }
+        let list = changes.joined(separator: "; ")
+        if fixes.count == 1 { return String(localized: "1 change: \(list). Result: \(new)") }
+        return String(localized: "\(fixes.count) changes: \(list). Result: \(new)")
     }
 
     private static func tokens(_ text: String) -> [String] {

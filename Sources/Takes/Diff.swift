@@ -38,7 +38,7 @@ enum WordDiff {
         var builder = SegmentBuilder()
         let lead = new[..<newCore.startIndex], trail = new[newCore.endIndex...]
         if !lead.isEmpty { builder.push(.same, String(lead)) }
-        builder.build(a, b, script(a, b, budget: budget))
+        builder.build(a, b, script(a, b, budget: budget).ops)
         if !trail.isEmpty { builder.push(.same, String(trail)) }
         return builder.finish()
     }
@@ -233,7 +233,8 @@ enum WordDiff {
 
     /// One entry per token: `.same` for a token both texts keep, `.removed` for one only the draft has, `.added`
     /// for one only the take has. Tokens compare exactly, so capitalisation ("i" → "I") and spacing are changes.
-    static func script(_ a: [String], _ b: [String], budget: Int = stepBudget, tableLimit: Int = tableLimit) -> [Kind] {
+    /// `steps` is how much of the budget the faster diff used; the table takes none.
+    static func script(_ a: [String], _ b: [String], budget: Int = stepBudget, tableLimit: Int = tableLimit) -> (ops: [Kind], steps: Int) {
         // Tokens as numbers, so comparing them is cheap.
         var ids: [String: Int32] = [:]
         func id(_ token: String) -> Int32 {
@@ -248,17 +249,17 @@ enum WordDiff {
         var start = 0
         while start < x.count, start < y.count, x[start] == y[start] { start += 1 }
         ops.append(contentsOf: repeatElement(.same, count: start))
+        var left = budget
         if (x.count - start + 1) * (y.count - start + 1) <= tableLimit {
             tableScript(Array(x[start...]), Array(y[start...]), into: &ops)
         } else {
-            var budget = budget
             x.withUnsafeBufferPointer { x in
                 y.withUnsafeBufferPointer { y in
-                    myers(x, start..<x.count, y, start..<y.count, budget: &budget, into: &ops)
+                    myers(x, start..<x.count, y, start..<y.count, budget: &left, into: &ops)
                 }
             }
         }
-        return ops
+        return (ops, budget - left)
     }
 
     /// The longest common subsequence table, walked from the start, preferring removals: the diff the panel has
@@ -308,7 +309,7 @@ enum WordDiff {
     }
 
     /// Where an optimal path crosses the middle, found by searching from both ends at once. Nil once the budget
-    /// runs out.
+    /// runs out: every diagonal tried and every token compared costs a step, so it holds however long the snakes.
     private static func middleSnake(_ a: Tokens, _ aLow: Int, _ n: Int, _ b: Tokens, _ bLow: Int, _ m: Int, budget: inout Int) -> (x: Int, y: Int)? {
         guard budget > 0 else { return nil }
         let maxD = (n + m + 1) / 2, offset = maxD, length = 2 * maxD + 2
@@ -320,15 +321,18 @@ enum WordDiff {
         let meetForward = delta % 2 != 0
         var forwardStart = 0, forwardEnd = 0, backwardStart = 0, backwardEnd = 0
         for d in 0..<maxD {
-            guard budget > 0 else { return nil }
             var k = -d + forwardStart
             while k <= d - forwardEnd {
+                guard budget > 0 else { return nil }
+                budget -= 1
                 let index = offset + k
                 var x = k == -d || (k != d && forward[index - 1] < forward[index + 1]) ? forward[index + 1] : forward[index - 1] + 1
                 var y = x - k
-                let from = x
-                while x < n, y < m, a[aLow + x] == b[bLow + y] { x += 1; y += 1 }
-                budget -= 1 + x - from
+                while x < n, y < m, a[aLow + x] == b[bLow + y] {
+                    guard budget > 0 else { return nil }
+                    budget -= 1
+                    x += 1; y += 1
+                }
                 forward[index] = x
                 if x > n {
                     forwardEnd += 2
@@ -342,12 +346,16 @@ enum WordDiff {
             }
             k = -d + backwardStart
             while k <= d - backwardEnd {
+                guard budget > 0 else { return nil }
+                budget -= 1
                 let index = offset + k
                 var x = k == -d || (k != d && backward[index - 1] < backward[index + 1]) ? backward[index + 1] : backward[index - 1] + 1
                 var y = x - k
-                let from = x
-                while x < n, y < m, a[aLow + n - x - 1] == b[bLow + m - y - 1] { x += 1; y += 1 }
-                budget -= 1 + x - from
+                while x < n, y < m, a[aLow + n - x - 1] == b[bLow + m - y - 1] {
+                    guard budget > 0 else { return nil }
+                    budget -= 1
+                    x += 1; y += 1
+                }
                 backward[index] = x
                 if x > n {
                     backwardEnd += 2
@@ -407,16 +415,9 @@ private struct SegmentBuilder {
 
     private mutating func flush() {
         defer { removed = ""; added = ""; removedWords = false; addedWords = false }
-        if removed.isEmpty != added.isEmpty {
-            // A pure insertion or deletion that starts with a space ("works" → "works for me") reads better with
-            // the space left unchanged before it.
-            let change = removed.isEmpty ? added : removed
-            let lead = String(change.prefix { $0.isWhitespace })
-            if !lead.isEmpty, lead.count < change.count {
-                push(.same, lead)
-                if removed.isEmpty { added.removeFirst(lead.count) } else { removed.removeFirst(lead.count) }
-            }
-        } else if !removed.isEmpty, !removedWords, !addedWords {
+        // Each run keeps its own spaces, so the runs rebuild both texts exactly; `attributed` leaves the spaces at the
+        // edges of a change unmarked.
+        if !removed.isEmpty, !added.isEmpty, !removedWords, !addedWords {
             // Spacing alone: only the spaces or line breaks that differ are marked ("  " → " " removes one space).
             let old = Array(removed), new = Array(added)
             var head = 0, tail = 0

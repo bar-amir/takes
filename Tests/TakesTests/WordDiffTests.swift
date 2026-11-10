@@ -42,7 +42,7 @@ final class WordDiffTests: XCTestCase {
 
     func testHebrewIsDiffedByWord() {
         let segments = WordDiff.segments(from: "יום חמישי מתאים", to: "יום חמישי מתאים לי")
-        XCTAssertEqual(rebuilt(segments, keeping: ["added"]), "לי")
+        XCTAssertEqual(rebuilt(segments, keeping: ["added"]).trimmingCharacters(in: .whitespaces), "לי")
     }
 }
 
