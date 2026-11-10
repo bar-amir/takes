@@ -113,13 +113,19 @@ final class SetupMonitor: ObservableObject {
             .removeDuplicates()
             .sink { [weak self] _ in
                 // The status is about the engine that was saved; until the new one is checked it's unknown. Said at
-                // once, so nothing reads the old engine's "ready" as the new one's.
-                if Thread.isMainThread { MainActor.assumeIsolated { self?.engine = .checking } }
+                // once, and a check under way is marked to run again at once too, so the old engine's answer is never
+                // written as the new one's.
+                if Thread.isMainThread {
+                    MainActor.assumeIsolated {
+                        self?.engine = .checking
+                        if self?.inFlight != nil { self?.checkAgain = true }
+                    }
+                }
                 Task { @MainActor in
                     guard let self else { return }
                     self.polling.reset()
-                    if self.inFlight != nil { self.checkAgain = true }
-                    await self.refreshEngine()
+                    // Joins: a check under way was already marked to run again above.
+                    await self.startCheck()?.value
                 }
             }
     }
@@ -212,10 +218,10 @@ final class SetupMonitor: ObservableObject {
         if !engine.isReady, Date().timeIntervalSince(polling.lastCheck) > SetupPolling.recentCheck { startCheck() }
     }
 
-    /// `refreshEngine`, unless a check started moments ago.
+    /// A check, unless one started moments ago; one under way is joined.
     func refreshEngineUnlessRecent() async {
         guard Date().timeIntervalSince(polling.lastCheck) > SetupPolling.recentCheck else { return }
-        await refreshEngine()
+        await startCheck()?.value
     }
 
     nonisolated static let claudeMissing = String(localized: "Claude Code isn't installed")
@@ -258,9 +264,11 @@ final class SetupMonitor: ObservableObject {
     /// Why, in setup and Settings › Model.
     static let needsChoiceNote = String(localized: "Your settings name a model this version of Takes doesn't have. Pick one to go on.")
 
-    /// Checks the chosen engine, or waits for the check already under way. Snapshots never check: it would start
-    /// `claude` or reach a model server.
+    /// Checks the chosen engine now: a button ("Check again"), a sign-in or a saved key. A check already under way
+    /// may have started before what this is meant to see, so it runs once more when it ends, and this waits for
+    /// that answer. Snapshots never check: it would start `claude` or reach a model server.
     func refreshEngine() async {
+        if inFlight != nil { checkAgain = true }
         await startCheck()?.value
     }
 

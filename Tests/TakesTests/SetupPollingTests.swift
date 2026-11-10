@@ -160,21 +160,49 @@ final class SetupPollingTests: XCTestCase {
         XCTAssertEqual(monitor.engine, .problem("Claude Code isn't signed in"), "The answer lands")
     }
 
+    /// "Check again" after signing in in Terminal, while a tick's check started before the sign-in is under way:
+    /// the answer comes from a check that started after the press.
     @MainActor
-    func testARequestDuringACheckWaitsForItsAnswer() async {
-        var checks = 0
+    func testAnExplicitRequestGetsACheckThatStartedAfterIt() async {
+        var started = 0
+        var pending: [CheckedContinuation<Void, Never>] = []
         let monitor = SetupMonitor(accessibility: true) { _ in
-            checks += 1
+            started += 1
+            let number = started
+            await withCheckedContinuation { pending.append($0) }
+            return (.problem("check \(number)"), nil)
+        }
+        monitor.tick()
+        for _ in 0..<20 where pending.isEmpty { await Task.yield() }
+        XCTAssertEqual(started, 1)
+        // The press, while check 1 (from before the sign-in) is still running.
+        let press = Task { await monitor.refreshEngine() }
+        for _ in 0..<5 { await Task.yield() }
+        XCTAssertEqual(started, 1, "No second process while the first runs")
+        pending.removeFirst().resume()
+        for _ in 0..<20 where pending.isEmpty { await Task.yield() }
+        XCTAssertEqual(started, 2, "One more check, started after the press")
+        XCTAssertNotEqual(monitor.engine, .problem("check 1"), "Check 1's answer is about before the press")
+        pending.removeFirst().resume()
+        await press.value
+        XCTAssertEqual(monitor.engine, .problem("check 2"))
+        XCTAssertFalse(monitor.isChecking)
+    }
+
+    @MainActor
+    func testJoiningRequestsDontStartAnotherCheck() async {
+        var started = 0
+        let monitor = SetupMonitor(accessibility: true) { _ in
+            started += 1
             try? await Task.sleep(nanoseconds: 50_000_000)
             return (.ready("Claude Code signed in"), nil)
         }
-        async let first: Void = monitor.refreshEngine()
-        async let second: Void = monitor.refreshEngine()
-        _ = await (first, second)
-        XCTAssertEqual(checks, 1)
-        XCTAssertEqual(monitor.engine, .ready("Claude Code signed in"), "Both callers see the answer")
-        await monitor.refreshEngine()
-        XCTAssertEqual(checks, 2, "A new request after the answer is a new check")
+        monitor.tick()
+        await monitor.refreshEngineUnlessRecent()
+        monitor.checkOnce()
+        for _ in 0..<200 where monitor.isChecking { try? await Task.sleep(nanoseconds: 5_000_000) }
+        XCTAssertEqual(started, 1, "A tick, the menu and a window opening join the check under way")
+        XCTAssertEqual(monitor.engine, .ready("Claude Code signed in"))
     }
 
     // MARK: Taken hotkeys
