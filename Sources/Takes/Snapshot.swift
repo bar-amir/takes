@@ -44,6 +44,15 @@ enum Snapshot {
         streaming.changesShown = [1]
         render(PanelRootView(model: streaming), size: CGSize(width: 1060, height: fittedHeight(streaming)), to: url.appendingPathComponent("3-takes-streaming.png"))
 
+        let retrying = model()
+        retrying.screen = .takes
+        retrying.sourceDraft = draft
+        retrying.takeCount = 1
+        retrying.running = true
+        retrying.startedAt = Date().addingTimeInterval(-14.2)
+        retrying.retry = EngineRetry(attempt: 2, maxAttempts: 10, status: 429)
+        render(PanelRootView(model: retrying), size: CGSize(width: 720, height: fittedHeight(retrying)), to: url.appendingPathComponent("3-takes-retrying.png"))
+
         let done = model()
         done.screen = .takes
         done.sourceDraft = draft
