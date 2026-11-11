@@ -2,6 +2,24 @@
 
 All notable changes to Takes. Versions follow [semantic versioning](https://semver.org).
 
+## 0.10.0 · 2026-11-11
+
+- **Safer pasting.** Takes pastes only into the text box your draft came from, or one that still holds the same text. If you've moved to another box or typed more, nothing is pasted, the take stays on the clipboard, and Takes says so. Your clipboard is put back after a paste, and after a paste that didn't happen.
+- **Password fields are never read.** Takes opens next to one and says it doesn't read it.
+- **Long text is refused, not selected.** A text box with too much text to rewrite says so instead of being selected with ⌘A.
+- **A take the model cut short is marked** and can't be pasted. Press ⌘R to write it again.
+- **Shorter setup.** Allow access, connect a model, try it. The five ways to connect a model are offered side by side, and nothing is saved or sent until you pick one and press the button. When Claude Code is missing, too old or not signed in, setup says which and offers the fix.
+- **An Anthropic API key is checked before it's saved.**
+- **Your files are safe.** A settings, presets, history or coach file Takes can't read is copied aside instead of being overwritten, and Takes tells you.
+- **Say why a run is slow.** When your account is rate limited or the service is busy, the panel shows the reason and the retry count instead of only "Writing…".
+- **Keep the menu bar icon visible.** A new switch in Settings › General moves the icon to where macOS hides items last.
+- **Settings is easier to reach.** A gear in the compose panel opens it. While it's open, Takes has a Dock icon, and clicking it brings Settings back.
+- **Preset hotkeys.** The compose panel reminds you of the current preset's own hotkey, the preset editor suggests free ones, and the shortcut recorder has a clear button.
+- In Proofread, holding ⌥ hides the marked changes.
+- Long Do and Avoid items wrap instead of running past the edge.
+- Claude Code runs stop if they hang, and need Claude Code 2.1.293 or later.
+- Translations are up to date in all 47 languages.
+
 ## 0.9.2 · 2026-11-10
 
 - After an update, Takes no longer opens the setup window to say Claude Code is missing, only to turn green a few seconds later. Takes now remembers where Claude Code is installed (it took a few seconds to find when installed with nvm or Volta). At launch, it checks the connection again before opening setup.
