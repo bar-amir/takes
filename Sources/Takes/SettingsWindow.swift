@@ -58,6 +58,16 @@ final class SettingsWindowController: NSObject, NSWindowDelegate, NSToolbarDeleg
     /// The size the current tab asked for, applied on the next turn of the run loop so a tab's two layout passes
     /// become one resize.
     private var pendingSize: CGSize?
+    /// From `show` until the window closes, minimized or not: the Dock icon is there for that long.
+    private(set) var isOpen = false
+
+    /// Brings the open window back to the front, out of the Dock if it was minimized.
+    func bringForward() {
+        guard isOpen, let window else { return }
+        if window.isMiniaturized { window.deminiaturize(nil) }
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
+    }
 
     func show(tab: SettingsTab, newPreset: Bool = false, gallery: Bool = false) {
         let store = Store.shared
@@ -81,11 +91,13 @@ final class SettingsWindowController: NSObject, NSWindowDelegate, NSToolbarDeleg
         // A Dock icon while Settings is open: clicking another app leaves the window behind it, and without the icon
         // (or a ⌘Tab entry) there'd be no way back to it.
         NSApp.setActivationPolicy(.regular)
+        isOpen = true
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
     }
 
     func windowWillClose(_ notification: Notification) {
+        isOpen = false
         SetupMonitor.shared.window("settings", visible: false)
         // Back to a menu-bar-only app.
         NSApp.setActivationPolicy(.accessory)
