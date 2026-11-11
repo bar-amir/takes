@@ -253,7 +253,8 @@ enum FocusReader {
         return mayPaste(replaceAll: replaceAll, check: check)
     }
 
-    /// What `confirmed` last found, for the focus log: which path a paste took, or why it wasn't sent. No text.
+    /// What `confirmed` or `stillEditing` last found, for the focus log: which path a paste took, or why it wasn't
+    /// sent. No text.
     private(set) static var lastVerdict = ""
 
     /// What another element must still hold to stand in for the one a snapshot read.
@@ -323,6 +324,7 @@ enum FocusReader {
     /// typed more into. Answers yes when the app can't tell; `confirmed` is the strict check, at the paste itself.
     static func stillEditing(_ snapshot: FocusSnapshot) -> Bool {
         let check = check(snapshot, compareText: true)
+        lastVerdict = "focus \(check.focus), text \(check.text)"
         return check.focus != .other && check.text != .changed
     }
 

@@ -122,16 +122,20 @@ final class InstantRun {
     private let sameField: () -> Bool
     private let unchanged: (String) -> Bool
     private let notPasted: (String) -> InstantMode.Failure
+    private let note: (String) -> Void
+    private let verdict: () -> String
     private(set) var isCancelled = false
     private(set) var result: EngineResult?
 
     /// `unchanged` says whether a take is the draft as written; such a take is never pasted.
     /// `sameField` says whether the text box read from still has focus with the text that was read.
     /// `notPasted` says why a paste sent no keys. Unless told otherwise, the app couldn't be brought back.
+    /// `note` gets a line for focus.log when the run stops before the paste; `verdict` is what the check found.
     init(
         engine: TakesEngine, paste: @escaping Paste, stillInField: @escaping () -> Bool,
         sameField: @escaping () -> Bool = { true }, unchanged: @escaping (String) -> Bool = { _ in false },
-        notPasted: @escaping (String) -> InstantMode.Failure = { .couldNotReturn(take: $0) }
+        notPasted: @escaping (String) -> InstantMode.Failure = { .couldNotReturn(take: $0) },
+        note: @escaping (String) -> Void = { _ in }, verdict: @escaping () -> String = { FocusReader.lastVerdict }
     ) {
         self.engine = engine
         self.paste = paste
@@ -139,6 +143,8 @@ final class InstantRun {
         self.sameField = sameField
         self.unchanged = unchanged
         self.notPasted = notPasted
+        self.note = note
+        self.verdict = verdict
     }
 
     /// Nothing is pasted after this, even if the take arrives a moment later.
@@ -158,8 +164,14 @@ final class InstantRun {
         }
         if result.cutShort { return .failed(.cutShort(take: take)) }
         if unchanged(take) { return .unchanged }
-        guard stillInField() else { return .failed(.leftField(take: take)) }
-        guard sameField() else { return .failed(.fieldChanged(take: take)) }
+        guard stillInField() else {
+            note("paste not sent\tapp not in front")
+            return .failed(.leftField(take: take))
+        }
+        guard sameField() else {
+            note("paste not sent\t" + verdict())
+            return .failed(.fieldChanged(take: take))
+        }
         let pasted = await withCheckedContinuation { continuation in
             paste(take) { continuation.resume(returning: $0) }
         }
@@ -289,7 +301,8 @@ final class InstantModeController {
             // Select all and paste must not wipe another text box (another Slack channel) or text typed meanwhile.
             sameField: { !replaceAll || FocusReader.stillEditing(focus) },
             unchanged: { take in Proofread.nothingToFix(draft: draft, takes: [take]) },
-            notPasted: { take in paste.failure(take: take) })
+            notPasted: { take in paste.failure(take: take) },
+            note: { FocusLog.paste(focus, $0) })
         paste.cancelled = { [weak run] in run?.isCancelled ?? true }
         self.run = run
         show(.writing(preset: preset.name), near: focus.caretRect)
