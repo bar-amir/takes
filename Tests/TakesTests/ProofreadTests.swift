@@ -147,6 +147,28 @@ final class ProofreadTests: XCTestCase {
         XCTAssertFalse(model.showsChanges(1), "a take still being written never shows changes")
     }
 
+    @MainActor
+    func testTakeFromInstantModeMarksChangesLikeARunHere() {
+        let model = PanelModel()
+        model.previewPreset = .proofread
+        model.changesShown = []  // left by an earlier regular run
+        model.showTake("Hello there.", draft: "helo there", cutShort: false, historyID: nil)
+        XCTAssertEqual(model.screen, .takes)
+        XCTAssertTrue(model.showsChanges(0), "a proofread take opens with its changes")
+        model.optionHeld = true
+        XCTAssertFalse(model.showsChanges(0), "and ⌥ hides them")
+
+        var regular = Preset.proofread
+        regular.isMinimalEdits = false
+        model.previewPreset = regular
+        model.optionHeld = false
+        model.changesShown = [0]  // left by an earlier proofread run
+        model.showTake("Hello there.", draft: "helo there", cutShort: false, historyID: nil)
+        XCTAssertFalse(model.showsChanges(0), "a regular take opens clean")
+        model.optionHeld = true
+        XCTAssertTrue(model.showsChanges(0), "and ⌥ shows its changes")
+    }
+
     func testSpokenDescription() {
         let spoken = WordDiff.spoken(from: "i think teh specs", to: "I think the specs, ok")
         XCTAssertEqual(spoken, "3 changes: capitalised I; teh changed to the; added , ok. Result: I think the specs, ok")

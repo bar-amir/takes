@@ -376,12 +376,7 @@ final class InstantModeController {
         panel.summon(focus: last.focus, presetID: last.presetID) { model in
             model.draft = last.draft
             guard let take = last.take else { return }
-            model.sourceDraft = last.draft
-            model.takes = [take]
-            model.cutShort = last.cutShort
-            model.continueHistory(entryID: last.historyID)
-            model.selected = 0
-            model.screen = .takes
+            model.showTake(take, draft: last.draft, cutShort: last.cutShort, historyID: last.historyID)
         }
     }
 
