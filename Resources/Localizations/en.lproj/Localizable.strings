@@ -27,7 +27,7 @@
 /* EnglishCoachViews.swift:625 */
 " · “close the light” → “turn off the light” · 4th time" = " · “close the light” → “turn off the light” · 4th time";
 
-/* Seconds · PanelModel.swift:439, PanelViews.swift:855 */
+/* Seconds · PanelModel.swift:439, PanelViews.swift:862 */
 "%.1f s" = "%.1f s";
 
 /* ChatGPTEngine.swift:182 */
@@ -171,13 +171,13 @@
 /* Diff.swift:195 */
 "%lld changes: %@. Result: %@" = "%lld changes: %@. Result: %@";
 
-/* PanelViews.swift:585 */
+/* PanelViews.swift:592 */
 "%lld examples of your voice" = "%lld examples of your voice";
 
 /* Proofread.swift:25 */
 "%lld fixes" = "%lld fixes";
 
-/* PanelViews.swift:194 */
+/* PanelViews.swift:201 */
 "%lld more presets" = "%lld more presets";
 
 /* PresetsTab.swift:603 */
@@ -201,19 +201,19 @@
 /* EnglishCoachViews.swift:1335 */
 "%lld times in 30 days, in %@ · from the built-in guide and your own drafts" = "%lld times in 30 days, in %@ · from the built-in guide and your own drafts";
 
-/* PanelViews.swift:291, ReplyContext.swift:44 */
+/* PanelViews.swift:298, ReplyContext.swift:44 */
 "%lld words" = "%lld words";
 
-/* PanelViews.swift:1017 */
+/* PanelViews.swift:1024 */
 "%lld words · ⌥ hides changes · ⌘C copies" = "%lld words · ⌥ hides changes · ⌘C copies";
 
-/* PanelViews.swift:1016 */
+/* PanelViews.swift:1023 */
 "%lld words · ⌥ shows changes · ⌘C copies" = "%lld words · ⌥ shows changes · ⌘C copies";
 
 /* ReplyContext.swift:43 */
 "%lld words, trimmed" = "%lld words, trimmed";
 
-/* SettingsWindow.swift:253 */
+/* SettingsWindow.swift:259 */
 "+ Add" = "+ Add";
 
 /* Languages.swift:125 */
@@ -228,7 +228,7 @@
 /* Diff.swift:194 */
 "1 change: %@. Result: %@" = "1 change: %@. Result: %@";
 
-/* PanelViews.swift:585 */
+/* PanelViews.swift:592 */
 "1 example of your voice" = "1 example of your voice";
 
 /* Proofread.swift:24 */
@@ -246,7 +246,7 @@
 /* EnglishCoachViews.swift:1334 */
 "1 time in 30 days, in %@ · from the built-in guide and your own drafts" = "1 time in 30 days, in %@ · from the built-in guide and your own drafts";
 
-/* PanelViews.swift:291, ReplyContext.swift:44 */
+/* PanelViews.swift:298, ReplyContext.swift:44 */
 "1 word" = "1 word";
 
 /* ReplyContext.swift:43 */
@@ -342,13 +342,13 @@
 /* Diff.swift:188 */
 "added %@" = "added %@";
 
-/* Key hint: ⌘R writes new takes · PanelViews.swift:797, PanelViews.swift:887 */
+/* Key hint: ⌘R writes new takes · PanelViews.swift:804, PanelViews.swift:894 */
 "again" = "again";
 
 /* EnglishCoach.swift:84 */
 "Agreement" = "Agreement";
 
-/* PanelViews.swift:461 */
+/* PanelViews.swift:468 */
 "All presets" = "All presets";
 
 /* EnglishCoachViews.swift:934 */
@@ -459,19 +459,19 @@
 /* ChatGPTEngineViews.swift:94 */
 "Asks the model for a one-word answer, using a little of your plan" = "Asks the model for a one-word answer, using a little of your plan";
 
-/* PanelViews.swift:588 */
+/* PanelViews.swift:595 */
 "auto-picked in %@" = "auto-picked in %@";
 
-/* Things a preset should avoid · PanelViews.swift:562, PresetGalleryView.swift:183, PresetsTab.swift:498 */
+/* Things a preset should avoid · PanelViews.swift:569, PresetGalleryView.swift:183, PresetsTab.swift:498 */
 "Avoid" = "Avoid";
 
 /* EnglishCoachViews.swift:752, OnboardingView.swift:60 */
 "Back" = "Back";
 
-/* Key hint: esc goes back · PanelViews.swift:834, PanelViews.swift:894 */
+/* Key hint: esc goes back · PanelViews.swift:841, PanelViews.swift:901 */
 "back" = "back";
 
-/* PanelViews.swift:355 */
+/* PanelViews.swift:362 */
 "Back to the preset's takes, model and effort" = "Back to the preset's takes, model and effort";
 
 /* ChatGPTEngine.swift:120, ChatGPTEngine.swift:195 */
@@ -528,7 +528,7 @@
 /* Store.swift:166 */
 "Center of the screen" = "Center of the screen";
 
-/* PanelViews.swift:618 */
+/* PanelViews.swift:625 */
 "Change engine…" = "Change engine…";
 
 /* OnboardingView.swift:668 */
@@ -537,7 +537,7 @@
 /* Setup.swift:727 */
 "Change shortcut" = "Change shortcut";
 
-/* PanelViews.swift:337 */
+/* PanelViews.swift:344 */
 "Changed for this run. ⌘K" = "Changed for this run. ⌘K";
 
 /* Diff.swift:186 */
@@ -546,7 +546,7 @@
 /* Diff.swift:186 */
 "changed spacing" = "changed spacing";
 
-/* Key hint: ⌥ shows each take's changes · PanelViews.swift:890 */
+/* Key hint: ⌥ shows each take's changes · PanelViews.swift:897 */
 "changes" = "changes";
 
 /* ChatGPTEngine.swift:168 */
@@ -612,7 +612,7 @@
 /* GeneralTab.swift:97 */
 "Check…" = "Check…";
 
-/* PanelViews.swift:431 */
+/* PanelViews.swift:438 */
 "choose" = "choose";
 
 /* PresetsTab.swift:27 */
@@ -723,7 +723,7 @@
 /* HistoryTab.swift:63 */
 "Clear History…" = "Clear History…";
 
-/* SettingsWindow.swift:374, SettingsWindow.swift:375 */
+/* SettingsWindow.swift:380, SettingsWindow.swift:381 */
 "Clear shortcut" = "Clear shortcut";
 
 /* EnglishCoachViews.swift:1090 */
@@ -735,16 +735,16 @@
 /* StatusPopover.swift:151 */
 "Click this icon for presets, the coach and settings." = "Click this icon for presets, the coach and settings.";
 
-/* SettingsWindow.swift:367 */
+/* SettingsWindow.swift:373 */
 "Click, then press a shortcut. Esc cancels, ⌫ clears." = "Click, then press a shortcut. Esc cancels, ⌫ clears.";
 
-/* SettingsWindow.swift:367 */
+/* SettingsWindow.swift:373 */
 "Click, then press a shortcut. Esc cancels." = "Click, then press a shortcut. Esc cancels.";
 
 /* GeneralTab.swift:48 */
 "Clipboard" = "Clipboard";
 
-/* Key hint: esc closes the note · DictationViews.swift:54, DictationViews.swift:64, PanelViews.swift:40 */
+/* Key hint: esc closes the note · DictationViews.swift:54, DictationViews.swift:64, PanelViews.swift:46 */
 "close" = "close";
 
 /* Setup.swift:561 */
@@ -765,7 +765,7 @@
 /* PresetsTab.swift:555 */
 "Color %@" = "Color %@";
 
-/* PanelViews.swift:304 */
+/* PanelViews.swift:311 */
 "Command D. Speak your draft. Speech is turned into text on this Mac." = "Command D. Speak your draft. Speech is turned into text on this Mac.";
 
 /* ReplyContextView.swift:84 */
@@ -774,7 +774,7 @@
 /* ReplyContextView.swift:136 */
 "Command J. Shift Command V uses the clipboard." = "Command J. Shift Command V uses the clipboard.";
 
-/* PanelViews.swift:339 */
+/* PanelViews.swift:346 */
 "Command K" = "Command K";
 
 /* EnglishCoachViews.swift:104 */
@@ -819,7 +819,7 @@
 /* AppDelegate.swift:349 */
 "Copy" = "Copy";
 
-/* Key hint: ⌘C copies the take · PanelViews.swift:892 */
+/* Key hint: ⌘C copies the take · PanelViews.swift:899 */
 "copy" = "copy";
 
 /* SystemShortcuts.swift:17 */
@@ -930,7 +930,7 @@
 /* EngineTab.swift:55 */
 "Defaults for new presets" = "Defaults for new presets";
 
-/* PanelViews.swift:357 */
+/* PanelViews.swift:364 */
 "Defaults…" = "Defaults…";
 
 /* PresetsTab.swift:160 */
@@ -957,7 +957,7 @@
 /* EnglishCoachViews.swift:656 */
 "Details" = "Details";
 
-/* DictationViews.swift:101, DictationViews.swift:106, PanelViews.swift:299, PanelViews.swift:303 */
+/* DictationViews.swift:101, DictationViews.swift:106, PanelViews.swift:306, PanelViews.swift:310 */
 "Dictate" = "Dictate";
 
 /* DictationViews.swift:185 */
@@ -978,7 +978,7 @@
 /* ToneCheckViews.swift:72 */
 "Dismiss the tone read" = "Dismiss the tone read";
 
-/* Things a preset should do · PanelViews.swift:556, PresetGalleryView.swift:177, PresetsTab.swift:495 */
+/* Things a preset should do · PanelViews.swift:563, PresetGalleryView.swift:177, PresetsTab.swift:495 */
 "Do" = "Do";
 
 /* EnglishCoachViews.swift:227, StatusPopover.swift:222 */
@@ -1023,13 +1023,13 @@
 /* AppDelegate.swift:344, EnglishCoachViews.swift:895 */
 "Edit" = "Edit";
 
-/* PanelViews.swift:795 */
+/* PanelViews.swift:802 */
 "edit" = "edit";
 
-/* PanelViews.swift:657, PanelViews.swift:796 */
+/* PanelViews.swift:664, PanelViews.swift:803 */
 "Edit draft" = "Edit draft";
 
-/* PanelViews.swift:507 */
+/* PanelViews.swift:514 */
 "Edit presets" = "Edit presets";
 
 /* AppDelegate.swift:237 */
@@ -1041,7 +1041,7 @@
 /* EnglishCoachViews.swift:1030, EnglishCoachViews.swift:1041 */
 "Edit…" = "Edit…";
 
-/* PanelViews.swift:363, PanelViews.swift:389 */
+/* PanelViews.swift:370, PanelViews.swift:396 */
 "Effort" = "Effort";
 
 /* PresetsTab.swift:326 */
@@ -1119,7 +1119,7 @@
 /* PresetGallery.swift:176 */
 "Fewer words, nothing lost." = "Fewer words, nothing lost.";
 
-/* PanelViews.swift:424 */
+/* PanelViews.swift:431 */
 "Filter presets…" = "Filter presets…";
 
 /* AppDelegate.swift:212 */
@@ -1248,7 +1248,7 @@
 /* EnglishCoachViews.swift:93 */
 "Hide" = "Hide";
 
-/* Key hint: holding ⌥ shows each take without its changes marked · PanelViews.swift:889 */
+/* Key hint: holding ⌥ shows each take without its changes marked · PanelViews.swift:896 */
 "hide changes" = "hide changes";
 
 /* EnglishCoachViews.swift:656 */
@@ -1491,10 +1491,10 @@
 /* HotKeyChoice.swift:83, HotKeyChoice.swift:84 */
 "macOS: %@" = "macOS: %@";
 
-/* PanelViews.swift:371 */
+/* PanelViews.swift:378 */
 "Manage" = "Manage";
 
-/* PanelViews.swift:373 */
+/* PanelViews.swift:380 */
 "Manage ChatGPT plan usage" = "Manage ChatGPT plan usage";
 
 /* ChatGPTEngineViews.swift:123, Engine.swift:87 */
@@ -1530,7 +1530,7 @@
 /* SystemShortcuts.swift:12 */
 "Mission Control" = "Mission Control";
 
-/* AppDelegate.swift:275, ChatGPTEngineViews.swift:87, LocalEngineViews.swift:119, PanelViews.swift:361, PanelViews.swift:388, ProviderEngineViews.swift:119, ProviderEngineViews.swift:318, SettingsWindow.swift:22 */
+/* AppDelegate.swift:275, ChatGPTEngineViews.swift:87, LocalEngineViews.swift:119, PanelViews.swift:368, PanelViews.swift:395, ProviderEngineViews.swift:119, ProviderEngineViews.swift:318, SettingsWindow.swift:22 */
 "Model" = "Model";
 
 /* PanelController.swift:408 */
@@ -1557,13 +1557,13 @@
 /* PresetGallery.swift:123 */
 "More direct" = "More direct";
 
-/* PanelViews.swift:817 */
+/* PanelViews.swift:824 */
 "More like take %lld" = "More like take %lld";
 
 /* PresetsTab.swift:86 */
 "More preset actions" = "More preset actions";
 
-/* Key hint: arrows move between takes · PanelViews.swift:883 */
+/* Key hint: arrows move between takes · PanelViews.swift:890 */
 "move" = "move";
 
 /* PresetsTab.swift:124 */
@@ -1602,7 +1602,7 @@
 /* PresetsTab.swift:123 */
 "Move up" = "Move up";
 
-/* PanelViews.swift:429, PresetGalleryView.swift:54 */
+/* PanelViews.swift:436, PresetGalleryView.swift:54 */
 "move ·" = "move ·";
 
 /* GeneralTab.swift:60 */
@@ -1626,7 +1626,7 @@
 /* EnglishCoachViews.swift:505 */
 "Never more than one nudge per paste" = "Never more than one nudge per paste";
 
-/* PanelViews.swift:501, PresetsTab.swift:65, PresetsTab.swift:66, Store.swift:677 */
+/* PanelViews.swift:508, PresetsTab.swift:65, PresetsTab.swift:66, Store.swift:677 */
 "New preset" = "New preset";
 
 /* Store.swift:162 */
@@ -1656,7 +1656,7 @@
 /* Diff.swift:182 */
 "No changes. %@" = "No changes. %@";
 
-/* PanelViews.swift:410 */
+/* PanelViews.swift:417 */
 "No draft yet" = "No draft yet";
 
 /* EnglishCoachViews.swift:1294 */
@@ -1686,7 +1686,7 @@
 /* DictationViews.swift:81 */
 "No on-device speech for %@ yet. Add it in Keyboard › Dictation, or pick another language in Settings." = "No on-device speech for %@ yet. Add it in Keyboard › Dictation, or pick another language in Settings.";
 
-/* PanelViews.swift:466 */
+/* PanelViews.swift:473 */
 "No preset matches “%@”." = "No preset matches “%@”.";
 
 /* PresetsTab.swift:371 */
@@ -1914,22 +1914,22 @@
 /* PresetGalleryView.swift:234 */
 "Opens the preset gallery in Settings" = "Opens the preset gallery in Settings";
 
-/* PanelViews.swift:177, PanelViews.swift:195 */
+/* PanelViews.swift:184, PanelViews.swift:202 */
 "Opens the preset list. Tab." = "Opens the preset list. Tab.";
 
-/* Key hint: the preset's own hotkey opens Takes on it · PanelViews.swift:273 */
+/* Key hint: the preset's own hotkey opens Takes on it · PanelViews.swift:280 */
 "opens this preset" = "opens this preset";
 
-/* PanelViews.swift:613 */
+/* PanelViews.swift:620 */
 "Opens your account's usage page in the browser" = "Opens your account's usage page in the browser";
 
-/* PanelViews.swift:374 */
+/* PanelViews.swift:381 */
 "Opens your ChatGPT usage settings in the browser" = "Opens your ChatGPT usage settings in the browser";
 
 /* EngineTab.swift:77 */
 "Open…" = "Open…";
 
-/* Key hint: ⌘K opens the run options · PanelViews.swift:238 */
+/* Key hint: ⌘K opens the run options · PanelViews.swift:245 */
 "options" = "options";
 
 /* PresetsTab.swift:607 */
@@ -1959,10 +1959,10 @@
 /* ReplyContextView.swift:93 */
 "Paste or type the message you're answering. It's sent as context, never rewritten." = "Paste or type the message you're answering. It's sent as context, never rewritten.";
 
-/* PanelViews.swift:870 */
+/* PanelViews.swift:877 */
 "Paste original" = "Paste original";
 
-/* PanelViews.swift:870 */
+/* PanelViews.swift:877 */
 "Paste take %lld" = "Paste take %lld";
 
 /* APIEngine.swift:167 */
@@ -2049,16 +2049,16 @@
 /* PresetGalleryView.swift:202 */
 "Picked automatically in %@." = "Picked automatically in %@.";
 
-/* PanelViews.swift:457 */
+/* PanelViews.swift:464 */
 "Picked for %@" = "Picked for %@";
 
-/* PanelViews.swift:175 */
+/* PanelViews.swift:182 */
 "Picked for %@. Tab shows every preset." = "Picked for %@. Tab shows every preset.";
 
 /* PresetGallery.swift:180 */
 "Plain words for people outside your field." = "Plain words for people outside your field.";
 
-/* Run options: the ChatGPT plan in use · PanelViews.swift:369, PanelViews.swift:389 */
+/* Run options: the ChatGPT plan in use · PanelViews.swift:376, PanelViews.swift:396 */
 "Plan" = "Plan";
 
 /* ChatGPTEngine.swift:510, ChatGPTEngineViews.swift:12 */
@@ -2073,10 +2073,10 @@
 /* ChatGPTEngineViews.swift:14 */
 "Plus or Pro" = "Plus or Pro";
 
-/* PanelViews.swift:583 */
+/* PanelViews.swift:590 */
 "Plus your %lld voice rules" = "Plus your %lld voice rules";
 
-/* PanelViews.swift:583 */
+/* PanelViews.swift:590 */
 "Plus your 1 voice rule" = "Plus your 1 voice rule";
 
 /* PresetGallery.swift:178 */
@@ -2106,19 +2106,19 @@
 /* PresetGalleryView.swift:246, PresetGalleryView.swift:31 */
 "Preset gallery" = "Preset gallery";
 
-/* PanelViews.swift:176 */
+/* PanelViews.swift:183 */
 "Preset: %@" = "Preset: %@";
 
 /* AppDelegate.swift:225, AppDelegate.swift:226, SettingsWindow.swift:19 */
 "Presets" = "Presets";
 
-/* Key hint: Tab opens the preset list · PanelViews.swift:237 */
+/* Key hint: Tab opens the preset list · PanelViews.swift:244 */
 "presets" = "presets";
 
 /* WritingTab.swift:58 */
 "Presets can reply in any of these, and Browse presets offers a translate preset for each." = "Presets can reply in any of these, and Browse presets offers a translate preset for each.";
 
-/* PanelViews.swift:275 */
+/* PanelViews.swift:282 */
 "Press %@ in any app to start on “%@”." = "Press %@ in any app to start on “%@”.";
 
 /* OnboardingView.swift:736 */
@@ -2130,7 +2130,7 @@
 /* Setup.swift:535 */
 "Press %@ in any text field to start." = "Press %@ in any text field to start.";
 
-/* SettingsWindow.swift:358 */
+/* SettingsWindow.swift:364 */
 "Press a shortcut…" = "Press a shortcut…";
 
 /* Setup.swift:723 */
@@ -2190,7 +2190,7 @@
 /* PresetGalleryView.swift:32 */
 "Ready-made presets. Adding one gives you your own copy to change." = "Ready-made presets. Adding one gives you your own copy to change.";
 
-/* SettingsWindow.swift:358 */
+/* SettingsWindow.swift:364 */
 "Record shortcut" = "Record shortcut";
 
 /* AppDelegate.swift:346 */
@@ -2199,10 +2199,10 @@
 /* ReplyContextView.swift:114 */
 "Reference only" = "Reference only";
 
-/* PanelViews.swift:813 */
+/* PanelViews.swift:820 */
 "Refine take %lld: warmer, drop the second ask, add a thanks…" = "Refine take %lld: warmer, drop the second ask, add a thanks…";
 
-/* PanelViews.swift:799 */
+/* PanelViews.swift:806 */
 "Regenerate" = "Regenerate";
 
 /* EnglishCoach.swift:110 */
@@ -2211,7 +2211,7 @@
 /* ReplyContextView.swift:78 */
 "Remove" = "Remove";
 
-/* Languages.swift:117, PresetsTab.swift:623, SettingsWindow.swift:241 */
+/* Languages.swift:117, PresetsTab.swift:623, SettingsWindow.swift:247 */
 "Remove %@" = "Remove %@";
 
 /* ReplyContextView.swift:59 */
@@ -2262,7 +2262,7 @@
 /* StatusPopover.swift:234 */
 "Report…" = "Report…";
 
-/* PanelViews.swift:354 */
+/* PanelViews.swift:361 */
 "Reset" = "Reset";
 
 /* Engine.swift:29 */
@@ -2286,13 +2286,13 @@
 /* HistoryTab.swift:56 */
 "Run log" = "Run log";
 
-/* PanelViews.swift:240, PanelViews.swift:383 */
+/* PanelViews.swift:247, PanelViews.swift:390 */
 "Run options" = "Run options";
 
-/* PanelViews.swift:338 */
+/* PanelViews.swift:345 */
 "Run options: %@" = "Run options: %@";
 
-/* PanelViews.swift:338 */
+/* PanelViews.swift:345 */
 "Run options: %@, changed for this run" = "Run options: %@, changed for this run";
 
 /* PresetsTab.swift:692 */
@@ -2397,10 +2397,13 @@
 /* ClaudeInstaller.swift:24 */
 "Setting up Claude Code…" = "Setting up Claude Code…";
 
-/* EnglishCoachViews.swift:1024 */
+/* EnglishCoachViews.swift:1024, PanelViews.swift:45 */
 "Settings" = "Settings";
 
-/* PanelViews.swift:358 */
+/* PanelViews.swift:44 */
+"Settings (⌘,)" = "Settings (⌘,)";
+
+/* PanelViews.swift:365 */
 "Settings for new presets" = "Settings for new presets";
 
 /* AppDelegate.swift:249, AppDelegate.swift:337, StatusPopover.swift:159 */
@@ -2460,7 +2463,7 @@
 /* ChatGPTAuth.swift:585, ChatGPTAuth.swift:636 */
 "Sign in to ChatGPT in Settings › Model." = "Sign in to ChatGPT in Settings › Model.";
 
-/* PanelViews.swift:652, Setup.swift:408 */
+/* PanelViews.swift:659, Setup.swift:408 */
 "Sign in to Claude" = "Sign in to Claude";
 
 /* Setup.swift:689 */
@@ -2640,19 +2643,19 @@
 /* GeneralTab.swift:56 */
 "System" = "System";
 
-/* PanelViews.swift:175 */
+/* PanelViews.swift:182 */
 "Tab shows every preset." = "Tab shows every preset.";
 
-/* HistoryTab.swift:126, PanelViews.swift:1010, PresetsTab.swift:699 */
+/* HistoryTab.swift:126, PanelViews.swift:1017, PresetsTab.swift:699 */
 "TAKE %lld" = "TAKE %lld";
 
-/* PanelViews.swift:1010 */
+/* PanelViews.swift:1017 */
 "TAKE %lld · CHANGES" = "TAKE %lld · CHANGES";
 
-/* PanelViews.swift:1008 */
+/* PanelViews.swift:1015 */
 "TAKE %lld · CUT SHORT" = "TAKE %lld · CUT SHORT";
 
-/* PanelViews.swift:1009 */
+/* PanelViews.swift:1016 */
 "TAKE %lld · WRITING" = "TAKE %lld · WRITING";
 
 /* The hotkey is already used by something else · OnboardingView.swift:670 */
@@ -2661,7 +2664,7 @@
 /* Setup.swift:722 */
 "Taken: %@" = "Taken: %@";
 
-/* Run options: number of takes · EngineTab.swift:56, PanelViews.swift:349, PanelViews.swift:388 */
+/* Run options: number of takes · EngineTab.swift:56, PanelViews.swift:356, PanelViews.swift:395 */
 "Takes" = "Takes";
 
 /* OnboardingView.swift:290 */
@@ -2817,7 +2820,7 @@
 /* EngineTab.swift:56, PresetsTab.swift:505 */
 "Takes · Model · Effort" = "Takes · Model · Effort";
 
-/* PanelViews.swift:337 */
+/* PanelViews.swift:344 */
 "Takes, model and effort, from the preset. ⌘K" = "Takes, model and effort, from the preset. ⌘K";
 
 /* Setup.swift:417 */
@@ -2844,7 +2847,7 @@
 /* ClaudeCodeEngine.swift:252 */
 "The Anthropic account Claude Code uses is out of credit. Add credit in the Anthropic Console, or pick another engine." = "The Anthropic account Claude Code uses is out of credit. Add credit in the Anthropic Console, or pick another engine.";
 
-/* InstantMode.swift:262, PanelController.swift:325 */
+/* InstantMode.swift:274, PanelController.swift:325 */
 "the app" = "the app";
 
 /* ChatGPTEngine.swift:402 */
@@ -2913,7 +2916,7 @@
 /* InstantMode.swift:90 */
 "The model sent back an empty take. Nothing was pasted." = "The model sent back an empty take. Nothing was pasted.";
 
-/* PanelViews.swift:976 */
+/* PanelViews.swift:983 */
 "The model stopped before the end, so this take can't be pasted." = "The model stopped before the end, so this take can't be pasted.";
 
 /* LocalEngineViews.swift:240 */
@@ -3039,7 +3042,7 @@
 /* PresetGallery.swift:165 */
 "Translate to %@" = "Translate to %@";
 
-/* ChatGPTEngineViews.swift:64, PanelViews.swift:614, PanelViews.swift:616, PanelViews.swift:653, PanelViews.swift:655 */
+/* ChatGPTEngineViews.swift:64, PanelViews.swift:621, PanelViews.swift:623, PanelViews.swift:660, PanelViews.swift:662 */
 "Try again" = "Try again";
 
 /* Engine.swift:97 */
@@ -3078,7 +3081,7 @@
 /* EnglishCoachViews.swift:229 */
 "Turn on coach" = "Turn on coach";
 
-/* SettingsWindow.swift:249 */
+/* SettingsWindow.swift:255 */
 "Type and press ↵" = "Type and press ↵";
 
 /* OnboardingView.swift:266 */
@@ -3234,10 +3237,10 @@
 /* ChatGPTEngineViews.swift:114, LocalEngineViews.swift:149, ProviderEngineViews.swift:180 */
 "Works. Answered in %.1f s." = "Works. Answered in %.1f s.";
 
-/* PanelViews.swift:224 */
+/* PanelViews.swift:231 */
 "Write %lld takes" = "Write %lld takes";
 
-/* PanelViews.swift:224 */
+/* PanelViews.swift:231 */
 "Write 1 take" = "Write 1 take";
 
 /* EnglishCoachViews.swift:991 */
@@ -3258,10 +3261,10 @@
 /* Key hint: ↵ writes the takes · DictationViews.swift:30 */
 "write takes" = "write takes";
 
-/* PanelViews.swift:117 */
+/* PanelViews.swift:124 */
 "Write what you want to say…" = "Write what you want to say…";
 
-/* Key hint: the preset's own hotkey writes and pastes right away · PanelViews.swift:272 */
+/* Key hint: the preset's own hotkey writes and pastes right away · PanelViews.swift:279 */
 "writes with this preset" = "writes with this preset";
 
 /* SettingsWindow.swift:20 */
@@ -3279,7 +3282,7 @@
 /* PresetsTab.swift:692 */
 "Writing…" = "Writing…";
 
-/* PanelViews.swift:856 */
+/* PanelViews.swift:863 */
 "Writing… %.1f s" = "Writing… %.1f s";
 
 /* PresetGalleryView.swift:205 */
@@ -3333,7 +3336,7 @@
 /* APIEngine.swift:143 */
 "Your Anthropic key hit its rate limit. %@" = "Your Anthropic key hit its rate limit. %@";
 
-/* EngineTab.swift:34, OnboardingView.swift:451, PanelViews.swift:370 */
+/* EngineTab.swift:34, OnboardingView.swift:451, PanelViews.swift:377 */
 "Your ChatGPT plan" = "Your ChatGPT plan";
 
 /* ChatGPTEngine.swift:150 */
