@@ -184,8 +184,11 @@ struct LocalEngineSettings: View {
 
     private func copyButton(_ command: String) -> some View {
         Button(copied ? "Copied" : "Copy “\(command)”") {
+            // Takes' own copy, not something the user copied to reply to (`ClipboardWatch`).
+            ClipboardWatch.aboutToWrite()
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(command, forType: .string)
+            ClipboardWatch.ownWrite(.take)
             copied = true
         }
         .buttonStyle(PrimaryButtonStyle(height: 30))

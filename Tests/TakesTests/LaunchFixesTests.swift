@@ -103,10 +103,30 @@ final class LaunchFixesTests: XCTestCase {
         XCTAssertTrue(pasted.isEmpty)
     }
 
+    @MainActor
+    func testInstantRunNotesWhyItStoppedBeforeThePaste() async {
+        var notes: [String] = []
+        let request = InstantMode.request(preset: Store.defaultPresets[0], draft: "ya thursday works", rules: [])
+        let changed = InstantRun(
+            engine: QuickEngine(), paste: { _, done in done(true) },
+            stillInField: { true }, sameField: { false },
+            note: { notes.append($0) }, verdict: { "focus other, text same" })
+        _ = await changed.run(request)
+        let left = InstantRun(
+            engine: QuickEngine(), paste: { _, done in done(true) },
+            stillInField: { false }, note: { notes.append($0) })
+        _ = await left.run(request)
+        let pasted = InstantRun(
+            engine: QuickEngine(), paste: { _, done in done(true) },
+            stillInField: { true }, note: { notes.append($0) })
+        _ = await pasted.run(request)
+        XCTAssertEqual(notes, ["paste not sent\tfocus other, text same", "paste not sent\tapp not in front"])
+    }
+
     func testFieldChangedMessage() {
         XCTAssertEqual(
             InstantMode.Failure.fieldChanged(take: "x").message(app: "Slack"),
-            "The text box in Slack changed while Takes was writing, so nothing was pasted.")
+            "Couldn't confirm the text box in Slack, so nothing was pasted.")
         XCTAssertEqual(InstantMode.Failure.fieldChanged(take: "x").take, "x")
     }
 

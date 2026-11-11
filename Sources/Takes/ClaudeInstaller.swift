@@ -34,8 +34,9 @@ final class ClaudeInstaller: ObservableObject {
     nonisolated static let installerURL = "https://claude.ai/install.sh"
     /// Anthropic's install page, for installing by hand when this fails.
     static let manualURL = URL(string: "https://code.claude.com/docs/en/setup")!
-    /// The official one-liner. `pipefail`, so a failed download fails the install instead of running an empty script.
-    nonisolated static let command = "set -o pipefail; curl -fsSL \(installerURL) | bash"
+    /// The official one-liner. `pipefail`, so a failed download fails the install instead of running an empty script;
+    /// `--proto '=https' --tlsv1.2`, so curl never follows a redirect to plain http or uses old TLS.
+    nonisolated static let command = "set -o pipefail; curl --proto '=https' --tlsv1.2 -fsSL \(installerURL) | bash"
     /// Usually under a minute; a stalled download is stopped after this.
     nonisolated static let timeout: TimeInterval = 600
 

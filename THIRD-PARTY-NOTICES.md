@@ -2,9 +2,9 @@
 
 Takes is © 2026 Bar Amir and released under the [MIT License](LICENSE). It includes the software below, under the licenses that follow. This file ships inside the app (`Takes.app/Contents/Resources/THIRD-PARTY-NOTICES.md`).
 
-## Sparkle 2.10.0
+## Sparkle 2.10.1
 
-Software updates. <https://sparkle-project.org> · <https://github.com/sparkle-project/Sparkle>. Embedded as `Takes.app/Contents/Frameworks/Sparkle.framework`, unmodified. Its license, including the external licenses it lists, follows in full.
+Software updates. <https://sparkle-project.org> · <https://github.com/sparkle-project/Sparkle>. Embedded as `Takes.app/Contents/Frameworks/Sparkle.framework`, with its XPC services removed (Takes isn't sandboxed) and otherwise unmodified. Its license, including the external licenses it lists, follows in full.
 
 ```
 Copyright (c) 2006-2013 Andy Matuschak.

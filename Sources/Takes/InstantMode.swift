@@ -10,17 +10,45 @@ enum InstantMode {
         case openPanel
         /// Write from `draft`. `replaceAll` replaces the whole field; otherwise the paste replaces the selection.
         case write(draft: String, replaceAll: Bool)
+        /// The text box holds too much text to rewrite whole. Nothing is written or pasted, and the toast says why.
+        case tooLong
     }
 
-    static func start(text: String, source: FocusSnapshot.Source) -> Start {
+    /// `editable` is false for a selection in text that takes no typing (a web page).
+    static func start(text: String, source: FocusSnapshot.Source, editable: Bool = true) -> Start {
+        // Before the draft is looked at: a box too long to read comes with no text, and isn't an empty box.
+        if source == .tooLong { return .tooLong }
         let draft = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !draft.isEmpty else { return .openPanel }
+        // A take has nowhere to go in text that can't be edited: the panel shows the takes and copies the chosen one.
+        guard !draft.isEmpty, editable else { return .openPanel }
         switch source {
         case .field: return .write(draft: draft, replaceAll: true)
         case .selection: return .write(draft: draft, replaceAll: false)
         // Text that wasn't read from a text box has nowhere safe to go back to.
-        case .none: return .openPanel
+        case .none, .secure, .tooLong: return .openPanel
         }
+    }
+
+    static func tooLongMessage(app: String) -> String {
+        String(localized: "The text box in \(app) has too much text to rewrite at once. Select the part you want and try again.")
+    }
+
+    /// What a hotkey press does, given what instant mode is doing.
+    enum HotKeyAction: Equatable {
+        /// The panel opens: the summon hotkey, a preset that doesn't write right away, or one picked in the
+        /// menu. A run in progress is stopped first, so its take can't be pasted once the panel is up.
+        case openPanel
+        /// Already writing with an instant preset: the press is ignored.
+        case keepWriting
+        /// The preset's result toast is still up: open that result in Takes.
+        case openResult
+        case write
+    }
+
+    static func hotKeyAction(writesInstantly: Bool, running: Bool, resultShowing: Bool) -> HotKeyAction {
+        guard writesInstantly else { return .openPanel }
+        if running { return .keepWriting }
+        return resultShowing ? .openResult : .write
     }
 
     /// The prefill used for instant mode. "An empty draft" would leave it nothing to write, so it reads the field.
@@ -45,11 +73,13 @@ enum InstantMode {
         case fieldChanged(take: String)
         /// The field's app couldn't be brought back to the front; the take is on the clipboard.
         case couldNotReturn(take: String)
+        /// The engine stopped before the take was finished. Half a take is never pasted unseen.
+        case cutShort(take: String)
 
         /// The take that was written, for "Open in Takes".
         var take: String? {
             switch self {
-            case .leftField(let take), .fieldChanged(let take), .couldNotReturn(let take): return take
+            case .leftField(let take), .fieldChanged(let take), .couldNotReturn(let take), .cutShort(let take): return take
             case .engine, .noTake: return nil
             }
         }
@@ -59,9 +89,16 @@ enum InstantMode {
             case .engine(let reason): return String(localized: "Nothing was pasted. \(reason)")
             case .noTake: return String(localized: "The model sent back an empty take. Nothing was pasted.")
             case .leftField: return String(localized: "You left \(app), so nothing was pasted.")
-            case .fieldChanged: return String(localized: "The text box in \(app) changed while Takes was writing, so nothing was pasted.")
+            case .fieldChanged: return String(localized: "Couldn't confirm the text box in \(app), so nothing was pasted.")
             case .couldNotReturn: return String(localized: "Couldn't get back to \(app). The take is on the clipboard: press ⌘V.")
+            case .cutShort: return String(localized: "The take was cut off before it was finished, so nothing was pasted.")
             }
+        }
+
+        /// Why a paste sent no keys: the text box had changed by the time the paste checked it, or its app couldn't
+        /// be brought back to the front.
+        static func notPasted(_ outcome: Paster.Outcome, take: String) -> Failure {
+            outcome == .fieldChanged ? .fieldChanged(take: take) : .couldNotReturn(take: take)
         }
     }
 
@@ -84,18 +121,30 @@ final class InstantRun {
     private let stillInField: () -> Bool
     private let sameField: () -> Bool
     private let unchanged: (String) -> Bool
+    private let notPasted: (String) -> InstantMode.Failure
+    private let note: (String) -> Void
+    private let verdict: () -> String
     private(set) var isCancelled = false
     private(set) var result: EngineResult?
 
     /// `unchanged` says whether a take is the draft as written; such a take is never pasted.
     /// `sameField` says whether the text box read from still has focus with the text that was read.
-    init(engine: TakesEngine, paste: @escaping Paste, stillInField: @escaping () -> Bool,
-         sameField: @escaping () -> Bool = { true }, unchanged: @escaping (String) -> Bool = { _ in false }) {
+    /// `notPasted` says why a paste sent no keys. Unless told otherwise, the app couldn't be brought back.
+    /// `note` gets a line for focus.log when the run stops before the paste; `verdict` is what the check found.
+    init(
+        engine: TakesEngine, paste: @escaping Paste, stillInField: @escaping () -> Bool,
+        sameField: @escaping () -> Bool = { true }, unchanged: @escaping (String) -> Bool = { _ in false },
+        notPasted: @escaping (String) -> InstantMode.Failure = { .couldNotReturn(take: $0) },
+        note: @escaping (String) -> Void = { _ in }, verdict: @escaping () -> String = { FocusReader.lastVerdict }
+    ) {
         self.engine = engine
         self.paste = paste
         self.stillInField = stillInField
         self.sameField = sameField
         self.unchanged = unchanged
+        self.notPasted = notPasted
+        self.note = note
+        self.verdict = verdict
     }
 
     /// Nothing is pasted after this, even if the take arrives a moment later.
@@ -113,14 +162,57 @@ final class InstantRun {
         guard let take = result.takes.first?.trimmingCharacters(in: .whitespacesAndNewlines), !take.isEmpty else {
             return .failed(.noTake)
         }
+        if result.cutShort { return .failed(.cutShort(take: take)) }
         if unchanged(take) { return .unchanged }
-        guard stillInField() else { return .failed(.leftField(take: take)) }
-        guard sameField() else { return .failed(.fieldChanged(take: take)) }
+        guard stillInField() else {
+            note("paste not sent\tapp not in front")
+            return .failed(.leftField(take: take))
+        }
+        guard sameField() else {
+            note("paste not sent\t" + verdict())
+            return .failed(.fieldChanged(take: take))
+        }
         let pasted = await withCheckedContinuation { continuation in
             paste(take) { continuation.resume(returning: $0) }
         }
-        return pasted ? .pasted(take: take) : .failed(.couldNotReturn(take: take))
+        if pasted { return .pasted(take: take) }
+        // Cancelled while the paste was waiting to send its keys: it sent none.
+        return isCancelled ? .cancelled : .failed(notPasted(take))
     }
+}
+
+/// The paste an instant run makes. It can be called off until the moment its keys go out (Esc, or the panel
+/// taking over, while it waits for a held key or for the app), and it remembers why it sent none.
+@MainActor
+final class InstantPaste {
+    private let focus: FocusSnapshot
+    private let replaceAll: Bool
+    private let restoreClipboard: Bool
+    private let environment: Paster.Environment
+    /// Whether the run was cancelled. Set once the run exists.
+    var cancelled: () -> Bool = { false }
+    private(set) var outcome = Paster.Outcome.pasted
+
+    init(focus: FocusSnapshot, replaceAll: Bool, restoreClipboard: Bool, environment: Paster.Environment = Paster.Environment()) {
+        self.focus = focus
+        self.replaceAll = replaceAll
+        self.restoreClipboard = restoreClipboard
+        self.environment = environment
+    }
+
+    func paste(_ take: String, done: @escaping (Bool) -> Void) {
+        // When the box can't be confirmed the toast says nothing was pasted, so the clipboard goes back.
+        Paster.paste(
+            take, into: focus, replaceAll: replaceAll, restoreClipboard: restoreClipboard, keepTakeIfFieldChanged: false,
+            cancelled: { [weak self] in self?.cancelled() ?? true }, environment: environment
+        ) { [weak self] outcome in
+            self?.outcome = outcome
+            done(outcome == .pasted)
+        }
+    }
+
+    /// Why the paste sent no keys, for the toast.
+    func failure(take: String) -> InstantMode.Failure { InstantMode.Failure.notPasted(outcome, take: take) }
 }
 
 /// Runs instant mode for the app: reads the field, shows progress in the toast, pastes, and hands over to
@@ -135,29 +227,43 @@ final class InstantModeController {
     /// Where the field's caret was, so every toast of a run shows in the same place.
     private var caret: CGRect?
     /// What the last run left for "Open in Takes", while its toast is up.
-    private var last: (presetID: String, focus: FocusSnapshot, draft: String, take: String?, until: Date)?
+    private struct Last {
+        var presetID: String
+        var focus: FocusSnapshot
+        var draft: String
+        var take: String?
+        /// The take was cut off; the panel says so.
+        var cutShort = false
+        /// The run's history entry, so a take pasted from the panel is marked on it.
+        var historyID: String?
+        /// Whether the preset's hotkey, pressed again while the toast is up, opens this in Takes. Not after "too much
+        /// text": the next press should write from the part just selected.
+        var hotKeyOpens = true
+        var until: Date
+    }
+    private var last: Last?
 
-    init(panel: PanelController) { self.panel = panel }
+    init(panel: PanelController) {
+        self.panel = panel
+        panel.onTakingKeyboard = { [weak self] in self?.panelTakesOver() }
+    }
 
     /// Handles a preset hotkey when the preset writes right away. Returns false to open the panel as usual.
     func handle(presetID: String?) -> Bool {
-        guard let presetID else {
-            // The summon hotkey: the panel takes over from a run in progress.
-            if run != nil {
-                stop()
-                toast.dismiss()
-            }
+        let preset = presetID.flatMap { Store.shared.preset(id: $0) }
+        let instant = preset.map { $0.writesInstantly && $0.hotKey != nil } ?? false
+        let showing = last.map { $0.presetID == presetID && $0.until > Date() && $0.hotKeyOpens } ?? false
+        switch InstantMode.hotKeyAction(writesInstantly: instant, running: run != nil, resultShowing: showing) {
+        case .openPanel:
+            panelTakesOver()
             return false
-        }
-        let store = Store.shared
-        guard let preset = store.preset(id: presetID), preset.writesInstantly, preset.hotKey != nil else { return false }
-        if run != nil { return true }
-        // Pressed again while the result is showing: open it in Takes.
-        if let last, last.presetID == presetID, last.until > Date() {
+        case .keepWriting:
+            break
+        case .openResult:
             openInTakes()
-            return true
+        case .write:
+            if let preset { start(preset) }
         }
-        start(preset)
         return true
     }
 
@@ -165,24 +271,39 @@ final class InstantModeController {
         panel.close()
         let store = Store.shared
         let focus = FocusReader.snapshot(prefill: InstantMode.prefill(store.settings.prefill))
-        guard case .write(let draft, let replaceAll) = InstantMode.start(text: focus.text, source: focus.source) else {
+        let app = focus.app?.localizedName ?? String(localized: "the app")
+        let draft: String, replaceAll: Bool
+        switch InstantMode.start(text: focus.text, source: focus.source, editable: focus.editable) {
+        case .openPanel:
             panel.summon(focus: focus, presetID: preset.id)
             return
+        case .tooLong:
+            caret = focus.caretRect
+            last = Last(
+                presetID: preset.id, focus: focus, draft: "", hotKeyOpens: false,
+                until: Date().addingTimeInterval(InstantToast.failedSeconds))
+            show(.failed(message: InstantMode.tooLongMessage(app: app), hotKey: nil), near: focus.caretRect)
+            return
+        case .write(let text, let all):
+            draft = text
+            replaceAll = all
         }
         last = nil
         caret = focus.caretRect
-        let app = focus.app?.localizedName ?? String(localized: "the app")
         let pid = focus.app?.processIdentifier
         let restore = store.settings.restoreClipboard
+        // The paste checks the text box once more after bringing it back; what it reports picks the failure toast.
+        let paste = InstantPaste(focus: focus, replaceAll: replaceAll, restoreClipboard: restore)
         let run = InstantRun(
             engine: Engines.current(store.settings),
-            paste: { take, done in
-                Paster.paste(take, into: focus, replaceAll: replaceAll, restoreClipboard: restore, done: done)
-            },
+            paste: { take, done in paste.paste(take, done: done) },
             stillInField: { pid == nil || NSWorkspace.shared.frontmostApplication?.processIdentifier == pid },
             // Select all and paste must not wipe another text box (another Slack channel) or text typed meanwhile.
             sameField: { !replaceAll || FocusReader.stillEditing(focus) },
-            unchanged: { take in Proofread.nothingToFix(draft: draft, takes: [take]) })
+            unchanged: { take in Proofread.nothingToFix(draft: draft, takes: [take]) },
+            notPasted: { take in paste.failure(take: take) },
+            note: { FocusLog.paste(focus, $0) })
+        paste.cancelled = { [weak run] in run?.isCancelled ?? true }
         self.run = run
         show(.writing(preset: preset.name), near: focus.caretRect)
         listenForEscape()
@@ -201,33 +322,50 @@ final class InstantModeController {
     private func finish(_ outcome: InstantMode.Outcome, preset: Preset, focus: FocusSnapshot, draft: String,
                         app: String, restore: Bool, result: EngineResult?) {
         let hotKey = preset.hotKey?.display
-        let hold: TimeInterval
-        switch outcome {
-        case .cancelled:
+        if case .cancelled = outcome {
             show(.cancelled, near: focus.caretRect)
             return
-        case .unchanged:
-            hold = InstantToast.pastedSeconds
-            last = (preset.id, focus, draft, nil, Date().addingTimeInterval(hold))
-            show(.unchanged(hotKey: hotKey), near: focus.caretRect)
-        case .pasted(let take):
-            hold = InstantToast.pastedSeconds
-            last = (preset.id, focus, draft, take, Date().addingTimeInterval(hold))
-            show(.pasted(clipboardBack: restore, hotKey: hotKey), near: focus.caretRect)
-        case .failed(let failure):
-            hold = InstantToast.failedSeconds
-            last = (preset.id, focus, draft, failure.take, Date().addingTimeInterval(hold))
-            show(.failed(message: failure.message(app: app), hotKey: hotKey), near: focus.caretRect)
         }
-
+        var historyID: String?
         if let result, !result.takes.isEmpty {
             var entry = HistoryEntry(appName: app, presetName: preset.name, draft: draft, takes: Array(result.takes.prefix(1)))
             if case .pasted = outcome { entry.pastedIndex = 0 }
             Store.shared.record(entry)
-            RunLog.append(["kind": "instant", "model": Store.shared.settings.runModel(for: preset), "effort": preset.effort, "takes": 1,
-                           "engine": Store.shared.settings.engine.rawValue, "wallMs": result.wallMs,
-                           "firstTextMs": result.firstTextMs ?? -1, "app": focus.app?.bundleIdentifier ?? ""])
+            historyID = entry.id
+            RunLog.append([
+                "kind": "instant", "model": Store.shared.settings.runModel(for: preset), "effort": preset.effort, "takes": 1,
+                "engine": Store.shared.settings.engine.rawValue, "wallMs": result.wallMs,
+                "firstTextMs": result.firstTextMs ?? -1, "app": focus.app?.bundleIdentifier ?? "",
+            ])
         }
+        var last = Last(
+            presetID: preset.id, focus: focus, draft: draft, cutShort: result?.cutShort ?? false, historyID: historyID,
+            until: Date().addingTimeInterval(InstantToast.pastedSeconds))
+        switch outcome {
+        case .cancelled:
+            return
+        case .unchanged:
+            show(.unchanged(hotKey: hotKey), near: focus.caretRect)
+        case .pasted(let take):
+            last.take = take
+            // The box now holds the take: a paste from "Open in Takes" checks for that, not for the old draft.
+            if focus.source == .field { last.focus = focus.holding(take) }
+            show(.pasted(clipboardBack: restore, hotKey: hotKey), near: focus.caretRect)
+        case .failed(let failure):
+            last.take = failure.take
+            last.until = Date().addingTimeInterval(InstantToast.failedSeconds)
+            show(.failed(message: failure.message(app: app), hotKey: hotKey), near: focus.caretRect)
+        }
+        self.last = last
+    }
+
+    /// The panel is opening, or taking the keyboard back. A take still being written is not pasted after that:
+    /// the same app is in front, so the checks would pass and the keys would go to the panel or to the box
+    /// under it. The result toast goes as well, since "Open in Takes" would replace what the panel now shows.
+    private func panelTakesOver() {
+        if run != nil { stop() }
+        toast.dismiss()
+        last = nil
     }
 
     /// Opens the panel with the last run: on the takes screen when there's a take, else on the draft.
@@ -240,6 +378,8 @@ final class InstantModeController {
             guard let take = last.take else { return }
             model.sourceDraft = last.draft
             model.takes = [take]
+            model.cutShort = last.cutShort
+            model.continueHistory(entryID: last.historyID)
             model.selected = 0
             model.screen = .takes
         }

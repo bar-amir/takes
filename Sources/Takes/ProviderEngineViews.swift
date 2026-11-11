@@ -130,7 +130,12 @@ struct ProviderEngineSettings: View {
         case .ready, .failed, .noKey, .noAddress:
             VStack(alignment: .leading, spacing: 8) {
                 if case .failed(let message) = models.state {
-                    hint(String(localized: "Couldn't load the model list. \(message)"), warning: true)
+                    // A typed model that answered the test is what counts; the list failing isn't a problem then.
+                    if case .passed = models.test {
+                        hint(String(localized: "\(provider.name) didn't list any models. Type the model ID instead."))
+                    } else {
+                        hint(String(localized: "Couldn't load the model list. \(message)"), warning: true)
+                    }
                 } else {
                     hint(String(localized: "\(provider.name) didn't list any models. Type the model ID instead."))
                 }
@@ -141,8 +146,13 @@ struct ProviderEngineSettings: View {
                         .buttonStyle(SecondaryButtonStyle(height: 30))
                         .disabled(modelInput.trimmingCharacters(in: .whitespaces).isEmpty)
                     testButton
-                    Button("Check again") { Task { await models.refresh() } }
-                        .buttonStyle(SecondaryButtonStyle(height: 30))
+                    Button("Check again") {
+                        Task {
+                            await models.refresh(force: true)
+                            await SetupMonitor.shared.refreshEngine()
+                        }
+                    }
+                    .buttonStyle(SecondaryButtonStyle(height: 30))
                 }
                 testResult
             }
@@ -194,7 +204,8 @@ struct ProviderEngineSettings: View {
         guard !key.isEmpty else { return }
         keyNote = provider.keyNote(key)
         keyInput = ""
-        models.saveKey(key)
+        // Whether the provider takes the key shows as the model list loads (or "Key refused").
+        if !models.saveKey(key) { keyNote = APIKeySave.keychainRefused }
     }
 
     private func saveAddress() {
@@ -221,62 +232,134 @@ struct ProviderEngineSettings: View {
     }
 }
 
-/// What the onboarding engine step shows under the "Other provider" option: the provider, the key field and which
-/// model was picked, so a new user can finish the step without opening Settings.
+/// What the onboarding engine step shows under the "Other provider" option: the provider (or a server address), the
+/// key field, and the model, so a new user finishes the step here. The step's button saves the key or asks again.
 struct ProviderOnboardingDetail: View {
     @ObservedObject var model: OnboardingModel
     @ObservedObject var store = Store.shared
     @ObservedObject var models = ProviderModels.shared
-    @State private var keyInput = ""
+    @State private var addressInput = ""
+    @State private var addressError: String?
+    @State private var modelInput = ""
 
     private var provider: Provider { Provider.current(store.settings) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if !provider.isCustom {
-                HStack(spacing: 10) {
-                    LabeledMenu(label: String(localized: "Provider"), options: Provider.known.map { (value: $0.id, title: $0.name) },
-                                selection: Binding(get: { provider.id }, set: { keyInput = ""; models.select($0) }))
-                    if let console = provider.consoleURL {
-                        Button("Get a key") { NSWorkspace.shared.open(console) }
-                            .buttonStyle(SecondaryButtonStyle(height: 28))
-                            .accessibilityHint("Opens \(console.host ?? String(localized: "the provider's site")) in your browser")
-                    }
+            HStack(spacing: 10) {
+                LabeledMenu(label: String(localized: "Provider"),
+                            options: Provider.known.map { (value: $0.id, title: $0.name) } + [(value: Provider.customID, title: String(localized: "Custom address"))],
+                            selection: Binding(get: { provider.id }, set: { id in
+                                model.providerKeyInput = ""
+                                model.providerKeyNotSaved = false
+                                addressInput = ""
+                                addressError = nil
+                                model.selectProvider(id)
+                            }))
+                if let console = provider.consoleURL {
+                    Button("Get a key") { NSWorkspace.shared.open(console) }
+                        .buttonStyle(SecondaryButtonStyle(height: 28))
+                        .accessibilityHint("Opens \(console.host ?? String(localized: "the provider's site")) in your browser")
                 }
             }
+            if provider.isCustom { address }
             if models.state == .noAddress {
-                StepNote(String(localized: "Set your server's address in Settings › Model."))
+                EmptyView()
             } else if !models.hasKey {
-                StyledTextField(placeholder: provider.keyPlaceholder, text: $keyInput, secure: true, height: 34, onSubmit: saveKey)
+                StyledTextField(placeholder: provider.keyPlaceholder, text: $model.providerKeyInput, secure: true, height: 34,
+                                onSubmit: model.primary)
                     .accessibilityLabel("\(provider.name) API key")
-                if let note = provider.keyNote(keyInput) {
-                    Text(note).font(.system(size: 12)).foregroundStyle(Theme.avoidText).fixedSize(horizontal: false, vertical: true)
+                if model.providerKeyNotSaved {
+                    note(APIKeySave.keychainRefused, warning: true)
+                } else if let warning = provider.keyNote(model.providerKeyInput) {
+                    note(warning, warning: true)
                 }
                 StepNote(String(localized: "Press Return to save it in your keychain. \(provider.dataNote)"))
             } else {
-                StepNote(status)
+                saved
             }
         }
         .padding(.top, 4)
-        .task { if !models.checked { await models.refresh() } }
+        .onAppear { model.providerShown() }
     }
 
-    private var status: String {
+    private var address: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                StyledTextField(placeholder: "https://llm.example.com/v1", text: $addressInput, height: 30, onSubmit: saveAddress)
+                    .accessibilityLabel("Server address")
+                Button("Save", action: saveAddress)
+                    .buttonStyle(SecondaryButtonStyle(height: 30))
+                    .disabled(addressInput.trimmingCharacters(in: .whitespaces).isEmpty || addressInput == store.settings.providerBaseURL)
+            }
+            if let addressError { note(addressError, warning: true) }
+        }
+        .onAppear { if addressInput.isEmpty { addressInput = store.settings.providerBaseURL } }
+    }
+
+    /// With a key saved: the model to write with, picked from the provider's list or typed when there's none.
+    @ViewBuilder private var saved: some View {
         switch models.state {
-        case .checking, .idle: return String(localized: "Key saved. Looking up \(provider.name)'s models…")
-        case .refused(let message): return String(localized: "\(message) Change it in Settings › Model.")
-        case .failed: return String(localized: "Key saved, but the model list didn't load. Type a model ID in Settings › Model.")
-        case .ready, .noKey, .noAddress:
-            return store.settings.providerModel.isEmpty
-                ? String(localized: "Key saved. Pick a model in Settings › Model.")
-                : String(localized: "Key saved. Takes will write with \(store.settings.providerModel); change it any time in Settings › Model.")
+        case .idle:
+            // Not asked yet: the provider hears from Takes only after the button below.
+            StepNote(String(localized: "Key saved in your keychain"))
+        case .checking:
+            StepNote(String(localized: "Key saved. Looking up \(provider.name)'s models…"))
+        case .refused(let message):
+            note(message, warning: true)
+            Button("Remove Key…") {
+                guard confirmDestructive(String(localized: "Remove your \(provider.name) key?"),
+                                         message: String(localized: "Takes deletes it from your keychain. You'll need to paste it again to write with \(provider.name)."),
+                                         button: String(localized: "Remove Key")) else { return }
+                models.removeKey()
+            }
+            .buttonStyle(SecondaryButtonStyle(height: 28))
+        case .ready where !models.models.isEmpty:
+            LabeledMenu(label: String(localized: "Model"),
+                        options: models.modelOptions(picked: store.settings.providerModel).map { (value: $0, title: $0) },
+                        selection: Binding(get: { store.settings.providerModel }, set: { picked in
+                            store.settings.providerModel = picked
+                            Task { await SetupMonitor.shared.refreshEngine() }
+                        }))
+        case .ready, .failed, .noKey, .noAddress:
+            if case .failed(let message) = models.state {
+                note(String(localized: "Couldn't load the model list. \(message)"), warning: true)
+            } else {
+                StepNote(String(localized: "\(provider.name) didn't list any models. Type the model ID instead."))
+            }
+            HStack(spacing: 8) {
+                StyledTextField(placeholder: String(localized: "Model ID"), text: $modelInput, height: 30, onSubmit: saveModel)
+                    .accessibilityLabel("Model ID")
+                Button("Save", action: saveModel)
+                    .buttonStyle(SecondaryButtonStyle(height: 30))
+                    .disabled(modelInput.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+            .onAppear { if modelInput.isEmpty { modelInput = store.settings.providerModel } }
         }
     }
 
-    private func saveKey() {
-        let key = keyInput.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !key.isEmpty else { return }
-        keyInput = ""
-        models.saveKey(key)
+    private func note(_ text: String, warning: Bool) -> some View {
+        Text(text).font(.system(size: 12)).foregroundStyle(warning ? Theme.avoidText : Theme.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func saveAddress() {
+        guard let url = ProviderEndpoint.normalize(addressInput) else {
+            addressError = String(localized: "Use an https address on the internet, such as https://llm.example.com/v1. Servers on this Mac go in the Local model row.")
+            return
+        }
+        addressError = nil
+        addressInput = url
+        store.settings.providerBaseURL = url
+        store.settings.providerModel = ""
+        // The server hears from Takes only after the step's button.
+        model.providerShown()
+    }
+
+    private func saveModel() {
+        let picked = modelInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !picked.isEmpty else { return }
+        store.settings.providerModel = picked
+        Task { await SetupMonitor.shared.refreshEngine() }
     }
 }

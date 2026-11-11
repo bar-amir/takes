@@ -20,6 +20,8 @@ extension Snapshot {
         }
         store.settings.engine = .claudeCode
         store.settings.lastFirstTextMs = 1700
+        // The tab never asks this Mac's Claude Code in a snapshot; this stands in.
+        ModelTab.snapshotStatus = ClaudeCodeEngine.Status(found: true, signedIn: true, plan: "max", version: "2.1.310")
         store.history = sampleHistory()
         local.servers = [.init(baseURL: LocalServerKind.ollama.defaultBaseURL, models: ["llama3.2:latest"])]
         local.checked = true
@@ -40,6 +42,17 @@ extension Snapshot {
                 renderSettingsTab(.presets, dark: dark, to: url.appendingPathComponent("5-settings-presets-hotkey-\(suffix).png"))
                 store.presets[0].hotKey = hotKey
             }
+            // A presets file that couldn't be read was set aside: the banner at the top of Presets.
+            store.noteSetAside(SetAsideFile(name: "presets.json", copy: "presets.unreadable-20261110-101530.json", skipped: nil))
+            renderSettingsTab(.presets, dark: dark, to: url.appendingPathComponent("5-settings-presets-set-aside-\(suffix).png"))
+            store.dismissSetAside()
+            // An engine saved by a newer version: no row is picked, and the note says to pick one.
+            let current = store.settings
+            if let newer = try? JSONDecoder().decode(AppSettings.self, from: Data(#"{"engine":"someFutureEngine"}"#.utf8)) {
+                store.settings = newer
+                renderSettingsTab(.model, dark: dark, to: url.appendingPathComponent("5-settings-model-needs-choice-\(suffix).png"))
+                store.settings = current
+            }
             signIn.state = .signedIn(email: "sam@example.com", sharing: true)
             renderSettingsTab(.model, dark: dark, to: url.appendingPathComponent("5-settings-model-chatgpt-not-selected-\(suffix).png"))
             store.settings.engine = .apiKey
@@ -58,6 +71,7 @@ extension Snapshot {
     /// Settings › Model's Claude Code row when it isn't ready: not installed, installing, the install failed, and
     /// installed but not signed in. The status is set here, so it doesn't depend on this Mac.
     private static func renderClaudeCodeStates(dark: Bool, to url: URL) {
+        let launchError = "Takes couldn't start Claude Code: The file “claude” couldn't be opened."
         let failed = ClaudeInstaller.failureMessage(status: 6, output: "curl: (6) Could not resolve host: claude.ai", timedOut: false) ?? ""
         let states: [(String, ClaudeCodeEngine.Status, ClaudeInstaller.State)] = [
             ("not-installed", ClaudeCodeEngine.Status(found: false), .idle),
@@ -65,6 +79,9 @@ extension Snapshot {
             ("install-failed", ClaudeCodeEngine.Status(found: false), .failed(failed)),
             ("not-signed-in", ClaudeCodeEngine.Status(found: true, version: "2.1.310"), .idle),
             ("too-old", ClaudeCodeEngine.Status(found: true, signedIn: true, version: "2.0.24"), .idle),
+            ("still-looking", ClaudeCodeEngine.Status(found: false, timedOut: true), .idle),
+            ("could-not-start", ClaudeCodeEngine.Status(found: true, timedOut: true, launchError: launchError), .idle),
+            ("not-answering", ClaudeCodeEngine.Status(found: true, version: "2.1.310", timedOut: true), .idle),
         ]
         for (name, status, state) in states {
             let installer = ClaudeInstaller()

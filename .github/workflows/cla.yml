@@ -87,10 +87,16 @@ jobs:
             // Everyone who needs to have signed: the author and every commit author.
             const commits = await github.paginate(github.rest.pulls.listCommits, { owner, repo, pull_number: number, per_page: 100 });
             const people = new Map([[pr.user.id, pr.user.login]]);
-            const unlinked = new Set();
+            // Commits whose author email isn't linked to a GitHub account: the first commit (short id) of each such
+            // email. The email only tells the commits apart. It is never printed, because the status and the comment
+            // are public.
+            const unlinked = new Map();
             for (const commit of commits) {
               if (commit.author?.id) people.set(commit.author.id, commit.author.login);
-              else unlinked.add(commit.commit.author?.email || 'unknown author');
+              else {
+                const email = (commit.commit.author?.email || '').toLowerCase();
+                if (!unlinked.has(email)) unlinked.set(email, commit.sha.slice(0, 7));
+              }
             }
             const signedIds = new Set(signatures.map(s => s.id));
             const missing = [...people.entries()]
@@ -98,7 +104,8 @@ jobs:
               .map(([, login]) => login);
             const ok = missing.length === 0 && unlinked.size === 0;
 
-            const needed = [...missing.map(l => '@' + l), ...unlinked].join(', ');
+            const unlinkedNote = unlinked.size === 1 ? 'a commit email not linked to GitHub' : `${unlinked.size} commit emails not linked to GitHub`;
+            const needed = [...missing.map(l => '@' + l), ...(unlinked.size ? [unlinkedNote] : [])].join(', ');
             await github.rest.repos.createCommitStatus({
               owner, repo, sha: pr.head.sha, context: 'CLA', target_url: CLA_URL,
               state: ok ? 'success' : 'failure',
@@ -126,7 +133,7 @@ jobs:
                 missing.length ? `Still needed from: ${missing.map(l => '@' + l).join(', ')}` : '',
               ];
               if (unlinked.size) {
-                lines.push('', `Some commits use an email that isn't linked to a GitHub account (${[...unlinked].join(', ')}). Add that email to your GitHub account, or re-author the commits, then comment \`recheck\`.`);
+                lines.push('', `Some commits use an email that isn't linked to a GitHub account (commit${unlinked.size === 1 ? '' : 's'} ${[...unlinked.values()].slice(0, 10).join(', ')}). Add the email you committed with to your GitHub account, or re-author those commits, then comment \`recheck\`.`);
               }
               body = lines.filter((line, i, all) => line !== '' || all[i - 1] !== '').join('\n');
             }

@@ -56,6 +56,8 @@ enum AXProbe {
         guard let element else { return "nil" }
         let role: String = copy(element, kAXRoleAttribute) ?? "?"
         let subrole: String = copy(element, kAXSubroleAttribute) ?? "-"
+        // A password field is asked nothing more: not even the length of what's in it is written.
+        guard !FocusReader.isSecure(subrole: subrole) else { return "role=\(role) subrole=\(subrole) (password field: not read)" }
         let value: String? = copy(element, kAXValueAttribute)
         let selected: String? = copy(element, kAXSelectedTextAttribute)
         let editable: Bool? = copy(element, "AXEditableAncestor").map { (_: AXUIElement) in true }

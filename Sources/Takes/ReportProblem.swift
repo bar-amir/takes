@@ -6,18 +6,44 @@ import AppKit
 enum ReportProblem {
     static let newIssue = "https://github.com/bar-amir/takes/issues/new"
 
+    /// GitHub and browsers refuse very long links, so a link built here is never longer than this many characters.
+    static let maxURLLength = 8000
+    /// The last line of a crash summary that was cut to fit the link, so whoever reads it knows there was more.
+    static let trimmedNote = "… (cut to fit the link; the full report is the file shown in Finder)"
+
     static func url(takesVersion: String, macOSVersion: String, engine: EngineKind, crash: String? = nil) -> URL {
-        var components = URLComponents(string: newIssue)!
-        components.queryItems = [
-            URLQueryItem(name: "template", value: "bug_report.yml"),
-            URLQueryItem(name: "engine", value: engineOption(engine)),
-            URLQueryItem(name: "versions", value: "Takes \(takesVersion), macOS \(macOSVersion)"),
-        ]
-        if let crash {
-            components.queryItems?.append(URLQueryItem(name: "title", value: "Takes quit unexpectedly"))
-            components.queryItems?.append(URLQueryItem(name: "crash", value: crash))
+        func link(_ crash: String?) -> URL {
+            var components = URLComponents(string: newIssue)!
+            components.queryItems = [
+                URLQueryItem(name: "template", value: "bug_report.yml"),
+                URLQueryItem(name: "engine", value: engineOption(engine)),
+                URLQueryItem(name: "versions", value: "Takes \(takesVersion), macOS \(macOSVersion)"),
+            ]
+            if let crash {
+                components.queryItems?.append(URLQueryItem(name: "title", value: "Takes quit unexpectedly"))
+                components.queryItems?.append(URLQueryItem(name: "crash", value: crash))
+            }
+            // URLComponents leaves "+" as it is, and GitHub reads it as a space (operators in symbol names).
+            components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
+            return components.url!
         }
-        return components.url!
+
+        guard let crash, link(crash).absoluteString.count > maxURLLength else { return link(crash) }
+        // The most of the summary that fits, cut at the end of a line when there is one, with the note after it.
+        // A longer cut never makes a shorter link, so a binary search finds it.
+        let characters = Array(crash)
+        func cut(_ count: Int) -> String {
+            var kept = Array(characters.prefix(count))
+            if count < characters.count, let end = kept.lastIndex(where: { $0.isNewline }) { kept = Array(kept[..<end]) }
+            return (kept.isEmpty ? "" : String(kept) + "\n") + trimmedNote
+        }
+        var fits = 0
+        var tooLong = characters.count
+        while fits < tooLong {
+            let middle = (fits + tooLong + 1) / 2
+            if link(cut(middle)).absoluteString.count <= maxURLLength { fits = middle } else { tooLong = middle - 1 }
+        }
+        return link(cut(fits))
     }
 
     /// The bug form's Engine options, word for word, so GitHub picks the right one.

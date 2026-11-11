@@ -76,6 +76,8 @@ final class SettingsWindowController: NSObject, NSWindowDelegate, NSToolbarDeleg
         self.window = window
         if firstShow { window.center() }
         window.moveToActiveScreen()
+        // Settings shows what setup finds (Accessibility, the model), so it's kept current while the window is open.
+        SetupMonitor.shared.window("settings", visible: true)
         // A Dock icon while Settings is open: clicking another app leaves the window behind it, and without the icon
         // (or a ⌘Tab entry) there'd be no way back to it.
         NSApp.setActivationPolicy(.regular)
@@ -84,6 +86,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate, NSToolbarDeleg
     }
 
     func windowWillClose(_ notification: Notification) {
+        SetupMonitor.shared.window("settings", visible: false)
         // Back to a menu-bar-only app.
         NSApp.setActivationPolicy(.accessory)
     }
@@ -266,13 +269,94 @@ struct ChipsEditor: View {
     }
 }
 
+/// The shortcut recorder's state, kept out of its view so a test can drive it. While recording, Takes's own hotkeys
+/// are let go and a key monitor reads the next press. Recording stops on Esc or a press, and also when its window
+/// closes or stops being the key window, since SwiftUI doesn't tell a view whose window is only closed (Settings
+/// and onboarding keep theirs). Each way puts the hotkeys back; if this object goes away first, so does the suspension.
+@MainActor
+final class HotKeyRecording: ObservableObject {
+    @Published private(set) var isRecording = false
+    private var suspension: HotKeyCenter.Suspension?
+    private var monitor: Any?
+    private var observers: [NSObjectProtocol] = []
+
+    // Seams for tests.
+    var addMonitor: (@escaping (NSEvent) -> NSEvent?) -> Any? = { NSEvent.addLocalMonitorForEvents(matching: .keyDown, handler: $0) }
+    var removeMonitor: (Any) -> Void = { NSEvent.removeMonitor($0) }
+    var notifications = NotificationCenter.default
+
+    /// The window the recorder's view is in, as AppKit reports it.
+    weak var hostWindow: NSWindow?
+
+    /// Starts recording in `window`, whose closing or losing the keyboard stops it. With no window known, no window
+    /// stops it (Esc, a press and the recorder going away still do): another window closing, the panel or a
+    /// popover, must not end a recording it has nothing to do with. `onKey` gets each key press and returns true
+    /// once it has what it wanted, which stops recording.
+    func start(in window: NSWindow?, onKey: @escaping (NSEvent) -> Bool) {
+        guard !isRecording else { return }
+        isRecording = true
+        suspension = HotKeyCenter.shared.suspend()
+        monitor = addMonitor { [weak self] event in
+            MainActor.assumeIsolated {
+                if onKey(event) { self?.stop() }
+            }
+            return nil
+        }
+        guard let window else { return }
+        for name in [NSWindow.willCloseNotification, NSWindow.didResignKeyNotification] {
+            observers.append(notifications.addObserver(forName: name, object: window, queue: nil) { [weak self] _ in
+                MainActor.assumeIsolated { self?.stop() }
+            })
+        }
+    }
+
+    func stop() {
+        guard isRecording else { return }
+        isRecording = false
+        if let monitor { removeMonitor(monitor) }
+        monitor = nil
+        observers.forEach(notifications.removeObserver)
+        observers = []
+        // The store's debounced re-registration follows a change; this covers Esc and a repeat of the same combo.
+        suspension?.end()
+        suspension = nil
+    }
+
+    deinit {
+        // The suspension ends as it's let go; the monitor would otherwise swallow every key press in Takes.
+        if let monitor { removeMonitor(monitor) }
+        observers.forEach(notifications.removeObserver)
+    }
+}
+
+/// Tells its view which window it's in, as AppKit reports it.
+private struct HostWindowReader: NSViewRepresentable {
+    let found: (NSWindow?) -> Void
+
+    func makeNSView(context: Context) -> NSView {
+        let view = WindowReportingView()
+        view.onWindow = found
+        return view
+    }
+
+    func updateNSView(_ view: NSView, context: Context) {}
+
+    final class WindowReportingView: NSView {
+        var onWindow: ((NSWindow?) -> Void)?
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            onWindow?(window)
+        }
+    }
+}
+
 /// Click, then press a shortcut. Esc cancels, ⌫ clears.
 struct HotKeyRecorder: View {
     @Binding var combo: KeyCombo?
     var allowClear = true
     var height: CGFloat = 36
-    @State private var recording = false
-    @State private var monitor: Any?
+    @StateObject private var recorder = HotKeyRecording()
+    private var recording: Bool { recorder.isRecording }
 
     var body: some View {
         HStack(spacing: 6) {
@@ -297,32 +381,21 @@ struct HotKeyRecorder: View {
                 .accessibilityLabel("Clear shortcut")
             }
         }
-        .onDisappear(perform: stop)
+        .background(HostWindowReader { recorder.hostWindow = $0 })
+        .onDisappear(perform: recorder.stop)
     }
 
-    private func toggle() { recording ? stop() : start() }
+    private func toggle() { recording ? recorder.stop() : start() }
 
     private func start() {
-        recording = true
         // Takes's own hotkeys are let go while recording: a registered one never reaches the window (macOS
         // handles it first), so pressing it would open the panel instead of recording it.
-        HotKeyCenter.shared.suspend()
-        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            if event.keyCode == 53 { stop(); return nil } // Esc
-            if event.keyCode == 51 && allowClear { combo = nil; stop(); return nil } // ⌫
-            if let recorded = KeyCombo(event: event) {
-                combo = recorded
-                stop()
-            }
-            return nil
+        recorder.start(in: recorder.hostWindow) { event in
+            if event.keyCode == 53 { return true }  // Esc
+            if event.keyCode == 51 && allowClear { combo = nil; return true }  // ⌫
+            guard let recorded = KeyCombo(event: event) else { return false }
+            combo = recorded
+            return true
         }
-    }
-
-    private func stop() {
-        recording = false
-        if let monitor { NSEvent.removeMonitor(monitor) }
-        monitor = nil
-        // The store's debounced re-registration follows a change; this covers Esc and a repeat of the same combo.
-        HotKeyCenter.shared.resume()
     }
 }

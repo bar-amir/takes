@@ -26,7 +26,7 @@ final class KeyPanel: NSPanel {
 @MainActor
 final class PanelController {
     private var panel: KeyPanel?
-    private let model = PanelModel()
+    let model = PanelModel()
     private let toast = ToastController()
     private var caretRect: CGRect?
     /// The text box being written in, which the panel opens beside.
@@ -36,8 +36,12 @@ final class PanelController {
     private var takesHeight: CGFloat = 0
     /// Onboarding's practice box: the chosen take goes back to it instead of being pasted into another app.
     private var practice: (paste: (String) -> Void, cancel: () -> Void)?
+    /// Called just before the panel opens or takes the keyboard back. Instant mode stops a run of its own then:
+    /// with the panel in front, its paste would land in the panel or in the box under it.
+    var onTakingKeyboard: () -> Void = {}
 
-    init() {
+    /// `watchClipboard: false` leaves the clipboard watch alone, for tests.
+    init(watchClipboard: Bool = true) {
         model.onClose = { [weak self] in self?.close() }
         model.onScreenChange = { [weak self] in self?.layout() }
         model.onContentHeight = { [weak self] height in self?.fitTakes(height: height) }
@@ -62,10 +66,37 @@ final class PanelController {
             guard let textView = self?.panel?.firstResponder as? NSTextView else { return false }
             return textView.selectedRange().length > 0
         }
-        ClipboardWatch.shared.activate()
+        if watchClipboard { ClipboardWatch.shared.activate() }
     }
 
     var isVisible: Bool { panel?.isVisible == true }
+
+    /// The hotkey pressed while the panel is open. When `keepsPanel` says so, the panel keeps its draft, its takes
+    /// and a run still writing (`PanelModel.hotKeyPressedAgain`) and takes the keyboard back, instead of opening
+    /// afresh. That goes for every hotkey, a preset's included: one that writes and pastes right away does not do
+    /// so here, since it would write over the box while the panel's own takes are waiting.
+    func keepsOpenPanel(presetID: String?) -> Bool {
+        guard let panel else { return false }
+        let keeps = Self.keepsPanel(visible: panel.isVisible, isKey: panel.isKeyWindow, hasWork: model.hasWork) { [model] in
+            FocusReader.pressOrigin(for: model.focus)
+        }
+        guard keeps else { return false }
+        onTakingKeyboard()
+        model.hotKeyPressedAgain(presetID: presetID)
+        if !panel.isKeyWindow { panel.makeKeyAndOrderFront(nil) }
+        return true
+    }
+
+    /// Whether a hotkey press keeps the open panel as it is. With the keyboard in the panel, always. The panel
+    /// stays on screen when the keyboard goes elsewhere (to re-read the chat behind it, say), so then it depends
+    /// on what the panel would lose and where the press came from: a panel holding work is kept unless the press
+    /// came from another app or another text box, which is a fresh summon. A panel with nothing to lose opens
+    /// afresh, so it shows the text box as it is now.
+    nonisolated static func keepsPanel(visible: Bool, isKey: Bool, hasWork: Bool, origin: () -> FocusReader.PressOrigin) -> Bool {
+        guard visible else { return false }
+        if isKey { return true }
+        return hasWork && origin() != .elsewhere
+    }
 
     func summon(presetID: String? = nil) {
         // Before the field is read: its ⌘A ⌘C fallback changes the clipboard.
@@ -105,6 +136,7 @@ final class PanelController {
     }
 
     private func open(focus: FocusSnapshot, presetID: String?, configure: (PanelModel) -> Void = { _ in }) {
+        onTakingKeyboard()
         model.previewAppName = nil
         model.reset(focus: focus, presetID: presetID)
         configure(model)
@@ -278,26 +310,43 @@ final class PanelController {
     }
 
     private func paste(index: Int, text: String, presetID: String?) {
+        // Which history entry this take belongs to, taken now: the panel may be open on something else by the
+        // time the paste's outcome is known.
+        let receipt = model.takePasteReceipt()
         if let practice {
             self.practice = nil
             close()
             practice.paste(text)
+            model.pasteEnded(.pasted, receipt: receipt)
             return
         }
         let focus = model.focus
-        let replaceAll = focus?.source == .field && !(focus?.text.isEmpty ?? true)
+        let number = index + 1
+        let app = focus?.app?.localizedName ?? String(localized: "the app")
         let restore = Store.shared.settings.restoreClipboard
         let nudge = model.coachNudge
         model.coachNudge = nil
         close()
-        Paster.paste(text, into: focus, replaceAll: replaceAll, restoreClipboard: restore) { [weak self] pasted in
+        guard case .paste(let replaceAll) = Self.pasteAction(for: focus) else {
+            // ⌘V would change nothing there, so no keys are sent and the toast doesn't claim a paste.
+            putOnClipboard(text)
+            toast.show(message: Self.notPastedMessage(.readOnly, app: app, number: number), showUndo: false, near: caretRect,
+                       notDone: true, onSaveExample: nil)
+            return
+        }
+        // If the panel is opened again while the paste waits (for a held key, for the app), the keys would go to
+        // the panel: the paste is called off instead.
+        let cancelled: () -> Bool = { [weak self] in self?.isVisible == true }
+        Paster.paste(text, into: focus, replaceAll: replaceAll, restoreClipboard: restore, cancelled: cancelled) { [weak self] outcome in
             guard let self else { return }
-            let number = index + 1
-            guard pasted else {
-                // The field's app couldn't be brought back; nothing was typed anywhere.
-                let app = focus?.app?.localizedName ?? String(localized: "the app")
-                self.toast.show(message: String(localized: "Couldn't get back to \(app). Take \(number) is on the clipboard: press ⌘V"),
-                                showUndo: false, near: self.caretRect, onSaveExample: nil)
+            self.model.pasteEnded(outcome, receipt: receipt)
+            if outcome == .cancelled { return }
+            guard outcome == .pasted else {
+                // Nothing was typed anywhere: the field's app couldn't be brought back, or it came back without the
+                // text box the draft was read from (another chat, say) or without the text that was read.
+                let reason: NotPasted = outcome == .fieldChanged ? .fieldChanged : .couldNotReturn
+                let message = Self.notPastedMessage(reason, app: app, number: number)
+                self.toast.show(message: message, showUndo: false, near: self.caretRect, notDone: true, onSaveExample: nil)
                 return
             }
             self.toast.show(message: restore ? String(localized: "Pasted take \(number) · your clipboard is back")
@@ -309,11 +358,46 @@ final class PanelController {
         }
     }
 
+    /// What choosing a take does, from what was read when the panel opened.
+    enum PasteAction: Equatable {
+        /// The text can't be edited: the take is left on the clipboard.
+        case copyOnly
+        /// `replaceAll` (⌘A ⌘V) only for a text box whose whole text was read. One that was empty, too long to
+        /// read, or not read at all gets the take at the caret (⌘V).
+        case paste(replaceAll: Bool)
+    }
+
+    nonisolated static func pasteAction(for focus: FocusSnapshot?) -> PasteAction {
+        guard let focus else { return .paste(replaceAll: false) }
+        if !focus.editable { return .copyOnly }
+        return .paste(replaceAll: focus.source == .field && !focus.text.isEmpty)
+    }
+
+    /// Why a chosen take wasn't typed into the text box. Each one leaves it on the clipboard.
+    enum NotPasted { case couldNotReturn, fieldChanged, readOnly }
+
+    nonisolated static func notPastedMessage(_ reason: NotPasted, app: String, number: Int) -> String {
+        switch reason {
+        case .couldNotReturn: return String(localized: "Couldn't get back to \(app). Take \(number) is on the clipboard: press ⌘V")
+        // "Couldn't confirm", not "changed": it also covers an app that can't say which text box has focus.
+        case .fieldChanged: return String(localized: "Couldn't confirm the text box in \(app). Take \(number) is on the clipboard: press ⌘V")
+        case .readOnly: return String(localized: "This text can't be edited. Take \(number) is on the clipboard: press ⌘V")
+        }
+    }
+
     private func copy(index: Int, text: String) {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(text, forType: .string)
+        putOnClipboard(text)
         close()
         toast.show(message: String(localized: "Copied take \(index + 1)"), showUndo: false, near: caretRect, onSaveExample: nil)
+    }
+
+    /// Takes' own copy: not something the user copied to reply to (`ClipboardWatch`).
+    private func putOnClipboard(_ text: String) {
+        Paster.settleOwedRestore()
+        ClipboardWatch.aboutToWrite()
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        ClipboardWatch.ownWrite(.take)
     }
 
     private func showMoreMenu() {
@@ -339,6 +423,7 @@ final class PanelController {
 
     func close() {
         model.dictation.dismiss()
+        model.panelClosed()
         if let panel { dismissAnimated(panel) }
         endPractice()
     }

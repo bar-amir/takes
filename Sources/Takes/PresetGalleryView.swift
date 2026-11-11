@@ -18,17 +18,11 @@ struct PresetGalleryView: View {
 
     /// What ↵ adds: the checked presets, or else the highlighted one if it isn't added yet.
     private var toAdd: [Preset] {
-        let picked = templates.filter { checked.contains($0.id) && !isAdded($0) }
-        if !picked.isEmpty { return picked }
-        if let highlighted, !isAdded(highlighted) { return [highlighted] }
-        return []
+        PresetGallery.toAdd(templates, checked: checked, highlightedID: highlightedID) { isAdded($0) }
     }
 
     private var addTitle: String {
-        let items = toAdd
-        if items.count > 1 { return String(localized: "Add \(items.count) presets") }
-        if let one = items.first { return String(localized: "Add “\(one.name)”") }
-        return String(localized: "Added")
+        PresetGallery.addTitle(toAdd, highlightedID: highlightedID)
     }
 
     var body: some View {
@@ -131,6 +125,8 @@ struct PresetGalleryView: View {
         .contentShape(Rectangle())
         .onTapGesture(count: 2) { if !added { highlightedID = template.id; checked = []; add() } }
         .onTapGesture { highlightedID = template.id; listFocused = true }
+        // The name and blurb are cut to one line each; the whole of both shows on hover.
+        .help(Text(verbatim: "\(template.name)\n\(PresetGallery.blurb(for: template))"))
         .id(template.id)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(isHighlighted ? .isSelected : [])

@@ -37,6 +37,25 @@ struct EngineResult {
     let wallMs: Int
     /// Request start to the first streamed word.
     let firstTextMs: Int?
+    /// The engine stopped before the answer was finished (it reached its length limit, ran out of time, or its
+    /// stream ended early), so the last take is incomplete. The takes before it are whole. Set through
+    /// `TakeSplitter.cutShort`, so an answer that stopped right after a separator isn't marked.
+    var cutShort = false
+}
+
+/// How many tokens an engine lets the model write for one request. A fixed cap cut long drafts short: three takes of
+/// a 10,000-character draft are about 7,500 tokens before any thinking. So the cap grows with the request.
+enum OutputBudget {
+    /// A generous token count for `text`: one token per 3 bytes of UTF-8. English runs near 4 characters a token and
+    /// Chinese or Japanese near 1 (3 bytes each), so this errs on the side of room.
+    static func tokens(in text: String) -> Int { (text.utf8.count + 2) / 3 }
+
+    /// Room for every take at twice the length of the user message (a take can run longer than the draft), plus
+    /// `reserve` for thinking; never below `floor` (short drafts keep the cap they always had) or above `ceiling`.
+    static func maxTokens(for request: EngineRequest, floor: Int, ceiling: Int, reserve: Int = 0) -> Int {
+        let room = tokens(in: request.user) * max(request.takes, 1) * 2 + reserve
+        return min(max(room, floor), ceiling)
+    }
 }
 
 enum EngineError: LocalizedError {
@@ -86,14 +105,26 @@ protocol TakesEngine {
 }
 
 enum Engines {
+    /// Said by every run while the saved engine is one this version doesn't know (settings from a newer version).
+    static let needsChoiceMessage = String(localized: "Pick a model in Settings › Model first. Your settings name one this version of Takes doesn't have.")
+
     static func current(_ settings: AppSettings) -> TakesEngine {
-        switch settings.engine {
+        // Nothing runs on a guess: `settings.engine` reads as Claude Code until the user picks one.
+        if settings.engineNeedsChoice { return UnchosenEngine() }
+        return switch settings.engine {
         case .apiKey: APIEngine()
         case .local: LocalEngine(baseURL: settings.localBaseURL)
         case .claudeCode: ClaudeCodeEngine()
         case .provider: ProviderEngine(settings: settings)
         case .chatGPT: ChatGPTEngine()
         }
+    }
+}
+
+/// Stands in while no engine this version knows is picked: every run fails with `Engines.needsChoiceMessage`.
+struct UnchosenEngine: TakesEngine {
+    func run(_ request: EngineRequest, onUpdate: @escaping @Sendable ([String]) -> Void) async throws -> EngineResult {
+        throw EngineError.failed(Engines.needsChoiceMessage)
     }
 }
 
@@ -119,5 +150,32 @@ enum TakeSplitter {
         return takes
             .map { $0.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
+    }
+
+    /// `EngineResult.cutShort` for an answer: true only when it stopped early (`stoppedEarly`: out of room, out of
+    /// time, or a stream that ended without saying it was done) and something was written after the last separator,
+    /// so the last take is unfinished. An answer that stopped right after a separator has only whole takes. Every
+    /// engine sets `cutShort` through this. `endsTake` says which lines end a take (small models also write `---` or
+    /// "Version 2:"); a line of only `=` counts too, as a separator still being written.
+    static func cutShort(_ text: String, stoppedEarly: Bool, endsTake: (String) -> Bool = { $0 == separator }) -> Bool {
+        guard stoppedEarly else { return false }
+        let lines = text.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) }
+        guard let last = lines.last(where: { !$0.isEmpty }) else { return false }
+        return !(last.allSatisfy { $0 == "=" } || endsTake(last))
+    }
+
+    /// Whether `text` has at least one take followed by a finished separator line: a take known to be whole.
+    static func hasWholeTake(_ text: String) -> Bool {
+        var sawText = false
+        // The last line may still be coming, so only lines that ended count.
+        for line in text.split(separator: "\n", omittingEmptySubsequences: false).dropLast() {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed == separator {
+                if sawText { return true }
+            } else if !trimmed.isEmpty {
+                sawText = true
+            }
+        }
+        return false
     }
 }

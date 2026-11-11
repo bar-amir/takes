@@ -26,9 +26,11 @@ enum Proofread {
         }
     }
 
-    /// True when every take is the draft as written, apart from spacing.
+    /// True when every take is the draft exactly as written. Spaces and line breaks around the text don't count,
+    /// but any change inside it does, spacing included: it changes what gets pasted. Compares text, never diffs.
     static func nothingToFix(draft: String, takes: [String]) -> Bool {
-        !takes.isEmpty && takes.allSatisfy { WordDiff.fixes(from: draft, to: $0).isEmpty }
+        let draft = WordDiff.core(draft)
+        return !takes.isEmpty && takes.allSatisfy { WordDiff.core($0) == draft }
     }
 
     /// Upgrades the old built-in proofread preset, if the user never edited its instruction, to the new one.
@@ -71,11 +73,6 @@ extension Preset {
 extension PanelModel {
     /// Minimal-edit takes open with their fixes marked.
     var showsFixes: Bool { preset.isMinimalEdits }
-
-    func fixCount(_ index: Int) -> Int {
-        guard takes.indices.contains(index) else { return 0 }
-        return WordDiff.fixes(from: sourceDraft, to: takes[index]).count
-    }
 
     /// Every take of a finished minimal-edit run is the draft as written.
     var noFixesFound: Bool {

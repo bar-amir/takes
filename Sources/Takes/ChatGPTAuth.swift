@@ -11,6 +11,7 @@ enum ChatGPTOAuth {
     static let issuer = "https://auth.openai.com"
     static let authorizeURL = URL(string: "https://auth.openai.com/api/accounts/authorize")!
     static let tokenURL = URL(string: "https://auth.openai.com/api/accounts/oauth/token")!
+    static let revokeURL = URL(string: "https://auth.openai.com/api/accounts/oauth/revoke")!
     static let discoveryURL = URL(string: "https://auth.openai.com/.well-known/openid-configuration")!
     static let resource = "https://api.openai.com/v1"
     static let scopes = ["openid", "profile", "email", "offline_access", "resource.invoke", "chatgpt.tokens.use.direct"]
@@ -201,7 +202,8 @@ enum ChatGPTIDToken {
         var name: String?
     }
 
-    enum Problem: Error, Equatable { case malformed, issuer, audience, expired, nonce, signature }
+    /// `keysUnavailable`: the issuer's signing keys couldn't be fetched, so the signature couldn't be checked.
+    enum Problem: Error, Equatable { case malformed, issuer, audience, expired, nonce, signature, keysUnavailable }
 
     static func claims(_ token: String) -> Claims? {
         let parts = token.split(separator: ".", omittingEmptySubsequences: false)
@@ -293,6 +295,11 @@ enum ChatGPTAuthError: LocalizedError, Equatable {
 struct ChatGPTAuthClient {
     var tokenURL = ChatGPTOAuth.tokenURL
     var discoveryURL: URL? = ChatGPTOAuth.discoveryURL
+    /// Where refresh tokens are revoked (RFC 7009); nil sends nothing (tests).
+    var revokeURL: URL? = ChatGPTOAuth.revokeURL
+    /// The issuer's signing keys (a JWKS document), when they don't come from `discoveryURL` (tests). The ID token's
+    /// signature is checked either way.
+    var jwks: Data?
     var session = URLSession.shared
 
     static func formBody(_ fields: [(String, String)]) -> Data {
@@ -330,35 +337,59 @@ struct ChatGPTAuthClient {
         throw ChatGPTAuthError.failed(String(localized: "ChatGPT sign-in failed: \(detail)."))
     }
 
-    /// Checks the ID token's claims, and its signature when the issuer's keys can be fetched. The token came straight
-    /// from the token endpoint over TLS, so when the keys can't be reached the claim checks still stand (OIDC Core 3.1.3.7).
+    /// Checks the ID token's claims and its signature against the issuer's keys. When the keys can't be fetched the
+    /// sign-in fails (`keysUnavailable`) rather than trusting a token it couldn't check; trying again usually works.
     func validate(_ idToken: String, nonce: String, clientID: String) async -> Result<ChatGPTIDToken.Claims, ChatGPTIDToken.Problem> {
         let result = ChatGPTIDToken.validate(idToken, nonce: nonce, clientID: clientID)
-        guard case .success = result, let jwks = await fetchJWKS() else { return result }
-        guard let key = ChatGPTIDToken.key(for: idToken, jwks: jwks), ChatGPTIDToken.verify(idToken, key: key) else {
+        guard case .success = result else { return result }
+        guard let keys = await signingKeys() else { return .failure(.keysUnavailable) }
+        guard let key = ChatGPTIDToken.key(for: idToken, jwks: keys), ChatGPTIDToken.verify(idToken, key: key) else {
             return .failure(.signature)
         }
         return result
     }
 
-    private func fetchJWKS() async -> Data? {
+    private func signingKeys() async -> Data? {
+        if let jwks { return jwks }
         guard let discoveryURL,
-              let (data, _) = try? await session.data(from: discoveryURL),
+              let (data, response) = try? await session.data(from: discoveryURL), Self.isOK(response),
               let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
               json["issuer"] as? String == ChatGPTOAuth.issuer,
               let jwksURL = (json["jwks_uri"] as? String).flatMap(URL.init(string:)), jwksURL.scheme == "https",
-              let (keys, _) = try? await session.data(from: jwksURL) else { return nil }
+              let (keys, keysResponse) = try? await session.data(from: jwksURL), Self.isOK(keysResponse) else { return nil }
         return keys
+    }
+
+    private static func isOK(_ response: URLResponse) -> Bool { (response as? HTTPURLResponse)?.statusCode == 200 }
+
+    /// RFC 7009 revocation at the endpoint OpenAI's discovery document names. True when OpenAI answered 200.
+    func revoke(_ refreshToken: String, clientID: String) async -> Bool {
+        guard let revokeURL else { return false }
+        var request = URLRequest(url: revokeURL)
+        request.httpMethod = "POST"
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "content-type")
+        request.httpBody = Self.formBody([("token", refreshToken), ("token_type_hint", "refresh_token"), ("client_id", clientID)])
+        for attempt in 0..<3 {
+            if attempt > 0 { try? await Task.sleep(for: .seconds(Double(attempt) * 2)) }
+            guard let (_, response) = try? await session.data(for: request) else { continue }
+            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+            if status == 200 { return true }
+            if status < 500 { return false }
+        }
+        return false
     }
 }
 
 // MARK: - Where it's kept
 
 /// The opaque ID of this Mac for OpenAI (`ext_agent_host_id`): a random UUID, made once, never tied to the user.
-/// Kept in Application Support next to settings, so it survives sign-out.
+/// Kept in Application Support next to settings, so it survives sign-out: the sign-in flow asks for one ID per Mac
+/// that stays the same (docs/plans/providers.md). PRIVACY.md lists the file.
 enum ChatGPTHost {
+    static func file(in directory: URL) -> URL { directory.appendingPathComponent("chatgpt-host.json") }
+
     static func id(in directory: URL = Store.directory) -> String {
-        let file = directory.appendingPathComponent("chatgpt-host.json")
+        let file = file(in: directory)
         if let data = try? Data(contentsOf: file),
            let saved = (try? JSONSerialization.jsonObject(with: data) as? [String: String])?["ext_agent_host_id"],
            saved.hasPrefix("urn:uuid:") {
@@ -379,6 +410,8 @@ enum ChatGPTKeychain {
     static func data(_ account: String) -> Data? {
         // Snapshots never read the keychain: a rebuilt app would stop at macOS's access prompt.
         guard !Store.readOnly else { return nil }
+        // Tests use the in-memory keychain (`Keychain.memory`), never the user's.
+        if Store.runningTests { return Keychain.data(account: account) }
         var item: CFTypeRef?
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
                                     kSecAttrAccount as String: account, kSecReturnData as String: true]
@@ -386,25 +419,56 @@ enum ChatGPTKeychain {
         return item as? Data
     }
 
-    static func set(_ data: Data?, _ account: String) {
+    /// Writes in place (`Keychain.setData`), so a refused write keeps what was there. False when the keychain refused.
+    @discardableResult
+    static func set(_ data: Data?, _ account: String) -> Bool {
+        Keychain.setData(data, account: account)
+    }
+
+    enum Read: Equatable {
+        case found(Data)
+        case notFound
+        /// The keychain couldn't be read (locked, access denied): nothing is known about the item.
+        case failed(OSStatus)
+    }
+
+    /// Like `data`, but tells "no item" apart from "couldn't read".
+    static func read(_ account: String) -> Read {
+        guard !Store.readOnly else { return .notFound }
+        if Store.runningTests { return Keychain.data(account: account).map { .found($0) } ?? .notFound }
+        var item: CFTypeRef?
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
-                                    kSecAttrAccount as String: account]
-        SecItemDelete(query as CFDictionary)
-        guard let data else { return }
-        var add = query
-        add[kSecValueData as String] = data
-        add[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-        SecItemAdd(add as CFDictionary, nil)
+                                    kSecAttrAccount as String: account, kSecReturnData as String: true]
+        let status = SecItemCopyMatching(query as CFDictionary, &item)
+        switch status {
+        case errSecSuccess: return (item as? Data).map { .found($0) } ?? .failed(errSecDecode)
+        case errSecItemNotFound: return .notFound
+        default: return .failed(status)
+        }
     }
 }
 
 /// Where tokens are saved. The keychain in the app; memory in tests.
 protocol ChatGPTCredentialStore: AnyObject, Sendable {
     func load() -> ChatGPTCredentials?
-    func save(_ credentials: ChatGPTCredentials?)
+    /// False when the tokens couldn't be saved (or removed).
+    @discardableResult func save(_ credentials: ChatGPTCredentials?) -> Bool
+    /// Saves `new` only if the store still holds the tokens of `old`, in one step. A refresh that finishes after
+    /// sign-out, or after a new sign-in, must not bring old tokens back; a keychain that can't be read is neither.
+    func replace(_ old: ChatGPTCredentials, with new: ChatGPTCredentials?) -> ChatGPTStoreUpdate
     /// The issued client ID and who registered it; kept after sign-out so signing in again reuses the registration.
     func loadRegistration() -> ChatGPTRegistration?
     func saveRegistration(_ registration: ChatGPTRegistration?)
+}
+
+/// What `replace` did.
+enum ChatGPTStoreUpdate: Equatable {
+    /// The store held `old`; it now holds `new`.
+    case replaced
+    /// The store holds something else (signed out, or signed in again): nothing was saved.
+    case changed
+    /// The store couldn't be read or written (the keychain is locked or refused): nothing is known, nothing saved.
+    case failed
 }
 
 struct ChatGPTRegistration: Codable, Equatable {
@@ -412,16 +476,46 @@ struct ChatGPTRegistration: Codable, Equatable {
     var subject: String?
 }
 
+extension ChatGPTCredentials {
+    /// The same grant: what `replace` compares (dates and scopes can come back from storage a little different).
+    func isSameGrant(as other: ChatGPTCredentials?) -> Bool {
+        guard let other else { return false }
+        return clientID == other.clientID && accessToken == other.accessToken && refreshToken == other.refreshToken
+    }
+}
+
 final class ChatGPTKeychainStore: ChatGPTCredentialStore, @unchecked Sendable {
     static let shared = ChatGPTKeychainStore()
     private let credentialsAccount = "chatgpt-credentials"
     private let registrationAccount = "chatgpt-registration"
+    /// Held for every read and write of the tokens, so `replace` checks and saves in one step.
+    private let lock = NSRecursiveLock()
 
     func load() -> ChatGPTCredentials? {
-        ChatGPTKeychain.data(credentialsAccount).flatMap { try? JSONDecoder().decode(ChatGPTCredentials.self, from: $0) }
+        lock.withLock { ChatGPTKeychain.data(credentialsAccount).flatMap { try? JSONDecoder().decode(ChatGPTCredentials.self, from: $0) } }
     }
-    func save(_ credentials: ChatGPTCredentials?) {
-        ChatGPTKeychain.set(credentials.flatMap { try? JSONEncoder().encode($0) }, credentialsAccount)
+    @discardableResult
+    func save(_ credentials: ChatGPTCredentials?) -> Bool {
+        lock.withLock {
+            guard let credentials else { return ChatGPTKeychain.set(nil, credentialsAccount) }
+            guard let data = try? JSONEncoder().encode(credentials) else { return false }
+            return ChatGPTKeychain.set(data, credentialsAccount)
+        }
+    }
+    func replace(_ old: ChatGPTCredentials, with new: ChatGPTCredentials?) -> ChatGPTStoreUpdate {
+        lock.withLock {
+            switch ChatGPTKeychain.read(credentialsAccount) {
+            case .notFound:
+                return .changed
+            case .failed:
+                return .failed
+            case .found(let data):
+                // An item that can't be decoded isn't proof of a sign-out either.
+                guard let stored = try? JSONDecoder().decode(ChatGPTCredentials.self, from: data) else { return .failed }
+                guard old.isSameGrant(as: stored) else { return .changed }
+                return save(new) ? .replaced : .failed
+            }
+        }
     }
     func loadRegistration() -> ChatGPTRegistration? {
         ChatGPTKeychain.data(registrationAccount).flatMap { try? JSONDecoder().decode(ChatGPTRegistration.self, from: $0) }
@@ -440,7 +534,15 @@ final class ChatGPTMemoryStore: ChatGPTCredentialStore, @unchecked Sendable {
         self.registration = registration
     }
     func load() -> ChatGPTCredentials? { lock.withLock { credentials } }
-    func save(_ credentials: ChatGPTCredentials?) { lock.withLock { self.credentials = credentials } }
+    @discardableResult
+    func save(_ credentials: ChatGPTCredentials?) -> Bool { lock.withLock { self.credentials = credentials }; return true }
+    func replace(_ old: ChatGPTCredentials, with new: ChatGPTCredentials?) -> ChatGPTStoreUpdate {
+        lock.withLock {
+            guard old.isSameGrant(as: credentials) else { return .changed }
+            credentials = new
+            return .replaced
+        }
+    }
     func loadRegistration() -> ChatGPTRegistration? { lock.withLock { registration } }
     func saveRegistration(_ registration: ChatGPTRegistration?) { lock.withLock { self.registration = registration } }
 }
@@ -455,6 +557,12 @@ actor ChatGPTTokens {
     /// Told when a refresh proves the tokens are dead, so the UI can show "signed out".
     var onSignedOut: (@Sendable () -> Void)?
     private var refreshing: Task<ChatGPTCredentials, Error>?
+    /// Tokens a refresh got while the keychain couldn't be read or written, with the saved tokens they replace. The
+    /// old refresh token is spent, so these are used until they can be saved; they're dropped (and revoked) once the
+    /// keychain shows a sign-out or another sign-in.
+    private var unsaved: (saved: ChatGPTCredentials, current: ChatGPTCredentials)?
+    /// Counts sign-outs, so a refresh that was on its way during one keeps nothing.
+    private var generation = 0
 
     init(store: ChatGPTCredentialStore, client: ChatGPTAuthClient = ChatGPTAuthClient()) {
         self.store = store
@@ -463,37 +571,91 @@ actor ChatGPTTokens {
 
     func setOnSignedOut(_ handler: @escaping @Sendable () -> Void) { onSignedOut = handler }
 
+    /// Sign-out: stops a refresh on its way and forgets (and revokes) tokens that were never saved.
+    func reset() {
+        refreshing?.cancel()
+        refreshing = nil
+        generation += 1
+        if let unsaved { Self.revoke(unsaved.current, client: client) }
+        unsaved = nil
+    }
+
     /// A token allowed to use the plan. `forceRefresh` after the API refused the current one.
     func accessToken(forceRefresh: Bool = false, now: Date = Date()) async throws -> String {
-        guard let credentials = store.load() else { throw EngineError.failed(String(localized: "Sign in to ChatGPT in Settings › Model.")) }
+        guard let (credentials, saved) = current() else { throw EngineError.failed(String(localized: "Sign in to ChatGPT in Settings › Model.")) }
         guard credentials.sharing else {
             throw EngineError.failed(String(localized: "Signed in, but plan usage wasn't allowed. Sign in again in Settings › Model and allow it."))
         }
         guard forceRefresh || credentials.needsRefresh(now: now) else { return credentials.accessToken }
-        return try await refresh(credentials).accessToken
+        return try await refresh(credentials, saved: saved).accessToken
     }
 
-    private func refresh(_ credentials: ChatGPTCredentials) async throws -> ChatGPTCredentials {
+    /// The tokens to use, and the saved tokens they stand for (the same ones, unless a refresh couldn't be saved yet).
+    private func current() -> (credentials: ChatGPTCredentials, saved: ChatGPTCredentials)? {
+        if let unsaved {
+            switch store.replace(unsaved.saved, with: unsaved.current) {
+            case .replaced:
+                self.unsaved = nil
+                return (unsaved.current, unsaved.current)
+            case .failed:
+                return (unsaved.current, unsaved.saved)
+            case .changed:
+                self.unsaved = nil
+                Self.revoke(unsaved.current, client: client)
+            }
+        }
+        return store.load().map { ($0, $0) }
+    }
+
+    /// Keeps tokens the keychain couldn't take; false when a sign-out came while the refresh was on its way.
+    private func keepUnsaved(_ current: ChatGPTCredentials, saved: ChatGPTCredentials, since started: Int) -> Bool {
+        guard generation == started else { return false }
+        unsaved = (saved, current)
+        return true
+    }
+
+    private func forgetUnsaved() { unsaved = nil }
+
+    private func refresh(_ credentials: ChatGPTCredentials, saved: ChatGPTCredentials) async throws -> ChatGPTCredentials {
         if let refreshing { return try await refreshing.value }
-        let client = client, store = store, onSignedOut = onSignedOut
+        let client = client, store = store, onSignedOut = onSignedOut, started = generation
         let task = Task<ChatGPTCredentials, Error> {
             do {
                 let next = credentials.refreshed(with: try await client.refresh(credentials))
-                store.save(next)
-                return next
+                // Saved only over the tokens it refreshed. Signed out (or signed in again) meanwhile: these tokens
+                // are dropped, and their new refresh token revoked so it doesn't stay live with OpenAI.
+                switch store.replace(saved, with: next) {
+                case .replaced:
+                    self.forgetUnsaved()
+                    return next
+                case .failed where self.keepUnsaved(next, saved: saved, since: started):
+                    // The keychain didn't answer: that isn't a sign-out. Use the new tokens and save them later.
+                    return next
+                case .changed, .failed:
+                    Self.revoke(next, client: client)
+                    throw EngineError.failed(String(localized: "Sign in to ChatGPT in Settings › Model."))
+                }
             } catch ChatGPTAuthError.signInAgain {
-                // Dead refresh token: clear the tokens, keep the registration so signing in again reuses it.
-                store.save(nil)
-                onSignedOut?()
+                // Dead refresh token: clear the tokens (unless they were replaced meanwhile), keep the registration
+                // so signing in again reuses it.
+                self.forgetUnsaved()
+                if store.replace(saved, with: nil) == .replaced { onSignedOut?() }
                 throw EngineError.failed(ChatGPTAuthError.signInAgain.errorDescription!)
             } catch let error as URLError {
+                if error.code == .cancelled { throw CancellationError() }
                 // Network trouble isn't a sign-out; keep the tokens.
                 throw EngineError.failed("Couldn't reach ChatGPT: \(error.localizedDescription)")
             }
         }
         refreshing = task
-        defer { refreshing = nil }
+        defer { if refreshing == task { refreshing = nil } }
         return try await task.value
+    }
+
+    /// Revokes a refresh token Takes won't keep, in the background.
+    nonisolated static func revoke(_ credentials: ChatGPTCredentials, client: ChatGPTAuthClient) {
+        guard let refreshToken = credentials.refreshToken else { return }
+        Task.detached { _ = await client.revoke(refreshToken, clientID: credentials.clientID) }
     }
 }
 
@@ -647,6 +809,25 @@ final class ChatGPTCallbackServer: @unchecked Sendable {
         @media(prefers-color-scheme:dark){body{background:#242429;color:#F2F2F5}p{color:#A9A9B3}}</style></head>
         <body><main><h1>\(title)</h1><p>\(body)</p></main></body></html>
         """
+    }
+}
+
+/// One browser sign-in's permission to save what it got. Cancelling (Cancel, or signing out) and saving can't
+/// interleave: once cancelled, nothing is saved.
+final class ChatGPTSignInGate: @unchecked Sendable {
+    private let lock = NSLock()
+    private var cancelled = false
+
+    var isCancelled: Bool { lock.withLock { cancelled } }
+    func cancel() { lock.withLock { cancelled = true } }
+
+    /// Runs `save` unless cancelled. False when cancelled (nothing ran).
+    func commit(_ save: () -> Void) -> Bool {
+        lock.withLock {
+            guard !cancelled else { return false }
+            save()
+            return true
+        }
     }
 }
 
