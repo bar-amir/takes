@@ -546,6 +546,18 @@ final class PanelModel: ObservableObject {
     /// The takes shown came from a run filed elsewhere (instant mode): a take pasted from here is marked on that entry.
     func continueHistory(entryID: String?) { historyID = entryID }
 
+    /// Shows a take written elsewhere (instant mode) on the takes screen, its changes marked as a run here would
+    /// mark them: shown on a minimal-edit preset, hidden otherwise. Never left over from the last run.
+    func showTake(_ take: String, draft: String, cutShort: Bool, historyID: String?) {
+        sourceDraft = draft
+        takes = [take]
+        self.cutShort = cutShort
+        continueHistory(entryID: historyID)
+        selected = 0
+        changesShown = showsFixes ? [0] : []
+        screen = .takes
+    }
+
     /// Whether a take may be pasted or copied: a finished one, not while a run's error is showing, and not the
     /// take the engine cut short, which is the last one once the run has ended. Every way to paste or copy comes
     /// through here, whatever the views allow.
