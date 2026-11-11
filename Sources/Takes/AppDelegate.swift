@@ -107,12 +107,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
 
-    /// Opening Takes again (Finder, Spotlight, Launchpad) while it's running: resume onboarding if it isn't
-    /// finished, otherwise point at the menu-bar icon, which is where Takes lives.
+    /// What opening Takes again does: bring Settings back while it's open (its Dock icon was clicked), resume
+    /// onboarding if it isn't finished, otherwise point at the menu-bar icon, which is where Takes lives.
+    enum ReopenAction: Equatable { case settings, onboarding, pointAtIcon }
+
+    static func reopenAction(settingsOpen: Bool, onboardingUnfinished: Bool) -> ReopenAction {
+        if settingsOpen { return .settings }
+        return onboardingUnfinished ? .onboarding : .pointAtIcon
+    }
+
+    /// Opening Takes again (the Dock icon, Finder, Spotlight, Launchpad) while it's running.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        if Onboarding.shouldShow(Store.shared.settings) {
+        let settingsOpen = SettingsWindowController.shared.isOpen
+        let unfinished = Onboarding.shouldShow(Store.shared.settings)
+        switch Self.reopenAction(settingsOpen: settingsOpen, onboardingUnfinished: unfinished) {
+        case .settings:
+            SettingsWindowController.shared.bringForward()
+        case .onboarding:
             OnboardingWindowController.shared.show()
-        } else {
+        case .pointAtIcon:
             showStatusPopover(.reopen(missing: SetupMonitor.shared.missingSummary))
         }
         return false

@@ -130,6 +130,16 @@ final class LaunchFixesTests: XCTestCase {
         XCTAssertEqual(InstantMode.Failure.fieldChanged(take: "x").take, "x")
     }
 
+    // MARK: Opening Takes again
+
+    @MainActor
+    func testReopenBringsSettingsBackWhileItsOpen() {
+        XCTAssertEqual(AppDelegate.reopenAction(settingsOpen: true, onboardingUnfinished: false), .settings)
+        XCTAssertEqual(AppDelegate.reopenAction(settingsOpen: true, onboardingUnfinished: true), .settings)
+        XCTAssertEqual(AppDelegate.reopenAction(settingsOpen: false, onboardingUnfinished: true), .onboarding)
+        XCTAssertEqual(AppDelegate.reopenAction(settingsOpen: false, onboardingUnfinished: false), .pointAtIcon)
+    }
+
     // MARK: Report a Problem
 
     func testReportURLFillsVersionsAndEngineOnly() throws {
