@@ -6,6 +6,8 @@ Generated fresh on 2026-11-12 with GPT Image 2.6 (max quality, 4K, PNG) via Higg
 
 **Don't make a new version by editing the previous one.** The 2026-11-08 version was regenerated from the 2026-11-04 one and came out smeared and waxy, and a third pass made it worse. Generate from the style reference with the full prompt instead, a few at a time, and pick one. The model also places objects further left than asked: ask for the cards to start at about 55% of the width so they land at about 50%, clear of the headline. It is generated art: check the card and note text letter by letter before using it.
 
+`Resources/Onboarding/opening-loop.mp4` is the gentle loop the opening screen plays over the photo: ⌥, ⇧ and ↵ press in turn, then it rests (7 s, 1920 × 1080, H.264, about 1.5 MB). It was made on 2026-11-12 with MiniMax H3 via Higgsfield, with this photo as both the start and the end frame, so the loop has no jump. Only the keyboard comes from that clip: it's laid over the sharp photo through a soft mask, so the cards and the note never shimmer, and the last frame is held for 2 s of rest. With Reduce Motion, the screen shows the still photo. If the photo changes, the loop has to be made again from the new photo.
+
 The draft and takes shown:
 
 - Draft: "hey so vendor didnt send the contract yet and legal need it till thursday otherwise we loose the q1 slot, can u push them?"

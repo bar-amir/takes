@@ -26,6 +26,12 @@ if CommandLine.arguments.contains("--snapshot") {
     exit(0)
 }
 
+// Shows the opening screen alone, over and over, to watch its motion. Reads and writes nothing.
+if CommandLine.arguments.contains("--opening-preview") {
+    MainActor.assumeIsolated { OpeningPreview.run() }
+    exit(0)
+}
+
 MainActor.assumeIsolated {
     let app = NSApplication.shared
     let delegate = AppDelegate()
