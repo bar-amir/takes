@@ -2,6 +2,7 @@
 // One engine, several scenes. The "takes" scene is interactive on the site (hover or tap a take to bring it
 // to the front); every scene can also render once on a transparent background for exporting stills
 // (layers.html?scene=coach&export=1), the layout frames for the Higgsfield stills in brand/campaign/HIGGSFIELD-KIT.md. Text is drawn to canvas textures, so it stays crisp at any size.
+// Pinned by hash in the import map of each page that loads this file (index.html, layers.html).
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 
 const C = { ink: "#171714", paper: "#F3EBDD", card: "#F5EEE2", strip: "#ECE4D5", tray: "#EADFCB",

@@ -59,7 +59,8 @@ Only the latest release gets security fixes. Automatic updates (Takes menu › C
   gh attestation verify Takes-<version>.dmg --repo bar-amir/takes
   ```
 - The signing secrets (the Developer ID certificate and its password, the App Store Connect notarization key and the Sparkle update key) live only in the protected `release` environment, which needs the maintainer's approval and only runs for version tags on `main`.
-- Two secrets are repository secrets, outside that environment. `HOMEBREW_TAP_TOKEN` is read by the job that updates the Homebrew cask after a release; that job starts only after the approved release job has finished, and the token is meant to reach the Homebrew tap and nothing else. `TRAFFIC_TOKEN` is optional and read by a daily job that saves repository traffic numbers. Neither signs or publishes a release.
+- `HOMEBREW_TAP_TOKEN` lives in its own `homebrew` environment, which only version tags can use. It is read by the job that updates the Homebrew cask, which starts only after the approved release job has finished, and the token reaches the Homebrew tap and nothing else.
+- `TRAFFIC_TOKEN` is an optional repository secret, read by a daily job that saves repository traffic numbers. It can't sign or publish a release.
 - Workflows that run for pull requests use no repository secrets. The build, lint and code-scanning checks run with a read-only token for pull requests from forks. The CLA check has a limited write token (it comments, sets a status and stores signatures on its own branch) and never checks out or runs code from the pull request.
 
 ## For contributors
@@ -78,6 +79,6 @@ Only the latest release gets security fixes. Automatic updates (Takes menu › C
 Treat it as leaked the moment it's pushed, even if the commit is removed: forks, clones and caches keep it.
 
 1. **Revoke or rotate it first**, where it was issued (provider dashboard, App Store Connect, Apple Developer, GitHub settings, 1Password).
-2. Update the copy the workflows use (`gh secret set <NAME> --env release` for the signing secrets; without `--env release` for `HOMEBREW_TAP_TOKEN` and `TRAFFIC_TOKEN`), and check the provider's logs for use of the old one.
+2. Update the copy the workflows use (`gh secret set <NAME> --env release` for the signing secrets, `--env homebrew` for `HOMEBREW_TAP_TOKEN`, and no `--env` for `TRAFFIC_TOKEN`), and check the provider's logs for use of the old one.
 3. Only then think about removing it from history, which needs a force-push and coordination; rotating is what actually protects you.
 4. The Sparkle update key is special: users' copies of Takes trust its public half (`Resources/SUPublicEDKey`). If the private key leaks, generate a new one and ship a release, signed with the old key, whose Info.plist carries the new `SUPublicEDKey`; later updates are signed with the new key ([Sparkle: rotating keys](https://sparkle-project.org/documentation/#rotating-signing-keys)). Back the new key up to 1Password and update `SPARKLE_PRIVATE_KEY` in the `release` environment.
