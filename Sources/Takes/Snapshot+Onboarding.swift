@@ -179,7 +179,7 @@ extension Snapshot {
         for scheme in [ColorScheme.light, .dark] {
             let suffix = scheme == .light ? "light" : "dark"
             // The opening screen sits on a photo, so it looks the same in both; rendered in both to check that.
-            try? bitmap(of: OpeningView(state: OpeningState(), onStart: {}), size: OpeningWindowController.size, scheme: scheme)?
+            try? bitmap(of: OpeningView(state: OpeningState(), onStart: {}, still: true), size: OpeningWindowController.size, scheme: scheme)?
                 .representation(using: .png, properties: [:])?.write(to: url.appendingPathComponent("0-opening-\(suffix).png"))
             let hotKey = Store.shared.settings.summonHotKey
             let popovers: [(String, StatusPopoverController.Kind)] = [
