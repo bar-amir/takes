@@ -1142,3 +1142,8 @@
 "This is the Open Takes hotkey too; only one of them can fire." = "Huu pia ni mkato mkuu wa Fungua Takes; mmoja tu kati yao unaweza kufanya kazi.";
 "This version of Claude Code is too old for Takes. Update it (run `claude update` in Terminal), or pick another engine in Settings › Model." = "Toleo hili la Claude Code ni la zamani mno kwa Takes. Lisasishe (endesha `claude update` katika Terminal), au chagua injini nyingine katika Mipangilio › Modeli.";
 "Too old (%@)" = "Ya zamani mno (%@)";
+"Prompt for AI" = "Maelekezo kwa AI";
+"Casual message" = "Ujumbe wa kawaida";
+"Work chat" = "Gumzo la kazi";
+"A rough ask into a clear prompt." = "Ombi la jumla kuwa maelekezo wazi.";
+"Short and warm, the way you text." = "Fupi na la upole, kama unavyotuma ujumbe.";
