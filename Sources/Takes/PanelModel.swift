@@ -127,6 +127,8 @@ final class PanelModel: ObservableObject {
     var displayAppName: String { previewAppName ?? focus?.app?.localizedName ?? String(localized: "the focused app") }
     var appURL: URL? { previewAppName != nil ? previewAppURL : focus?.app?.bundleURL }
     var appBundleID: String? { focus?.app?.bundleIdentifier }
+    /// The website the text box is on, when it's on a web page.
+    var appSite: String? { focus?.site }
 
     var sourceLabel: String {
         switch focus?.source {
@@ -175,7 +177,7 @@ final class PanelModel: ObservableObject {
         if let forced, store.preset(id: forced) != nil {
             presetID = forced
             autoPicked = false
-        } else if let picked = store.preset(forApp: appBundleID) {
+        } else if let picked = store.preset(forApp: appBundleID, site: appSite) {
             presetID = picked.id
             autoPicked = true
         } else {
@@ -257,8 +259,7 @@ final class PanelModel: ObservableObject {
     // MARK: Presets
 
     var pickedForApp: [Preset] {
-        guard let id = appBundleID else { return [] }
-        return store.presets.filter { $0.apps.contains { $0.bundleID == id } }
+        Store.pickedFirst(store.presets, bundleID: appBundleID, site: appSite)
     }
 
     var otherPresets: [Preset] {
@@ -315,7 +316,7 @@ final class PanelModel: ObservableObject {
 
     func choose(_ id: String) {
         presetID = id
-        autoPicked = store.preset(forApp: appBundleID)?.id == id
+        autoPicked = store.preset(forApp: appBundleID, site: appSite)?.id == id
         applyPresetSettings()
         show(.compose)
     }

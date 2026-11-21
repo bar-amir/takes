@@ -17,7 +17,7 @@ enum PresetGallery {
     /// are added only when one of the apps they're for is installed.
     static func starters(languages: [String], installed: (String) -> Bool = InstalledApps.contains) -> [Preset] {
         let forApps = [promptForAI, casual].map { fitted($0, installed: installed) }
-            .filter { $0.apps.contains { !alwaysInstalled.contains($0.bundleID) } }
+            .filter { $0.apps.contains { !$0.isSite && !alwaysInstalled.contains($0.bundleID) } }
         // A rewriting preset comes first: it's the default when no preset is picked for the app.
         return [fitted(slack, installed: installed), .proofread, fitted(email, installed: installed)] + forApps
             + [shorter, friendlier, direct, decline] + (languages.count > 1 ? translations(for: languages) : [])
@@ -25,17 +25,19 @@ enum PresetGallery {
 
     /// A template with the apps on this Mac it's picked in. Slack and Mail stay on their presets as before; Teams and
     /// other email apps join them when installed, and the chat preset is called "Work chat" once it covers Teams too.
-    /// "Prompt for AI" and "Casual message" keep only the apps that are installed.
+    /// "Prompt for AI" and "Casual message" keep only the apps that are installed. Websites are always kept.
     static func fitted(_ template: Preset, installed: (String) -> Bool = InstalledApps.contains) -> Preset {
         var preset = template
         switch template.id {
         case slack.id:
-            preset.apps += teams.filter { installed($0.bundleID) }
-            if preset.apps.count > 1 { preset.name = String(localized: "Work chat") }
+            let teamsApps = teams.filter { installed($0.bundleID) }
+            if !teamsApps.isEmpty { preset.name = String(localized: "Work chat") }
+            preset.apps = template.apps.filter { !$0.isSite } + teamsApps + template.apps.filter { $0.isSite }
         case email.id:
-            preset.apps += emailApps.filter { installed($0.bundleID) }
+            preset.apps = template.apps.filter { !$0.isSite } + emailApps.filter { installed($0.bundleID) }
+                + template.apps.filter { $0.isSite }
         case promptForAI.id, casual.id:
-            preset.apps = template.apps.filter { installed($0.bundleID) }
+            preset.apps = template.apps.filter { $0.isSite || installed($0.bundleID) }
         default:
             break
         }
@@ -141,14 +143,23 @@ enum PresetGallery {
         instruction: "Rewrite my draft as a chat message to teammates. Lead with the answer or the ask, then only the context they need. Warm but brief, the way a respected colleague writes in Slack.",
         dos: ["Answer or ask in the first sentence", "One ask per sentence", "Keep shorthand like EOD, QA, PR"],
         avoid: ["Exclamation marks", "\"Just\", \"quick question\", \"hope you're well\"", "Emoji unless I used them", "Bullets for a short message"],
-        apps: [AppRef(bundleID: "com.tinyspeck.slackmacgap", name: "Slack")])
+        apps: [
+            AppRef(bundleID: "com.tinyspeck.slackmacgap", name: "Slack"),
+            .site("app.slack.com", name: "Slack web"),
+            .site("teams.microsoft.com", "teams.cloud.microsoft", "teams.live.com", name: "Teams web"),
+        ])
 
     static let email = Preset(
         id: "gallery.email", name: String(localized: "Polish email"), colorHex: "#7A3FD1",
         instruction: "Rewrite my draft as a clear, professional email body. Keep my points; fix the order and flow so the reader knows what I need by the end of the first paragraph. Keep any greeting or sign-off I wrote. No subject line, no signature.",
         dos: ["Short paragraphs, one idea each", "The ask or decision near the top", "Concrete dates and owners"],
         avoid: ["\"I hope this email finds you well\"", "Stacked apologies", "Facts or promises I didn't write"],
-        length: .any, apps: [AppRef(bundleID: "com.apple.mail", name: "Mail")])
+        length: .any,
+        apps: [
+            AppRef(bundleID: "com.apple.mail", name: "Mail"),
+            .site("mail.google.com", name: "Gmail"),
+            .site("outlook.office.com", "outlook.cloud.microsoft", "outlook.office365.com", "outlook.live.com", name: "Outlook web"),
+        ])
 
     static let shorter = Preset(
         id: "gallery.shorter", name: String(localized: "Shorter"), colorHex: "#8A4B08",
@@ -213,6 +224,10 @@ enum PresetGallery {
             AppRef(bundleID: "com.anthropic.claudefordesktop", name: "Claude"),
             AppRef(bundleID: "ai.perplexity.macv3", name: "Perplexity"),
             AppRef(bundleID: "ai.perplexity.mac", name: "Perplexity"),
+            .site("chatgpt.com", "chat.openai.com", name: "ChatGPT web"),
+            .site("claude.ai", name: "Claude web"),
+            .site("perplexity.ai", name: "Perplexity web"),
+            .site("gemini.google.com", name: "Gemini"),
         ],
         showTone: false)
 
@@ -228,6 +243,9 @@ enum PresetGallery {
             AppRef(bundleID: "org.telegram.desktop", name: "Telegram"),
             AppRef(bundleID: "com.hnc.Discord", name: "Discord"),
             AppRef(bundleID: "com.apple.MobileSMS", name: "Messages"),
+            .site("web.whatsapp.com", name: "WhatsApp Web"),
+            .site("web.telegram.org", name: "Telegram Web"),
+            .site("discord.com", name: "Discord web"),
         ])
 
     /// English keeps the id it had when it was the only translate preset, so copies made then still show as added.

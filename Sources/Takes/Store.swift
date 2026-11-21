@@ -19,6 +19,39 @@ struct AppRef: Codable, Hashable, Identifiable {
     var id: String { bundleID }
 }
 
+/// A website is kept with the apps, as "site:<domain>", so a preset can be picked on a page in any browser too.
+/// One website can have several domains ("site:outlook.office.com,outlook.live.com"), shown as one name.
+extension AppRef {
+    static let sitePrefix = "site:"
+
+    static func site(_ domains: String..., name: String) -> AppRef {
+        AppRef(bundleID: sitePrefix + domains.joined(separator: ","), name: name)
+    }
+
+    /// The domains, for a website; nil for an app.
+    var siteDomains: [String]? {
+        guard bundleID.hasPrefix(Self.sitePrefix) else { return nil }
+        return bundleID.dropFirst(Self.sitePrefix.count).split(separator: ",").map(String.init)
+    }
+
+    var isSite: Bool { bundleID.hasPrefix(Self.sitePrefix) }
+
+    /// An app matches its bundle id. A website matches its domains and the domains under them.
+    func matches(bundleID: String?, site: String?) -> Bool {
+        guard let domains = siteDomains else { return bundleID != nil && bundleID == self.bundleID }
+        guard let site = site?.lowercased() else { return false }
+        return domains.contains { site == $0 || site.hasSuffix("." + $0) }
+    }
+
+    /// The domain in what someone typed ("https://mail.google.com/mail/u/0", "Gmail.com"), or nil if there's none.
+    static func domain(from typed: String) -> String? {
+        var text = typed.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if !text.contains("://") { text = "https://" + text }
+        guard let host = URL(string: text)?.host, host.contains("."), !host.hasPrefix("."), !host.hasSuffix(".") else { return nil }
+        return host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
+    }
+}
+
 enum TakeLength: String, Codable, CaseIterable, Identifiable {
     case sameOrShorter, shorter, any, longer
     var id: String { rawValue }
@@ -667,10 +700,19 @@ final class Store: ObservableObject {
 
     func index(of id: String) -> Int? { presets.firstIndex { $0.id == id } }
 
-    /// The preset auto-picked for an app, if any preset lists it.
-    func preset(forApp bundleID: String?) -> Preset? {
-        guard let bundleID else { return nil }
-        return presets.first { $0.apps.contains { $0.bundleID == bundleID } }
+    /// The preset auto-picked for an app, if any preset lists it. A preset for the website the text box is on comes
+    /// before one for the browser.
+    func preset(forApp bundleID: String?, site: String? = nil) -> Preset? {
+        Store.pickedFirst(presets, bundleID: bundleID, site: site).first
+    }
+
+    /// The presets that list this app or website, those for the website first.
+    static func pickedFirst(_ presets: [Preset], bundleID: String?, site: String?) -> [Preset] {
+        let forSite = presets.filter { $0.apps.contains { $0.isSite && $0.matches(bundleID: nil, site: site) } }
+        let forApp = presets.filter { preset in
+            !forSite.contains { $0.id == preset.id } && preset.apps.contains { !$0.isSite && $0.matches(bundleID: bundleID, site: nil) }
+        }
+        return forSite + forApp
     }
 
     func newPreset() -> Preset {

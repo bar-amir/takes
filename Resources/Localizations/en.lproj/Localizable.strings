@@ -27,7 +27,7 @@
 /* EnglishCoachViews.swift:625 */
 " · “close the light” → “turn off the light” · 4th time" = " · “close the light” → “turn off the light” · 4th time";
 
-/* Seconds · PanelModel.swift:439, PanelViews.swift:862 */
+/* Seconds · PanelModel.swift:440, PanelViews.swift:862 */
 "%.1f s" = "%.1f s";
 
 /* ChatGPTEngine.swift:182 */
@@ -66,7 +66,7 @@
 /* ProviderEngineViews.swift:126 */
 "%@ doesn't list %@ any more. Pick another." = "%@ doesn't list %@ any more. Pick another.";
 
-/* Store.swift:105 */
+/* Store.swift:138 */
 "%@ effort" = "%@ effort";
 
 /* LocalEngine.swift:461, ProviderEngine.swift:564 */
@@ -186,7 +186,7 @@
 /* EnglishCoachViews.swift:935 */
 "%lld of %lld presets" = "%lld of %lld presets";
 
-/* LocalEngine.swift:638, Store.swift:99 */
+/* LocalEngine.swift:638, Store.swift:132 */
 "%lld takes" = "%lld takes";
 
 /* LocalEngine.swift:618 */
@@ -219,7 +219,7 @@
 /* Languages.swift:125 */
 "+ Add language" = "+ Add language";
 
-/* PresetsTab.swift:629 */
+/* PresetsTab.swift:633 */
 "+ App" = "+ App";
 
 /* EnglishCoach.swift:102 */
@@ -234,7 +234,7 @@
 /* Proofread.swift:24 */
 "1 fix" = "1 fix";
 
-/* LocalEngine.swift:638, Store.swift:99 */
+/* LocalEngine.swift:638, Store.swift:132 */
 "1 take" = "1 take";
 
 /* LocalEngine.swift:617 */
@@ -252,10 +252,10 @@
 /* ReplyContext.swift:43 */
 "1 word, trimmed" = "1 word, trimmed";
 
-/* PresetGallery.swift:247 */
+/* PresetGallery.swift:265 */
 "A clear email body, ask near the top." = "A clear email body, ask near the top.";
 
-/* PresetGallery.swift:255 */
+/* PresetGallery.swift:273 */
 "A clear no that keeps things warm." = "A clear no that keeps things warm.";
 
 /* ToneCheckViews.swift:122 */
@@ -279,7 +279,7 @@
 /* EnglishCoachViews.swift:575 */
 "A nudge when you repeat one" = "A nudge when you repeat one";
 
-/* PresetGallery.swift:256 */
+/* PresetGallery.swift:274 */
 "A rough ask into a clear prompt." = "A rough ask into a clear prompt.";
 
 /* EnglishCoachViews.swift:682 */
@@ -297,13 +297,16 @@
 /* GeneralTab.swift:94 */
 "Accessibility" = "Accessibility";
 
+/* PresetsTab.swift:672 */
+"Add" = "Add";
+
 /* PresetGalleryView.swift:107 */
 "Add %@" = "Add %@";
 
-/* PresetGallery.swift:125 */
+/* PresetGallery.swift:127 */
 "Add %lld presets" = "Add %lld presets";
 
-/* PresetGallery.swift:128 */
+/* PresetGallery.swift:130 */
 "Add 1 checked preset" = "Add 1 checked preset";
 
 /* PresetsTab.swift:594 */
@@ -336,10 +339,10 @@
 /* Setup.swift:692 */
 "Add your API key" = "Add your API key";
 
-/* PresetGallery.swift:127 */
+/* PresetGallery.swift:129 */
 "Add “%@”" = "Add “%@”";
 
-/* PresetGallery.swift:126, PresetGalleryView.swift:120, PresetGalleryView.swift:133 */
+/* PresetGallery.swift:128, PresetGalleryView.swift:120, PresetGalleryView.swift:133 */
 "Added" = "Added";
 
 /* Diff.swift:188 */
@@ -357,7 +360,7 @@
 /* EnglishCoachViews.swift:934 */
 "All presets that write English (%lld)" = "All presets that write English (%lld)";
 
-/* PanelModel.swift:440 */
+/* PanelModel.swift:441 */
 "all takes %@" = "all takes %@";
 
 /* Onboarding.swift:14 */
@@ -396,7 +399,7 @@
 /* OnboardingView.swift:450 */
 "An Anthropic API key" = "An Anthropic API key";
 
-/* Store.swift:180 */
+/* Store.swift:213 */
 "An empty draft" = "An empty draft";
 
 /* OnboardingView.swift:452 */
@@ -426,10 +429,10 @@
 /* APIEngine.swift:186 */
 "Anthropic refused this key. Check it in the Anthropic Console and paste it again." = "Anthropic refused this key. Check it in the Anthropic Console and paste it again.";
 
-/* Store.swift:29 */
+/* Store.swift:62 */
 "Any length" = "Any length";
 
-/* Take length, mid-line · Store.swift:38 */
+/* Take length, mid-line · Store.swift:71 */
 "any length" = "any length";
 
 /* EnglishCoach.swift:207 */
@@ -483,13 +486,13 @@
 /* EnglishCoachViews.swift:908 */
 "best signal" = "best signal";
 
-/* Store.swift:168 */
+/* Store.swift:201 */
 "Bottom center" = "Bottom center";
 
-/* Store.swift:167 */
+/* Store.swift:200 */
 "Bottom left" = "Bottom left";
 
-/* Store.swift:169 */
+/* Store.swift:202 */
 "Bottom right" = "Bottom right";
 
 /* PresetGalleryView.swift:221, PresetGalleryView.swift:233 */
@@ -513,7 +516,7 @@
 /* EnglishCoach.swift:136 */
 "Can, should, must" = "Can, should, must";
 
-/* ChatGPTEngineViews.swift:46, ClaudeInstaller.swift:54, EnglishCoachViews.swift:1086, EnglishCoachViews.swift:1092, EnglishCoachViews.swift:754, LocalEngineViews.swift:176, PresetGalleryView.swift:59, SettingsForm.swift:242 */
+/* ChatGPTEngineViews.swift:46, ClaudeInstaller.swift:54, EnglishCoachViews.swift:1086, EnglishCoachViews.swift:1092, EnglishCoachViews.swift:754, LocalEngineViews.swift:176, PresetGalleryView.swift:59, PresetsTab.swift:673, SettingsForm.swift:242 */
 "Cancel" = "Cancel";
 
 /* Key hint: esc cancels the instant take · InstantModeViews.swift:94 */
@@ -528,10 +531,10 @@
 /* Diff.swift:190 */
 "capitalised %@" = "capitalised %@";
 
-/* PresetGallery.swift:220 */
+/* PresetGallery.swift:235 */
 "Casual message" = "Casual message";
 
-/* Store.swift:166 */
+/* Store.swift:199 */
 "Center of the screen" = "Center of the screen";
 
 /* PanelViews.swift:625 */
@@ -624,7 +627,7 @@
 /* PresetsTab.swift:27 */
 "Choose a preset, or start from a ready-made one." = "Choose a preset, or start from a ready-made one.";
 
-/* PresetsTab.swift:646 */
+/* PresetsTab.swift:650 */
 "Choose from Applications…" = "Choose from Applications…";
 
 /* OnboardingView.swift:628 */
@@ -906,7 +909,7 @@
 /* PresetsTab.swift:279 */
 "couldn't read %@, which were reset" = "couldn't read %@, which were reset";
 
-/* PanelModel.swift:141 */
+/* PanelModel.swift:143 */
 "Couldn't read the field" = "Couldn't read the field";
 
 /* ToneCheck.swift:145 */
@@ -930,7 +933,7 @@
 /* AppDelegate.swift:361 */
 "Cut" = "Cut";
 
-/* PresetGallery.swift:200 */
+/* PresetGallery.swift:211 */
 "Decline politely" = "Decline politely";
 
 /* EngineTab.swift:55 */
@@ -999,7 +1002,7 @@
 /* OnboardingView.swift:151, OnboardingView.swift:648 */
 "done" = "done";
 
-/* PresetGallery.swift:254 */
+/* PresetGallery.swift:272 */
 "Done, next and blocked." = "Done, next and blocked.";
 
 /* EnglishCoachViews.swift:1264 */
@@ -1089,7 +1092,7 @@
 /* EnglishCoachViews.swift:1300 */
 "English drafts" = "English drafts";
 
-/* Store.swift:810 */
+/* Store.swift:852 */
 "English → עברית" = "English → עברית";
 
 /* OnboardingView.swift:61 */
@@ -1107,7 +1110,7 @@
 /* HistoryTab.swift:120 */
 "Expanded" = "Expanded";
 
-/* PresetGallery.swift:179 */
+/* PresetGallery.swift:190 */
 "Explain simply" = "Explain simply";
 
 /* PresetsTab.swift:127, PresetsTab.swift:75 */
@@ -1122,7 +1125,7 @@
 /* EnglishCoach.swift:149 */
 "False friends" = "False friends";
 
-/* PresetGallery.swift:248 */
+/* PresetGallery.swift:266 */
 "Fewer words, nothing lost." = "Fewer words, nothing lost.";
 
 /* PanelViews.swift:431 */
@@ -1149,7 +1152,7 @@
 /* EnglishCoachViews.swift:1054 */
 "First language" = "First language";
 
-/* PanelModel.swift:440 */
+/* PanelModel.swift:441 */
 "first words %@" = "first words %@";
 
 /* EngineTab.swift:68 */
@@ -1161,7 +1164,7 @@
 /* EnglishCoach.swift:175 */
 "Fixed expressions" = "Fixed expressions";
 
-/* PresetGallery.swift:245 */
+/* PresetGallery.swift:263 */
 "Fixes mistakes only. Keeps your words." = "Fixes mistakes only. Keeps your words.";
 
 /* EnglishCoachViews.swift:1133 */
@@ -1173,7 +1176,7 @@
 /* EnglishCoach.swift:206 */
 "Focus areas only" = "Focus areas only";
 
-/* Store.swift:800 */
+/* Store.swift:842 */
 "Formal email" = "Formal email";
 
 /* OnboardingView.swift:490 */
@@ -1188,19 +1191,19 @@
 /* OnboardingView.swift:669 */
 "Free to use" = "Free to use";
 
-/* PresetGallery.swift:161 */
+/* PresetGallery.swift:172 */
 "Friendlier" = "Friendlier";
 
 /* ReplyContext.swift:51 */
 "from the clipboard" = "from the clipboard";
 
-/* PanelModel.swift:137 */
+/* PanelModel.swift:139 */
 "From the field" = "From the field";
 
 /* EnglishCoachViews.swift:1245 */
 "From your drafts" = "From your drafts";
 
-/* PanelModel.swift:133 */
+/* PanelModel.swift:135 */
 "From your selection" = "From your selection";
 
 /* PresetGalleryView.swift:93 */
@@ -1248,7 +1251,7 @@
 /* EnglishCoachViews.swift:594 */
 "Grammar, word choice, natural phrasing. Never typos, names or code." = "Grammar, word choice, natural phrasing. Never typos, names or code.";
 
-/* Store.swift:807 */
+/* Store.swift:849 */
 "Hebrew → English, keep my tone" = "Hebrew → English, keep my tone";
 
 /* EnglishCoachViews.swift:93 */
@@ -1266,10 +1269,10 @@
 /* EnglishCoachViews.swift:150 */
 "Hide this note and never flag this phrase again" = "Hide this note and never flag this phrase again";
 
-/* Effort level · Store.swift:59 */
+/* Effort level · Store.swift:92 */
 "High" = "High";
 
-/* Store.swift:104 */
+/* Store.swift:137 */
 "High effort" = "High effort";
 
 /* SettingsWindow.swift:23 */
@@ -1419,7 +1422,7 @@
 /* EnglishCoachViews.swift:1130 */
 "Latest: “%@” → “%@” · %@, %@" = "Latest: “%@” → “%@” · %@, %@";
 
-/* PresetGallery.swift:246 */
+/* PresetGallery.swift:264 */
 "Lead with the answer, warm and brief." = "Lead with the answer, warm and brief.";
 
 /* EnglishCoachViews.swift:553 */
@@ -1470,10 +1473,10 @@
 /* PresetsTab.swift:336 */
 "long examples shortened" = "long examples shortened";
 
-/* Store.swift:30 */
+/* Store.swift:63 */
 "Longer" = "Longer";
 
-/* Take length, mid-line · Store.swift:39 */
+/* Take length, mid-line · Store.swift:72 */
 "longer" = "longer";
 
 /* LocalEngineViews.swift:14 */
@@ -1485,10 +1488,10 @@
 /* ProviderEngineViews.swift:112 */
 "Looking up %@'s models…" = "Looking up %@'s models…";
 
-/* Effort level · Store.swift:57 */
+/* Effort level · Store.swift:90 */
 "Low" = "Low";
 
-/* Store.swift:102 */
+/* Store.swift:135 */
 "Low effort" = "Low effort";
 
 /* SystemShortcuts.swift:36 */
@@ -1518,10 +1521,10 @@
 /* ToneCheck.swift:60 */
 "May read as %@" = "May read as %@";
 
-/* Effort level · Store.swift:58 */
+/* Effort level · Store.swift:91 */
 "Medium" = "Medium";
 
-/* Store.swift:103 */
+/* Store.swift:136 */
 "Medium effort" = "Medium effort";
 
 /* GeneralTab.swift:96 */
@@ -1560,7 +1563,7 @@
 /* OnboardingView.swift:404 */
 "Models can get things wrong: read each take before you send it." = "Models can get things wrong: read each take before you send it.";
 
-/* PresetGallery.swift:167 */
+/* PresetGallery.swift:178 */
 "More direct" = "More direct";
 
 /* PanelViews.swift:824 */
@@ -1620,7 +1623,7 @@
 /* PresetsTab.swift:343 */
 "name shortened" = "name shortened";
 
-/* PresetGallery.swift:74 */
+/* PresetGallery.swift:76 */
 "Natural %@ from any language." = "Natural %@ from any language.";
 
 /* EnglishCoach.swift:180, EnglishCoach.swift:22 */
@@ -1632,10 +1635,10 @@
 /* EnglishCoachViews.swift:505 */
 "Never more than one nudge per paste" = "Never more than one nudge per paste";
 
-/* PanelViews.swift:508, PresetsTab.swift:65, PresetsTab.swift:66, Store.swift:677 */
+/* PanelViews.swift:508, PresetsTab.swift:65, PresetsTab.swift:66, Store.swift:719 */
 "New preset" = "New preset";
 
-/* Store.swift:162 */
+/* Store.swift:195 */
 "Next to the text box" = "Next to the text box";
 
 /* ProviderEngine.swift:877 */
@@ -1746,7 +1749,7 @@
 /* ChatGPTAuth.swift:784 */
 "Not this sign-in" = "Not this sign-in";
 
-/* PresetGallery.swift:253 */
+/* PresetGallery.swift:271 */
 "Notes or a long thread into a short reply." = "Notes or a long thread into a short reply.";
 
 /* EnglishCoachViews.swift:568 */
@@ -1767,7 +1770,7 @@
 /* InstantMode.swift:89 */
 "Nothing was pasted. %@" = "Nothing was pasted. %@";
 
-/* PanelModel.swift:136 */
+/* PanelModel.swift:138 */
 "Nothing was selected" = "Nothing was selected";
 
 /* EnglishCoachViews.swift:990 */
@@ -1791,7 +1794,7 @@
 /* EnglishCoachViews.swift:475, FormControls.swift:108 */
 "off" = "off";
 
-/* HistoryTab.swift:163, PresetsTab.swift:187, Store.swift:782 */
+/* HistoryTab.swift:163, PresetsTab.swift:187, Store.swift:824 */
 "OK" = "OK";
 
 /* LocalEngineViews.swift:100 */
@@ -2046,6 +2049,9 @@
 /* ProviderEngine.swift:390 */
 "Pick a model in Settings › Model." = "Pick a model in Settings › Model.";
 
+/* PresetsTab.swift:666 */
+"Pick this preset on a website" = "Pick this preset on a website";
+
 /* OpeningScreen.swift:90 */
 "PICK YOUR TAKE." = "PICK YOUR TAKE.";
 
@@ -2061,7 +2067,7 @@
 /* PanelViews.swift:182 */
 "Picked for %@. Tab shows every preset." = "Picked for %@. Tab shows every preset.";
 
-/* PresetGallery.swift:252 */
+/* PresetGallery.swift:270 */
 "Plain words for people outside your field." = "Plain words for people outside your field.";
 
 /* Run options: the ChatGPT plan in use · PanelViews.swift:376, PanelViews.swift:396 */
@@ -2085,13 +2091,13 @@
 /* PanelViews.swift:590 */
 "Plus your 1 voice rule" = "Plus your 1 voice rule";
 
-/* PresetGallery.swift:250 */
+/* PresetGallery.swift:268 */
 "Point first, no hedging, still polite." = "Point first, no hedging, still polite.";
 
-/* PresetGallery.swift:147 */
+/* PresetGallery.swift:153 */
 "Polish email" = "Polish email";
 
-/* PresetGallery.swift:251 */
+/* PresetGallery.swift:269 */
 "Polished for clients and leadership." = "Polished for clients and leadership.";
 
 /* OnboardingView.swift:702 */
@@ -2154,10 +2160,10 @@
 /* EngineTab.swift:76, OnboardingView.swift:405 */
 "Privacy notice" = "Privacy notice";
 
-/* PresetGallery.swift:173 */
+/* PresetGallery.swift:184 */
 "Professional" = "Professional";
 
-/* PresetGallery.swift:206 */
+/* PresetGallery.swift:217 */
 "Prompt for AI" = "Prompt for AI";
 
 /* Built-in preset name · Proofread.swift:57 */
@@ -2166,7 +2172,7 @@
 /* ProviderEngineViews.swift:250, ProviderEngineViews.swift:44 */
 "Provider" = "Provider";
 
-/* Store.swift:804 */
+/* Store.swift:846 */
 "Push back politely" = "Push back politely";
 
 /* GeneralTab.swift:49 */
@@ -2220,7 +2226,7 @@
 /* ReplyContextView.swift:78 */
 "Remove" = "Remove";
 
-/* Languages.swift:117, PresetsTab.swift:623, SettingsWindow.swift:259 */
+/* Languages.swift:117, PresetsTab.swift:627, SettingsWindow.swift:259 */
 "Remove %@" = "Remove %@";
 
 /* ReplyContextView.swift:59 */
@@ -2304,7 +2310,7 @@
 /* PanelViews.swift:345 */
 "Run options: %@, changed for this run" = "Run options: %@, changed for this run";
 
-/* PresetsTab.swift:692 */
+/* PresetsTab.swift:713 */
 "Run with these settings" = "Run with these settings";
 
 /* HistoryTab.swift:33, HistoryTab.swift:39 */
@@ -2319,13 +2325,13 @@
 /* DictationViews.swift:190 */
 "Same as macOS · %@" = "Same as macOS · %@";
 
-/* Store.swift:27 */
+/* Store.swift:60 */
 "Same or shorter" = "Same or shorter";
 
-/* Take length, mid-line · Store.swift:36 */
+/* Take length, mid-line · Store.swift:69 */
 "same or shorter" = "same or shorter";
 
-/* PresetsTab.swift:689 */
+/* PresetsTab.swift:710 */
 "Sample draft" = "Sample draft";
 
 /* EngineTab.swift:222, EnglishCoachViews.swift:760, LocalEngineViews.swift:175, ProviderEngineViews.swift:145, ProviderEngineViews.swift:291, ProviderEngineViews.swift:333, ProviderEngineViews.swift:72, ProviderEngineViews.swift:99 */
@@ -2349,7 +2355,7 @@
 /* Toast.swift:182 */
 "Saved as example" = "Saved as example";
 
-/* PresetsTab.swift:707 */
+/* PresetsTab.swift:728 */
 "Saved as you type. Right-click a preset to export it." = "Saved as you type. Right-click a preset to export it.";
 
 /* OnboardingView.swift:600 */
@@ -2379,7 +2385,7 @@
 /* EngineTab.swift:345 */
 "Selected" = "Selected";
 
-/* Store.swift:179 */
+/* Store.swift:212 */
 "Selected text only" = "Selected text only";
 
 /* ProviderEngineViews.swift:167 */
@@ -2427,13 +2433,13 @@
 /* ReplyContextView.swift:76 */
 "Shift Command V" = "Shift Command V";
 
-/* PresetGallery.swift:257 */
+/* PresetGallery.swift:275 */
 "Short and warm, the way you text." = "Short and warm, the way you text.";
 
-/* PresetGallery.swift:154, Store.swift:28, Store.swift:797 */
+/* PresetGallery.swift:165, Store.swift:61, Store.swift:839 */
 "Shorter" = "Shorter";
 
-/* Take length, mid-line · Store.swift:37 */
+/* Take length, mid-line · Store.swift:70 */
 "shorter" = "shorter";
 
 /* EnglishCoachViews.swift:93 */
@@ -2451,7 +2457,7 @@
 /* SystemShortcuts.swift:19 */
 "Show Help menu" = "Show Help menu";
 
-/* HistoryTab.swift:57, PresetsTab.swift:430, Store.swift:783 */
+/* HistoryTab.swift:57, PresetsTab.swift:430, Store.swift:825 */
 "Show in Finder" = "Show in Finder";
 
 /* AppDelegate.swift:279 */
@@ -2538,10 +2544,10 @@
 /* OnboardingView.swift:70 */
 "Skips this step. You can change it later in Settings." = "Skips this step. You can change it later in Settings.";
 
-/* PresetGallery.swift:140 */
+/* PresetGallery.swift:142 */
 "Slack message" = "Slack message";
 
-/* Store.swift:789 */
+/* Store.swift:831 */
 "Slack · clear & friendly" = "Slack · clear & friendly";
 
 /* OnboardingView.swift:742 */
@@ -2589,7 +2595,7 @@
 /* OpeningScreen.swift:124 */
 "Starts setting up Takes" = "Starts setting up Takes";
 
-/* PresetGallery.swift:193 */
+/* PresetGallery.swift:204 */
 "Status update" = "Status update";
 
 /* OnboardingView.swift:74 */
@@ -2637,7 +2643,7 @@
 /* EnglishCoachViews.swift:818 */
 "Suggested to start with:" = "Suggested to start with:";
 
-/* PresetGallery.swift:186 */
+/* PresetGallery.swift:197 */
 "Summarize" = "Summarize";
 
 /* AppDelegate.swift:274 */
@@ -2658,7 +2664,7 @@
 /* PanelViews.swift:182 */
 "Tab shows every preset." = "Tab shows every preset.";
 
-/* HistoryTab.swift:126, PanelViews.swift:1017, PresetsTab.swift:699 */
+/* HistoryTab.swift:126, PanelViews.swift:1017, PresetsTab.swift:720 */
 "TAKE %lld" = "TAKE %lld";
 
 /* PanelViews.swift:1017 */
@@ -2694,13 +2700,13 @@
 /* ChatGPTEngine.swift:424 */
 "Takes couldn't reach OpenAI to check the sign-in, so it didn't keep it. Check your internet connection and try again." = "Takes couldn't reach OpenAI to check the sign-in, so it didn't keep it. Check your internet connection and try again.";
 
-/* Store.swift:448 */
+/* Store.swift:481 */
 "Takes couldn't read %@ and started over. Your original is kept as %@." = "Takes couldn't read %@ and started over. Your original is kept as %@.";
 
-/* Store.swift:445 */
+/* Store.swift:478 */
 "Takes couldn't read %@ or keep a copy of it, so changes to it aren't being saved. Fix or remove the file, then restart Takes." = "Takes couldn't read %@ or keep a copy of it, so changes to it aren't being saved. Fix or remove the file, then restart Takes.";
 
-/* Store.swift:779 */
+/* Store.swift:821 */
 "Takes couldn't read some of its files" = "Takes couldn't read some of its files";
 
 /* HistoryTab.swift:161 */
@@ -2727,7 +2733,7 @@
 /* EngineTab.swift:206 */
 "Takes deletes it from your keychain. You'll need to paste it again to write with it." = "Takes deletes it from your keychain. You'll need to paste it again to write with it.";
 
-/* PanelModel.swift:140 */
+/* PanelModel.swift:142 */
 "Takes doesn't read password fields" = "Takes doesn't read password fields";
 
 /* ClaudeInstaller.swift:52 */
@@ -2817,7 +2823,7 @@
 /* PresetsTab.swift:316 */
 "takes set to %lld (was %lld)" = "takes set to %lld (was %lld)";
 
-/* Store.swift:449 */
+/* Store.swift:482 */
 "Takes skipped part of %@ that it couldn't read. Your original is kept as %@." = "Takes skipped part of %@ that it couldn't read. Your original is kept as %@.";
 
 /* AppLocation.swift:37 */
@@ -2844,7 +2850,7 @@
 /* ChatGPTEngineViews.swift:91, LocalEngineViews.swift:124, ProviderEngineViews.swift:164 */
 "Test" = "Test";
 
-/* Store.swift:178 */
+/* Store.swift:211 */
 "Text already in the field" = "Text already in the field";
 
 /* LocalEngineViews.swift:213 */
@@ -2898,7 +2904,7 @@
 /* ClaudeInstaller.swift:131 */
 "The download took too long, so Takes stopped it. Check your internet connection, then try again." = "The download took too long, so Takes stopped it. Check your internet connection, then try again.";
 
-/* PanelModel.swift:137 */
+/* PanelModel.swift:139 */
 "The field was empty" = "The field was empty";
 
 /* PanelModel.swift:127 */
@@ -2964,7 +2970,7 @@
 /* InstantMode.swift:33 */
 "The text box in %@ has too much text to rewrite at once. Select the part you want and try again." = "The text box in %@ has too much text to rewrite at once. Select the part you want and try again.";
 
-/* PanelModel.swift:139 */
+/* PanelModel.swift:141 */
 "The text is too long. Select part of it first" = "The text is too long. Select part of it first";
 
 /* ClaudeInstaller.swift:145 */
@@ -3039,19 +3045,19 @@
 /* EnglishCoach.swift:167 */
 "Too, very, so" = "Too, very, so";
 
-/* Store.swift:164 */
+/* Store.swift:197 */
 "Top center" = "Top center";
 
-/* Store.swift:163 */
+/* Store.swift:196 */
 "Top left" = "Top left";
 
-/* Store.swift:165 */
+/* Store.swift:198 */
 "Top right" = "Top right";
 
 /* EnglishCoachViews.swift:1018 */
 "Track again" = "Track again";
 
-/* PresetGallery.swift:237 */
+/* PresetGallery.swift:255 */
 "Translate to %@" = "Translate to %@";
 
 /* ChatGPTEngineViews.swift:64, PanelViews.swift:621, PanelViews.swift:623, PanelViews.swift:660, PanelViews.swift:662 */
@@ -3069,7 +3075,7 @@
 /* Engine.swift:92 */
 "Try again in a moment." = "Try again in a moment.";
 
-/* Onboarding.swift:16, PresetsTab.swift:681 */
+/* Onboarding.swift:16, PresetsTab.swift:702 */
 "Try it" = "Try it";
 
 /* OnboardingView.swift:612 */
@@ -3095,6 +3101,9 @@
 
 /* SettingsWindow.swift:267 */
 "Type and press ↵" = "Type and press ↵";
+
+/* PresetsTab.swift:667 */
+"Type the site's address, like mail.google.com." = "Type the site's address, like mail.google.com.";
 
 /* OnboardingView.swift:266 */
 "Types nothing until you pick a take." = "Types nothing until you pick a take.";
@@ -3171,11 +3180,14 @@
 /* ChatGPTEngineViews.swift:166, ChatGPTEngineViews.swift:45, OnboardingModel.swift:378 */
 "Waiting for the browser…" = "Waiting for the browser…";
 
-/* PresetGallery.swift:249 */
+/* PresetGallery.swift:267 */
 "Warmer, same message." = "Warmer, same message.";
 
 /* EnglishCoachViews.swift:594 */
 "Watches" = "Watches";
+
+/* PresetsTab.swift:651 */
+"Website…" = "Website…";
 
 /* EnglishCoachViews.swift:1191 */
 "Weekly counts: %@" = "Weekly counts: %@";
@@ -3294,7 +3306,7 @@
 /* InstantModeViews.swift:93 */
 "Writing with %@…" = "Writing with %@…";
 
-/* PresetsTab.swift:692 */
+/* PresetsTab.swift:713 */
 "Writing…" = "Writing…";
 
 /* PanelViews.swift:863 */

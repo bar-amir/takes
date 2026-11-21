@@ -20,13 +20,17 @@ struct FocusSnapshot {
     /// False when the text is known to take no typing (a selection on a web page). A take can't be pasted there,
     /// so it's left on the clipboard instead.
     var editable = true
+    /// The website the text box is on ("mail.google.com"), when it's on a web page, so a preset can be picked for it.
+    /// Only the host is kept, and it's never logged.
+    var site: String? = nil
 
     /// `method` when "Start with: the selection" found nothing selected. The box itself wasn't read.
     static let noSelection = "no selection"
 
     /// The same text box once a take has replaced everything in it, so a later paste checks for the take.
     func holding(_ text: String) -> FocusSnapshot {
-        FocusSnapshot(app: app, text: text, source: source, caretRect: caretRect, element: element, method: method, editable: editable)
+        FocusSnapshot(app: app, text: text, source: source, caretRect: caretRect, element: element, method: method, editable: editable,
+                      site: site)
     }
 }
 
@@ -73,9 +77,33 @@ enum FocusReader {
         // The wait for the tree doesn't count against reading the box itself.
         budget = ReadBudget(seconds: readBudget)
         AXUIElementSetMessagingTimeout(element, messagingTimeout)
-        let (snapshot, role) = read(element, in: app, prefill: prefill, allowCopy: allowCopy)
+        let (found, role) = read(element, in: app, prefill: prefill, allowCopy: allowCopy)
+        var snapshot = found
+        snapshot.site = site(around: element)
         FocusLog.append(snapshot, role: role)
         return snapshot
+    }
+
+    /// How far up from the text box `site(around:)` looks for the page.
+    static let siteDepth = 80
+
+    /// The host of the web page the element is on, from the outermost web area above it (the tab's page, not a frame
+    /// inside it). Browsers and web-based apps report the page's address there; nil for anything else.
+    static func site(around element: AXUIElement) -> String? {
+        var current = element
+        var host: String?
+        for _ in 0..<siteDepth {
+            guard budget?.mayAsk() ?? true else { break }
+            if (ax.attribute(current, kAXRoleAttribute).0 as? String) == "AXWebArea",
+               let url = ax.attribute(current, "AXURL").0, CFGetTypeID(url) == CFURLGetTypeID()
+            {
+                let found = ((url as! CFURL) as URL)
+                if let scheme = found.scheme, ["http", "https"].contains(scheme), let name = found.host?.lowercased() { host = name }
+            }
+            guard let parent = ax.attribute(current, kAXParentAttribute).0, CFGetTypeID(parent) == AXUIElementGetTypeID() else { break }
+            current = parent as! AXUIElement
+        }
+        return host
     }
 
     /// Reads the focused element: what it is, then its selection or its text. Everything it asks goes through

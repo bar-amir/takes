@@ -616,7 +616,11 @@ private struct AppsEditor: View {
         FlowLayout(spacing: 6) {
             ForEach(apps) { app in
                 HStack(spacing: 6) {
-                    AppGlyph(appURL: AppGlyph.url(forBundleID: app.bundleID), size: 16)
+                    if app.isSite {
+                        Image(systemName: "globe").font(.system(size: 12)).frame(width: 16, height: 16).accessibilityHidden(true)
+                    } else {
+                        AppGlyph(appURL: AppGlyph.url(forBundleID: app.bundleID), size: 16)
+                    }
                     Text(app.name).font(.system(size: 12.5))
                     Button { apps.removeAll { $0.id == app.id } } label: { Image(systemName: "xmark").font(.system(size: 8, weight: .bold)) }
                         .buttonStyle(.plain)
@@ -644,6 +648,7 @@ private struct AppsEditor: View {
         }
         menu.addItem(.separator())
         menu.addItem(ClosureMenuItem(title: String(localized: "Choose from Applications…"), handler: chooseApp))
+        menu.addItem(ClosureMenuItem(title: String(localized: "Website…"), handler: addWebsite))
         menu.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
     }
 
@@ -653,6 +658,22 @@ private struct AppsEditor: View {
             .compactMap { app in app.bundleIdentifier.map { AppRef(bundleID: $0, name: app.localizedName ?? $0) } }
             .filter { $0.bundleID != Bundle.main.bundleIdentifier }
             .sorted { $0.name < $1.name }
+    }
+
+    /// A website, picked in any browser that reports the page's address (Safari and Chrome-based browsers do).
+    private func addWebsite() {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Pick this preset on a website")
+        alert.informativeText = String(localized: "Type the site's address, like mail.google.com.")
+        let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 260, height: 24))
+        field.placeholderString = "mail.google.com"
+        alert.accessoryView = field
+        alert.window.initialFirstResponder = field
+        alert.addButton(withTitle: String(localized: "Add"))
+        alert.addButton(withTitle: String(localized: "Cancel"))
+        guard alert.runModal() == .alertFirstButtonReturn, let domain = AppRef.domain(from: field.stringValue) else { return }
+        let site = AppRef.site(domain, name: domain)
+        if !apps.contains(site) { apps.append(site) }
     }
 
     private func chooseApp() {
