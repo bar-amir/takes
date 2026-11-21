@@ -58,11 +58,11 @@ final class PasterTests: XCTestCase {
 
     private func paste(
         _ env: Paster.Environment, text: String = "Thursday works for me.", replaceAll: Bool = true,
-        restore: Bool = true, keepTake: Bool = true
+        restore: Bool = true, keepTake: Bool = true, into box: FocusSnapshot? = nil
     ) async -> Paster.Outcome {
         await withCheckedContinuation { continuation in
             Paster.paste(
-                text, into: target, replaceAll: replaceAll, restoreClipboard: restore, keepTakeIfFieldChanged: keepTake,
+                text, into: box ?? target, replaceAll: replaceAll, restoreClipboard: restore, keepTakeIfFieldChanged: keepTake,
                 cancelled: { [unowned self] in cancelled }, environment: env
             ) { continuation.resume(returning: $0) }
         }
@@ -211,6 +211,99 @@ final class PasterTests: XCTestCase {
         let outcome = await paste(environment(confirm: callOffDuringTheCheck))
         XCTAssertEqual(outcome, .cancelled)
         XCTAssertTrue(keys.isEmpty)
+    }
+
+    // MARK: A text box that keeps mentions and links (Slack)
+
+    private let slackDraft = FocusSnapshot(app: nil, text: "@evan can u look at the doc", source: .field, caretRect: nil)
+    private let slackTake = "@Evan, could you take a look at the doc?"
+
+    /// What Slack's own ⌘C leaves on the clipboard for that draft: its text, and the same in Slack's format.
+    private func slackCopies() {
+        let delta =
+            #"{"ops":[{"insert":"@evan","attributes":{"slackmention":{"id":"U1EVAN","label":"@evan"}}},{"insert":" can u look at "},"#
+            + #"{"insert":"the doc","attributes":{"link":"https://example.com/doc"}}]}"#
+        pasteboard.clearContents()
+        pasteboard.setString(slackDraft.text, forType: .string)
+        pasteboard.setData(ChromiumCustomData.encode([SlackText.format: delta]), forType: ChromiumCustomData.type)
+    }
+
+    /// An app whose text box keeps formatting; `copy` is what its ⌘C does to the clipboard.
+    private func slackEnvironment(copy: @escaping () -> Void) -> Paster.Environment {
+        var env = environment()
+        env.keepsFormatting = { _ in true }
+        env.copyWait = 0.05
+        env.press = { [unowned self] key in
+            keys.append(Int(key))
+            if Int(key) == kVK_ANSI_C { copy() }
+        }
+        return env
+    }
+
+    private func pastedFormat() -> String? {
+        pasteboard.data(forType: ChromiumCustomData.type).flatMap { ChromiumCustomData.decode($0)[SlackText.format] }
+    }
+
+    func testAPasteIntoSlackCopiesWhatItReplacesAndKeepsTheMention() async throws {
+        let outcome = await paste(slackEnvironment { [unowned self] in slackCopies() }, text: slackTake, into: slackDraft)
+        XCTAssertEqual(outcome, .pasted)
+        XCTAssertEqual(keys, [kVK_ANSI_A, kVK_ANSI_C, kVK_ANSI_V])
+        XCTAssertEqual(pasteboard.string(forType: .string), slackTake, "the take, not the draft that was copied")
+        let format = try XCTUnwrap(pastedFormat())
+        XCTAssertTrue(format.contains("U1EVAN"), "the mention is still that person")
+        XCTAssertTrue(format.contains("example.com"), "the link still has its address")
+        XCTAssertEqual(notes, ["paste sent\twhat the check found\tformatting kept"])
+        XCTAssertFalse(notes.joined().contains("evan"), "the log never holds text")
+    }
+
+    func testTheUsersClipboardComesBackAfterAPasteIntoSlack() async {
+        _ = await paste(slackEnvironment { [unowned self] in slackCopies() }, text: slackTake, into: slackDraft)
+        await settle()
+        XCTAssertEqual(pasteboard.string(forType: .string), "what the user copied")
+        XCTAssertNil(pasteboard.data(forType: ChromiumCustomData.type))
+        XCTAssertEqual(ownWrites, [.take, .takeAgain, .putBack])
+    }
+
+    func testACopyThatNeverLandsStillPastesTheTake() async {
+        let outcome = await paste(slackEnvironment {}, text: slackTake, into: slackDraft)
+        XCTAssertEqual(outcome, .pasted)
+        XCTAssertEqual(keys, [kVK_ANSI_A, kVK_ANSI_C, kVK_ANSI_V])
+        XCTAssertEqual(pasteboard.string(forType: .string), slackTake)
+        XCTAssertNil(pastedFormat())
+        XCTAssertEqual(notes, ["paste sent\twhat the check found"])
+    }
+
+    func testATakeThatKeptNothingIsPastedPlainNotTheCopiedDraft() async {
+        let take = "Could you review the document?"
+        _ = await paste(slackEnvironment { [unowned self] in slackCopies() }, text: take, into: slackDraft)
+        XCTAssertEqual(pasteboard.string(forType: .string), take)
+        XCTAssertNil(pastedFormat())
+    }
+
+    func testASelectionInSlackIsCopiedWithoutSelectingAll() async {
+        let selection = FocusSnapshot(app: nil, text: slackDraft.text, source: .selection, caretRect: nil)
+        _ = await paste(slackEnvironment { [unowned self] in slackCopies() }, text: slackTake, replaceAll: false, into: selection)
+        XCTAssertEqual(keys, [kVK_ANSI_C, kVK_ANSI_V])
+        XCTAssertNotNil(pastedFormat())
+    }
+
+    func testAnEmptySlackBoxHasNothingToCopy() async {
+        let empty = FocusSnapshot(app: nil, text: "", source: .field, caretRect: nil)
+        _ = await paste(slackEnvironment { XCTFail("nothing to copy") }, text: slackTake, replaceAll: false, into: empty)
+        XCTAssertEqual(keys, [kVK_ANSI_V])
+    }
+
+    func testSomethingCopiedBeforeTheKeysIsNotCopiedOver() async {
+        var env = slackEnvironment { XCTFail("the clipboard is the user's again") }
+        env.confirm = { [unowned self] _, _ in
+            // Copied while the paste waited for the text box.
+            pasteboard.clearContents()
+            pasteboard.setString("copied meanwhile", forType: .string)
+            return true
+        }
+        _ = await paste(env, text: slackTake, into: slackDraft)
+        XCTAssertEqual(keys, [kVK_ANSI_A, kVK_ANSI_V])
+        XCTAssertEqual(pasteboard.string(forType: .string), "copied meanwhile")
     }
 
     // MARK: The user's clipboard

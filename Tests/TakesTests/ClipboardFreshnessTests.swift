@@ -41,6 +41,18 @@ final class ClipboardFreshnessTests: XCTestCase {
         XCTAssertEqual(clipboard.age(now: at(30)), 30, "measured from the copy, not from the restore")
     }
 
+    func testATakeWrittenTwiceStillGivesTheOldClipboardItsTimeBack() {
+        // A paste into Slack: the take, Slack's own copy of the draft, then the take again in Slack's format.
+        var clipboard = ClipboardFreshness(count: 10)
+        clipboard.observe(count: 11, now: at(0))
+        clipboard.ownWrite(.take, count: 13)
+        clipboard.ownWrite(.takeAgain, count: 16)
+        XCTAssertNil(clipboard.age(now: at(20)))
+        clipboard.observe(count: 16, now: at(20))
+        clipboard.ownWrite(.putBack, count: 17)
+        XCTAssertEqual(clipboard.age(now: at(30)), 30, "still the user's copy from before")
+    }
+
     func testATakeLeftOnTheClipboardIsNeverJustCopied() {
         // A take copied with ⌘C, or left there after a paste that couldn't be sent.
         var clipboard = ClipboardFreshness(count: 10)

@@ -172,6 +172,8 @@ struct ClipboardFreshness: Equatable {
     enum OwnWrite {
         /// Takes put its own text on the clipboard: a take being pasted or copied.
         case take
+        /// Takes put the take it is pasting on the clipboard once more, in another form.
+        case takeAgain
         /// Takes put back what the clipboard held before its take.
         case putBack
         /// Takes copied from the text box and put the clipboard back, right away or a moment later.
@@ -211,6 +213,8 @@ struct ClipboardFreshness: Equatable {
         case .take:
             setAside = changedAt
             changedAt = nil
+        case .takeAgain:
+            break
         case .putBack:
             changedAt = setAside
             setAside = nil
