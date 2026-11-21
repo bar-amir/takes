@@ -1,7 +1,9 @@
 import AppKit
+import AVFoundation
 import SwiftUI
 
-/// Onboarding's opening screen: one photograph, the headline and Get started, in a borderless window.
+/// Onboarding's opening screen: one photograph (looping ⌥⇧Space on its keyboard), the headline and Get started, in a
+/// borderless window.
 /// Get started (or ↵) shrinks it away and opens the step window. Esc closes it; onboarding resumes from the
 /// menu bar or by opening Takes again.
 @MainActor
@@ -64,6 +66,8 @@ struct OpeningView: View {
     @ObservedObject var state: OpeningState
     var onStart: () -> Void
     var onClose: () -> Void = {}
+    /// Only the photo, without the loop: for snapshots.
+    var still = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.layoutDirection) private var layoutDirection
 
@@ -139,15 +143,65 @@ struct OpeningView: View {
 
     @ViewBuilder private var photo: some View {
         if let image = BrandResources.openingImage {
-            Image(nsImage: image)
-                .resizable()
-                .interpolation(.high)
-                .aspectRatio(contentMode: .fill)
-                .frame(width: OpeningWindowController.size.width, height: OpeningWindowController.size.height)
-                .clipped()
-                .accessibilityLabel("A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards")
+            ZStack {
+                Image(nsImage: image)
+                    .resizable()
+                    .interpolation(.high)
+                    .aspectRatio(contentMode: .fill)
+                // The photo stays underneath, so nothing blinks before the loop's first frame, and it is all that
+                // shows with Reduce Motion on.
+                if !still && !reduceMotion, let loop = BrandResources.openingLoop {
+                    OpeningLoop(url: loop).accessibilityHidden(true)
+                }
+            }
+            .frame(width: OpeningWindowController.size.width, height: OpeningWindowController.size.height)
+            .clipped()
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("A messy draft on a sticky note, a small keyboard, and three polished takes on paper cards")
         } else {
             Color(hex: "#F1DEC9")
         }
+    }
+}
+
+/// The muted, looping video over the opening photo. Clicks and drags pass through to the window, which moves by its
+/// background; playback stops when the window goes away.
+private struct OpeningLoop: NSViewRepresentable {
+    let url: URL
+
+    func makeNSView(context: Context) -> OpeningLoopView { OpeningLoopView(url: url) }
+    func updateNSView(_ view: OpeningLoopView, context: Context) {}
+}
+
+final class OpeningLoopView: NSView {
+    private let player = AVQueuePlayer()
+    private var looper: AVPlayerLooper?
+
+    init(url: URL) {
+        super.init(frame: .zero)
+        wantsLayer = true
+        player.isMuted = true
+        player.preventsDisplaySleepDuringVideoPlayback = false
+        looper = AVPlayerLooper(player: player, templateItem: AVPlayerItem(url: url))
+        let playerLayer = AVPlayerLayer(player: player)
+        playerLayer.videoGravity = .resizeAspectFill
+        playerLayer.autoresizingMask = [.layerWidthSizable, .layerHeightSizable]
+        playerLayer.backgroundColor = .clear
+        layer?.addSublayer(playerLayer)
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+
+    override func layout() {
+        super.layout()
+        layer?.sublayers?.forEach { $0.frame = bounds }
+    }
+
+    override var mouseDownCanMoveWindow: Bool { true }
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        if window == nil { player.pause() } else { player.play() }
     }
 }
