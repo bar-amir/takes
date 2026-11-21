@@ -30,12 +30,17 @@ Copies you build yourself never check for updates.
 | Features | `Proofread.swift`, `Diff.swift`, `InstantMode*.swift`, `ReplyContext*.swift`, `ToneCheck*.swift`, `Dictation*.swift` |
 | Setup and onboarding | `Setup.swift`, `Onboarding*.swift`, `SystemShortcuts.swift` |
 | Settings | `SettingsWindow.swift` (window, toolbar tabs), `SettingsForm.swift` (grouped form parts), `GeneralTab.swift`, `PresetsTab.swift`, `WritingTab.swift`, `EngineTab.swift` (Model), `HistoryTab.swift`, `LocalEngineViews.swift`, `ProviderEngineViews.swift`, `ChatGPTEngineViews.swift` |
-| Screenshots | `Snapshot*.swift` |
-| Speed tests | `Bench.swift`, `ToneBench.swift`, `RunLog.swift` |
+| Screenshots | `Snapshot*.swift` || Speed tests | `Bench.swift`, `ToneBench.swift`, `RunLog.swift` |
 
 ## Screenshots
 
 `build/Takes.app/Contents/MacOS/Takes --snapshot <folder>` renders every screen with sample data to PNGs. It uses starter presets and default settings, reads and writes none of your Takes files, and runs none of the setup checks (no `claude`, no probe of a model server), so it works in a distributed build too. Include the relevant ones in pull requests that change the UI. The images in `site/img` come from it.
+
+## Trying onboarding as a new user
+
+`scripts/reset-to-new-install.sh` quits Takes, moves its files and preferences into a dated backup, and resets its Accessibility, Microphone and Speech Recognition access, so the next launch starts onboarding from the opening screen. `--keychain` also deletes saved API keys and the ChatGPT sign-in (those aren't backed up). `--restore` puts the latest backup back. It leaves Claude Code, local model servers and the login item alone, so to see onboarding on a Mac without Claude Code, use a new macOS user account or a virtual machine.
+
+Test with the notarized `.dmg` from a release, downloaded in a browser, when what you're checking depends on Gatekeeper: only a downloaded copy is quarantined and run from a temporary folder until it's moved to Applications.
 
 ## Translations
 
