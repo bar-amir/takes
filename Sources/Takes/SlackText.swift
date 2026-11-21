@@ -60,31 +60,13 @@ enum SlackText {
     /// Runs with the same text are given out in the order they were in the draft, and no more of them than the
     /// draft had, except a mention: every place the take names that person is the mention.
     static func delta(for take: String, keeping runs: [Run]) -> String? {
-        var groups: [String: [Run]] = [:]
-        var texts: [String] = []
-        for run in runs {
-            let key = run.text.lowercased()
-            if groups[key] == nil { texts.append(key) }
-            groups[key, default: []].append(run)
-        }
-        // Longest first, so "the launch doc" is matched before a "doc" inside it.
-        let longestFirst = texts.enumerated().sorted { ($1.element.count, $0.offset) < ($0.element.count, $1.offset) }.map(\.element)
-
-        var kept: [(range: Range<String.Index>, run: Run)] = []
-        for text in longestFirst {
-            guard let group = groups[text], let last = group.last else { continue }
-            var next = 0
-            for range in occurrences(of: text, in: take) where !kept.contains(where: { $0.range.overlaps(range) }) {
-                guard next < group.count || last.isMention else { break }
-                kept.append((range, next < group.count ? group[next] : last))
-                next += 1
-            }
-        }
+        let kept = KeptRuns.place(runs.map { (text: $0.text, repeats: $0.isMention) }, in: take)
         guard !kept.isEmpty else { return nil }
 
         var ops: [[String: Any]] = []
         var position = take.startIndex
-        for (range, run) in kept.sorted(by: { $0.range.lowerBound < $1.range.lowerBound }) {
+        for (range, index) in kept {
+            let run = runs[index]
             if position < range.lowerBound { ops.append(["insert": String(take[position..<range.lowerBound])]) }
             // A mention shows the person's name as Slack has it, whatever case the take wrote it in.
             ops.append(["insert": run.isMention ? run.text : String(take[range]), "attributes": run.attributes])
@@ -93,6 +75,39 @@ enum SlackText {
         if position < take.endIndex { ops.append(["insert": String(take[position...])]) }
         guard let data = try? JSONSerialization.data(withJSONObject: ["ops": ops]) else { return nil }
         return String(data: data, encoding: .utf8)
+    }
+}
+
+/// Finds where a take still has, word for word, the marked stretches of the draft it replaces: a mention, a link,
+/// a bold phrase. Shared by `SlackText` and `RichText`.
+enum KeptRuns {
+    /// Each place in `take` that keeps one of `runs`, in the order they come in the take, with the run's index.
+    ///
+    /// A run is looked for as whole words, in any case ("@evan" at the start of a sentence comes back "@Evan").
+    /// Runs with the same text are given out in the order they were in the draft, and no more of them than the
+    /// draft had, except one that `repeats`: then every place the take has it is that run.
+    static func place(_ runs: [(text: String, repeats: Bool)], in take: String) -> [(range: Range<String.Index>, index: Int)] {
+        var groups: [String: [Int]] = [:]
+        var texts: [String] = []
+        for (index, run) in runs.enumerated() {
+            let key = run.text.lowercased()
+            if groups[key] == nil { texts.append(key) }
+            groups[key, default: []].append(index)
+        }
+        // Longest first, so "the launch doc" is matched before a "doc" inside it.
+        let longestFirst = texts.enumerated().sorted { ($1.element.count, $0.offset) < ($0.element.count, $1.offset) }.map(\.element)
+
+        var kept: [(range: Range<String.Index>, index: Int)] = []
+        for text in longestFirst {
+            guard let group = groups[text], let last = group.last else { continue }
+            var next = 0
+            for range in occurrences(of: text, in: take) where !kept.contains(where: { $0.range.overlaps(range) }) {
+                guard next < group.count || runs[last].repeats else { break }
+                kept.append((range, next < group.count ? group[next] : last))
+                next += 1
+            }
+        }
+        return kept.sorted { $0.range.lowerBound < $1.range.lowerBound }
     }
 
     /// Where `text` is in `take` as whole words: not inside a longer word, name or address.

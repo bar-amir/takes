@@ -306,6 +306,41 @@ final class PasterTests: XCTestCase {
         XCTAssertEqual(pasteboard.string(forType: .string), "copied meanwhile")
     }
 
+    // MARK: A text box that keeps links and styles as HTML (mail, docs, a browser)
+
+    func testAPasteIntoARichTextBoxKeepsTheLinkAsHTML() async throws {
+        let draft = FocusSnapshot(app: nil, text: "pls check the doc before 5", source: .field, caretRect: nil)
+        let env = slackEnvironment { [unowned self] in
+            pasteboard.clearContents()
+            pasteboard.setString(draft.text, forType: .string)
+            pasteboard.setString(#"<meta charset="utf-8">pls check <a href="https://example.com/doc">the doc</a> before 5"#, forType: .html)
+        }
+        let take = "Could you check the doc before 5?"
+        let outcome = await paste(env, text: take, into: draft)
+        XCTAssertEqual(outcome, .pasted)
+        XCTAssertEqual(keys, [kVK_ANSI_A, kVK_ANSI_C, kVK_ANSI_V])
+        XCTAssertEqual(pasteboard.string(forType: .string), take)
+        let html = try XCTUnwrap(pasteboard.string(forType: .html))
+        XCTAssertTrue(html.contains(#"<a href="https://example.com/doc">the doc</a>"#))
+        XCTAssertNil(pastedFormat(), "no Slack format for an app that isn't Slack")
+        XCTAssertEqual(notes, ["paste sent\twhat the check found\tformatting kept"])
+        await settle()
+        XCTAssertEqual(pasteboard.string(forType: .string), "what the user copied")
+        XCTAssertNil(pasteboard.string(forType: .html))
+    }
+
+    func testAPlainCopyFromARichTextBoxPastesThePlainTake() async {
+        let draft = FocusSnapshot(app: nil, text: "pls check the doc", source: .field, caretRect: nil)
+        let env = slackEnvironment { [unowned self] in
+            pasteboard.clearContents()
+            pasteboard.setString(draft.text, forType: .string)
+        }
+        _ = await paste(env, text: "Could you check the doc?", into: draft)
+        XCTAssertEqual(pasteboard.string(forType: .string), "Could you check the doc?")
+        XCTAssertNil(pasteboard.string(forType: .html))
+        XCTAssertEqual(notes, ["paste sent\twhat the check found"])
+    }
+
     // MARK: The user's clipboard
 
     func testClipboardComesBackAfterAPaste() async {

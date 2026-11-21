@@ -24,7 +24,7 @@ Copies you build yourself never check for updates.
 | Hotkey, panel window and placement | `HotKey.swift`, `PanelController.swift`, `Placement.swift` |
 | Panel state and screens | `PanelModel.swift`, `PanelViews.swift` |
 | Reading the focused field | `FocusReader.swift`, `AXProbe.swift` |
-| Pasting and restoring the clipboard | `Paster.swift`, `SlackText.swift` (mentions and links in Slack), `Toast.swift` |
+| Pasting and restoring the clipboard | `Paster.swift`, `SlackText.swift` (mentions and links in Slack), `RichText.swift` (links and styles in other apps), `Toast.swift` |
 | Prompts and engines | `Prompt.swift`, `Engine.swift`, `ClaudeCodeEngine.swift`, `APIEngine.swift`, `LocalEngine.swift`, `ProviderEngine.swift`, `ChatGPTEngine.swift`, `ChatGPTAuth.swift` |
 | Presets, gallery and options | `Store.swift`, `PresetsTab.swift`, `PresetGallery*.swift`, `PresetOptions.swift` |
 | Features | `Proofread.swift`, `Diff.swift`, `InstantMode*.swift`, `ReplyContext*.swift`, `ToneCheck*.swift`, `Dictation*.swift` |
@@ -83,7 +83,13 @@ If the app says another box has focus, or (when replacing everything) the text c
 
 Takes reads and pastes plain text, and Slack's message box holds more than that: a mention is a person, a link has an address, a word can be bold. So a paste into Slack that replaces text (the whole box, or a selection) sends one more key. After the checks above, and after ⌘A when it replaces everything, it sends ⌘C, waits up to 0.3 s for Slack's copy to land, and reads Slack's own clipboard format from it: `slack/texty`, the message as a list of inserts with their attributes (a Quill delta), kept in Chromium's `org.chromium.web-custom-data` pasteboard type. Each mention, link or styled phrase the take still has, word for word and as whole words, is marked again, and the take goes on the clipboard as plain text plus that format, which Slack's paste prefers. A mention is marked wherever the take names that person; anything else only as often as the draft had it. Whole-line styles (lists, quotes, code blocks) aren't carried over.
 
-If no copy lands, or the take kept nothing, the take is pasted as plain text, as in any other app. The copied draft is read for those marks only: it is never logged or stored, and the take replaces it on the clipboard at once. It's all in `SlackText.swift`; `PromptBuilder.keepMentions` asks the model to leave @mentions and #channels as written. Slack in a browser isn't covered.
+If no copy lands, or the take kept nothing, the take is pasted as plain text, as in any other app. The copied draft is read for those marks only: it is never logged or stored, and the take replaces it on the clipboard at once. It's all in `SlackText.swift`; `PromptBuilder.keepMentions` asks the model to leave @mentions and #channels as written. Slack in a browser goes the way of other apps in a browser, below.
+
+### Links and styles in other apps
+
+Mail, docs and notes apps and web pages in a browser (Gmail, Google Docs, Outlook, Notion) hold links and styles too, and put HTML or RTF on the clipboard when they copy. `RichText.bundleIDs` lists the apps: Chrome, Safari, Arc, Edge, Brave, Firefox, Mail, Outlook, Teams, Notion, Notes, Word, Pages and Linear. A paste there that replaces text sends ⌘C the same way and waits for HTML or RTF to land. HTML is read with a small scanner of its own, never loaded as a web page, so nothing in it is fetched; RTF is read with `NSAttributedString`. Links, bold, italic, underline, strikethrough and code (a monospaced font) count, from tags or inline `style`, so Google Docs' spans and its not-bold `<b>` wrapper read right. A style the whole copy has is the box's own look and doesn't count.
+
+Each link or styled phrase the take still has, word for word and as whole words, is marked again (no more often than the draft had it), and the take goes on the clipboard as plain text plus minimal HTML: a `<div>` per line and only `<a>`, `<b>`, `<i>`, `<u>`, `<s>` and `<code>`, with no fonts or colors, so it takes the box's look. A take that kept nothing, or a copy with no HTML or RTF (a browser's plain text area), is pasted as plain text, so a plain box never gets HTML. Slack is never sent HTML: only its own format. Adding an app is a line in `RichText.bundleIDs`.
 
 Tools for debugging an app where reading or pasting fails:
 
