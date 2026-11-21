@@ -1142,3 +1142,8 @@
 "This is the Open Takes hotkey too; only one of them can fire." = "Toto je aj skratka Otvoriť Takes; spustiť sa môže len jedna z nich.";
 "This version of Claude Code is too old for Takes. Update it (run `claude update` in Terminal), or pick another engine in Settings › Model." = "Táto verzia Claude Code je pre Takes príliš stará. Aktualizujte ju (spustite `claude update` v Termináli) alebo vyberte iný nástroj v okne Nastavenia › Model.";
 "Too old (%@)" = "Príliš starý (%@)";
+"Prompt for AI" = "Prompt pre AI";
+"Casual message" = "Neformálna správa";
+"Work chat" = "Pracovný chat";
+"A rough ask into a clear prompt." = "Hrubé zadanie na jasný prompt.";
+"Short and warm, the way you text." = "Krátko a srdečne, ako píšete správy.";

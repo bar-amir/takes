@@ -1142,3 +1142,8 @@
 "This is the Open Takes hotkey too; only one of them can fire." = "이것은 Takes 열기 단축키이기도 합니다. 둘 중 하나만 작동합니다.";
 "This version of Claude Code is too old for Takes. Update it (run `claude update` in Terminal), or pick another engine in Settings › Model." = "이 버전의 Claude Code는 Takes에 사용하기에 너무 오래되었습니다. 업데이트하거나(터미널에서 `claude update` 실행) 설정 › 모델에서 다른 엔진을 선택하세요.";
 "Too old (%@)" = "너무 오래됨(%@)";
+"Prompt for AI" = "AI 프롬프트";
+"Casual message" = "편한 메시지";
+"Work chat" = "업무 채팅";
+"A rough ask into a clear prompt." = "대략적인 요청을 명확한 프롬프트로.";
+"Short and warm, the way you text." = "짧고 다정하게, 평소 문자처럼.";

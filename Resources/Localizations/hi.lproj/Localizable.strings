@@ -1142,3 +1142,8 @@
 "This is the Open Takes hotkey too; only one of them can fire." = "यह “Takes खोलें” की हॉटकी भी है; दोनों में से एक ही चल सकती है।";
 "This version of Claude Code is too old for Takes. Update it (run `claude update` in Terminal), or pick another engine in Settings › Model." = "Claude Code का यह संस्करण Takes के लिए बहुत पुराना है। इसे अपडेट करें (टर्मिनल में `claude update` चलाएँ), या सेटिंग्स › मॉडल में कोई दूसरा इंजन चुनें।";
 "Too old (%@)" = "बहुत पुराना (%@)";
+"Prompt for AI" = "एआई के लिए प्रॉम्प्ट";
+"Casual message" = "अनौपचारिक संदेश";
+"Work chat" = "काम की चैट";
+"A rough ask into a clear prompt." = "अधूरी माँग से साफ़ प्रॉम्प्ट।";
+"Short and warm, the way you text." = "छोटा और आत्मीय, जैसे आप मैसेज करते हैं।";

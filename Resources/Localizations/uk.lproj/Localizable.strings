@@ -1142,3 +1142,8 @@
 "This is the Open Takes hotkey too; only one of them can fire." = "Це також гаряча клавіша «Відкрити Takes»; спрацювати може лише одна.";
 "This version of Claude Code is too old for Takes. Update it (run `claude update` in Terminal), or pick another engine in Settings › Model." = "Ця версія Claude Code застаріла для Takes. Оновіть її (виконайте `claude update` в Терміналі) або виберіть інший рушій у розділі «Параметри › Модель».";
 "Too old (%@)" = "Застаріла (%@)";
+"Prompt for AI" = "Промпт для ШІ";
+"Casual message" = "Невимушене повідомлення";
+"Work chat" = "Робочий чат";
+"A rough ask into a clear prompt." = "Чорновий запит стає чітким промптом.";
+"Short and warm, the way you text." = "Коротко й тепло, як у листуванні.";

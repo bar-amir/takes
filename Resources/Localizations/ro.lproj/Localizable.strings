@@ -1142,3 +1142,8 @@
 "This is the Open Takes hotkey too; only one of them can fire." = "Aceasta este și tasta rapidă Deschideți Takes; doar una dintre ele poate fi declanșată.";
 "This version of Claude Code is too old for Takes. Update it (run `claude update` in Terminal), or pick another engine in Settings › Model." = "Această versiune de Claude Code este prea veche pentru Takes. Actualizați-o (rulați `claude update` în Terminal) sau alegeți alt motor în Configurări › Model.";
 "Too old (%@)" = "Prea vechi (%@)";
+"Prompt for AI" = "Prompt pentru AI";
+"Casual message" = "Mesaj lejer";
+"Work chat" = "Chat de serviciu";
+"A rough ask into a clear prompt." = "O cerere vagă devine un prompt clar.";
+"Short and warm, the way you text." = "Scurt și cald, cum scrii pe mesaje.";

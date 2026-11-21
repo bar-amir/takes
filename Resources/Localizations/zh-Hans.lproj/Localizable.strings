@@ -1142,3 +1142,8 @@
 "This is the Open Takes hotkey too; only one of them can fire." = "这也是“打开 Takes”的快捷键；两者只能触发一个。";
 "This version of Claude Code is too old for Takes. Update it (run `claude update` in Terminal), or pick another engine in Settings › Model." = "此版本的 Claude Code 对 Takes 来说太旧了。请更新（在“终端”中运行 `claude update`），或在“设置 › 模型”中另选一个引擎。";
 "Too old (%@)" = "太旧（%@）";
+"Prompt for AI" = "给 AI 的提示词";
+"Casual message" = "随意的消息";
+"Work chat" = "工作聊天";
+"A rough ask into a clear prompt." = "把粗略的需求写成清楚的提示词。";
+"Short and warm, the way you text." = "简短亲切，就像平时发消息。";

@@ -53,7 +53,7 @@ final class PresetGalleryTests: XCTestCase {
 
     func testAllGalleryPresetsAreValid() {
         let all = PresetGallery.all
-        XCTAssertTrue((12...14).contains(all.count))
+        XCTAssertTrue((14...16).contains(all.count))
         XCTAssertEqual(Set(all.map(\.id)).count, all.count, "Unique ids")
         XCTAssertEqual(Set(all.map { $0.name.lowercased() }).count, all.count, "Unique names")
         for preset in all {
@@ -116,6 +116,61 @@ final class PresetGalleryTests: XCTestCase {
         XCTAssertTrue(model.showsBrowseRow, "Offered when the filter matches nothing")
         model.moveHighlight(1)
         XCTAssertTrue(model.browseRowHighlighted)
+    }
+}
+
+/// On a fresh install the starters follow the common apps on the Mac.
+final class StarterAppsTests: XCTestCase {
+    private func starters(_ installed: Set<String>) -> [Preset] {
+        PresetGallery.starters(languages: ["en"], installed: { installed.contains($0) })
+    }
+
+    private func preset(_ id: String, in presets: [Preset]) -> Preset? { presets.first { $0.id == id } }
+
+    func testNothingInstalledKeepsTheUsualStarters() {
+        let presets = starters([])
+        XCTAssertEqual(presets.map(\.id), [PresetGallery.slack, .proofread, PresetGallery.email, PresetGallery.shorter,
+                                           PresetGallery.friendlier, PresetGallery.direct, PresetGallery.decline].map(\.id))
+        XCTAssertEqual(preset(PresetGallery.slack.id, in: presets)?.name, PresetGallery.slack.name)
+        XCTAssertEqual(preset(PresetGallery.email.id, in: presets)?.apps.map(\.bundleID), ["com.apple.mail"])
+    }
+
+    func testAIAppsAddPromptForAI() {
+        let presets = starters(["com.openai.chat", "com.anthropic.claudefordesktop"])
+        let prompt = preset(PresetGallery.promptForAI.id, in: presets)
+        XCTAssertEqual(prompt?.apps.map(\.name), ["ChatGPT", "Claude"])
+        XCTAssertNil(preset(PresetGallery.casual.id, in: presets))
+        XCTAssertEqual(presets.firstIndex { $0.id == PresetGallery.promptForAI.id }, 3, "Right after Polish email")
+    }
+
+    func testChatAppsAddCasualWithMessages() {
+        let presets = starters(["net.whatsapp.WhatsApp", "com.apple.MobileSMS"])
+        XCTAssertEqual(preset(PresetGallery.casual.id, in: presets)?.apps.map(\.name), ["WhatsApp", "Messages"])
+    }
+
+    /// Every Mac has Messages, so it alone doesn't add a preset to every install.
+    func testMessagesAloneAddsNothing() {
+        XCTAssertNil(preset(PresetGallery.casual.id, in: starters(["com.apple.MobileSMS"])))
+    }
+
+    func testTeamsJoinsTheChatPreset() {
+        let chat = preset(PresetGallery.slack.id, in: starters(["com.microsoft.teams2"]))
+        XCTAssertEqual(chat?.apps.map(\.bundleID), ["com.tinyspeck.slackmacgap", "com.microsoft.teams2"])
+        XCTAssertEqual(chat?.name, "Work chat")
+    }
+
+    func testEmailAppsJoinPolishEmail() {
+        let mail = preset(PresetGallery.email.id, in: starters(["com.microsoft.Outlook", "com.superhuman.electron"]))
+        XCTAssertEqual(mail?.apps.map(\.name), ["Mail", "Outlook", "Superhuman"])
+    }
+
+    /// The first preset that lists an app is the one picked there, so no app may be on two starters.
+    func testNoAppIsOnTwoStarters() {
+        let everything = Set((PresetGallery.teams + PresetGallery.emailApps + PresetGallery.promptForAI.apps
+            + PresetGallery.casual.apps + PresetGallery.slack.apps + PresetGallery.email.apps).map(\.bundleID))
+        let ids = starters(everything).flatMap { $0.apps.map(\.bundleID) }
+        XCTAssertEqual(ids.count, Set(ids).count)
+        XCTAssertEqual(Set(ids), everything)
     }
 }
 

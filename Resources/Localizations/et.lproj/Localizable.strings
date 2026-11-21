@@ -1142,3 +1142,8 @@
 "This is the Open Takes hotkey too; only one of them can fire." = "See on ka kiirklahv Ava Takes; käivituda saab neist vaid üks.";
 "This version of Claude Code is too old for Takes. Update it (run `claude update` in Terminal), or pick another engine in Settings › Model." = "See Claude Code'i versioon on Takesi jaoks liiga vana. Uuendage seda (käivitage Terminalis `claude update`) või valige teine mootor: Seaded › Mudel.";
 "Too old (%@)" = "Liiga vana (%@)";
+"Prompt for AI" = "Viip tehisintellektile";
+"Casual message" = "Vaba sõnum";
+"Work chat" = "Töövestlus";
+"A rough ask into a clear prompt." = "Umbmäärane soov selgeks viibaks.";
+"Short and warm, the way you text." = "Lühike ja soe, nagu sõnumites.";

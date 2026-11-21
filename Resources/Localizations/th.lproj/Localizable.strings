@@ -1142,3 +1142,8 @@
 "This is the Open Takes hotkey too; only one of them can fire." = "นี่เป็นปุ่มลัดเปิด Takes ด้วย ทำงานได้แค่อย่างใดอย่างหนึ่ง";
 "This version of Claude Code is too old for Takes. Update it (run `claude update` in Terminal), or pick another engine in Settings › Model." = "Claude Code เวอร์ชันนี้เก่าเกินไปสำหรับ Takes อัปเดต (รัน `claude update` ในเทอร์มินัล) หรือเลือกเอนจินอื่นในการตั้งค่า › โมเดล";
 "Too old (%@)" = "เก่าเกินไป (%@)";
+"Prompt for AI" = "พรอมต์สำหรับ AI";
+"Casual message" = "ข้อความสบาย ๆ";
+"Work chat" = "แชตงาน";
+"A rough ask into a clear prompt." = "คำขอคร่าว ๆ เป็นพรอมต์ที่ชัดเจน";
+"Short and warm, the way you text." = "สั้นและอบอุ่น เหมือนที่คุณแชต";
