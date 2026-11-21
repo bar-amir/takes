@@ -32,6 +32,12 @@ enum BrandResources {
         guard let url = folder?.appendingPathComponent("Onboarding/opening.jpg") else { return nil }
         return NSImage(contentsOf: url)
     }
+
+    /// The opening screen's key-press loop (`Resources/Onboarding/opening-loop.mp4`), when it's there.
+    static var openingLoop: URL? {
+        guard let url = folder?.appendingPathComponent("Onboarding/opening-loop.mp4") else { return nil }
+        return FileManager.default.fileExists(atPath: url.path) ? url : nil
+    }
 }
 
 extension Font {
