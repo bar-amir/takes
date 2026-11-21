@@ -24,7 +24,7 @@ Copies you build yourself never check for updates.
 | Hotkey, panel window and placement | `HotKey.swift`, `PanelController.swift`, `Placement.swift` |
 | Panel state and screens | `PanelModel.swift`, `PanelViews.swift` |
 | Reading the focused field | `FocusReader.swift`, `AXProbe.swift` |
-| Pasting and restoring the clipboard | `Paster.swift`, `Toast.swift` |
+| Pasting and restoring the clipboard | `Paster.swift`, `SlackText.swift` (mentions and links in Slack), `Toast.swift` |
 | Prompts and engines | `Prompt.swift`, `Engine.swift`, `ClaudeCodeEngine.swift`, `APIEngine.swift`, `LocalEngine.swift`, `ProviderEngine.swift`, `ChatGPTEngine.swift`, `ChatGPTAuth.swift` |
 | Presets, gallery and options | `Store.swift`, `PresetsTab.swift`, `PresetGallery*.swift`, `PresetOptions.swift` |
 | Features | `Proofread.swift`, `Diff.swift`, `InstantMode*.swift`, `ReplyContext*.swift`, `ToneCheck*.swift`, `Dictation*.swift` |
@@ -78,6 +78,12 @@ Takes only ever reads a real text box (text area, text field, search or combo bo
 Before pasting, Takes puts focus back into the original field. Before any key is sent it asks the app which box has focus, as far as the app answers. Some apps build their text box anew while the panel has the keyboard, so a different text box in the same app also passes if it holds what was read: the same text, the same selection, or nothing for a box that was empty. A password field never does. An app that can't say which box has focus still gets a plain ⌘V at the caret or over a selection; only replacing everything needs proof: the same (or an equivalent) box and, if the text was read through accessibility, that it still holds that text. Text read by ⌘A ⌘C can't be compared, so there a replace-all needs the same box only.
 
 If the app says another box has focus, or (when replacing everything) the text changed, no keys are sent. The panel leaves the take on the clipboard for you to paste, and "Write and paste right away" says nothing was pasted and puts your clipboard back. If the app can't be brought to the front, nothing is typed and the take stays on the clipboard. A paste can also be called off before any key is sent (Esc during "Write and paste right away", or opening the panel again): nothing is typed and your clipboard goes back. After a paste, your clipboard is restored (unless the setting is off), but only if nothing else was copied since. Every paste adds a line to `focus.log`: "paste sent" with which check let it through, or "paste not sent" with why (the app and the reason, never text). The log is capped at about 512 KB; the oldest lines are dropped.
+
+### Mentions and links in Slack
+
+Takes reads and pastes plain text, and Slack's message box holds more than that: a mention is a person, a link has an address, a word can be bold. So a paste into Slack that replaces text (the whole box, or a selection) sends one more key. After the checks above, and after ⌘A when it replaces everything, it sends ⌘C, waits up to 0.3 s for Slack's copy to land, and reads Slack's own clipboard format from it: `slack/texty`, the message as a list of inserts with their attributes (a Quill delta), kept in Chromium's `org.chromium.web-custom-data` pasteboard type. Each mention, link or styled phrase the take still has, word for word and as whole words, is marked again, and the take goes on the clipboard as plain text plus that format, which Slack's paste prefers. A mention is marked wherever the take names that person; anything else only as often as the draft had it. Whole-line styles (lists, quotes, code blocks) aren't carried over.
+
+If no copy lands, or the take kept nothing, the take is pasted as plain text, as in any other app. The copied draft is read for those marks only: it is never logged or stored, and the take replaces it on the clipboard at once. It's all in `SlackText.swift`; `PromptBuilder.keepMentions` asks the model to leave @mentions and #channels as written. Slack in a browser isn't covered.
 
 Tools for debugging an app where reading or pasting fails:
 

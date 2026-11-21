@@ -35,6 +35,12 @@ final class PromptBuilderTests: XCTestCase {
         XCTAssertFalse(system.contains("Paused rule"))
     }
 
+    func testMentionsAreKeptAsWrittenInEveryPreset() {
+        // Only an @mention the take writes the same way can be pasted back as the person it was (SlackText).
+        XCTAssertTrue(PromptBuilder.system(preset: preset, takes: 2, rules: []).contains(PromptBuilder.keepMentions))
+        XCTAssertTrue(PromptBuilder.system(preset: .proofread, takes: 1, rules: []).contains(PromptBuilder.keepMentions))
+    }
+
     func testLanguageInstruction() {
         var hebrew = preset
         hebrew.language = .hebrew
