@@ -90,6 +90,18 @@ final class RichTextTests: XCTestCase {
         XCTAssertEqual(html, #"<meta charset="utf-8"><div>Hi,</div><div><br></div><div><b>The doc</b> &lt;draft&gt; &amp; notes.</div>"#)
     }
 
+    func testDoubleSpacesIndentsAndTabsSurvive() throws {
+        let html = try XCTUnwrap(RichText.html(for: "One.  Two\n  - the doc\n\tend", keeping: [RichText.Run(text: "the doc", style: bold)]))
+        XCTAssertEqual(
+            html,
+            #"<meta charset="utf-8"><div>One. &nbsp;Two</div><div>&nbsp;&nbsp;- <b>the doc</b></div><div>&nbsp;&nbsp;&nbsp;&nbsp;end</div>"#)
+    }
+
+    func testATrailingLineBreakAddsNoBlankLine() throws {
+        let html = try XCTUnwrap(RichText.html(for: "See the doc.\n", keeping: [RichText.Run(text: "the doc", style: bold)]))
+        XCTAssertEqual(html, #"<meta charset="utf-8"><div>See <b>the doc</b>.</div>"#)
+    }
+
     func testAnAddressIsEscapedInTheLink() throws {
         let html = try XCTUnwrap(RichText.html(for: "See here.", keeping: [RichText.Run(text: "here", style: link(#"https://x.com/?q="a"&b"#))]))
         XCTAssertTrue(html.contains(#"<a href="https://x.com/?q=&quot;a&quot;&amp;b">here</a>"#))

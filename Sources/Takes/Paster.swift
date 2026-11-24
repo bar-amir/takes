@@ -41,8 +41,10 @@ enum Paster {
         /// Whether the text box keeps mentions, links and styles that a plain paste would lose (Slack's message box,
         /// a mail or docs app, a web page in a browser).
         var keepsFormatting: (FocusSnapshot?) -> Bool = { KeptFormatting.applies(to: $0) }
-        /// How long the app's own copy of what is being replaced may take to land.
-        var copyWait: TimeInterval = 0.3
+        /// How long the app's own copy of what is being replaced may take to land. Generous on purpose: the app
+        /// handles ⌘C before the ⌘V behind it, so a copy that lands after Takes stopped waiting would replace the
+        /// take, and the app would paste the user's own text back. The wait ends as soon as the copy lands.
+        var copyWait: TimeInterval = 1
     }
 
     /// `done(.pasted)` once ⌘V was sent to the text box. Any other outcome means nothing was typed anywhere.

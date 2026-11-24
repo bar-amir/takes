@@ -343,14 +343,18 @@ enum RichText {
 
         var body = ""
         var position = take.startIndex
+        // Whether the last character written was a space or a line break, so the next space is kept as one.
+        var afterSpace = true
         for (range, index) in kept {
-            body += escape(take[position..<range.lowerBound])
-            body += marked(escape(take[range]), runs[index].style)
+            body += escape(take[position..<range.lowerBound], afterSpace: &afterSpace)
+            body += marked(escape(take[range], afterSpace: &afterSpace), runs[index].style)
             position = range.upperBound
         }
-        body += escape(take[position...])
-        let lines = body.split(separator: "\n", omittingEmptySubsequences: false).map { $0.isEmpty ? "<div><br></div>" : "<div>\($0)</div>" }
-        return "<meta charset=\"utf-8\">" + lines.joined()
+        body += escape(take[position...], afterSpace: &afterSpace)
+        var lines = body.split(separator: "\n", omittingEmptySubsequences: false)
+        // A take that ends with a line break would otherwise get a blank line after it.
+        if lines.count > 1, lines.last?.isEmpty == true { lines.removeLast() }
+        return "<meta charset=\"utf-8\">" + lines.map { $0.isEmpty ? "<div><br></div>" : "<div>\($0)</div>" }.joined()
     }
 
     private static func marked(_ text: String, _ style: Style) -> String {
@@ -360,11 +364,16 @@ enum RichText {
         if style.underline { html = "<u>\(html)</u>" }
         if style.italic { html = "<i>\(html)</i>" }
         if style.bold { html = "<b>\(html)</b>" }
-        if let link = style.link { html = "<a href=\"\(escape(Substring(link)))\">\(html)</a>" }
+        if let link = style.link {
+            var inAttribute = false
+            html = "<a href=\"\(escape(Substring(link), afterSpace: &inAttribute))\">\(html)</a>"
+        }
         return html
     }
 
-    private static func escape(_ text: Substring) -> String {
+    /// Escapes `text` for HTML. HTML folds runs of spaces into one and drops a line's leading spaces, so a space
+    /// at the start of a line or after another space, and every tab, is written as a no-break space.
+    private static func escape(_ text: Substring, afterSpace: inout Bool) -> String {
         var escaped = ""
         for character in text {
             switch character {
@@ -372,8 +381,11 @@ enum RichText {
             case "<": escaped += "&lt;"
             case ">": escaped += "&gt;"
             case "\"": escaped += "&quot;"
+            case " " where afterSpace: escaped += "&nbsp;"
+            case "\t": escaped += "&nbsp;&nbsp;&nbsp;&nbsp;"
             default: escaped.append(character)
             }
+            afterSpace = character == " " || character == "\t" || character == "\n"
         }
         return escaped
     }
