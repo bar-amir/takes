@@ -276,18 +276,30 @@ enum PresetGallery {
     ]
 }
 
-/// Whether an app is on this Mac, by bundle id. Asked once per id: Launch Services lookups aren't free, and the gallery
-/// asks every time it's drawn.
+/// Whether an app is on this Mac, by bundle id. Launch Services lookups aren't free, and the gallery asks every time
+/// it's drawn, so answers are kept: "installed" for good, "not installed" for `recheckAfter`, so an app installed
+/// while Takes runs is noticed without a restart.
 enum InstalledApps {
     private static let lock = NSLock()
-    nonisolated(unsafe) private static var known: [String: Bool] = [:]
+    nonisolated(unsafe) private static var known: [String: (installed: Bool, at: Date)] = [:]
+    static let recheckAfter: TimeInterval = 30
+
+    /// What `--snapshot` renders take as installed, so they come out the same on every Mac and in CI.
+    static let inSnapshots: Set<String> = ["com.openai.chat", "com.anthropic.claudefordesktop", "net.whatsapp.WhatsApp"]
 
     static func contains(_ bundleID: String) -> Bool {
+        if Store.readOnly { return inSnapshots.contains(bundleID) }
+        return contains(bundleID, now: Date()) { NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0) != nil }
+    }
+
+    static func contains(_ bundleID: String, now: Date, lookUp: (String) -> Bool) -> Bool {
         lock.lock()
         defer { lock.unlock() }
-        if let found = known[bundleID] { return found }
-        let found = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) != nil
-        known[bundleID] = found
-        return found
+        if let answer = known[bundleID], answer.installed || now.timeIntervalSince(answer.at) < recheckAfter {
+            return answer.installed
+        }
+        let installed = lookUp(bundleID)
+        known[bundleID] = (installed, now)
+        return installed
     }
 }

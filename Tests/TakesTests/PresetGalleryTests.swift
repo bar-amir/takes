@@ -188,4 +188,26 @@ final class StarterOrderTests: XCTestCase {
             XCTAssertGreaterThan(first.takes, 1)
         }
     }
+
+    /// An app installed while Takes runs is noticed once "not installed" is old enough to ask again.
+    func testANewlyInstalledAppIsNoticed() {
+        let id = "com.example.installed-later-\(UUID().uuidString)"
+        let start = Date()
+        var installed = false
+        var lookUps = 0
+        let lookUp: (String) -> Bool = { _ in lookUps += 1; return installed }
+        XCTAssertFalse(InstalledApps.contains(id, now: start, lookUp: lookUp))
+        installed = true
+        XCTAssertFalse(InstalledApps.contains(id, now: start.addingTimeInterval(5), lookUp: lookUp), "kept a while")
+        XCTAssertTrue(InstalledApps.contains(id, now: start.addingTimeInterval(InstalledApps.recheckAfter + 1), lookUp: lookUp))
+        XCTAssertTrue(InstalledApps.contains(id, now: start.addingTimeInterval(1_000), lookUp: lookUp))
+        XCTAssertEqual(lookUps, 2, "installed is kept for good")
+    }
+
+    func testSnapshotsDontDependOnThisMac() {
+        Store.readOnly = true
+        defer { Store.readOnly = false }
+        XCTAssertTrue(InstalledApps.contains("com.openai.chat"))
+        XCTAssertFalse(InstalledApps.contains("com.apple.Safari"), "only the fixed set, whatever is on this Mac")
+    }
 }
