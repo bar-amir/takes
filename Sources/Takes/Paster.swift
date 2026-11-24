@@ -45,6 +45,8 @@ enum Paster {
         /// handles ⌘C before the ⌘V behind it, so a copy that lands after Takes stopped waiting would replace the
         /// take, and the app would paste the user's own text back. The wait ends as soon as the copy lands.
         var copyWait: TimeInterval = 1
+        /// How much longer a copy that missed `copyWait` is watched for, so the take can be put back over it.
+        var lateWait: TimeInterval = 1
     }
 
     /// `done(.pasted)` once ⌘V was sent to the text box. Any other outcome means nothing was typed anywhere.
@@ -95,16 +97,17 @@ enum Paster {
             done(.cancelled)
         }
         /// Copies what the paste is about to replace, with the app's own ⌘C, and puts the take back on the
-        /// clipboard with the mentions, links and styles it still has marked as they were. True when it kept any.
+        /// clipboard with the mentions, links and styles it still has marked as they were. True when it kept any,
+        /// nil when the copy didn't land in time: the app still has that ⌘C to handle, and a ⌘V sent behind it
+        /// would paste what it copies, the user's own text, so no ⌘V may go out.
         /// The wait blocks, like the copy that reads a text box, so nothing else looks at the clipboard meanwhile.
-        func keepFormatting() -> Bool {
+        func keepFormatting() -> Bool? {
             // Something copied since the take went on the clipboard is the user's, and is what ⌘V pastes.
             guard pasteboard.changeCount == ours else { return false }
             env.press(CGKeyCode(kVK_ANSI_C))
             let deadline = Date().addingTimeInterval(env.copyWait)
             while pasteboard.changeCount == ours && Date() < deadline { Thread.sleep(forTimeInterval: 0.01) }
-            // No copy: the take is still on the clipboard, and is pasted plain.
-            guard pasteboard.changeCount != ours else { return false }
+            guard pasteboard.changeCount != ours else { return nil }
             // A copy lands one type at a time, the plain text first: give the app's own format a moment to follow.
             let written = Date().addingTimeInterval(0.05)
             let types = KeptFormatting.copiedTypes(for: target)
@@ -114,6 +117,33 @@ enum Paster {
             ours = pasteboard.changeCount
             env.clipboardChanged(.takeAgain)
             return formatted != nil
+        }
+
+        /// The app's ⌘C didn't land in time, so nothing is pasted. The copy may still land: it is watched for a
+        /// little longer and covered over, with the take, or with the user's clipboard when the caller says nothing
+        /// was pasted. Done once that is settled, so the take is on the clipboard by the time the user is told.
+        func copyMissed() {
+            env.note(target, "paste not sent\tcopy didn't land")
+            let before = ours
+            func cover() {
+                let count = pasteboard.changeCount
+                if count != before { ours = count }
+                if keepTakeIfFieldChanged {
+                    // Only over the late copy, never over something the user copied since: that would be theirs.
+                    if count != before { write(formatted: nil); ours = pasteboard.changeCount; env.clipboardChanged(.takeAgain) }
+                } else {
+                    putBack()
+                }
+                done(.fieldChanged)
+            }
+            let owed = owe(cover)
+            let deadline = Date().addingTimeInterval(env.lateWait)
+            func poll() {
+                guard isOwed(owed) else { return }
+                if pasteboard.changeCount != before || Date() >= deadline { return settleOwedRestore() }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.02, execute: poll)
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.02, execute: poll)
         }
 
         // Web-based apps can drop the field's focus while the panel had the keyboard, and another app
@@ -146,7 +176,11 @@ enum Paster {
                     if replaceAll { env.press(CGKeyCode(kVK_ANSI_A)) }
                     // Only text that is being replaced has anything to keep: all of the box, or a selection in it.
                     let replacesText = target.map { !$0.text.isEmpty && (replaceAll || $0.source == .selection) } ?? false
-                    let kept = replacesText && env.keepsFormatting(target) && keepFormatting()
+                    var kept = false
+                    if replacesText && env.keepsFormatting(target) {
+                        guard let copied = keepFormatting() else { return copyMissed() }
+                        kept = copied
+                    }
                     env.press(CGKeyCode(kVK_ANSI_V))
                     env.note(target, "paste sent\t" + env.verdict() + (kept ? "\tformatting kept" : ""))
                     done(.pasted)
