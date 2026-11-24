@@ -233,6 +233,7 @@ final class PasterTests: XCTestCase {
         var env = environment()
         env.keepsFormatting = { _ in true }
         env.copyWait = 0.05
+        env.lateWait = 0.15
         env.press = { [unowned self] key in
             keys.append(Int(key))
             if Int(key) == kVK_ANSI_C { copy() }
@@ -264,13 +265,31 @@ final class PasterTests: XCTestCase {
         XCTAssertEqual(ownWrites, [.take, .takeAgain, .putBack])
     }
 
-    func testACopyThatNeverLandsStillPastesTheTake() async {
+    /// A ⌘V behind a ⌘C the app hasn't handled yet would paste what that copy holds: the user's own text.
+    func testACopyThatNeverLandsSendsNoPasteAndLeavesTheTake() async {
         let outcome = await paste(slackEnvironment {}, text: slackTake, into: slackDraft)
-        XCTAssertEqual(outcome, .pasted)
-        XCTAssertEqual(keys, [kVK_ANSI_A, kVK_ANSI_C, kVK_ANSI_V])
-        XCTAssertEqual(pasteboard.string(forType: .string), slackTake)
-        XCTAssertNil(pastedFormat())
-        XCTAssertEqual(notes, ["paste sent\twhat the check found"])
+        XCTAssertEqual(outcome, .fieldChanged)
+        XCTAssertEqual(keys, [kVK_ANSI_A, kVK_ANSI_C])
+        XCTAssertEqual(pasteboard.string(forType: .string), slackTake, "the take is there to paste by hand")
+        XCTAssertEqual(notes, ["paste not sent\tcopy didn't land"])
+    }
+
+    func testALateCopyIsCoveredWithTheTake() async {
+        let env = slackEnvironment { [unowned self] in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in slackCopies() }
+        }
+        let outcome = await paste(env, text: slackTake, into: slackDraft)
+        XCTAssertEqual(outcome, .fieldChanged)
+        XCTAssertEqual(keys, [kVK_ANSI_A, kVK_ANSI_C])
+        XCTAssertEqual(pasteboard.string(forType: .string), slackTake, "not the draft the late copy put there")
+    }
+
+    func testALateCopyGivesBackTheUsersClipboardWhenTheCallerSaysNothingWasPasted() async {
+        let env = slackEnvironment { [unowned self] in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in slackCopies() }
+        }
+        _ = await paste(env, text: slackTake, keepTake: false, into: slackDraft)
+        XCTAssertEqual(pasteboard.string(forType: .string), "what the user copied")
     }
 
     func testATakeThatKeptNothingIsPastedPlainNotTheCopiedDraft() async {
@@ -304,6 +323,41 @@ final class PasterTests: XCTestCase {
         _ = await paste(env, text: slackTake, into: slackDraft)
         XCTAssertEqual(keys, [kVK_ANSI_A, kVK_ANSI_V])
         XCTAssertEqual(pasteboard.string(forType: .string), "copied meanwhile")
+    }
+
+    // MARK: A text box that keeps links and styles as HTML (mail, docs, a browser)
+
+    func testAPasteIntoARichTextBoxKeepsTheLinkAsHTML() async throws {
+        let draft = FocusSnapshot(app: nil, text: "pls check the doc before 5", source: .field, caretRect: nil)
+        let env = slackEnvironment { [unowned self] in
+            pasteboard.clearContents()
+            pasteboard.setString(draft.text, forType: .string)
+            pasteboard.setString(#"<meta charset="utf-8">pls check <a href="https://example.com/doc">the doc</a> before 5"#, forType: .html)
+        }
+        let take = "Could you check the doc before 5?"
+        let outcome = await paste(env, text: take, into: draft)
+        XCTAssertEqual(outcome, .pasted)
+        XCTAssertEqual(keys, [kVK_ANSI_A, kVK_ANSI_C, kVK_ANSI_V])
+        XCTAssertEqual(pasteboard.string(forType: .string), take)
+        let html = try XCTUnwrap(pasteboard.string(forType: .html))
+        XCTAssertTrue(html.contains(#"<a href="https://example.com/doc">the doc</a>"#))
+        XCTAssertNil(pastedFormat(), "no Slack format for an app that isn't Slack")
+        XCTAssertEqual(notes, ["paste sent\twhat the check found\tformatting kept"])
+        await settle()
+        XCTAssertEqual(pasteboard.string(forType: .string), "what the user copied")
+        XCTAssertNil(pasteboard.string(forType: .html))
+    }
+
+    func testAPlainCopyFromARichTextBoxPastesThePlainTake() async {
+        let draft = FocusSnapshot(app: nil, text: "pls check the doc", source: .field, caretRect: nil)
+        let env = slackEnvironment { [unowned self] in
+            pasteboard.clearContents()
+            pasteboard.setString(draft.text, forType: .string)
+        }
+        _ = await paste(env, text: "Could you check the doc?", into: draft)
+        XCTAssertEqual(pasteboard.string(forType: .string), "Could you check the doc?")
+        XCTAssertNil(pasteboard.string(forType: .html))
+        XCTAssertEqual(notes, ["paste sent\twhat the check found"])
     }
 
     // MARK: The user's clipboard
