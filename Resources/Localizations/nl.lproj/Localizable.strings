@@ -1142,3 +1142,12 @@
 "This is the Open Takes hotkey too; only one of them can fire." = "Dit is ook de sneltoets voor Open Takes; er kan er maar één afgaan.";
 "This version of Claude Code is too old for Takes. Update it (run `claude update` in Terminal), or pick another engine in Settings › Model." = "Deze versie van Claude Code is te oud voor Takes. Werk het bij (voer `claude update` uit in Terminal), of kies een andere engine in Instellingen › Model.";
 "Too old (%@)" = "Te oud (%@)";
+"Prompt for AI" = "Prompt voor AI";
+"Casual message" = "Informeel bericht";
+"Work chat" = "Werkchat";
+"A rough ask into a clear prompt." = "Een ruwe vraag wordt een duidelijke prompt.";
+"Short and warm, the way you text." = "Kort en hartelijk, zoals je appt.";
+"Add" = "Voeg toe";
+"Website…" = "Website…";
+"Pick this preset on a website" = "Deze voorinstelling kiezen op een website";
+"Type the site's address, like mail.google.com." = "Typ het adres van de site, zoals mail.google.com.";

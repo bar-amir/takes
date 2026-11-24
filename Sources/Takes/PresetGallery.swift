@@ -1,10 +1,11 @@
-import Foundation
+import AppKit
 
 /// Ready-made presets. Adding one gives the user their own copy (a new id) to edit; the template
 /// itself never changes. Fresh installs start with `starters`.
 enum PresetGallery {
     static var all: [Preset] {
-        [slack, .proofread, email, shorter, friendlier, direct, professional, explainSimply, summarize, statusUpdate, decline]
+        [fitted(slack), .proofread, fitted(email), fitted(promptForAI), fitted(casual), shorter, friendlier, direct, professional,
+         explainSimply, summarize, statusUpdate, decline]
             + translations(for: Store.shared.settings.writingLanguages)
     }
 
@@ -12,10 +13,55 @@ enum PresetGallery {
     /// language also start with "Translate to …" for each of them.
     static var starters: [Preset] { starters(languages: Store.shared.settings.writingLanguages) }
 
-    static func starters(languages: [String]) -> [Preset] {
+    /// The starters are tied to the common apps on this Mac (`installed`), and "Prompt for AI" and "Casual message"
+    /// are added only when one of the apps they're for is installed.
+    static func starters(languages: [String], installed: (String) -> Bool = InstalledApps.contains) -> [Preset] {
+        let forApps = [promptForAI, casual].map { fitted($0, installed: installed) }
+            .filter { $0.apps.contains { !$0.isSite && !alwaysInstalled.contains($0.bundleID) } }
         // A rewriting preset comes first: it's the default when no preset is picked for the app.
-        [slack, .proofread, email, shorter, friendlier, direct, decline] + (languages.count > 1 ? translations(for: languages) : [])
+        return [fitted(slack, installed: installed), .proofread, fitted(email, installed: installed)] + forApps
+            + [shorter, friendlier, direct, decline] + (languages.count > 1 ? translations(for: languages) : [])
     }
+
+    /// A template with the apps on this Mac it's picked in. Slack and Mail stay on their presets as before; Teams and
+    /// other email apps join them when installed, and the chat preset is called "Work chat" once it covers Teams too.
+    /// "Prompt for AI" and "Casual message" keep only the apps that are installed. Websites are always kept.
+    static func fitted(_ template: Preset, installed: (String) -> Bool = InstalledApps.contains) -> Preset {
+        var preset = template
+        switch template.id {
+        case slack.id:
+            let teamsApps = teams.filter { installed($0.bundleID) }
+            if !teamsApps.isEmpty { preset.name = String(localized: "Work chat") }
+            preset.apps = template.apps.filter { !$0.isSite } + teamsApps + template.apps.filter { $0.isSite }
+        case email.id:
+            preset.apps = template.apps.filter { !$0.isSite } + emailApps.filter { installed($0.bundleID) }
+                + template.apps.filter { $0.isSite }
+        case promptForAI.id, casual.id:
+            preset.apps = template.apps.filter { $0.isSite || installed($0.bundleID) }
+        default:
+            break
+        }
+        return preset
+    }
+
+    // MARK: Common apps
+
+    /// Microsoft Teams, new and classic: picked by the Slack preset too.
+    static let teams = [
+        AppRef(bundleID: "com.microsoft.teams2", name: "Microsoft Teams"),
+        AppRef(bundleID: "com.microsoft.teams", name: "Microsoft Teams"),
+    ]
+
+    /// Email apps picked by "Polish email" besides Mail.
+    static let emailApps = [
+        AppRef(bundleID: "com.microsoft.Outlook", name: "Outlook"),
+        AppRef(bundleID: "com.readdle.SparkDesktop", name: "Spark"),
+        AppRef(bundleID: "com.readdle.smartemail-Mac", name: "Spark Classic"),
+        AppRef(bundleID: "com.superhuman.electron", name: "Superhuman"),
+    ]
+
+    /// Apps every Mac has. They're tied to a preset that's added, but don't add one on their own: everyone would get it.
+    static let alwaysInstalled: Set<String> = ["com.apple.MobileSMS", "com.apple.mail"]
 
     /// One "Translate to …" per language the user writes in.
     static func translations(for languages: [String]) -> [Preset] { languages.map(translate(to:)) }
@@ -97,14 +143,23 @@ enum PresetGallery {
         instruction: "Rewrite my draft as a chat message to teammates. Lead with the answer or the ask, then only the context they need. Warm but brief, the way a respected colleague writes in Slack.",
         dos: ["Answer or ask in the first sentence", "One ask per sentence", "Keep shorthand like EOD, QA, PR"],
         avoid: ["Exclamation marks", "\"Just\", \"quick question\", \"hope you're well\"", "Emoji unless I used them", "Bullets for a short message"],
-        apps: [AppRef(bundleID: "com.tinyspeck.slackmacgap", name: "Slack")])
+        apps: [
+            AppRef(bundleID: "com.tinyspeck.slackmacgap", name: "Slack"),
+            .site("app.slack.com", name: "Slack web"),
+            .site("teams.microsoft.com", "teams.cloud.microsoft", "teams.live.com", name: "Teams web"),
+        ])
 
     static let email = Preset(
         id: "gallery.email", name: String(localized: "Polish email"), colorHex: "#7A3FD1",
         instruction: "Rewrite my draft as a clear, professional email body. Keep my points; fix the order and flow so the reader knows what I need by the end of the first paragraph. Keep any greeting or sign-off I wrote. No subject line, no signature.",
         dos: ["Short paragraphs, one idea each", "The ask or decision near the top", "Concrete dates and owners"],
         avoid: ["\"I hope this email finds you well\"", "Stacked apologies", "Facts or promises I didn't write"],
-        length: .any, apps: [AppRef(bundleID: "com.apple.mail", name: "Mail")])
+        length: .any,
+        apps: [
+            AppRef(bundleID: "com.apple.mail", name: "Mail"),
+            .site("mail.google.com", name: "Gmail"),
+            .site("outlook.office.com", "outlook.cloud.microsoft", "outlook.office365.com", "outlook.live.com", name: "Outlook web"),
+        ])
 
     static let shorter = Preset(
         id: "gallery.shorter", name: String(localized: "Shorter"), colorHex: "#8A4B08",
@@ -158,6 +213,41 @@ enum PresetGallery {
         dos: ["Make the no unmistakable", "Thank them once, briefly"],
         avoid: ["Over-apologising", "Vague maybes that invite a follow-up", "Reasons or alternatives I didn't give"])
 
+    static let promptForAI = Preset(
+        id: "gallery.prompt", name: String(localized: "Prompt for AI"), colorHex: "#55555E",
+        instruction: "Rewrite my draft as a clear prompt for an AI assistant: what I want first, then the context it needs, any constraints, and the form of answer I want. Keep my language and my meaning. Write the prompt only; don't answer it.",
+        dos: ["The goal in the first sentence", "Context, limits and the answer's format, if I gave them", "Short lines or bullets for a long ask"],
+        avoid: ["Answering the prompt", "Requirements or facts I didn't write", "Openers like \"You are an expert\"", "Politeness filler"],
+        length: .any,
+        apps: [
+            AppRef(bundleID: "com.openai.chat", name: "ChatGPT"),
+            AppRef(bundleID: "com.anthropic.claudefordesktop", name: "Claude"),
+            AppRef(bundleID: "ai.perplexity.macv3", name: "Perplexity"),
+            AppRef(bundleID: "ai.perplexity.mac", name: "Perplexity"),
+            .site("chatgpt.com", "chat.openai.com", name: "ChatGPT web"),
+            .site("claude.ai", name: "Claude web"),
+            .site("perplexity.ai", name: "Perplexity web"),
+            .site("gemini.google.com", name: "Gemini"),
+        ],
+        showTone: false)
+
+    static let casual = Preset(
+        id: "gallery.casual", name: String(localized: "Casual message"), colorHex: "#1D6B4F",
+        instruction: "Rewrite my draft as a casual message to a friend or family: short, warm and natural, the way people text. Keep my meaning, my slang and my emoji.",
+        dos: ["Short sentences", "Everyday words and contractions", "My emoji where I put them"],
+        avoid: ["Work or formal phrasing", "Emoji or exclamation marks I didn't use", "Making it longer"],
+        apps: [
+            AppRef(bundleID: "net.whatsapp.WhatsApp", name: "WhatsApp"),
+            AppRef(bundleID: "desktop.WhatsApp", name: "WhatsApp"),
+            AppRef(bundleID: "ru.keepcoder.Telegram", name: "Telegram"),
+            AppRef(bundleID: "org.telegram.desktop", name: "Telegram"),
+            AppRef(bundleID: "com.hnc.Discord", name: "Discord"),
+            AppRef(bundleID: "com.apple.MobileSMS", name: "Messages"),
+            .site("web.whatsapp.com", name: "WhatsApp Web"),
+            .site("web.telegram.org", name: "Telegram Web"),
+            .site("discord.com", name: "Discord web"),
+        ])
+
     /// English keeps the id it had when it was the only translate preset, so copies made then still show as added.
     static func translate(to code: String) -> Preset {
         let name = Languages.englishName(code)
@@ -181,5 +271,35 @@ enum PresetGallery {
         summarize.id: String(localized: "Notes or a long thread into a short reply."),
         statusUpdate.id: String(localized: "Done, next and blocked."),
         decline.id: String(localized: "A clear no that keeps things warm."),
+        promptForAI.id: String(localized: "A rough ask into a clear prompt."),
+        casual.id: String(localized: "Short and warm, the way you text."),
     ]
+}
+
+/// Whether an app is on this Mac, by bundle id. Launch Services lookups aren't free, and the gallery asks every time
+/// it's drawn, so answers are kept: "installed" for good, "not installed" for `recheckAfter`, so an app installed
+/// while Takes runs is noticed without a restart.
+enum InstalledApps {
+    private static let lock = NSLock()
+    nonisolated(unsafe) private static var known: [String: (installed: Bool, at: Date)] = [:]
+    static let recheckAfter: TimeInterval = 30
+
+    /// What `--snapshot` renders take as installed, so they come out the same on every Mac and in CI.
+    static let inSnapshots: Set<String> = ["com.openai.chat", "com.anthropic.claudefordesktop", "net.whatsapp.WhatsApp"]
+
+    static func contains(_ bundleID: String) -> Bool {
+        if Store.readOnly { return inSnapshots.contains(bundleID) }
+        return contains(bundleID, now: Date()) { NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0) != nil }
+    }
+
+    static func contains(_ bundleID: String, now: Date, lookUp: (String) -> Bool) -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        if let answer = known[bundleID], answer.installed || now.timeIntervalSince(answer.at) < recheckAfter {
+            return answer.installed
+        }
+        let installed = lookUp(bundleID)
+        known[bundleID] = (installed, now)
+        return installed
+    }
 }

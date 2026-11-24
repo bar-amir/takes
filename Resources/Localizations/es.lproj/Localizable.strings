@@ -1142,3 +1142,12 @@
 "This is the Open Takes hotkey too; only one of them can fire." = "Este también es el atajo de Abrir Takes; solo uno de los dos puede activarse.";
 "This version of Claude Code is too old for Takes. Update it (run `claude update` in Terminal), or pick another engine in Settings › Model." = "Esta versión de Claude Code es demasiado antigua para Takes. Actualízala (ejecuta `claude update` en Terminal) o elige otro motor en Ajustes › Modelo.";
 "Too old (%@)" = "Demasiado antiguo (%@)";
+"Prompt for AI" = "Instrucción para IA";
+"Casual message" = "Mensaje informal";
+"Work chat" = "Chat de trabajo";
+"A rough ask into a clear prompt." = "Una petición a medias en una instrucción clara.";
+"Short and warm, the way you text." = "Breve y cercano, como cuando escribes mensajes.";
+"Add" = "Añadir";
+"Website…" = "Sitio web…";
+"Pick this preset on a website" = "Elegir este preajuste en un sitio web";
+"Type the site's address, like mail.google.com." = "Escribe la dirección del sitio, como mail.google.com.";

@@ -1142,3 +1142,12 @@
 "This is the Open Takes hotkey too; only one of them can fire." = "Ini juga tombol pintas Buka Takes; hanya satu yang bisa aktif.";
 "This version of Claude Code is too old for Takes. Update it (run `claude update` in Terminal), or pick another engine in Settings › Model." = "Versi Claude Code ini terlalu lama untuk Takes. Perbarui (jalankan `claude update` di Terminal), atau pilih mesin lain di Pengaturan › Model.";
 "Too old (%@)" = "Terlalu lama (%@)";
+"Prompt for AI" = "Prompt untuk AI";
+"Casual message" = "Pesan santai";
+"Work chat" = "Chat kerja";
+"A rough ask into a clear prompt." = "Permintaan kasar jadi prompt yang jelas.";
+"Short and warm, the way you text." = "Singkat dan hangat, seperti saat chatting.";
+"Add" = "Tambah";
+"Website…" = "Situs web…";
+"Pick this preset on a website" = "Pilih preset ini di situs web";
+"Type the site's address, like mail.google.com." = "Ketik alamat situs, misalnya mail.google.com.";

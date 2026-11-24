@@ -1142,3 +1142,12 @@
 "This is the Open Takes hotkey too; only one of them can fire." = "Ово је и пречица за Отвори Takes; само једна од њих може да се активира.";
 "This version of Claude Code is too old for Takes. Update it (run `claude update` in Terminal), or pick another engine in Settings › Model." = "Ова верзија Claude Code-а је престара за Takes. Ажурирајте је (покрените `claude update` у Терминалу) или изаберите други сервис у Подешавањима › Модел.";
 "Too old (%@)" = "Престаро (%@)";
+"Prompt for AI" = "Упит за AI";
+"Casual message" = "Опуштена порука";
+"Work chat" = "Пословни чет";
+"A rough ask into a clear prompt." = "Груба замисао у јасан упит.";
+"Short and warm, the way you text." = "Кратко и топло, као када се дописујете.";
+"Add" = "Додај";
+"Website…" = "Веб-сајт…";
+"Pick this preset on a website" = "Изабери овај шаблон на веб-сајту";
+"Type the site's address, like mail.google.com." = "Унесите адресу сајта, нпр. mail.google.com.";

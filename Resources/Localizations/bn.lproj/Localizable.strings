@@ -1144,3 +1144,12 @@
 "This is the Open Takes hotkey too; only one of them can fire." = "এটি Takes খুলুন-এর হটকিও; দুটির মধ্যে শুধু একটি কাজ করবে।";
 "This version of Claude Code is too old for Takes. Update it (run `claude update` in Terminal), or pick another engine in Settings › Model." = "Claude Code-এর এই সংস্করণ Takes-এর জন্য খুব পুরোনো। এটি আপডেট করুন (টার্মিনালে `claude update` চালান), অথবা সেটিংস › মডেল-এ অন্য ইঞ্জিন বেছে নিন।";
 "Too old (%@)" = "খুব পুরোনো (%@)";
+"Prompt for AI" = "এআই-এর জন্য প্রম্পট";
+"Casual message" = "সাধারণ বার্তা";
+"Work chat" = "কাজের চ্যাট";
+"A rough ask into a clear prompt." = "অগোছালো অনুরোধ থেকে স্পষ্ট প্রম্পট।";
+"Short and warm, the way you text." = "ছোট আর আন্তরিক, যেভাবে আপনি মেসেজ করেন।";
+"Add" = "যোগ করুন";
+"Website…" = "ওয়েবসাইট…";
+"Pick this preset on a website" = "একটি ওয়েবসাইটে এই প্রিসেট বেছে নিন";
+"Type the site's address, like mail.google.com." = "সাইটের ঠিকানা লিখুন, যেমন mail.google.com।";

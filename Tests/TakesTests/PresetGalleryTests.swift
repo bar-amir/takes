@@ -53,7 +53,7 @@ final class PresetGalleryTests: XCTestCase {
 
     func testAllGalleryPresetsAreValid() {
         let all = PresetGallery.all
-        XCTAssertTrue((12...14).contains(all.count))
+        XCTAssertTrue((14...16).contains(all.count))
         XCTAssertEqual(Set(all.map(\.id)).count, all.count, "Unique ids")
         XCTAssertEqual(Set(all.map { $0.name.lowercased() }).count, all.count, "Unique names")
         for preset in all {
@@ -119,6 +119,66 @@ final class PresetGalleryTests: XCTestCase {
     }
 }
 
+/// On a fresh install the starters follow the common apps on the Mac.
+final class StarterAppsTests: XCTestCase {
+    private func starters(_ installed: Set<String>) -> [Preset] {
+        PresetGallery.starters(languages: ["en"], installed: { installed.contains($0) })
+    }
+
+    private func preset(_ id: String, in presets: [Preset]) -> Preset? { presets.first { $0.id == id } }
+
+    func testNothingInstalledKeepsTheUsualStarters() {
+        let presets = starters([])
+        XCTAssertEqual(presets.map(\.id), [PresetGallery.slack, .proofread, PresetGallery.email, PresetGallery.shorter,
+                                           PresetGallery.friendlier, PresetGallery.direct, PresetGallery.decline].map(\.id))
+        XCTAssertEqual(preset(PresetGallery.slack.id, in: presets)?.name, PresetGallery.slack.name)
+        XCTAssertEqual(preset(PresetGallery.email.id, in: presets)?.apps.filter { !$0.isSite }.map(\.bundleID), ["com.apple.mail"])
+        XCTAssertTrue(preset(PresetGallery.email.id, in: presets)?.apps.contains { $0.name == "Gmail" } ?? false, "Websites need no app")
+    }
+
+    func testAIAppsAddPromptForAI() {
+        let presets = starters(["com.openai.chat", "com.anthropic.claudefordesktop"])
+        let prompt = preset(PresetGallery.promptForAI.id, in: presets)
+        XCTAssertEqual(prompt?.apps.filter { !$0.isSite }.map(\.name), ["ChatGPT", "Claude"])
+        XCTAssertTrue(prompt?.apps.contains { $0.name == "ChatGPT web" } ?? false)
+        XCTAssertNil(preset(PresetGallery.casual.id, in: presets))
+        XCTAssertEqual(presets.firstIndex { $0.id == PresetGallery.promptForAI.id }, 3, "Right after Polish email")
+    }
+
+    func testChatAppsAddCasualWithMessages() {
+        let presets = starters(["net.whatsapp.WhatsApp", "com.apple.MobileSMS"])
+        XCTAssertEqual(preset(PresetGallery.casual.id, in: presets)?.apps.filter { !$0.isSite }.map(\.name), ["WhatsApp", "Messages"])
+    }
+
+    /// Every Mac has Messages, so it alone doesn't add a preset to every install.
+    func testMessagesAloneAddsNothing() {
+        XCTAssertNil(preset(PresetGallery.casual.id, in: starters(["com.apple.MobileSMS"])))
+    }
+
+    func testTeamsJoinsTheChatPreset() {
+        let chat = preset(PresetGallery.slack.id, in: starters(["com.microsoft.teams2"]))
+        XCTAssertEqual(chat?.apps.filter { !$0.isSite }.map(\.bundleID), ["com.tinyspeck.slackmacgap", "com.microsoft.teams2"])
+        XCTAssertEqual(chat?.name, "Work chat")
+        XCTAssertEqual(preset(PresetGallery.slack.id, in: starters([]))?.name, PresetGallery.slack.name, "Teams web alone keeps the name")
+    }
+
+    func testEmailAppsJoinPolishEmail() {
+        let mail = preset(PresetGallery.email.id, in: starters(["com.microsoft.Outlook", "com.superhuman.electron"]))
+        XCTAssertEqual(mail?.apps.filter { !$0.isSite }.map(\.name), ["Mail", "Outlook", "Superhuman"])
+    }
+
+    /// The first preset that lists an app is the one picked there, so no app may be on two starters.
+    func testNoAppIsOnTwoStarters() {
+        let everything = Set((PresetGallery.teams + PresetGallery.emailApps + PresetGallery.promptForAI.apps
+            + PresetGallery.casual.apps + PresetGallery.slack.apps + PresetGallery.email.apps).filter { !$0.isSite }.map(\.bundleID))
+        let ids = starters(everything).flatMap { $0.apps.map(\.bundleID) }
+        XCTAssertEqual(ids.count, Set(ids).count)
+        XCTAssertEqual(Set(ids.filter { !$0.hasPrefix(AppRef.sitePrefix) }), everything)
+        let domains = starters(everything).flatMap { $0.apps.compactMap(\.siteDomains).joined() }
+        XCTAssertEqual(domains.count, Set(domains).count, "No website on two starters")
+    }
+}
+
 final class StarterOrderTests: XCTestCase {
     /// The first preset is the default for apps without one, so it must write several takes, not proofread.
     func testFirstStarterRewrites() {
@@ -127,5 +187,27 @@ final class StarterOrderTests: XCTestCase {
             XCTAssertFalse(first.isMinimalEdits)
             XCTAssertGreaterThan(first.takes, 1)
         }
+    }
+
+    /// An app installed while Takes runs is noticed once "not installed" is old enough to ask again.
+    func testANewlyInstalledAppIsNoticed() {
+        let id = "com.example.installed-later-\(UUID().uuidString)"
+        let start = Date()
+        var installed = false
+        var lookUps = 0
+        let lookUp: (String) -> Bool = { _ in lookUps += 1; return installed }
+        XCTAssertFalse(InstalledApps.contains(id, now: start, lookUp: lookUp))
+        installed = true
+        XCTAssertFalse(InstalledApps.contains(id, now: start.addingTimeInterval(5), lookUp: lookUp), "kept a while")
+        XCTAssertTrue(InstalledApps.contains(id, now: start.addingTimeInterval(InstalledApps.recheckAfter + 1), lookUp: lookUp))
+        XCTAssertTrue(InstalledApps.contains(id, now: start.addingTimeInterval(1_000), lookUp: lookUp))
+        XCTAssertEqual(lookUps, 2, "installed is kept for good")
+    }
+
+    func testSnapshotsDontDependOnThisMac() {
+        Store.readOnly = true
+        defer { Store.readOnly = false }
+        XCTAssertTrue(InstalledApps.contains("com.openai.chat"))
+        XCTAssertFalse(InstalledApps.contains("com.apple.Safari"), "only the fixed set, whatever is on this Mac")
     }
 }

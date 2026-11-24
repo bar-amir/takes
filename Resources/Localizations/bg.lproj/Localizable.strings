@@ -1142,3 +1142,12 @@
 "This is the Open Takes hotkey too; only one of them can fire." = "Това е и бързият клавиш за „Отвори Takes“; само един от двата може да сработи.";
 "This version of Claude Code is too old for Takes. Update it (run `claude update` in Terminal), or pick another engine in Settings › Model." = "Тази версия на Claude Code е твърде стара за Takes. Обновете го (изпълнете `claude update` в Терминал) или изберете друг двигател в Настройки › Модел.";
 "Too old (%@)" = "Твърде стар (%@)";
+"Prompt for AI" = "Подкана за ИИ";
+"Casual message" = "Неформално съобщение";
+"Work chat" = "Работен чат";
+"A rough ask into a clear prompt." = "Груба молба в ясна подкана.";
+"Short and warm, the way you text." = "Кратко и топло, както пишеш на приятели.";
+"Add" = "Добави";
+"Website…" = "Уебсайт…";
+"Pick this preset on a website" = "Избиране на този шаблон в уебсайт";
+"Type the site's address, like mail.google.com." = "Въведи адреса на сайта, например mail.google.com.";
