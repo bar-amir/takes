@@ -43,6 +43,19 @@ final class SiteMatchTests: XCTestCase {
         XCTAssertEqual(Store.pickedFirst(presets, bundleID: nil, site: nil).map(\.id), [])
     }
 
+    /// In an app that isn't a browser but shows a web page (Slack's desktop app), the preset tied to the app wins.
+    func testTheUsersAppBeatsAWebsiteInsideThatApp() {
+        let mine = Preset(id: "m", name: "My Slack", colorHex: "#2F55E0", instruction: "x",
+                          apps: [AppRef(bundleID: "com.tinyspeck.slackmacgap", name: "Slack")])
+        let starter = Preset(id: "s", name: "Slack message", colorHex: "#2F55E0", instruction: "x", apps: [.site("app.slack.com", name: "Slack")])
+        let notBrowser: (String) -> Bool = { _ in false }
+        XCTAssertEqual(
+            Store.pickedFirst([starter, mine], bundleID: "com.tinyspeck.slackmacgap", site: "app.slack.com", isBrowser: notBrowser).map(\.id), ["m", "s"])
+        XCTAssertEqual(Store.pickedFirst([starter], bundleID: "com.tinyspeck.slackmacgap", site: "app.slack.com", isBrowser: notBrowser).map(\.id), ["s"])
+        XCTAssertTrue(Browsers.contains("com.google.Chrome"))
+        XCTAssertFalse(Browsers.contains("com.tinyspeck.slackmacgap"))
+    }
+
     /// The page is the outermost web area above the text box: a frame inside it doesn't count.
     func testSiteIsTheTabsPage() {
         // field → frame (web area) → group → page (web area) → window. Each element is told apart by a made-up pid.

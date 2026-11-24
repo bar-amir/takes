@@ -706,12 +706,17 @@ final class Store: ObservableObject {
         Store.pickedFirst(presets, bundleID: bundleID, site: site).first
     }
 
-    /// The presets that list this app or website, those for the website first.
-    static func pickedFirst(_ presets: [Preset], bundleID: String?, site: String?) -> [Preset] {
+    /// The presets that list this app or website. In a browser, those for the website come first. In any other app
+    /// that shows a web page (Slack, Teams or Discord's desktop app), a preset tied to that app comes first: the
+    /// user picked that app, and its page address is only how the app is built.
+    static func pickedFirst(
+        _ presets: [Preset], bundleID: String?, site: String?, isBrowser: (String) -> Bool = Browsers.contains
+    ) -> [Preset] {
         let forSite = presets.filter { $0.apps.contains { $0.isSite && $0.matches(bundleID: nil, site: site) } }
         let forApp = presets.filter { preset in
             !forSite.contains { $0.id == preset.id } && preset.apps.contains { !$0.isSite && $0.matches(bundleID: bundleID, site: nil) }
         }
+        if let bundleID, !isBrowser(bundleID) { return forApp + forSite }
         return forSite + forApp
     }
 
@@ -853,4 +858,26 @@ final class Store: ObservableObject {
                instruction: "Translate my English draft into natural Hebrew, the way Israelis write at work. Keep my tone and register.",
                language: .hebrew, length: .any),
     ]
+}
+
+/// Which apps are web browsers: the common ones by bundle id, and any other app macOS would open a web link in.
+enum Browsers {
+    static let known: Set<String> = [
+        "com.apple.Safari", "com.apple.SafariTechnologyPreview", "com.google.Chrome", "com.google.Chrome.beta",
+        "com.google.Chrome.canary", "org.chromium.Chromium", "org.mozilla.firefox", "org.mozilla.firefoxdeveloperedition",
+        "company.thebrowser.Browser", "company.thebrowser.dia", "com.microsoft.edgemac", "com.brave.Browser",
+        "com.operasoftware.Opera", "com.vivaldi.Vivaldi", "app.zen-browser.zen", "com.kagi.kagimacOS",
+    ]
+
+    /// Main thread only.
+    private static var found: [String: Bool] = [:]
+
+    static func contains(_ bundleID: String) -> Bool {
+        if known.contains(bundleID) { return true }
+        if let answer = found[bundleID] { return answer }
+        let opensLinks = NSWorkspace.shared.urlsForApplications(toOpen: URL(string: "https://example.com")!)
+            .contains { Bundle(url: $0)?.bundleIdentifier == bundleID }
+        found[bundleID] = opensLinks
+        return opensLinks
+    }
 }
